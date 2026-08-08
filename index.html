@@ -14,37 +14,43 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* --- GHI ĐÈ CSS CHO HEADER --- */
+        /* --- CSS CHO HEADER VÀ KHU VỰC LOGO --- */
         header {
-            gap: 4rem; /* Tạo khoảng cách cố định giữa Logo và chữ Giới thiệu */
+            gap: 3rem; 
         }
 
-        /* --- CSS CHO KHU VỰC LOGO --- */
         .logo-text {
             display: flex;
             flex-direction: column;
             justify-content: center;
-            white-space: nowrap; /* Ép dòng chữ "Trường..." nằm trên 1 hàng để làm thước đo chuẩn */
         }
-        
-        .logo-text h1 {
-            margin: 0;
+
+        /* Khóa chiều rộng bám sát chữ, không để bị rớt dòng */
+        .logo-text div {
+            white-space: nowrap;
+            width: max-content;
             line-height: 1.2;
-            font-size: 1.2rem;
+            transform-origin: left;
+        }
+
+        #logo-line-1 {
             font-weight: 700;
             color: var(--text-dark, #0f172a);
-            text-align-last: justify; /* Tự động trải đều khoảng cách chữ cho bằng với dòng bên dưới */
         }
 
-        .logo-text .sub-title {
-            font-size: 0.75rem;
+        #logo-line-2 {
+            font-weight: 600;
             color: var(--text-body, #475569);
-            margin: 4px 0 0 0;
-            font-weight: 500;
-            line-height: 1.3;
+            margin-top: 3px;
         }
 
-        /* --- CSS CHO FOOTER (Tối ưu 1 hàng trên Mobile) --- */
+        #logo-line-3 {
+            font-weight: 500;
+            color: var(--text-body, #475569);
+            margin-top: 2px;
+        }
+
+        /* --- CSS CHO FOOTER --- */
         footer {
             text-align: center;
             padding: 2rem 1rem;
@@ -88,33 +94,48 @@
 
         /* --- RESPONSIVE MOBILE --- */
         @media (max-width: 768px) {
-            header {
-                gap: 1rem; /* Thu hẹp khoảng cách trên điện thoại */
-            }
-            .slider-track {
-                height: 250px;
-            }
-            .logo-text {
-                white-space: normal; /* Cho phép chữ rớt dòng trên màn hình nhỏ */
-            }
-            .logo-text h1 {
-                font-size: 1rem;
-                text-align-last: left; /* Tắt tính năng trải đều để chữ không bị rời rạc */
-            }
-            .logo-text .sub-title {
-                font-size: 0.6rem;
-            }
+            header { gap: 1rem; }
+            .slider-track { height: 250px; }
         }
     </style>
 </head>
 <body style="display: flex; flex-direction: column; min-height: 100vh;">
+    <!-- HEADER -->
     <header>
         <div class="logo">
             <img src="images/logo_Bộ môn.png" alt="Logo Bộ môn Phục hồi chức năng">
+            
             <div class="logo-text">
-                <h1>Bộ môn Phục hồi chức năng</h1>
-                <p class="sub-title">Trường Điều dưỡng - Kỹ thuật Y học, Đại học Y Dược Thành Phố Hồ Chí Minh</p>
+                <div id="logo-line-1">Bộ môn Phục hồi chức năng</div>
+                <div id="logo-line-2">Trường Điều dưỡng - Kỹ thuật Y học</div>
+                <div id="logo-line-3">Đại học Y Dược Thành Phố Hồ Chí Minh</div>
             </div>
+            
+            <!-- Script Căn bằng chữ tuyệt đối -->
+            <script>
+                function perfectAlignLogo() {
+                    const l1 = document.getElementById('logo-line-1');
+                    const l2 = document.getElementById('logo-line-2');
+                    const l3 = document.getElementById('logo-line-3');
+                    
+                    if (!l1 || !l2 || !l3) return;
+
+                    const baseSize = window.innerWidth > 768 ? 1.4 : 1.05; 
+                    l1.style.fontSize = baseSize + 'rem';
+                    
+                    l2.style.fontSize = '10px';
+                    l3.style.fontSize = '10px';
+                    
+                    const targetWidth = l1.getBoundingClientRect().width;
+                    
+                    l2.style.fontSize = (10 * (targetWidth / l2.getBoundingClientRect().width)) + 'px';
+                    l3.style.fontSize = (10 * (targetWidth / l3.getBoundingClientRect().width)) + 'px';
+                }
+                
+                perfectAlignLogo();
+                window.addEventListener('resize', perfectAlignLogo);
+                document.fonts.ready.then(perfectAlignLogo);
+            </script>
         </div>
         
         <div class="menu-toggle" id="mobile-menu" aria-label="Menu">
@@ -131,8 +152,10 @@
         </nav>
     </header>
 
+    <!-- NỘI DUNG CHÍNH -->
     <main style="flex: 1; padding-top: 2rem;">
         
+        <!-- PHẦN SLIDESHOW CHẠY ẢNH -->
         <div class="slideshow-container">
             <div class="slider-track" id="slider-track">
                 <img src="images/1.jpg" alt="Slide 1">
@@ -143,6 +166,7 @@
             </div>
         </div>
 
+        <!-- LƯỚI CÁC PHÂN MỤC CHÍNH (CARDS) -->
         <section class="quick-links" style="margin-bottom: 2rem;">
             
             <a href="gioi-thieu.html" class="quick-card">
@@ -188,11 +212,14 @@
         </section>
     </main>
 
+    <!-- FOOTER -->
     <footer>
         <p>&copy; 2026 Bộ môn Phục hồi chức năng. Mọi quyền được bảo lưu.</p>
     </footer>
 
+    <!-- CÁC SCRIPT XỬ LÝ GIAO DIỆN -->
     <script>
+        // --- XỬ LÝ MENU ĐIỆN THOẠI ---
         const mobileMenu = document.getElementById('mobile-menu');
         const navLinks = document.getElementById('nav-links');
         const icon = mobileMenu.querySelector('i');
@@ -209,6 +236,7 @@
             }
         });
 
+        // --- XỬ LÝ SLIDESHOW LƯỚT NGANG ---
         const track = document.getElementById('slider-track');
         let slideIndex = 0;
         const totalSlides = 5;
@@ -224,6 +252,7 @@
         setInterval(moveSlides, 3000);
     </script>
 
+    <!-- Cấu hình Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
