@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Bảng điều khiển dành cho Giảng viên Bộ môn Phục hồi chức năng.">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://cdnjs.cloudflare.com https://www.gstatic.com https://*.firebaseio.com https://*.googleapis.com; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' https://www.gstatic.com;">
+    <title>Bảng điều khiển Giảng viên - Bộ môn Phục hồi chức năng</title>
+    
+    <link rel="icon" href="images/logo_Bộ môn.png" type="image/png">
+    <link rel="apple-touch-icon" href="images/logo_Bộ môn.png">
+    
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* --- CSS CHO HEADER VÀ KHU VỰC LOGO --- */
+        header {
+            gap: 3rem; 
+        }
+
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .logo-text div {
+            white-space: nowrap;
+            width: max-content;
+            line-height: 1.2;
+            transform-origin: left;
+        }
+
+        #logo-line-1 { font-weight: 700; color: var(--text-dark, #0f172a); }
+        #logo-line-2 { font-weight: 600; color: var(--text-body, #475569); margin-top: 0.25em; }
+        #logo-line-3 { font-weight: 500; color: var(--text-body, #475569); margin-top: 0.15em; }
+
+        /* --- CSS CHO NÚT ĐĂNG XUẤT TẠI HEADER --- */
+        .btn-logout {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--text-body); /* Màu xám để khác biệt với nút chính */
+            color: var(--surface);
+            padding: 0.6rem 1.5rem;
+            border-radius: var(--radius-pill);
+            font-weight: 500;
+            font-size: 0.9rem;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-logout:hover {
+            background-color: var(--accent); /* Đổi sang đỏ khi đưa chuột vào */
+            transform: translateY(-1px);
+        }
+
+        .user-email-display {
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 0.95rem;
+        }
+
+        /* --- CSS CHO KHU VỰC DASHBOARD --- */
+        .dashboard-header {
+            margin-bottom: 2.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .dashboard-header h2 {
+            font-size: 1.8rem;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .dashboard-header p {
+            color: var(--text-body);
+            font-size: 1rem;
+        }
+
+        /* --- CSS CHO FOOTER --- */
+        footer {
+            text-align: center;
+            padding: 2rem 1rem;
+            background-color: var(--surface, #ffffff);
+            border-top: 1px solid var(--border, #e2e8f0);
+            color: var(--text-body, #475569);
+            margin-top: auto;
+            overflow: hidden; 
+        }
+
+        footer p {
+            margin: 0;
+            white-space: nowrap; 
+            font-size: clamp(0.55rem, 2.5vw, 0.9rem); 
+        }
+
+        /* --- RESPONSIVE MOBILE --- */
+        @media (max-width: 768px) {
+            header { gap: 1rem; }
+            .btn-logout { margin: 1rem 2rem; width: calc(100% - 4rem); }
+            .user-email-display { display: none; /* Ẩn email trên điện thoại cho gọn */ }
+        }
+    </style>
+</head>
+<body style="display: flex; flex-direction: column; min-height: 100vh; background-color: var(--bg-page);">
+    
+    <!-- HEADER -->
+    <header>
+        <div class="logo">
+            <img src="images/logo_Bộ môn.png" alt="Logo Bộ môn Phục hồi chức năng">
+            
+            <div class="logo-text">
+                <div id="logo-line-1">Bộ môn Phục hồi chức năng</div>
+                <div id="logo-line-2">Trường Điều dưỡng - Kỹ thuật Y học</div>
+                <div id="logo-line-3">Đại học Y Dược Thành Phố Hồ Chí Minh</div>
+            </div>
+            
+            <!-- Script Căn bằng chữ tuyệt đối và giới hạn chiều cao -->
+            <script>
+                function perfectAlignLogo() {
+                    const l1 = document.getElementById('logo-line-1');
+                    const l2 = document.getElementById('logo-line-2');
+                    const l3 = document.getElementById('logo-line-3');
+                    const logoImg = document.querySelector('.logo img');
+                    const logoText = document.querySelector('.logo-text');
+                    
+                    if (!l1 || !l2 || !l3 || !logoImg || !logoText) return;
+                    if (logoImg.complete === false || logoImg.naturalHeight === 0) {
+                        logoImg.onload = perfectAlignLogo;
+                        return;
+                    }
+
+                    const isMobile = window.innerWidth <= 768;
+                    const baseFontSize = isMobile ? 16.8 : 22.4; 
+                    
+                    l1.style.fontSize = '20px';
+                    l2.style.fontSize = '20px';
+                    l3.style.fontSize = '20px';
+                    
+                    const w1 = l1.getBoundingClientRect().width;
+                    const w2 = l2.getBoundingClientRect().width;
+                    const w3 = l3.getBoundingClientRect().width;
+                    
+                    let targetWidth = (w1 / 20) * baseFontSize;
+                    
+                    const applySizes = (width) => {
+                        l1.style.fontSize = (20 * width / w1) + 'px';
+                        l2.style.fontSize = (20 * width / w2) + 'px';
+                        l3.style.fontSize = (20 * width / w3) + 'px';
+                    };
+                    
+                    applySizes(targetWidth);
+                    
+                    const imgHeight = logoImg.getBoundingClientRect().height || 48; 
+                    const textHeight = logoText.getBoundingClientRect().height; 
+                    
+                    if (textHeight > imgHeight && imgHeight > 0) {
+                        const ratio = imgHeight / textHeight;
+                        targetWidth = targetWidth * ratio;
+                        applySizes(targetWidth); 
+                    }
+                }
+                perfectAlignLogo(); window.addEventListener('resize', perfectAlignLogo); document.fonts.ready.then(perfectAlignLogo);
+            </script>
+        </div>
+        
+        <div class="menu-toggle" id="mobile-menu" aria-label="Menu">
+            <i class="fas fa-bars"></i>
+        </div>
+
+        <nav class="nav-links" id="nav-links">
+            <a href="index.html" class="nav-item">Trang chủ</a>
+            <span id="userEmail" class="nav-item user-email-display">Đang tải...</span>
+            <button id="btnLogout" class="btn-logout"><i class="fas fa-sign-out-alt" style="margin-right: 8px;"></i> Đăng xuất</button>
+        </nav>
+    </header>
+
+    <!-- NỘI DUNG CHÍNH (BẢNG ĐIỀU KHIỂN) -->
+    <main style="flex: 1; padding-top: 2rem; max-width: 1200px; margin: 0 auto; width: 100%; padding-left: 5%; padding-right: 5%;">
+        
+        <div class="dashboard-header">
+            <h2>Khu vực Quản lý Giảng viên</h2>
+            <p>Chọn các phân hệ bên dưới để thao tác dữ liệu học vụ.</p>
+        </div>
+
+        <!-- LƯỚI CÁC PHÂN MỤC DÀNH CHO GIẢNG VIÊN -->
+        <section class="quick-links" style="margin-bottom: 2rem;">
+            
+            <!-- 1. Quản lý học viên sau đại học -->
+            <a href="#" class="quick-card">
+                <div class="icon-wrapper">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+                <h3>Học viên Sau đại học</h3>
+                <p>Quản lý danh sách, điểm số, chuyên đề và tiến độ thực hiện luận văn thạc sĩ của học viên sau đại học.</p>
+            </a>
+
+            <!-- 2. Quản lý sinh viên -->
+            <a href="#" class="quick-card">
+                <div class="icon-wrapper">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h3>Sinh viên Đại học</h3>
+                <p>Nhập điểm lượng giá, theo dõi chuyên cần và quản lý các nhóm thực hành lâm sàng của sinh viên các hệ.</p>
+            </a>
+
+            <!-- 3. Lịch giảng -->
+            <a href="#" class="quick-card">
+                <div class="icon-wrapper">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                <h3>Lịch giảng dạy</h3>
+                <p>Xem thời khóa biểu, lịch phân công giảng dạy lý thuyết tại trường và hướng dẫn lâm sàng tại cơ sở.</p>
+            </a>
+
+            <!-- 4. CME -->
+            <a href="#" class="quick-card">
+                <div class="icon-wrapper" style="color: var(--accent); background-color: var(--accent-light);">
+                    <i class="fas fa-certificate"></i>
+                </div>
+                <h3>CME & Hội thảo</h3>
+                <p>Cập nhật chương trình Đào tạo liên tục (CME), cấp phát chứng chỉ và lịch sinh hoạt khoa học chuyên đề.</p>
+            </a>
+
+        </section>
+    </main>
+
+    <!-- FOOTER -->
+    <footer>
+        <p>&copy; 2026 Bộ môn Phục hồi chức năng. Mọi quyền được bảo lưu.</p>
+    </footer>
+
+    <!-- CÁC SCRIPT XỬ LÝ GIAO DIỆN -->
+    <script>
+        const mobileMenu = document.getElementById('mobile-menu');
+        const navLinks = document.getElementById('nav-links');
+        const icon = mobileMenu.querySelector('i');
+
+        mobileMenu.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+            if (navLinks.classList.contains('active')) {
+                icon.classList.remove('fa-bars');
+                icon.classList.add('fa-times');
+            } else {
+                icon.classList.remove('fa-times');
+                icon.classList.add('fa-bars');
+            }
+        });
+    </script>
+
+    <!-- Cấu hình Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="js/firebase-config.js"></script>
+
+    <!-- BẢO MẬT & ĐĂNG XUẤT -->
+    <script>
+        const userEmailDisplay = document.getElementById('userEmail');
+        const btnLogout = document.getElementById('btnLogout');
+
+        // 1. Kiểm tra xác thực (Bảo vệ trang)
+        firebase.auth().onAuthStateChanged((user) => {
+            if (user) {
+                // Đã đăng nhập -> Cho phép hiển thị, cập nhật email lên giao diện
+                userEmailDisplay.innerText = user.email;
+            } else {
+                // Chưa đăng nhập -> Đá văng ra ngoài trang login
+                window.location.replace("login.html");
+            }
+        });
+
+        // 2. Xử lý nút Đăng xuất
+        btnLogout.addEventListener('click', () => {
+            firebase.auth().signOut().then(() => {
+                window.location.replace("login.html");
+            }).catch((error) => {
+                console.error("Lỗi đăng xuất: ", error);
+                alert("Đã có lỗi xảy ra khi đăng xuất.");
+            });
+        });
+    </script>
+</body>
+</html>
