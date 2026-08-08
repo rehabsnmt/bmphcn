@@ -41,13 +41,14 @@
         #logo-line-2 {
             font-weight: 600;
             color: var(--text-body, #475569);
-            margin-top: 3px;
+            /* Sử dụng đơn vị 'em' để khoảng cách tự động co giãn theo cỡ chữ mới */
+            margin-top: 0.25em; 
         }
 
         #logo-line-3 {
             font-weight: 500;
             color: var(--text-body, #475569);
-            margin-top: 2px;
+            margin-top: 0.15em;
         }
 
         /* --- CSS CHO FOOTER --- */
@@ -111,25 +112,58 @@
                 <div id="logo-line-3">Đại học Y Dược Thành Phố Hồ Chí Minh</div>
             </div>
             
-            <!-- Script Căn bằng chữ tuyệt đối -->
+            <!-- Script Căn bằng chữ tuyệt đối và giới hạn chiều cao -->
             <script>
                 function perfectAlignLogo() {
                     const l1 = document.getElementById('logo-line-1');
                     const l2 = document.getElementById('logo-line-2');
                     const l3 = document.getElementById('logo-line-3');
+                    const logoImg = document.querySelector('.logo img');
+                    const logoText = document.querySelector('.logo-text');
                     
-                    if (!l1 || !l2 || !l3) return;
+                    if (!l1 || !l2 || !l3 || !logoImg || !logoText) return;
 
-                    const baseSize = window.innerWidth > 768 ? 1.4 : 1.05; 
-                    l1.style.fontSize = baseSize + 'rem';
+                    // Nếu ảnh chưa load xong, chờ load để lấy chiều cao chuẩn của ảnh
+                    if (logoImg.complete === false || logoImg.naturalHeight === 0) {
+                        logoImg.onload = perfectAlignLogo;
+                        return;
+                    }
+
+                    // 1. Kích thước mong muốn ban đầu (Dòng 1)
+                    const isMobile = window.innerWidth <= 768;
+                    const baseFontSize = isMobile ? 16.8 : 22.4; 
                     
-                    l2.style.fontSize = '10px';
-                    l3.style.fontSize = '10px';
+                    // 2. Tạm đặt 20px để đo chiều rộng chuẩn
+                    l1.style.fontSize = '20px';
+                    l2.style.fontSize = '20px';
+                    l3.style.fontSize = '20px';
                     
-                    const targetWidth = l1.getBoundingClientRect().width;
+                    const w1 = l1.getBoundingClientRect().width;
+                    const w2 = l2.getBoundingClientRect().width;
+                    const w3 = l3.getBoundingClientRect().width;
                     
-                    l2.style.fontSize = (10 * (targetWidth / l2.getBoundingClientRect().width)) + 'px';
-                    l3.style.fontSize = (10 * (targetWidth / l3.getBoundingClientRect().width)) + 'px';
+                    // 3. Tính độ dài mục tiêu của toàn bộ khối
+                    let targetWidth = (w1 / 20) * baseFontSize;
+                    
+                    // Hàm áp dụng cỡ chữ mới để 3 dòng bằng nhau theo chiều ngang
+                    const applySizes = (width) => {
+                        l1.style.fontSize = (20 * width / w1) + 'px';
+                        l2.style.fontSize = (20 * width / w2) + 'px';
+                        l3.style.fontSize = (20 * width / w3) + 'px';
+                    };
+                    
+                    applySizes(targetWidth);
+                    
+                    // 4. Giới hạn chiều cao: Đảm bảo không vượt quá logo
+                    const imgHeight = logoImg.getBoundingClientRect().height || 48; // Lấy chiều cao ảnh, mặc định 48px
+                    const textHeight = logoText.getBoundingClientRect().height; // Tổng chiều cao của 3 dòng chữ
+                    
+                    if (textHeight > imgHeight && imgHeight > 0) {
+                        // Nếu chữ cao hơn ảnh, thu nhỏ độ dài mục tiêu theo đúng tỷ lệ dư thừa
+                        const ratio = imgHeight / textHeight;
+                        targetWidth = targetWidth * ratio;
+                        applySizes(targetWidth); // Set lại font-size cho cả 3 dòng
+                    }
                 }
                 
                 perfectAlignLogo();
