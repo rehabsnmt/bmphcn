@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Cập nhật thông tin cá nhân Giảng viên.">
+    <title>Hồ sơ Giảng viên - Bộ môn Phục hồi chức năng</title>
+    
+    <link rel="icon" href="images/logo_Bộ môn.png" type="image/png">
+    <link rel="apple-touch-icon" href="images/logo_Bộ môn.png">
+    
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* --- CSS RÚT GỌN (Giữ nguyên phong cách của trang Login) --- */
+        body { display: flex; flex-direction: column; min-height: 100vh; background-color: var(--bg-page, #f8fafc); margin: 0; }
+        
+        .profile-wrapper { width: 100%; padding: 4rem 1rem; display: flex; justify-content: center; flex: 1; align-items: center; }
+        .profile-card { background: var(--surface, #ffffff); width: 100%; max-width: 420px; padding: 3rem 2rem; border-radius: var(--radius-md, 16px); box-shadow: var(--shadow-hover, 0 12px 30px rgba(2, 132, 199, 0.08)); border: 1px solid var(--border, #e2e8f0); text-align: center; }
+        .profile-card i.fa-user-edit { font-size: 3.5rem; color: var(--primary, #0284c7); margin-bottom: 1.5rem; }
+        .profile-card h2 { color: var(--text-dark, #0f172a); margin-bottom: 0.5rem; font-size: 1.6rem; }
+        .profile-card p { color: var(--text-body, #475569); font-size: 0.95rem; margin-bottom: 2rem; line-height: 1.5; }
+        
+        .input-group { margin-bottom: 1.2rem; text-align: left; }
+        .input-group input, .input-group select { width: 100%; padding: 0.9rem; border: 1px solid var(--border, #e2e8f0); border-radius: var(--radius-sm, 8px); font-size: 0.95rem; outline: none; transition: var(--transition, all 0.3s ease); background-color: var(--bg-page, #f8fafc); color: var(--text-dark, #0f172a); font-family: inherit; }
+        .input-group input:focus, .input-group select:focus { border-color: var(--primary, #0284c7); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15); background-color: var(--surface, #ffffff); }
+        
+        .btn-save { width: 100%; padding: 0.9rem; background-color: var(--primary, #0284c7); color: white; border: none; border-radius: var(--radius-sm, 8px); font-size: 1.05rem; font-weight: 600; cursor: pointer; transition: var(--transition, all 0.3s ease); box-shadow: var(--shadow-sm, 0 1px 2px rgba(2, 132, 199, 0.05)); margin-top: 0.5rem; }
+        .btn-save:hover { background-color: var(--primary-hover, #0369a1); box-shadow: 0 4px 12px rgba(2, 132, 199, 0.2); }
+        
+        .status-message { font-size: 0.9rem; margin-top: 1.5rem; display: none; padding: 0.8rem; border-radius: var(--radius-sm, 8px); }
+        .status-success { color: #166534; background: #dcfce7; border: 1px solid rgba(22, 101, 52, 0.2); }
+        .status-error { color: var(--accent, #e11d48); background: var(--accent-light, #fff1f2); border: 1px solid rgba(225, 29, 72, 0.2); }
+    </style>
+</head>
+<body>
+
+    <main class="profile-wrapper">
+        <div class="profile-card">
+            <i class="fas fa-user-edit"></i>
+            <h2>Hồ sơ Giảng viên</h2>
+            
+            <form id="profileForm" onsubmit="return false;">
+                <!-- Sổ xuống chọn học vị -->
+                <div class="input-group">
+                    <select id="inputDegree" required>
+                        <option value="" disabled selected>-- Chọn học vị --</option>
+                        <option value="CN">Cử nhân (CN)</option>
+                        <option value="ThS">Thạc sĩ (ThS)</option>
+                        <option value="TS">Tiến sĩ (TS)</option>
+                    </select>
+                </div>
+                <!-- Nhập Họ và tên -->
+                <div class="input-group">
+                    <input type="text" id="inputName" placeholder="Họ và tên (VD: Nguyễn Văn A)" required>
+                </div>
+                
+                <button type="submit" id="btnSave" class="btn-save"><i class="fas fa-save" style="margin-right: 8px;"></i> Lưu thông tin</button>
+            </form>
+
+            <div id="statusMessage" class="status-message"></div>
+        </div>
+    </main>
+
+    <!-- CẤU HÌNH FIREBASE -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="js/firebase-config.js"></script>
+
+    <script>
+        const db = firebase.firestore();
+        const inputDegree = document.getElementById('inputDegree');
+        const inputName = document.getElementById('inputName');
+        const btnSave = document.getElementById('btnSave');
+        const statusMsg = document.getElementById('statusMessage');
+
+        function showMessage(msg, isSuccess) {
+            statusMsg.style.display = "block";
+            statusMsg.className = `status-message ${isSuccess ? 'status-success' : 'status-error'}`;
+            statusMsg.innerText = msg;
+        }
+
+        // 1. Load dữ liệu cũ nếu đã từng lưu
+        firebase.auth().onAuthStateChanged((user) => {
+            if (user) {
+                db.collection("users").doc(user.uid).get().then((doc) => {
+                    if (doc.exists) {
+                        inputDegree.value = doc.data().degree || "";
+                        inputName.value = doc.data().fullName || "";
+                    }
+                });
+            } else {
+                window.location.replace("login.html");
+            }
+        });
+
+        // 2. Lưu dữ liệu lên Firestore
+        btnSave.addEventListener('click', () => {
+            const user = firebase.auth().currentUser;
+            const degree = inputDegree.value;
+            const fullName = inputName.value.trim();
+
+            if (!user || !degree || !fullName) return;
+
+            // Vô hiệu hóa nút trong lúc lưu
+            btnSave.disabled = true;
+            btnSave.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang lưu...';
+
+            db.collection("users").doc(user.uid).set({
+                degree: degree,
+                fullName: fullName,
+                email: user.email,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true })
+            .then(() => {
+                showMessage("Đã lưu thành công! Đang chuyển về bảng điều khiển...", true);
+                setTimeout(() => {
+                    window.location.href = "dashboard.html";
+                }, 1500);
+            })
+            .catch((error) => {
+                console.error("Lỗi khi lưu:", error);
+                showMessage("Có lỗi xảy ra: " + error.message, false);
+                btnSave.disabled = false;
+                btnSave.innerHTML = '<i class="fas fa-save" style="margin-right: 8px;"></i> Lưu thông tin';
+            });
+        });
+    </script>
+</body>
+</html>
