@@ -268,28 +268,28 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="js/firebase-config.js"></script>
 
-    <!-- BẢO MẬT, KIỂM TRA HỒ SƠ & ĐĂNG XUẤT -->
+    <!-- BẢO MẬT, HIỂN THỊ HỒ SƠ & ĐĂNG XUẤT -->
     <script>
-        const db = firebase.firestore();
         const userEmailDisplay = document.getElementById('userEmail');
         const btnLogout = document.getElementById('btnLogout');
 
-        // 1. Kiểm tra xác thực và lấy thông tin Profile từ Firestore
+        // 1. Kiểm tra xác thực và hiển thị thông tin giảng viên ngay lập tức
         firebase.auth().onAuthStateChanged((user) => {
             if (user) {
-                // Truy vấn vào Firestore để lấy Học vị và Họ tên
-                db.collection("users").doc(user.uid).get().then((doc) => {
+                // Hiển thị tạm thời thông tin từ Auth hoặc Local nếu có
+                userEmailDisplay.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 6px;"></i> ${user.email}`;
+
+                // Truy vấn vào Firestore để lấy Học vị và Họ tên chính xác của giảng viên
+                firebase.firestore().collection("users").doc(user.uid).get().then((doc) => {
                     if (doc.exists && doc.data().fullName && doc.data().degree) {
-                        // Nếu đã có thông tin -> Hiển thị "ThS. Nguyễn Văn A"
+                        // Nếu đã cập nhật hồ sơ -> Hiển thị dạng "ThS. Nguyễn Văn A"
                         userEmailDisplay.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 6px;"></i> ${doc.data().degree}. ${doc.data().fullName}`;
                     } else {
-                        // Nếu chưa có thông tin -> Yêu cầu cập nhật
+                        // Nếu chưa cập nhật -> Nhắc nhở bấm vào để cập nhật
                         userEmailDisplay.innerHTML = `<i class="fas fa-exclamation-circle" style="color: var(--accent); margin-right: 6px;"></i> Cập nhật hồ sơ`;
                     }
                 }).catch((error) => {
-                    // Nếu lỗi mạng, hiển thị email dự phòng
-                    console.error("Lỗi khi tải thông tin giảng viên:", error);
-                    userEmailDisplay.innerText = user.email;
+                    console.error("Lỗi khi tải thông tin hồ sơ:", error);
                 });
             } else {
                 // Chưa đăng nhập -> Đá văng ra ngoài trang login
@@ -307,5 +307,3 @@
             });
         });
     </script>
-</body>
-</html>
