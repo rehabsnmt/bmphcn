@@ -1,0 +1,369 @@
+/* =========================================
+   1. BIẾN TOÀN CỤC (COLOR & TYPOGRAPHY)
+   Cảm hứng từ Logo Bộ môn - Tinh chỉnh chuẩn UI/UX
+========================================= */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  /* Bảng màu lấy cảm hứng từ logo nhưng làm dịu lại để dễ đọc */
+  --primary: #0284c7;         /* Xanh Cyan sậm (Tăng độ tương phản so với bản gốc) */
+  --primary-hover: #0369a1;   /* Xanh Cyan tối khi hover */
+  --primary-light: #f0f9ff;   /* Xanh nền cực nhạt (dùng cho icon/background) */
+  
+  --accent: #e11d48;          /* Đỏ hồng (từ '1972') - Dùng làm điểm nhấn nhỏ */
+  --accent-light: #fff1f2;    
+  
+  --text-dark: #0f172a;       /* Đen ánh xanh slate (Không dùng đen tuyền) */
+  --text-body: #475569;       /* Xám slate cho nội dung văn bản */
+  --border: #e2e8f0;          /* Xám nhạt cho viền */
+  
+  --bg-page: #f8fafc;         /* Nền trang tổng thể */
+  --surface: #ffffff;         /* Nền trắng cho các khối nội dung (Card) */
+  
+  /* Đổ bóng tự nhiên (Soft Ambient Shadow) */
+  --shadow-sm: 0 1px 2px rgba(2, 132, 199, 0.05);
+  --shadow-card: 0 4px 20px rgba(2, 132, 199, 0.04);
+  --shadow-hover: 0 12px 30px rgba(2, 132, 199, 0.08);
+  
+  /* Thông số layout */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-pill: 50px;
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* =========================================
+   2. RESET & CẤU HÌNH CƠ BẢN
+========================================= */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--bg-page);
+  color: var(--text-body);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* =========================================
+   3. HEADER, LOGO & NAVIGATION 
+========================================= */
+header {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  padding: 1rem 5%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: var(--transition);
+}
+
+/* Cấu hình hiển thị Logo */
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo img {
+  height: 48px;
+  width: auto;
+  object-fit: contain;
+}
+
+.logo h1 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  letter-spacing: -0.02em;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 2.5rem;
+}
+
+.nav-item {
+  text-decoration: none;
+  color: var(--text-body);
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: var(--transition);
+  position: relative;
+  padding: 0.5rem 0;
+}
+
+/* Hiệu ứng gạch chân mượt mà khi hover */
+.nav-item::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: 0;
+  left: 0;
+  background-color: var(--primary);
+  transition: var(--transition);
+  border-radius: 2px;
+}
+
+.nav-item:hover {
+  color: var(--text-dark);
+}
+
+.nav-item:hover::after {
+  width: 100%;
+}
+
+.menu-toggle {
+  display: none;
+  font-size: 1.5rem;
+  color: var(--text-dark);
+  cursor: pointer;
+  padding: 0.5rem;
+}
+
+/* =========================================
+   4. NÚT BẤM (BUTTONS)
+========================================= */
+.btn-login, .btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--primary);
+  color: var(--surface);
+  padding: 0.6rem 1.5rem;
+  border-radius: var(--radius-pill);
+  font-weight: 500;
+  font-size: 0.9rem;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-login:hover, .btn-primary:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.2);
+}
+
+.btn-login:active, .btn-primary:active {
+  transform: translateY(0);
+}
+
+/* =========================================
+   5. NỘI DUNG CHÍNH (MAIN & LƯỚI THẺ)
+========================================= */
+main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 5% 4rem;
+}
+
+.quick-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 2rem;
+}
+
+.quick-card {
+  background: var(--surface);
+  padding: 2.5rem 2rem;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  text-decoration: none;
+  transition: var(--transition);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  border: 1px solid rgba(0, 0, 0, 0.02);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Đường viền trang trí nhỏ trên cùng của thẻ khi hover */
+.quick-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background-color: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s ease;
+}
+
+.quick-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-hover);
+}
+
+.quick-card:hover::before {
+  transform: scaleX(1);
+}
+
+.icon-wrapper {
+  background-color: var(--primary-light);
+  color: var(--primary);
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  transition: var(--transition);
+}
+
+.quick-card:hover .icon-wrapper {
+  background-color: var(--primary);
+  color: var(--surface);
+  transform: scale(1.05);
+}
+
+.quick-card h3 {
+  color: var(--text-dark);
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.quick-card p {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--text-body);
+}
+
+/* =========================================
+   6. BẢNG DỮ LIỆU & NHẬP ĐIỂM (DASHBOARD)
+========================================= */
+.card {
+  background-color: var(--surface);
+  border-radius: var(--radius-md);
+  padding: 2rem;
+  box-shadow: var(--shadow-card);
+  margin-bottom: 2rem;
+}
+
+.table-responsive {
+  overflow-x: auto;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  margin-top: 1.5rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+th, td {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+th {
+  background-color: var(--bg-page);
+  font-weight: 600;
+  color: var(--text-dark);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+/* Ô nhập liệu tinh gọn */
+input[type="number"], input[type="text"] {
+  width: 100%;
+  padding: 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  transition: var(--transition);
+  background-color: var(--bg-page);
+  color: var(--text-dark);
+}
+
+input[type="number"] {
+  max-width: 80px;
+  text-align: center;
+}
+
+input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+  background-color: var(--surface);
+}
+
+/* =========================================
+   7. RESPONSIVE (DÀNH CHO ĐIỆN THOẠI/TABLET)
+========================================= */
+@media (max-width: 768px) {
+  .menu-toggle { 
+    display: block; 
+  }
+  
+  .nav-links {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background: var(--surface);
+    flex-direction: column;
+    padding: 1rem 0;
+    gap: 0;
+    box-shadow: 0 10px 15px rgba(0,0,0,0.05);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: var(--transition);
+    border-top: 1px solid var(--border);
+  }
+
+  .nav-links.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  .nav-item {
+    padding: 1rem 2rem;
+    width: 100%;
+    display: block;
+  }
+  
+  .nav-item::after { display: none; }
+
+  .btn-login {
+    margin: 1rem 2rem;
+    width: calc(100% - 4rem);
+    text-align: center;
+  }
+
+  .logo img {
+    height: 40px; /* Thu nhỏ logo một chút trên mobile */
+  }
+
+  .logo h1 {
+    font-size: 1.1rem;
+  }
+}
