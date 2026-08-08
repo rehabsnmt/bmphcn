@@ -39,6 +39,9 @@
         .input-group input, .input-group select { width: 100%; padding: 0.8rem; border: 1px solid var(--border, #e2e8f0); border-radius: var(--radius-sm, 8px); font-size: 0.95rem; outline: none; transition: var(--transition, all 0.3s ease); background-color: var(--bg-page, #f8fafc); color: var(--text-dark, #0f172a); font-family: inherit; }
         .input-group input:focus, .input-group select:focus { border-color: var(--primary, #0284c7); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15); background-color: var(--surface, #ffffff); }
         
+        /* Hiệu ứng khi ô bị khóa/tự động thiết lập */
+        .input-group input:read-only, .input-group select:disabled { background-color: #f1f5f9; cursor: not-allowed; color: #64748b; }
+
         .btn-save { width: 100%; padding: 0.8rem; background-color: var(--primary, #0284c7); color: white; border: none; border-radius: var(--radius-sm, 8px); font-size: 1rem; font-weight: 600; cursor: pointer; transition: var(--transition, all 0.3s ease); box-shadow: var(--shadow-sm, 0 1px 2px rgba(2, 132, 199, 0.05)); margin-top: 0.5rem; }
         .btn-save:hover { background-color: var(--primary-hover, #0369a1); box-shadow: 0 4px 12px rgba(2, 132, 199, 0.2); }
         
@@ -70,6 +73,17 @@
                     <input type="file" id="inputAvatarFile" accept="image/*">
                 </div>
 
+                <!-- Sổ xuống chọn chức vụ (Đưa lên trước để tự động điều chỉnh Học vị & Tên) -->
+                <div class="input-group">
+                    <label>Chức vụ</label>
+                    <select id="inputPosition" required>
+                        <option value="" disabled selected>-- Chọn chức vụ --</option>
+                        <option value="Trưởng Bộ môn">Trưởng Bộ môn</option>
+                        <option value="Phó Trưởng Bộ môn">Phó Trưởng Bộ môn</option>
+                        <option value="Giảng viên">Giảng viên</option>
+                    </select>
+                </div>
+
                 <!-- Sổ xuống chọn học vị -->
                 <div class="input-group">
                     <label>Học vị</label>
@@ -85,17 +99,6 @@
                 <div class="input-group">
                     <label>Họ và tên</label>
                     <input type="text" id="inputName" placeholder="VD: Nguyễn Văn A" required>
-                </div>
-
-                <!-- Sổ xuống chọn chức vụ -->
-                <div class="input-group">
-                    <label>Chức vụ</label>
-                    <select id="inputPosition" required>
-                        <option value="" disabled selected>-- Chọn chức vụ --</option>
-                        <option value="Trưởng Bộ môn">Trưởng Bộ môn</option>
-                        <option value="Phó Trưởng Bộ môn">Phó Trưởng Bộ môn</option>
-                        <option value="Giảng viên">Giảng viên</option>
-                    </select>
                 </div>
                 
                 <button type="submit" id="btnSave" class="btn-save"><i class="fas fa-save" style="margin-right: 6px;"></i> Lưu thông tin</button>
@@ -131,6 +134,27 @@
             statusMsg.innerText = msg;
         }
 
+        // Tự động gán thông tin khi thay đổi chức vụ
+        inputPosition.addEventListener('change', function() {
+            const pos = this.value;
+            if (pos === "Trưởng Bộ môn") {
+                inputDegree.value = "TS";
+                inputDegree.disabled = true;
+                inputName.value = "Lê Thanh Vân";
+                inputName.readOnly = true;
+            } else if (pos === "Phó Trưởng Bộ môn") {
+                inputDegree.value = "TS";
+                inputDegree.disabled = true;
+                inputName.value = "Nguyễn Thanh Duy";
+                inputName.readOnly = true;
+            } else {
+                inputDegree.disabled = false;
+                inputName.readOnly = false;
+                inputName.value = "";
+                inputDegree.value = "";
+            }
+        });
+
         inputAvatarFile.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
@@ -150,9 +174,21 @@
                 firebase.firestore().collection("users").doc(user.uid).get().then((doc) => {
                     if (doc.exists) {
                         const data = doc.data();
-                        inputDegree.value = data.degree || "";
-                        inputName.value = data.fullName || "";
                         inputPosition.value = data.position || "";
+                        
+                        // Kích hoạt logic khóa ô nếu dữ liệu cũ là Trưởng/Phó BM
+                        if (data.position === "Trưởng Bộ môn" || data.position === "Phó Trưởng Bộ môn") {
+                            inputDegree.value = "TS";
+                            inputDegree.disabled = true;
+                            inputName.value = data.fullName || (data.position === "Trưởng Bộ môn" ? "Lê Thanh Vân" : "Nguyễn Thanh Duy");
+                            inputName.readOnly = true;
+                        } else {
+                            inputDegree.value = data.degree || "";
+                            inputName.value = data.fullName || "";
+                            inputDegree.disabled = false;
+                            inputName.readOnly = false;
+                        }
+
                         if (data.avatar) {
                             base64Image = data.avatar;
                             avatarImg.src = base64Image;
