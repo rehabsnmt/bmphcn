@@ -36,12 +36,12 @@
         #logo-line-2 { font-weight: 600; color: var(--text-body, #475569); margin-top: 0.25em; }
         #logo-line-3 { font-weight: 500; color: var(--text-body, #475569); margin-top: 0.15em; }
 
-        /* --- CSS CHO NÚT ĐĂNG XUẤT TẠI HEADER --- */
+        /* --- CSS CHO THANH ĐIỀU HƯỚNG --- */
         .btn-logout {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            background-color: var(--text-body); /* Màu xám để khác biệt với nút chính */
+            background-color: var(--text-body); 
             color: var(--surface);
             padding: 0.6rem 1.5rem;
             border-radius: var(--radius-pill);
@@ -53,7 +53,7 @@
         }
 
         .btn-logout:hover {
-            background-color: var(--accent); /* Đổi sang đỏ khi đưa chuột vào */
+            background-color: var(--accent); 
             transform: translateY(-1px);
         }
 
@@ -61,6 +61,15 @@
             font-weight: 600;
             color: var(--primary);
             font-size: 0.95rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            transition: var(--transition);
+        }
+        
+        .user-email-display:hover {
+            color: var(--primary-hover);
+            transform: scale(1.02);
         }
 
         /* --- CSS CHO KHU VỰC DASHBOARD --- */
@@ -102,7 +111,7 @@
         @media (max-width: 768px) {
             header { gap: 1rem; }
             .btn-logout { margin: 1rem 2rem; width: calc(100% - 4rem); }
-            .user-email-display { display: none; /* Ẩn email trên điện thoại cho gọn */ }
+            .user-email-display { display: none; }
         }
     </style>
 </head>
@@ -174,7 +183,8 @@
 
         <nav class="nav-links" id="nav-links">
             <a href="index.html" class="nav-item">Trang chủ</a>
-            <span id="userEmail" class="nav-item user-email-display">Đang tải...</span>
+            <!-- Liên kết đến trang sửa hồ sơ, mặc định hiển thị "Đang tải..." -->
+            <a href="profile.html" id="userEmail" class="nav-item user-email-display" title="Chỉnh sửa hồ sơ">Đang tải...</a>
             <button id="btnLogout" class="btn-logout"><i class="fas fa-sign-out-alt" style="margin-right: 8px;"></i> Đăng xuất</button>
         </nav>
     </header>
@@ -258,16 +268,29 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="js/firebase-config.js"></script>
 
-    <!-- BẢO MẬT & ĐĂNG XUẤT -->
+    <!-- BẢO MẬT, KIỂM TRA HỒ SƠ & ĐĂNG XUẤT -->
     <script>
+        const db = firebase.firestore();
         const userEmailDisplay = document.getElementById('userEmail');
         const btnLogout = document.getElementById('btnLogout');
 
-        // 1. Kiểm tra xác thực (Bảo vệ trang)
+        // 1. Kiểm tra xác thực và lấy thông tin Profile từ Firestore
         firebase.auth().onAuthStateChanged((user) => {
             if (user) {
-                // Đã đăng nhập -> Cho phép hiển thị, cập nhật email lên giao diện
-                userEmailDisplay.innerText = user.email;
+                // Truy vấn vào Firestore để lấy Học vị và Họ tên
+                db.collection("users").doc(user.uid).get().then((doc) => {
+                    if (doc.exists && doc.data().fullName && doc.data().degree) {
+                        // Nếu đã có thông tin -> Hiển thị "ThS. Nguyễn Văn A"
+                        userEmailDisplay.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 6px;"></i> ${doc.data().degree}. ${doc.data().fullName}`;
+                    } else {
+                        // Nếu chưa có thông tin -> Yêu cầu cập nhật
+                        userEmailDisplay.innerHTML = `<i class="fas fa-exclamation-circle" style="color: var(--accent); margin-right: 6px;"></i> Cập nhật hồ sơ`;
+                    }
+                }).catch((error) => {
+                    // Nếu lỗi mạng, hiển thị email dự phòng
+                    console.error("Lỗi khi tải thông tin giảng viên:", error);
+                    userEmailDisplay.innerText = user.email;
+                });
             } else {
                 // Chưa đăng nhập -> Đá văng ra ngoài trang login
                 window.location.replace("login.html");
