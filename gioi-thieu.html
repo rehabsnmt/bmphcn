@@ -14,150 +14,45 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* --- CSS CHO HEADER VÀ KHU VỰC LOGO --- */
-        header {
-            gap: 3rem; 
-        }
+        header { gap: 3rem; }
 
-        .logo-text {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .logo-text div {
-            white-space: nowrap;
-            width: max-content;
-            line-height: 1.2;
-            transform-origin: left;
-        }
-
+        .logo-text { display: flex; flex-direction: column; justify-content: center; }
+        .logo-text div { white-space: nowrap; width: max-content; line-height: 1.2; transform-origin: left; }
         #logo-line-1 { font-weight: 700; color: var(--text-dark, #0f172a); }
         #logo-line-2 { font-weight: 600; color: var(--text-body, #475569); margin-top: 0.25em; }
         #logo-line-3 { font-weight: 500; color: var(--text-body, #475569); margin-top: 0.15em; }
 
-        /* --- CSS CHO FOOTER --- */
-        footer {
-            text-align: center;
-            padding: 2rem 1rem;
-            background-color: var(--surface, #ffffff);
-            border-top: 1px solid var(--border, #e2e8f0);
-            color: var(--text-body, #475569);
-            margin-top: auto;
-            overflow: hidden; 
-        }
+        footer { text-align: center; padding: 2rem 1rem; background-color: var(--surface, #ffffff); border-top: 1px solid var(--border, #e2e8f0); color: var(--text-body, #475569); margin-top: auto; overflow: hidden; }
+        footer p { margin: 0; white-space: nowrap; font-size: clamp(0.55rem, 2.5vw, 0.9rem); }
 
-        footer p {
-            margin: 0;
-            white-space: nowrap; 
-            font-size: clamp(0.55rem, 2.5vw, 0.9rem); 
-        }
+        .intro-container { max-width: 1200px; margin: 0 auto; width: 100%; padding: 2.5rem 5%; }
+        .section-title { text-align: center; margin-bottom: 3rem; }
+        .section-title h2 { font-size: 2.2rem; color: var(--text-dark); margin-bottom: 0; }
 
-        /* --- CSS RIÊNG CHO TRANG GIỚI THIỆU GIẢNG VIÊN --- */
-        .intro-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            width: 100%;
-            padding: 2.5rem 5%;
-        }
+        .faculty-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 2rem; }
 
-        .section-title {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
+        .faculty-card { background: var(--surface); border-radius: var(--radius-md, 16px); padding: 2.5rem 1.5rem; text-align: center; border: 1px solid var(--border); box-shadow: var(--shadow-sm); transition: var(--transition); display: flex; flex-direction: column; align-items: center; }
+        .faculty-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-hover); border-color: var(--primary); }
 
-        .section-title h2 {
-            font-size: 2.2rem;
-            color: var(--text-dark);
-            margin-bottom: 0;
-        }
+        .faculty-avatar { width: 110px; height: 110px; border-radius: 50%; object-fit: cover; margin-bottom: 1.2rem; border: 3px solid var(--primary); background: var(--bg-page); display: flex; align-items: center; justify-content: center; font-size: 3rem; color: var(--text-body); box-shadow: 0 4px 10px rgba(2, 132, 199, 0.1); }
 
-        .faculty-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-            gap: 2rem;
-        }
+        .faculty-name { font-size: 1.25rem; font-weight: 700; color: var(--text-dark); margin-bottom: 0.4rem; }
+        
+        /* Hiển thị chức vụ */
+        .faculty-position { font-size: 0.95rem; font-weight: 600; color: var(--primary); margin-bottom: 0.3rem; }
+        
+        /* Hiển thị học vị */
+        .faculty-degree { font-size: 0.85rem; color: var(--text-body); background: rgba(2, 132, 199, 0.08); padding: 0.2rem 0.6rem; border-radius: var(--radius-pill); margin-bottom: 1rem; display: inline-block; }
 
-        .faculty-card {
-            background: var(--surface);
-            border-radius: var(--radius-md, 16px);
-            padding: 2.5rem 1.5rem;
-            text-align: center;
-            border: 1px solid var(--border);
-            box-shadow: var(--shadow-sm);
-            transition: var(--transition);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+        .faculty-email { font-size: 0.85rem; color: var(--text-body); display: flex; align-items: center; gap: 6px; margin-top: auto; word-break: break-all; }
 
-        .faculty-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-hover);
-            border-color: var(--primary);
-        }
+        .loading-state, .empty-state { grid-column: 1 / -1; text-align: center; padding: 4rem 0; color: var(--text-body); font-size: 1.1rem; }
 
-        .faculty-avatar {
-            width: 110px;
-            height: 110px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin-bottom: 1.2rem;
-            border: 3px solid var(--primary);
-            background: var(--bg-page);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3rem;
-            color: var(--text-body);
-            box-shadow: 0 4px 10px rgba(2, 132, 199, 0.1);
-        }
-
-        .faculty-name {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--text-dark);
-            margin-bottom: 0.4rem;
-        }
-
-        .faculty-role {
-            font-size: 0.9rem;
-            color: var(--primary);
-            font-weight: 600;
-            background: rgba(2, 132, 199, 0.08);
-            padding: 0.3rem 0.8rem;
-            border-radius: var(--radius-pill);
-            margin-bottom: 1rem;
-            display: inline-block;
-        }
-
-        .faculty-email {
-            font-size: 0.85rem;
-            color: var(--text-body);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            margin-top: auto;
-            word-break: break-all;
-        }
-
-        .loading-state, .empty-state {
-            grid-column: 1 / -1;
-            text-align: center;
-            padding: 4rem 0;
-            color: var(--text-body);
-            font-size: 1.1rem;
-        }
-
-        /* --- RESPONSIVE MOBILE --- */
-        @media (max-width: 768px) {
-            header { gap: 1rem; }
-        }
+        @media (max-width: 768px) { header { gap: 1rem; } }
     </style>
 </head>
 <body style="display: flex; flex-direction: column; min-height: 100vh;">
     
-    <!-- HEADER -->
     <header>
         <div class="logo">
             <img src="images/logo_Bộ môn.png" alt="Logo Bộ môn Phục hồi chức năng">
@@ -178,37 +73,29 @@
                     
                     if (!l1 || !l2 || !l3 || !logoImg || !logoText) return;
                     if (logoImg.complete === false || logoImg.naturalHeight === 0) {
-                        logoImg.onload = perfectAlignLogo;
-                        return;
+                        logoImg.onload = perfectAlignLogo; return;
                     }
 
                     const isMobile = window.innerWidth <= 768;
                     const baseFontSize = isMobile ? 16.8 : 22.4; 
-                    
-                    l1.style.fontSize = '20px';
-                    l2.style.fontSize = '20px';
-                    l3.style.fontSize = '20px';
+                    l1.style.fontSize = '20px'; l2.style.fontSize = '20px'; l3.style.fontSize = '20px';
                     
                     const w1 = l1.getBoundingClientRect().width;
                     const w2 = l2.getBoundingClientRect().width;
                     const w3 = l3.getBoundingClientRect().width;
                     
                     let targetWidth = (w1 / 20) * baseFontSize;
-                    
                     const applySizes = (width) => {
                         l1.style.fontSize = (20 * width / w1) + 'px';
                         l2.style.fontSize = (20 * width / w2) + 'px';
                         l3.style.fontSize = (20 * width / w3) + 'px';
                     };
-                    
                     applySizes(targetWidth);
                     
                     const imgHeight = logoImg.getBoundingClientRect().height || 48; 
                     const textHeight = logoText.getBoundingClientRect().height; 
-                    
                     if (textHeight > imgHeight && imgHeight > 0) {
-                        const ratio = imgHeight / textHeight;
-                        targetWidth = targetWidth * ratio;
+                        targetWidth = targetWidth * (imgHeight / textHeight);
                         applySizes(targetWidth); 
                     }
                 }
@@ -230,14 +117,12 @@
         </nav>
     </header>
 
-    <!-- NỘI DUNG CHÍNH (DANH SÁCH GIẢNG VIÊN) -->
     <main style="flex: 1; padding-top: 2rem;">
         <div class="intro-container">
             <div class="section-title">
                 <h2>Đội ngũ Giảng viên</h2>
             </div>
 
-            <!-- Vùng chứa danh sách load từ Firestore -->
             <div class="faculty-grid" id="facultyGrid">
                 <div class="loading-state">
                     <i class="fas fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 1rem; color: var(--primary);"></i>
@@ -247,12 +132,10 @@
         </div>
     </main>
 
-    <!-- FOOTER -->
     <footer>
         <p>&copy; 2026 Bộ môn Phục hồi chức năng. Mọi quyền được bảo lưu.</p>
     </footer>
 
-    <!-- SCRIPT GIAO DIỆN & FIREBASE -->
     <script>
         const mobileMenu = document.getElementById('mobile-menu');
         const navLinks = document.getElementById('nav-links');
@@ -260,14 +143,8 @@
 
         mobileMenu.addEventListener('click', () => {
             navLinks.classList.toggle('active');
-            
-            if (navLinks.classList.contains('active')) {
-                icon.classList.remove('fa-bars');
-                icon.classList.add('fa-times');
-            } else {
-                icon.classList.remove('fa-times');
-                icon.classList.add('fa-bars');
-            }
+            icon.classList.toggle('fa-bars');
+            icon.classList.toggle('fa-times');
         });
     </script>
 
@@ -294,8 +171,9 @@
 
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
-                const degree = data.degree || "Giảng viên";
+                const degree = data.degree || "";
                 const fullName = data.fullName || "Thành viên Bộ môn";
+                const position = data.position || "Giảng viên";
                 const email = data.email || "Chưa cập nhật";
                 const avatar = data.avatar || "";
 
@@ -309,8 +187,8 @@
 
                 card.innerHTML = `
                     ${avatarHTML}
-                    <div class="faculty-name">${fullName}</div>
-                    <div class="faculty-role">${degree}</div>
+                    <div class="faculty-name">${degree}. ${fullName}</div>
+                    <div class="faculty-position">${position}</div>
                     <div class="faculty-email"><i class="fas fa-envelope"></i> ${email}</div>
                 `;
 
