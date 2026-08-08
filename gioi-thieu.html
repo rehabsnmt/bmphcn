@@ -37,19 +37,33 @@
         .section-title { text-align: center; margin-bottom: 3rem; }
         .section-title h2 { font-size: 2.2rem; color: var(--text-dark); margin-bottom: 0; }
 
-        /* Cố định đúng 5 cột trên màn hình lớn */
+        /* Cố định đúng 5 cột trên màn hình lớn và tự động căng đều chiều cao */
         .faculty-grid { 
             display: grid; 
             grid-template-columns: repeat(5, 1fr); 
             gap: 1.8rem; 
+            align-items: stretch; /* Đảm bảo các hàng tự động giãn đều bằng nhau */
         }
 
-        .faculty-card { background: var(--surface); border-radius: var(--radius-md, 16px); padding: 2.2rem 1.2rem; text-align: center; border: 1px solid var(--border); box-shadow: var(--shadow-sm); transition: var(--transition); display: flex; flex-direction: column; align-items: center; }
+        .faculty-card { 
+            background: var(--surface); 
+            border-radius: var(--radius-md, 16px); 
+            padding: 2.2rem 1.2rem; 
+            text-align: center; 
+            border: 1px solid var(--border); 
+            box-shadow: var(--shadow-sm); 
+            transition: var(--transition); 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            height: 100%; /* Ép chiều cao lấp đầy lưới */
+            box-sizing: border-box;
+        }
+        
         .faculty-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-hover); border-color: var(--primary); }
 
-        .faculty-avatar { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin-bottom: 1.2rem; border: 3px solid var(--primary); background: var(--bg-page); display: flex; align-items: center; justify-content: center; font-size: 2.8rem; color: var(--text-body); box-shadow: 0 4px 10px rgba(2, 132, 199, 0.1); }
+        .faculty-avatar { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin-bottom: 1.2rem; border: 3px solid var(--primary); background: var(--bg-page); display: flex; align-items: center; justify-content: center; font-size: 2.8rem; color: var(--text-body); box-shadow: 0 4px 10px rgba(2, 132, 199, 0.1); flex-shrink: 0; }
 
-        /* Hiển thị học vị đầy đủ ở dòng riêng */
         .faculty-degree { 
             font-size: 0.85rem; 
             font-weight: 600; 
@@ -59,7 +73,6 @@
             letter-spacing: 0.5px;
         }
 
-        /* Tên giảng viên giữ nguyên 1 dòng, không bị ngắt */
         .faculty-name { 
             font-size: 1.1rem; 
             font-weight: 700; 
@@ -68,8 +81,25 @@
             white-space: nowrap;
         }
 
-        .faculty-position { font-size: 0.9rem; font-weight: 600; color: var(--primary); margin-bottom: 0.3rem; }
-        .faculty-email { font-size: 0.8rem; color: var(--text-body); display: flex; align-items: center; gap: 6px; margin-top: auto; word-break: break-all; }
+        .faculty-position { 
+            font-size: 0.9rem; 
+            font-weight: 600; 
+            color: var(--primary); 
+            margin-bottom: 0.8rem; 
+        }
+        
+        /* Đẩy phần email xuống đáy khung một cách đồng đều */
+        .faculty-email { 
+            font-size: 0.8rem; 
+            color: var(--text-body); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            gap: 6px; 
+            margin-top: auto; 
+            width: 100%;
+            word-break: break-all; 
+        }
 
         .loading-state, .empty-state { grid-column: 1 / -1; text-align: center; padding: 4rem 0; color: var(--text-body); font-size: 1.1rem; }
 
@@ -189,7 +219,6 @@
     <script>
         const facultyGrid = document.getElementById('facultyGrid');
 
-        // Hàm quy đổi mã học vị viết tắt sang tên đầy đủ
         function getFullDegreeText(degreeCode) {
             if (degreeCode === 'CN') return 'Cử nhân';
             if (degreeCode === 'ThS') return 'Thạc sĩ';
