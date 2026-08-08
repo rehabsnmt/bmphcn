@@ -63,6 +63,11 @@
         </div>
     </main>
 
+  Lỗi này xảy ra vì trong file `profile.html` của bạn, biến `db` đã được khai báo 2 lần (ví dụ bạn dùng `const db = ...` ở hai chỗ khác nhau trong cùng một tệp script, hoặc nó bị trùng với một thư viện nào đó).
+
+Để khắc phục triệt để lỗi này, bạn chỉ cần mở file **`profile.html`** lên, tìm đoạn script ở cuối trang và thay thế toàn bộ khối `<script>...</script>` bằng đoạn mã đã được gom gọn và khai báo biến duy nhất dưới đây:
+
+```html
     <!-- CẤU HÌNH FIREBASE -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
@@ -70,7 +75,7 @@
     <script src="js/firebase-config.js"></script>
 
     <script>
-        const db = firebase.firestore();
+        // Chỉ khởi tạo db và các element một lần duy nhất
         const inputDegree = document.getElementById('inputDegree');
         const inputName = document.getElementById('inputName');
         const btnSave = document.getElementById('btnSave');
@@ -85,11 +90,13 @@
         // 1. Load dữ liệu cũ nếu đã từng lưu
         firebase.auth().onAuthStateChanged((user) => {
             if (user) {
-                db.collection("users").doc(user.uid).get().then((doc) => {
+                firebase.firestore().collection("users").doc(user.uid).get().then((doc) => {
                     if (doc.exists) {
                         inputDegree.value = doc.data().degree || "";
                         inputName.value = doc.data().fullName || "";
                     }
+                }).catch((error) => {
+                    console.error("Lỗi tải dữ liệu:", error);
                 });
             } else {
                 window.location.replace("login.html");
@@ -102,13 +109,15 @@
             const degree = inputDegree.value;
             const fullName = inputName.value.trim();
 
-            if (!user || !degree || !fullName) return;
+            if (!user || !degree || !fullName) {
+                showMessage("Vui lòng điền đầy đủ thông tin học vị và họ tên.", false);
+                return;
+            }
 
-            // Vô hiệu hóa nút trong lúc lưu
             btnSave.disabled = true;
             btnSave.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang lưu...';
 
-            db.collection("users").doc(user.uid).set({
+            firebase.firestore().collection("users").doc(user.uid).set({
                 degree: degree,
                 fullName: fullName,
                 email: user.email,
@@ -128,5 +137,7 @@
             });
         });
     </script>
-</body>
-</html>
+
+```
+
+Sau khi dán đoạn code này vào file `profile.html` và lưu lại, lỗi trùng lặp biến `Identifier 'db' has already been declared` sẽ biến mất hoàn toàn và bạn có thể thao tác bình thường.
