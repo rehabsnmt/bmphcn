@@ -14,11 +14,17 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* --- CSS CHO KHU VỰC LOGO & HEADER --- */
+        /* --- GHI ĐÈ CSS CHO HEADER --- */
+        header {
+            gap: 4rem; /* Tạo khoảng cách cố định giữa Logo và chữ Giới thiệu */
+        }
+
+        /* --- CSS CHO KHU VỰC LOGO --- */
         .logo-text {
             display: flex;
             flex-direction: column;
             justify-content: center;
+            white-space: nowrap; /* Ép dòng chữ "Trường..." nằm trên 1 hàng để làm thước đo chuẩn */
         }
         
         .logo-text h1 {
@@ -27,6 +33,7 @@
             font-size: 1.2rem;
             font-weight: 700;
             color: var(--text-dark, #0f172a);
+            text-align-last: justify; /* Tự động trải đều khoảng cách chữ cho bằng với dòng bên dưới */
         }
 
         .logo-text .sub-title {
@@ -60,7 +67,7 @@
             position: relative;
             margin-bottom: 2.5rem;
             border-radius: var(--radius-md);
-            overflow: hidden; /* Che đi các ảnh bị trượt ra ngoài */
+            overflow: hidden; 
             box-shadow: var(--shadow-sm);
             border: 1px solid var(--border);
         }
@@ -69,23 +76,30 @@
             display: flex;
             width: 100%;
             height: 450px;
-            transition: transform 0.8s ease-in-out; /* Hiệu ứng lướt mượt mà */
+            transition: transform 0.8s ease-in-out; 
         }
 
         .slider-track img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            flex-shrink: 0; /* Ép ảnh luôn giữ đúng 100% chiều rộng container */
+            flex-shrink: 0; 
         }
 
         /* --- RESPONSIVE MOBILE --- */
         @media (max-width: 768px) {
+            header {
+                gap: 1rem; /* Thu hẹp khoảng cách trên điện thoại */
+            }
             .slider-track {
                 height: 250px;
             }
+            .logo-text {
+                white-space: normal; /* Cho phép chữ rớt dòng trên màn hình nhỏ */
+            }
             .logo-text h1 {
                 font-size: 1rem;
+                text-align-last: left; /* Tắt tính năng trải đều để chữ không bị rời rạc */
             }
             .logo-text .sub-title {
                 font-size: 0.6rem;
@@ -119,7 +133,6 @@
 
     <main style="flex: 1; padding-top: 2rem;">
         
-        <!-- PHẦN SLIDESHOW CHẠY ẢNH (Đã chuyển thành track ngang) -->
         <div class="slideshow-container">
             <div class="slider-track" id="slider-track">
                 <img src="images/1.jpg" alt="Slide 1">
@@ -130,7 +143,6 @@
             </div>
         </div>
 
-        <!-- Lưới các phân mục chính (Cards) -->
         <section class="quick-links" style="margin-bottom: 2rem;">
             
             <a href="gioi-thieu.html" class="quick-card">
@@ -181,7 +193,6 @@
     </footer>
 
     <script>
-        // --- XỬ LÝ MENU ĐIỆN THOẠI ---
         const mobileMenu = document.getElementById('mobile-menu');
         const navLinks = document.getElementById('nav-links');
         const icon = mobileMenu.querySelector('i');
@@ -198,26 +209,21 @@
             }
         });
 
-        // --- XỬ LÝ SLIDESHOW LƯỚT NGANG ---
         const track = document.getElementById('slider-track');
         let slideIndex = 0;
         const totalSlides = 5;
 
         function moveSlides() {
             slideIndex++;
-            // Nếu đã lướt hết 5 ảnh, reset về vị trí ảnh đầu tiên
             if (slideIndex >= totalSlides) {
                 slideIndex = 0;
             }
-            // Dịch chuyển track ảnh sang trái tương ứng với số thứ tự ảnh
             track.style.transform = `translateX(-${slideIndex * 100}%)`;
         }
 
-        // Đặt bộ đếm tự động chạy hàm moveSlides sau mỗi 3 giây (3000ms)
         setInterval(moveSlides, 3000);
     </script>
 
-    <!-- Cấu hình Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
