@@ -4,292 +4,109 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Đội ngũ giảng viên Bộ môn Phục hồi chức năng.">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://cdnjs.cloudflare.com https://www.gstatic.com https://*.firebaseio.com https://*.googleapis.com; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' https://www.gstatic.com;">
     <title>Giới thiệu Giảng viên - Bộ môn Phục hồi chức năng</title>
     
     <link rel="icon" href="images/logo_Bộ môn.png" type="image/png">
-    <link rel="apple-touch-icon" href="images/logo_Bộ môn.png">
-    
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         header { gap: 3rem; }
-
-        .logo-link {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            text-decoration: none;
-            cursor: pointer;
-        }
-
+        .logo-link { display: flex; align-items: center; gap: 15px; text-decoration: none; cursor: pointer; }
         .logo-text { display: flex; flex-direction: column; justify-content: center; }
-        .logo-text div { white-space: nowrap; width: max-content; line-height: 1.2; transform-origin: left; }
         #logo-line-1 { font-weight: 700; color: var(--text-dark, #0f172a); }
-        #logo-line-2 { font-weight: 600; color: var(--text-body, #475569); margin-top: 0.25em; }
-        #logo-line-3 { font-weight: 500; color: var(--text-body, #475569); margin-top: 0.15em; }
-
-        footer { text-align: center; padding: 2rem 1rem; background-color: var(--surface, #ffffff); border-top: 1px solid var(--border, #e2e8f0); color: var(--text-body, #475569); margin-top: auto; overflow: hidden; }
-        footer p { margin: 0; white-space: nowrap; font-size: clamp(0.55rem, 2.5vw, 0.9rem); }
+        #logo-line-2 { font-weight: 600; color: var(--text-body, #475569); }
+        #logo-line-3 { font-weight: 500; color: var(--text-body, #475569); }
 
         .intro-container { max-width: 1100px; margin: 0 auto; width: 100%; padding: 2.5rem 3%; }
         .section-title { text-align: center; margin-bottom: 3rem; }
-        .section-title h2 { font-size: 2.2rem; color: var(--text-dark); margin-bottom: 0; }
 
-        /* Lưới 3 cột rộng rãi, giúp khung thoải mái chứa tên dài */
+        /* Khóa grid ổn định */
         .faculty-grid { 
             display: grid; 
             grid-template-columns: repeat(3, minmax(0, 1fr)); 
             gap: 2.5rem; 
-            align-items: stretch;
+            min-height: 500px;
         }
 
-        /* Khung card rộng rãi, đồng bộ chiều cao và rộng tuyệt đối */
         .faculty-card { 
-            background: var(--surface); 
-            border-radius: var(--radius-md, 16px); 
-            padding: 2.8rem 1.8rem; 
-            text-align: center; 
-            border: 1px solid var(--border); 
-            box-shadow: var(--shadow-sm); 
-            transition: var(--transition); 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            width: 100%;
-            height: 100%;
-            box-sizing: border-box;
+            background: var(--surface); border-radius: 16px; padding: 2.8rem 1.8rem; 
+            text-align: center; border: 1px solid var(--border); box-shadow: var(--shadow-sm); 
+            display: flex; flex-direction: column; align-items: center; height: 100%;
         }
+
+        /* Khung giả (Skeleton) để giữ chỗ */
+        .skeleton { background: #e2e8f0; border-radius: 8px; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
+
+        .faculty-avatar { width: 115px; height: 115px; border-radius: 50%; background: #e2e8f0; margin-bottom: 1.2rem; }
+        .faculty-name { font-size: 1.2rem; font-weight: 700; color: var(--text-dark); white-space: nowrap; }
         
-        .faculty-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-hover); border-color: var(--primary); }
-
-        .faculty-avatar { width: 115px; height: 115px; border-radius: 50%; object-fit: cover; margin-bottom: 1.2rem; border: 3px solid var(--primary); background: var(--bg-page); display: flex; align-items: center; justify-content: center; font-size: 3rem; color: var(--text-body); box-shadow: 0 4px 10px rgba(2, 132, 199, 0.1); flex-shrink: 0; }
-
-        .faculty-degree { 
-            font-size: 0.9rem; 
-            font-weight: 600; 
-            color: var(--text-body); 
-            margin-bottom: 0.2rem; 
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        /* Tên giảng viên không ngắt dòng, thoải mái hiển thị trong khung rộng */
-        .faculty-name { 
-            font-size: 1.2rem; 
-            font-weight: 700; 
-            color: var(--text-dark); 
-            margin-bottom: 0.4rem; 
-            white-space: nowrap;
-        }
-
-        .faculty-position { font-size: 0.95rem; font-weight: 600; color: var(--primary); margin-bottom: 0.8rem; }
-        
-        .faculty-email { 
-            font-size: 0.85rem; 
-            color: var(--text-body); 
-            display: flex; 
-            align-items: center; 
-            gap: 6px; 
-            margin-top: auto; 
-            word-break: break-all; 
-        }
-
-        .loading-state, .empty-state { grid-column: 1 / -1; text-align: center; padding: 4rem 0; color: var(--text-body); font-size: 1.1rem; }
-
-        @media (max-width: 900px) {
-            .faculty-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-        }
-        @media (max-width: 600px) {
-            header { gap: 1rem; }
-            .faculty-grid { grid-template-columns: repeat(1, minmax(0, 1fr)); }
-        }
+        @media (max-width: 900px) { .faculty-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+        @media (max-width: 600px) { .faculty-grid { grid-template-columns: repeat(1, minmax(0, 1fr)); } }
     </style>
 </head>
 <body style="display: flex; flex-direction: column; min-height: 100vh;">
     
     <header>
         <a href="index.html" class="logo-link">
-            <div class="logo" style="margin: 0; border: none; padding: 0;">
-                <img src="images/logo_Bộ môn.png" alt="Logo Bộ môn Phục hồi chức năng">
-            </div>
-            
+            <div class="logo"><img src="images/logo_Bộ môn.png" alt="Logo"></div>
             <div class="logo-text">
                 <div id="logo-line-1">Bộ môn Phục hồi chức năng</div>
                 <div id="logo-line-2">Trường Điều dưỡng - Kỹ thuật Y học</div>
                 <div id="logo-line-3">Đại học Y Dược Thành Phố Hồ Chí Minh</div>
             </div>
         </a>
-        
-        <script>
-            function perfectAlignLogo() {
-                const l1 = document.getElementById('logo-line-1');
-                const l2 = document.getElementById('logo-line-2');
-                const l3 = document.getElementById('logo-line-3');
-                const logoImg = document.querySelector('.logo-link img');
-                const logoText = document.querySelector('.logo-text');
-                
-                if (!l1 || !l2 || !l3 || !logoImg || !logoText) return;
-                if (logoImg.complete === false || logoImg.naturalHeight === 0) {
-                    logoImg.onload = perfectAlignLogo; return;
-                }
-
-                const isMobile = window.innerWidth <= 768;
-                const baseFontSize = isMobile ? 16.8 : 22.4; 
-                l1.style.fontSize = '20px'; l2.style.fontSize = '20px'; l3.style.fontSize = '20px';
-                
-                const w1 = l1.getBoundingClientRect().width;
-                const w2 = l2.getBoundingClientRect().width;
-                const w3 = l3.getBoundingClientRect().width;
-                
-                let targetWidth = (w1 / 20) * baseFontSize;
-                const applySizes = (width) => {
-                    l1.style.fontSize = (20 * width / w1) + 'px';
-                    l2.style.fontSize = (20 * width / w2) + 'px';
-                    l3.style.fontSize = (20 * width / w3) + 'px';
-                };
-                applySizes(targetWidth);
-                
-                const imgHeight = logoImg.getBoundingClientRect().height || 48; 
-                const textHeight = logoText.getBoundingClientRect().height; 
-                if (textHeight > imgHeight && imgHeight > 0) {
-                    targetWidth = targetWidth * (imgHeight / textHeight);
-                    applySizes(targetWidth); 
-                }
-            }
-            perfectAlignLogo(); window.addEventListener('resize', perfectAlignLogo); document.fonts.ready.then(perfectAlignLogo);
-        </script>
-        
-        <div class="menu-toggle" id="mobile-menu" aria-label="Menu">
-            <i class="fas fa-bars"></i>
-        </div>
-
         <nav class="nav-links" id="nav-links">
-            <a href="gioi-thieu.html" class="nav-item" style="color: var(--primary); font-weight: 600;">Giới thiệu</a>
-            <a href="cong-bo.html" class="nav-item">Công bố khoa học</a>
-            <a href="luan-van.html" class="nav-item">Luận văn & Khóa luận</a>
-            <a href="tai-nguyen.html" class="nav-item">Tài nguyên</a>
-            <a href="thong-bao.html" class="nav-item">Thông báo</a>
-            <a href="login.html" class="btn-login">Đăng nhập giảng viên</a>
+            <a href="gioi-thieu.html" style="color: var(--primary);">Giới thiệu</a>
+            <a href="login.html" class="btn-login">Đăng nhập</a>
         </nav>
     </header>
 
     <main style="flex: 1; padding-top: 2rem;">
         <div class="intro-container">
-            <div class="section-title">
-                <h2>Đội ngũ Giảng viên</h2>
-            </div>
-
+            <div class="section-title"><h2>Đội ngũ Giảng viên</h2></div>
+            
             <div class="faculty-grid" id="facultyGrid">
-                <div class="loading-state">
-                    <i class="fas fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 1rem; color: var(--primary);"></i>
-                    <p>Đang tải danh sách giảng viên...</p>
-                </div>
+                <!-- KHUNG GIẢ (SKELETON) hiển thị khi đang load -->
+                <div class="faculty-card"><div class="faculty-avatar skeleton"></div><div class="skeleton" style="width: 60%; height: 20px; margin-bottom: 10px;"></div><div class="skeleton" style="width: 80%; height: 25px;"></div></div>
+                <div class="faculty-card"><div class="faculty-avatar skeleton"></div><div class="skeleton" style="width: 60%; height: 20px; margin-bottom: 10px;"></div><div class="skeleton" style="width: 80%; height: 25px;"></div></div>
+                <div class="faculty-card"><div class="faculty-avatar skeleton"></div><div class="skeleton" style="width: 60%; height: 20px; margin-bottom: 10px;"></div><div class="skeleton" style="width: 80%; height: 25px;"></div></div>
             </div>
         </div>
     </main>
 
-    <footer>
-        <p>&copy; 2026 Bộ môn Phục hồi chức năng. Mọi quyền được bảo lưu.</p>
-    </footer>
-
-    <script>
-        const mobileMenu = document.getElementById('mobile-menu');
-        const navLinks = document.getElementById('nav-links');
-        const icon = mobileMenu.querySelector('i');
-
-        mobileMenu.addEventListener('click', () => {
-            navLinks.classList.toggle('active');
-            icon.classList.toggle('fa-bars');
-            icon.classList.toggle('fa-times');
-        });
-    </script>
-
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="js/firebase-config.js"></script>
 
     <script>
         const facultyGrid = document.getElementById('facultyGrid');
 
-        function getFullDegreeText(degreeCode) {
-            if (degreeCode === 'CN') return 'Cử nhân';
-            if (degreeCode === 'ThS') return 'Thạc sĩ';
-            if (degreeCode === 'TS') return 'Tiến sĩ';
-            return degreeCode || '';
-        }
-
-        firebase.firestore().collection("users").get().then((querySnapshot) => {
-            facultyGrid.innerHTML = ""; 
-
-            if (querySnapshot.empty) {
-                facultyGrid.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-users-slash" style="font-size: 2.5rem; margin-bottom: 1rem; color: var(--text-body);"></i>
-                        <p>Chưa có thông tin giảng viên nào được cập nhật.</p>
-                    </div>
-                `;
-                return;
-            }
-
-            let facultyList = [];
-            querySnapshot.forEach((doc) => {
-                facultyList.push(doc.data());
+        firebase.firestore().collection("users").get().then((snapshot) => {
+            facultyGrid.innerHTML = ""; // Xóa các khung giả sau khi có dữ liệu thật
+            
+            let list = [];
+            snapshot.forEach(doc => list.push(doc.data()));
+            
+            list.sort((a,b) => {
+                const rank = (p) => p === "Trưởng Bộ môn" ? 1 : p === "Phó Trưởng Bộ môn" ? 2 : 3;
+                if(rank(a.position) !== rank(b.position)) return rank(a.position) - rank(b.position);
+                return (a.fullName || "").localeCompare(b.fullName || "", 'vi');
             });
 
-            facultyList.sort((a, b) => {
-                const posA = a.position || "Giảng viên";
-                const posB = b.position || "Giảng viên";
-
-                const rank = (p) => {
-                    if (p === "Trưởng Bộ môn") return 1;
-                    if (p === "Phó Trưởng Bộ môn") return 2;
-                    return 3;
-                };
-
-                if (rank(posA) !== rank(posB)) {
-                    return rank(posA) - rank(posB);
-                }
-
-                const nameA = (a.fullName || "").trim();
-                const nameB = (b.fullName || "").trim();
-                return nameA.localeCompare(nameB, 'vi', { sensitivity: 'base' });
-            });
-
-            facultyList.forEach((data) => {
-                const fullDegree = getFullDegreeText(data.degree);
-                const fullName = data.fullName || "Thành viên Bộ môn";
-                const position = data.position || "Giảng viên";
-                const email = data.email || "Chưa cập nhật";
-                const avatar = data.avatar || "";
-
+            list.forEach(data => {
                 const card = document.createElement('div');
                 card.className = 'faculty-card';
-
-                let avatarHTML = `<div class="faculty-avatar"><i class="fas fa-user"></i></div>`;
-                if (avatar) {
-                    avatarHTML = `<div class="faculty-avatar" style="padding: 0; overflow: hidden;"><img src="${avatar}" alt="${fullName}" style="width: 100%; height: 100%; object-fit: cover;"></div>`;
-                }
-
                 card.innerHTML = `
-                    ${avatarHTML}
-                    <div class="faculty-degree">${fullDegree}</div>
-                    <div class="faculty-name">${fullName}</div>
-                    <div class="faculty-position">${position}</div>
-                    <div class="faculty-email"><i class="fas fa-envelope"></i> ${email}</div>
+                    <div class="faculty-avatar">${data.avatar ? `<img src="${data.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">` : '<i class="fas fa-user"></i>'}</div>
+                    <div class="faculty-degree">${data.degree === 'CN' ? 'Cử nhân' : data.degree === 'ThS' ? 'Thạc sĩ' : data.degree === 'TS' ? 'Tiến sĩ' : ''}</div>
+                    <div class="faculty-name">${data.fullName}</div>
+                    <div class="faculty-position">${data.position || 'Giảng viên'}</div>
+                    <div class="faculty-email"><i class="fas fa-envelope"></i> ${data.email || ''}</div>
                 `;
-
                 facultyGrid.appendChild(card);
             });
-        }).catch((error) => {
-            console.error("Lỗi tải danh sách giảng viên: ", error);
-            facultyGrid.innerHTML = `
-                <div class="empty-state">
-                    <p style="color: var(--accent);">Không thể tải dữ liệu danh sách giảng viên. Vui lòng thử lại sau.</p>
-                </div>
-            `;
         });
     </script>
 </body>
