@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Khu vực đăng nhập dành cho giảng viên Bộ môn Phục hồi chức năng.">
+    <title>Đăng nhập Giảng viên - Bộ môn Phục hồi chức năng</title>
+    
+    <link rel="icon" href="images/logo_Bộ môn.png" type="image/png">
+    <link rel="apple-touch-icon" href="images/logo_Bộ môn.png">
+    
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* --- CSS GIỮ NGUYÊN TỪ TRANG CHỦ --- */
+        header { gap: 3rem; }
+        .logo-text { display: flex; flex-direction: column; justify-content: center; }
+        .logo-text div { white-space: nowrap; width: max-content; line-height: 1.2; transform-origin: left; }
+        #logo-line-1 { font-weight: 700; color: var(--text-dark, #0f172a); }
+        #logo-line-2 { font-weight: 600; color: var(--text-body, #475569); margin-top: 0.25em; }
+        #logo-line-3 { font-weight: 500; color: var(--text-body, #475569); margin-top: 0.15em; }
+        
+        footer { text-align: center; padding: 2rem 1rem; background-color: var(--surface); border-top: 1px solid var(--border); color: var(--text-body); margin-top: auto; overflow: hidden; }
+        footer p { margin: 0; white-space: nowrap; font-size: clamp(0.55rem, 2.5vw, 0.9rem); }
+
+        /* --- CSS RIÊNG CHO KHU VỰC ĐĂNG NHẬP --- */
+        .login-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 3rem 1rem;
+        }
+
+        .login-card {
+            background: var(--surface);
+            width: 100%;
+            max-width: 420px;
+            padding: 2.5rem 2rem;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-hover);
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .login-card i.fa-user-shield {
+            font-size: 3.5rem;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+        }
+
+        .login-card h2 {
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+            font-size: 1.6rem;
+        }
+
+        .login-card p {
+            color: var(--text-body);
+            font-size: 0.95rem;
+            margin-bottom: 2rem;
+            line-height: 1.5;
+        }
+
+        /* --- FORM ĐĂNG NHẬP EMAIL --- */
+        .input-group {
+            margin-bottom: 1rem;
+            text-align: left;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 0.95rem;
+            outline: none;
+            transition: var(--transition);
+            background-color: var(--bg-page);
+            color: var(--text-dark);
+        }
+
+        .input-group input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+            background-color: var(--surface);
+        }
+
+        .btn-email-login {
+            width: 100%;
+            padding: 0.8rem;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 0.5rem;
+        }
+
+        .btn-email-login:hover {
+            background-color: var(--primary-hover);
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.2);
+        }
+
+        /* --- VẠCH PHÂN CÁCH --- */
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 1.5rem 0;
+            color: var(--text-body);
+            font-size: 0.85rem;
+        }
+
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .divider span {
+            padding: 0 10px;
+        }
+
+        /* Nút đăng nhập Google */
+        .btn-google {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            width: 100%;
+            padding: 0.8rem;
+            background-color: white;
+            color: #757575;
+            border: 1px solid #ddd;
+            border-radius: var(--radius-sm);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+
+        .btn-google img {
+            width: 20px;
+            height: 20px;
+        }
+
+        .btn-google:hover {
+            background-color: #f8f9fa;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+        }
+
+        .error-message {
+            color: var(--accent);
+            font-size: 0.85rem;
+            margin-top: 1.5rem;
+            display: none; 
+            background: var(--accent-light);
+            padding: 0.8rem;
+            border-radius: var(--radius-sm);
+            border: 1px solid rgba(225, 29, 72, 0.2);
+        }
+
+        @media (max-width: 768px) {
+            header { gap: 1rem; }
+            .login-card { padding: 2rem 1.5rem; }
+        }
+    </style>
+</head>
+<body style="display: flex; flex-direction: column; min-height: 100vh;">
+    <!-- HEADER -->
+    <header>
+        <div class="logo">
+            <img src="images/logo_Bộ môn.png" alt="Logo Bộ môn Phục hồi chức năng">
+            <div class="logo-text">
+                <div id="logo-line-1">Bộ môn Phục hồi chức năng</div>
+                <div id="logo-line-2">Trường Điều dưỡng - Kỹ thuật Y học</div>
+                <div id="logo-line-3">Đại học Y Dược Thành Phố Hồ Chí Minh</div>
+            </div>
+            
+            <script>
+                // Script căn chỉnh logo
+                function perfectAlignLogo() {
+                    const l1 = document.getElementById('logo-line-1');
+                    const l2 = document.getElementById('logo-line-2');
+                    const l3 = document.getElementById('logo-line-3');
+                    const logoImg = document.querySelector('.logo img');
+                    const logoText = document.querySelector('.logo-text');
+                    
+                    if (!l1 || !l2 || !l3 || !logoImg || !logoText) return;
+                    if (logoImg.complete === false || logoImg.naturalHeight === 0) {
+                        logoImg.onload = perfectAlignLogo; return;
+                    }
+
+                    const isMobile = window.innerWidth <= 768;
+                    const baseFontSize = isMobile ? 16.8 : 22.4; 
+                    
+                    l1.style.fontSize = '20px'; l2.style.fontSize = '20px'; l3.style.fontSize = '20px';
+                    
+                    const w1 = l1.getBoundingClientRect().width;
+                    const w2 = l2.getBoundingClientRect().width;
+                    const w3 = l3.getBoundingClientRect().width;
+                    
+                    let targetWidth = (w1 / 20) * baseFontSize;
+                    
+                    const applySizes = (width) => {
+                        l1.style.fontSize = (20 * width / w1) + 'px';
+                        l2.style.fontSize = (20 * width / w2) + 'px';
+                        l3.style.fontSize = (20 * width / w3) + 'px';
+                    };
+                    
+                    applySizes(targetWidth);
+                    
+                    const imgHeight = logoImg.getBoundingClientRect().height || 48; 
+                    const textHeight = logoText.getBoundingClientRect().height; 
+                    
+                    if (textHeight > imgHeight && imgHeight > 0) {
+                        const ratio = imgHeight / textHeight;
+                        targetWidth = targetWidth * ratio;
+                        applySizes(targetWidth); 
+                    }
+                }
+                perfectAlignLogo(); window.addEventListener('resize', perfectAlignLogo); document.fonts.ready.then(perfectAlignLogo);
+            </script>
+        </div>
+        
+        <div class="menu-toggle" id="mobile-menu" aria-label="Menu">
+            <i class="fas fa-bars"></i>
+        </div>
+
+        <nav class="nav-links" id="nav-links">
+            <a href="index.html" class="nav-item">Trang chủ</a>
+            <a href="tai-nguyen.html" class="nav-item">Tài nguyên</a>
+        </nav>
+    </header>
+
+    <!-- NỘI DUNG CHÍNH (KHU VỰC ĐĂNG NHẬP) -->
+    <main style="flex: 1; display: flex;">
+        <div class="login-wrapper">
+            <div class="login-card">
+                <i class="fas fa-user-shield"></i>
+                <h2>Đăng nhập hệ thống</h2>
+                <p>Quý Thầy Cô vui lòng đăng nhập để truy cập hệ thống.</p>
+                
+                <!-- Form Đăng nhập bằng Email -->
+                <form id="emailLoginForm" onsubmit="return false;">
+                    <div class="input-group">
+                        <input type="email" id="inputEmail" placeholder="Email" required>
+                    </div>
+                    <div class="input-group">
+                        <input type="password" id="inputPassword" placeholder="Mật khẩu" required>
+                    </div>
+                    <button type="submit" id="btnEmailLogin" class="btn-email-login">Đăng nhập</button>
+                </form>
+
+                <div class="divider">
+                    <span>HOẶC</span>
+                </div>
+                
+                <!-- Nút Đăng nhập bằng Google -->
+                <button id="btnGoogleLogin" class="btn-google">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google Logo">
+                    Đăng nhập bằng Google
+                </button>
+
+                <!-- Khu vực hiển thị lỗi -->
+                <div id="errorMessage" class="error-message">
+                    Đăng nhập thất bại. Vui lòng thử lại.
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer>
+        <p>&copy; 2026 Bộ môn Phục hồi chức năng. Mọi quyền được bảo lưu.</p>
+    </footer>
+
+    <!-- SCRIPT XỬ LÝ MENU ĐIỆN THOẠI -->
+    <script>
+        const mobileMenu = document.getElementById('mobile-menu');
+        const navLinks = document.getElementById('nav-links');
+        const icon = mobileMenu.querySelector('i');
+
+        mobileMenu.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+            if (navLinks.classList.contains('active')) {
+                icon.classList.remove('fa-bars'); icon.classList.add('fa-times');
+            } else {
+                icon.classList.remove('fa-times'); icon.classList.add('fa-bars');
+            }
+        });
+    </script>
+
+    <!-- FIREBASE SƠ CẤP & CẤU HÌNH CỦA BẠN -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="js/firebase-config.js"></script>
+
+    <!-- SCRIPT XỬ LÝ ĐĂNG NHẬP CẢ EMAIL VÀ GOOGLE -->
+    <script>
+        const provider = new firebase.auth.GoogleAuthProvider();
+        const btnGoogleLogin = document.getElementById('btnGoogleLogin');
+        const btnEmailLogin = document.getElementById('btnEmailLogin');
+        const inputEmail = document.getElementById('inputEmail');
+        const inputPassword = document.getElementById('inputPassword');
+        const errorMsg = document.getElementById('errorMessage');
+
+        // Hàm hiển thị lỗi bằng tiếng Việt
+        function showError(message) {
+            errorMsg.style.display = "block";
+            errorMsg.innerText = message;
+        }
+
+        // 1. Kiểm tra trạng thái: Nếu đã đăng nhập, chuyển qua trang Quản lý
+        firebase.auth().onAuthStateChanged((user) => {
+            if (user) {
+                window.location.href = "dashboard.html"; 
+            }
+        });
+
+        // 2. Xử lý sự kiện đăng nhập bằng Email/Password
+        btnEmailLogin.addEventListener('click', () => {
+            const email = inputEmail.value.trim();
+            const password = inputPassword.value;
+
+            if (!email || !password) {
+                return; // Trình duyệt sẽ tự báo lỗi require do thuộc tính required trong thẻ input
+            }
+
+            // Gọi hàm đăng nhập bằng Email của Firebase
+            firebase.auth().signInWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    console.log("Đăng nhập Email thành công:", userCredential.user.email);
+                })
+                .catch((error) => {
+                    console.error("Lỗi đăng nhập Email:", error.code);
+                    if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                        showError("Email hoặc mật khẩu không chính xác.");
+                    } else if (error.code === 'auth/invalid-email') {
+                        showError("Định dạng email không hợp lệ.");
+                    } else if (error.code === 'auth/too-many-requests') {
+                        showError("Bạn đã nhập sai quá nhiều lần. Vui lòng thử lại sau.");
+                    } else {
+                        showError("Đã xảy ra lỗi: " + error.message);
+                    }
+                });
+        });
+
+        // 3. Xử lý sự kiện đăng nhập bằng Google
+        btnGoogleLogin.addEventListener('click', () => {
+            firebase.auth().signInWithPopup(provider)
+                .then((result) => {
+                    console.log("Đăng nhập Google thành công:", result.user.email);
+                })
+                .catch((error) => {
+                    console.error("Lỗi đăng nhập Google:", error.message);
+                    if(error.code !== 'auth/popup-closed-by-user') {
+                        showError("Lỗi đăng nhập Google. Vui lòng thử lại.");
+                    }
+                });
+        });
+    </script>
+</body>
+</html>
