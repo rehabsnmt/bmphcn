@@ -86,6 +86,17 @@
                     <label>Họ và tên</label>
                     <input type="text" id="inputName" placeholder="VD: Nguyễn Văn A" required>
                 </div>
+
+                <!-- Sổ xuống chọn chức vụ -->
+                <div class="input-group">
+                    <label>Chức vụ</label>
+                    <select id="inputPosition" required>
+                        <option value="" disabled selected>-- Chọn chức vụ --</option>
+                        <option value="Trưởng Bộ môn">Trưởng Bộ môn</option>
+                        <option value="Phó Trưởng Bộ môn">Phó Trưởng Bộ môn</option>
+                        <option value="Giảng viên">Giảng viên</option>
+                    </select>
+                </div>
                 
                 <button type="submit" id="btnSave" class="btn-save"><i class="fas fa-save" style="margin-right: 6px;"></i> Lưu thông tin</button>
             </form>
@@ -105,6 +116,7 @@
     <script>
         const inputDegree = document.getElementById('inputDegree');
         const inputName = document.getElementById('inputName');
+        const inputPosition = document.getElementById('inputPosition');
         const inputAvatarFile = document.getElementById('inputAvatarFile');
         const avatarImg = document.getElementById('avatarImg');
         const defaultAvatarIcon = document.getElementById('defaultAvatarIcon');
@@ -119,7 +131,6 @@
             statusMsg.innerText = msg;
         }
 
-        // Xử lý nén và chuyển ảnh sang dạng Base64 khi chọn file
         inputAvatarFile.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
@@ -134,7 +145,6 @@
             }
         });
 
-        // 1. Load dữ liệu cũ
         firebase.auth().onAuthStateChanged((user) => {
             if (user) {
                 firebase.firestore().collection("users").doc(user.uid).get().then((doc) => {
@@ -142,6 +152,7 @@
                         const data = doc.data();
                         inputDegree.value = data.degree || "";
                         inputName.value = data.fullName || "";
+                        inputPosition.value = data.position || "";
                         if (data.avatar) {
                             base64Image = data.avatar;
                             avatarImg.src = base64Image;
@@ -155,14 +166,14 @@
             }
         });
 
-        // 2. Lưu dữ liệu lên Firestore
         btnSave.addEventListener('click', () => {
             const user = firebase.auth().currentUser;
             const degree = inputDegree.value;
             const fullName = inputName.value.trim();
+            const position = inputPosition.value;
 
-            if (!user || !degree || !fullName) {
-                showMessage("Vui lòng điền đầy đủ học vị và họ tên.", false);
+            if (!user || !degree || !fullName || !position) {
+                showMessage("Vui lòng điền đầy đủ thông tin.", false);
                 return;
             }
 
@@ -172,6 +183,7 @@
             firebase.firestore().collection("users").doc(user.uid).set({
                 degree: degree,
                 fullName: fullName,
+                position: position,
                 avatar: base64Image,
                 email: user.email,
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
