@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* --- CSS CHUẨN HEADER & FOOTER ĐỒNG BỘ TRANG GIỚI THIỆU --- */
+        /* --- CSS CHUẨN HEADER & FOOTER --- */
         header { gap: 3rem; }
         .logo-link { display: flex; align-items: center; gap: 15px; text-decoration: none; cursor: pointer; }
         .logo-text { display: flex; flex-direction: column; justify-content: center; }
@@ -55,6 +55,10 @@
         .empty-state { text-align: center; padding: 3rem; color: var(--text-body); }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
         
+        /* Chế độ hiển thị Tên người đăng */
+        .author-info { display: none; }
+        body.is-logged-in .author-info { display: flex; align-items: center; gap: 6px; }
+
         /* CSS cho Nút Sửa/Xóa và Modal */
         .btn-warning { background-color: #f59e0b; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 500; cursor: pointer; transition: var(--transition); }
         .btn-warning:hover { background-color: #d97706; }
@@ -233,6 +237,7 @@
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 isAdmin = true;
+                document.body.classList.add('is-logged-in'); // Hiện tên tác giả
                 btnToggleForm.style.display = 'flex'; 
                 try {
                     const userDoc = await getDoc(doc(db, "users", user.uid));
@@ -249,6 +254,7 @@
                 }
             } else {
                 isAdmin = false;
+                document.body.classList.remove('is-logged-in'); // Ẩn tên tác giả
                 btnToggleForm.style.display = 'none';
                 btnAuthNav.innerHTML = 'Đăng nhập giảng viên';
             }
@@ -324,7 +330,6 @@
 
         // ==========================================
         // CÁC HÀM XỬ LÝ SỰ KIỆN TỪ GIAO DIỆN HIỂN THỊ
-        // (Gắn vào window để gọi từ chuỗi HTML nội tuyến)
         // ==========================================
         
         window.triggerEdit = (id, enTitle, enContent) => {
@@ -396,13 +401,11 @@
                 let excerpt = data.content.substring(0, 150);
                 if (data.content.length > 150) excerpt += "...";
 
-                // Xử lý chuỗi an toàn để đưa vào các hàm JS (tránh lỗi dấu nháy đơn)
                 const safeTitle = encodeURIComponent(data.title || '').replace(/'/g, "%27");
                 const safeContent = encodeURIComponent(data.content || '').replace(/'/g, "%27");
 
                 let actionHtml = '';
                 if (isAdmin) {
-                    // Dùng event.preventDefault() để khi bấm nút không bị nhảy sang trang chi tiết (do thẻ <a> bọc bên ngoài)
                     actionHtml = `
                         <div class="action-buttons" onclick="event.preventDefault();">
                             <button class="btn-warning" onclick="event.preventDefault(); triggerEdit('${id}', '${safeTitle}', '${safeContent}')"><i class="fas fa-edit"></i> Sửa</button>
@@ -419,7 +422,7 @@
                     <div class="news-excerpt">${excerpt}</div>
                     <div class="news-meta">
                         <span><i class="fas fa-calendar-alt"></i> ${dateStr}</span>
-                        <span><i class="fas fa-pencil-alt"></i> Đăng bởi: ${data.author || 'Hệ thống'}</span>
+                        <span class="author-info"><i class="fas fa-pencil-alt"></i> Đăng bởi: ${data.author || 'Hệ thống'}</span>
                     </div>
                     ${actionHtml}
                 `;
