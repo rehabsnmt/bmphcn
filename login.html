@@ -216,7 +216,7 @@
                 </form>
                 
                 <div class="switch-form-text">
-                    Giảng viên mới? <a id="btnSwitchToRegister" class="text-link">Đăng ký tài khoản</a>
+                    Chưa có tài khoản? <a id="btnSwitchToRegister" class="text-link">Đăng ký tài khoản</a>
                 </div>
             </div>
 
@@ -225,9 +225,9 @@
                 <h2>Đăng ký tài khoản</h2>
                 <form id="formRegister" onsubmit="return false;">
                     <div class="input-group">
-                        <label>Danh tính giảng viên *</label>
+                        <label> Thông tin giảng viên *</label>
                         <select id="regFacultyIdentity" required>
-                            <option value="">-- Chọn danh tính của bạn --</option>
+                            <option value="">-- Tôi là --</option>
                             <!-- Dữ liệu GV sẽ được đổ vào đây bằng JS -->
                         </select>
                     </div>
@@ -317,9 +317,11 @@
             loginView.classList.remove('hidden');
         });
 
-        // Tự chuyển hướng nếu đã đăng nhập
+        // Tự chuyển hướng nếu ĐÃ ĐĂNG NHẬP VÀ ĐÃ XÁC MINH EMAIL
         firebase.auth().onAuthStateChanged((user) => {
-            if (user) window.location.href = "index.html"; 
+            if (user && user.emailVerified) {
+                window.location.href = "dashboard.html"; 
+            }
         });
 
         // --- 5. LOGIC ĐĂNG NHẬP ---
@@ -329,16 +331,35 @@
             if (!email || !pass) return showMessage("Vui lòng nhập Email và Mật khẩu.");
             
             hideMessage();
-            document.getElementById('btnLoginSubmit').disabled = true;
-            document.getElementById('btnLoginSubmit').innerText = "Đang xử lý...";
+            const btnSubmit = document.getElementById('btnLoginSubmit');
+            btnSubmit.disabled = true;
+            btnSubmit.innerText = "Đang xử lý...";
 
             firebase.auth().signInWithEmailAndPassword(email, pass)
+                .then((userCredential) => {
+                    const user = userCredential.user;
+                    
+                    // Kiểm tra trạng thái xác minh email
+                    if (!user.emailVerified) {
+                        // Bắt buộc đăng xuất nếu chưa xác minh
+                        firebase.auth().signOut().then(() => {
+                            btnSubmit.disabled = false;
+                            btnSubmit.innerText = "Đăng nhập";
+                            showMessage("Tài khoản chưa được xác minh. Vui lòng kiểm tra hộp thư email (kể cả thư rác) và nhấp vào liên kết xác minh trước khi đăng nhập.");
+                        });
+                    } else {
+                        // Chuyển hướng sang dashboard nếu hợp lệ
+                        window.location.href = "dashboard.html";
+                    }
+                })
                 .catch((error) => {
-                    document.getElementById('btnLoginSubmit').disabled = false;
-                    document.getElementById('btnLoginSubmit').innerText = "Đăng nhập";
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerText = "Đăng nhập";
                     
                     if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
                         showMessage("Tài khoản hoặc mật khẩu không chính xác.");
+                    } else if (error.code === 'auth/too-many-requests') {
+                        showMessage("Bạn đã nhập sai quá nhiều lần. Vui lòng thử lại sau.");
                     } else {
                         showMessage("Lỗi: " + error.message);
                     }
@@ -377,10 +398,32 @@
                         position: selectedFaculty.position,
                         avatar: selectedFaculty.image,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
+                    }).then(() => user); // Truyền đối tượng user sang then() tiếp theo
+                })
+                .then((user) => {
+                    // 3. Gửi email xác minh
+                    return user.sendEmailVerification();
                 })
                 .then(() => {
-                    // Sẽ tự động kích hoạt onAuthStateChanged và bay sang trang index
+                    // 4. Đăng xuất ngay lập tức để chặn truy cập chưa xác minh
+                    return firebase.auth().signOut();
+                })
+                .then(() => {
+                    // 5. Khôi phục trạng thái nút, chuyển form và báo thành công
+                    btnReg.disabled = false;
+                    btnReg.innerText = "Đăng ký";
+                    
+                    // Reset nội dung form đăng ký
+                    document.getElementById('formRegister').reset();
+                    
+                    // Chuyển về màn hình đăng nhập
+                    registerView.classList.add('hidden');
+                    loginView.classList.remove('hidden');
+                    
+                    // Điền sẵn email cho người dùng
+                    document.getElementById('loginEmail').value = email;
+                    
+                    showMessage("Đăng ký thành công! Một email xác minh đã được gửi đến " + email + ". Vui lòng kiểm tra hộp thư (kể cả thư rác) để xác minh tài khoản trước khi đăng nhập.", true);
                 })
                 .catch((error) => {
                     btnReg.disabled = false;
