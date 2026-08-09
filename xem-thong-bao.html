@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* --- CSS CHUẨN HEADER & FOOTER ĐỒNG BỘ TRANG GIỚI THIỆU --- */
+        /* --- CSS CHUẨN HEADER & FOOTER --- */
         header { gap: 3rem; }
         .logo-link { display: flex; align-items: center; gap: 15px; text-decoration: none; cursor: pointer; }
         .logo-text { display: flex; flex-direction: column; justify-content: center; }
@@ -33,11 +33,6 @@
 
         .article-card { background: var(--surface); padding: 2.5rem; border-radius: 12px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
         
-        .article-tag { display: inline-block; padding: 4px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; text-transform: uppercase; margin-bottom: 1rem; }
-        .tag-tuyensinh { background-color: #fef3c7; color: #166534; border: 1px solid #d1fae5; }
-        .tag-daotao { background-color: #e0f2fe; color: #075985; border: 1px solid #bae6fd; }
-        .tag-chung { background-color: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
-
         .article-title { font-size: 2rem; font-weight: 800; color: var(--text-dark); margin: 0 0 1rem 0; line-height: 1.3; }
         
         .article-meta { display: flex; gap: 20px; font-size: 0.9rem; color: var(--text-body); padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); margin-bottom: 2rem; }
@@ -46,6 +41,10 @@
         .article-content { font-size: 1.05rem; line-height: 1.8; color: var(--text-dark); white-space: pre-wrap; }
 
         .loading-state { text-align: center; padding: 4rem 0; color: var(--text-body); }
+        
+        /* Chế độ hiển thị Tên người đăng */
+        .author-info { display: none; }
+        body.is-logged-in .author-info { display: flex; align-items: center; gap: 6px; }
         
         @media (max-width: 768px) { header { gap: 1rem; } .article-card { padding: 1.5rem; } .article-title { font-size: 1.5rem; } }
     </style>
@@ -162,29 +161,22 @@
         onAuthStateChanged(auth, async (user) => {
             const btnAuthNav = document.getElementById('btnAuthNav');
             if (user) {
+                document.body.classList.add('is-logged-in'); // Hiện tên tác giả
                 try {
                     const userDoc = await getDoc(doc(db, "users", user.uid));
                     if (userDoc.exists()) {
                         const data = userDoc.data();
                         let degreePrefix = data.degree === 'ThS' ? 'ThS. ' : (data.degree === 'TS' ? 'TS. ' : '');
-                        // Đã thêm margin-right: 5px cho icon
                         btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 5px;"></i> ${degreePrefix}${data.fullName || "Giảng viên"}`;
-                    } else {
-                        btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 5px;"></i> Giảng viên`;
                     }
                 } catch (error) {
                     console.error("Lỗi kết nối User DB:", error);
                 }
             } else { 
+                document.body.classList.remove('is-logged-in'); // Ẩn tên tác giả
                 btnAuthNav.innerHTML = 'Đăng nhập giảng viên'; 
             }
         });
-
-        function getTagClass(cat) {
-            if (cat === "Tuyển sinh") return "tag-tuyensinh";
-            if (cat === "Đào tạo") return "tag-daotao";
-            return "tag-chung";
-        }
 
         const urlParams = new URLSearchParams(window.location.search);
         const articleId = urlParams.get('id');
@@ -207,11 +199,10 @@
                     }
 
                     container.innerHTML = `
-                        <div class="article-tag ${getTagClass(data.category)}">${data.category}</div>
                         <h1 class="article-title">${data.title}</h1>
                         <div class="article-meta">
                             <span><i class="fas fa-calendar-alt"></i> ${dateStr}</span>
-                            <span><i class="fas fa-user-edit"></i> Đăng bởi: ${data.author || 'Hệ thống'}</span>
+                            <span class="author-info"><i class="fas fa-user-edit"></i> Đăng bởi: ${data.author || 'Hệ thống'}</span>
                         </div>
                         <div class="article-content">${data.content}</div>
                     `;
