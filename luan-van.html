@@ -16,7 +16,7 @@
         /* =========================================
            TÙY CHỈNH DÀNH RIÊNG CHO TRANG LUẬN VĂN
         ========================================= */
-        main { max-width: 1200px; padding: 2rem 3%; }
+        main { max-width: 1200px; padding: 2rem 3%; margin: 0 auto; }
 
         .view-counter-wrapper { display: flex; justify-content: center; align-items: center; font-size: 0.9rem; color: var(--text-body); margin-top: 10px; font-weight: 500; background: var(--bg-page); padding: 6px 15px; border-radius: var(--radius-pill); width: fit-content; margin: 10px auto 0; border: 1px solid var(--border); }
         .view-counter-wrapper strong { color: var(--primary); margin-left: 5px;}
@@ -82,30 +82,7 @@
 </head>
 <body style="display: flex; flex-direction: column; min-height: 100vh;">
 
-    <!-- HEADER DÙNG CHUNG CỦA HỆ THỐNG -->
-    <header>
-        <a href="index.html" class="logo-link">
-            <div class="logo" style="margin: 0; border: none; padding: 0;">
-                <img src="images/logo_Bộ môn.png" alt="Logo Bộ môn Phục hồi chức năng">
-            </div>
-            <div class="logo-text">
-                <div id="logo-line-1">Bộ môn Phục hồi chức năng</div>
-                <div id="logo-line-2">Trường Điều dưỡng - Kỹ thuật Y học</div>
-                <div id="logo-line-3">Đại học Y Dược Thành Phố Hồ Chí Minh</div>
-            </div>
-        </a>
-        <div class="menu-toggle" id="mobile-menu" aria-label="Menu"><i class="fas fa-bars"></i></div>
-        <nav class="nav-links" id="nav-links">
-            <a href="gioi-thieu.html" class="nav-item">Giới thiệu</a>
-            <a href="cong-bo.html" class="nav-item">Công bố khoa học</a>
-            <a href="luan-van.html" class="nav-item" style="color: var(--primary); font-weight: 600;">Luận văn & Khóa luận</a>
-            <a href="tai-nguyen.html" class="nav-item">Tài nguyên</a>
-            <a href="thong-bao.html" class="nav-item">Thông báo</a>
-            <a href="login.html" class="btn-login" id="btnAdminSystem">Đăng nhập</a>
-        </nav>
-    </header>
-
-    <main>
+    <main style="flex: 1;">
         <div class="header-actions">
             <div class="header-title-box">
                 <h2>Danh sách luận văn & khóa luận</h2>
@@ -239,7 +216,7 @@
         </div>
     </main>
 
-    <!-- Modals Giữ nguyên cấu trúc nhưng tinh chỉnh CSS bằng style attribute -->
+    <!-- Modals -->
     <div id="advisorModal" class="modal-overlay hidden">
         <div class="modal-content" style="text-align: center;">
             <button class="modal-close" onclick="closeAdvisorModal()"><i class="fas fa-times"></i></button>
@@ -255,7 +232,7 @@
         </div>
     </div>
 
-    <!-- Modals History và Delete giữ nguyên -->
+    <!-- Modals History và Delete -->
     <div id="historyModal" class="modal-overlay hidden">
         <div class="modal-content" style="max-width: 800px;">
             <button class="modal-close" onclick="closeHistoryModal()"><i class="fas fa-times"></i></button>
@@ -290,29 +267,33 @@
         </div>
     </div>
 
-    <footer>
-        <p>&copy; 2026 Bộ môn Phục hồi chức năng. Mọi quyền được bảo lưu.</p>
-    </footer>
-
-    <script>
-        const mobileMenu = document.getElementById('mobile-menu');
-        const navLinks = document.getElementById('nav-links');
-        mobileMenu.addEventListener('click', () => { navLinks.classList.toggle('active'); });
-    </script>
-
-    <!-- NHÚNG SẴN FIREBASE CONFIG CHUNG TRƯỚC KHI GỌI MODULE -->
+    <!-- NHÚNG SẴN FIREBASE CONFIG CHUNG CỦA TOÀN TRANG ĐỂ KIỂM TRA ĐĂNG NHẬP (AUTH) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="js/firebase-config.js"></script>
 
-    <!-- LOGIC NGHIỆP VỤ LUẬN VĂN -->
+    <!-- LOGIC NGHIỆP VỤ LUẬN VĂN SỬ DỤNG DATABASE "THESES-3FDCE" -->
     <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
         import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, query, orderBy, limit, increment, setDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
         
-        // Tận dụng app Firebase đã khởi tạo từ js/firebase-config.js
-        const firestoreDb = getFirestore();
-        const firestoreAuth = firebase.auth(); // Lấy từ bản Compat ở trên
+        // 1. KHỞI TẠO APP FIREBASE THỨ 2 DÀNH RIÊNG CHO LUẬN VĂN
+        const thesesFirebaseConfig = {
+            apiKey: "AIzaSyDxZZRBDcb9606mNYXxXeLpgK2p1xfGF9A",
+            authDomain: "theses-3fdce.firebaseapp.com",
+            projectId: "theses-3fdce",
+            storageBucket: "theses-3fdce.firebasestorage.app",
+            messagingSenderId: "660887163293",
+            appId: "1:660887163293:web:caeaece108f6fd96cddf74",
+            measurementId: "G-5LR1NLCMT0"
+        };
+        
+        // Đặt tên App là "ThesesDatabase" để không bị xung đột với App mặc định ở file js/firebase-config.js
+        const thesesApp = initializeApp(thesesFirebaseConfig, "ThesesDatabase");
+        const firestoreDb = getFirestore(thesesApp);
+
+        // 2. TẬN DỤNG HỆ THỐNG ĐĂNG NHẬP GỐC
+        const firestoreAuth = firebase.auth(); // Kéo Auth từ hệ thống gốc
 
         // TỔNG LƯỢT XЕМ
         const pageViewsDocRef = doc(firestoreDb, "settings", "pageViews");
@@ -323,8 +304,9 @@
 
         // DANH SÁCH GIẢNG VIÊN MẪU
         const internalAdvisors = {
-            "TS. Lê Minh Trí": { degree: "Tiến sĩ", email: "leminhtri@ump.edu.vn", research: "Thần kinh", bio: "Hơn 15 năm kinh nghiệm." }
-            // (Thêm giảng viên khác tại đây nếu cần thiết lập sẵn thông tin hiển thị Modal)
+            "TS. Lê Minh Trí": { degree: "Tiến sĩ", email: "leminhtri@ump.edu.vn", research: "Thần kinh", bio: "Hơn 15 năm kinh nghiệm." },
+            "ThS. Phạm Ngọc Thạch": { degree: "Thạc sĩ", email: "phamngocthach@ump.edu.vn", research: "Vật lý trị liệu", bio: "Chuyên phục hồi chấn thương thể thao." },
+            "PGS.TS. Nguyễn Thị Bích": { degree: "Phó Giáo sư / Tiến sĩ", email: "nguyenthibich@ump.edu.vn", research: "Hoạt động trị liệu", bio: "Chuyên gia đánh giá và can thiệp cho trẻ." }
         };
 
         let allTheses = [];
