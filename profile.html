@@ -23,16 +23,7 @@
         .avatar-container img { width: 100%; height: 100%; object-fit: cover; }
         .avatar-container i { font-size: 2.5rem; color: var(--text-body); }
         
-        .profile-card h2 { color: var(--text-dark, #0f172a); margin-bottom: 0.5rem; font-size: 1.6rem; }
-        
-        /* Dòng lưu ý nhỏ */
-        .profile-note {
-            font-size: 0.85rem;
-            color: var(--text-body);
-            opacity: 0.85;
-            margin-bottom: 2rem;
-            font-style: italic;
-        }
+        .profile-card h2 { color: var(--text-dark, #0f172a); margin-bottom: 2rem; font-size: 1.6rem; }
         
         .input-group { margin-bottom: 1.2rem; text-align: left; }
         .input-group label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-dark); margin-bottom: 0.4rem; }
@@ -54,33 +45,8 @@
         /* Hiệu ứng khi ô bị khóa (Readonly) */
         .input-readonly { background-color: #f1f5f9 !important; cursor: not-allowed; color: #475569 !important; font-weight: 500; }
         
-        /* Khu vực đổi mật khẩu */
-        .password-section {
-            margin-top: 2.5rem;
-            padding-top: 1.5rem;
-            border-top: 1px dashed var(--border);
-            text-align: left;
-        }
-        
-        .password-section h3 {
-            font-size: 1.1rem;
-            color: var(--text-dark);
-            margin-bottom: 1rem;
-            margin-top: 0;
-        }
-
-        .input-group input:focus:not(.input-readonly) { border-color: var(--primary, #0284c7); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15); background-color: var(--surface, #ffffff); }
-
-        .btn-action { width: 100%; padding: 0.8rem; background-color: var(--primary, #0284c7); color: white; border: none; border-radius: var(--radius-sm, 8px); font-size: 1rem; font-weight: 600; cursor: pointer; transition: var(--transition, all 0.3s ease); box-shadow: var(--shadow-sm, 0 1px 2px rgba(2, 132, 199, 0.05)); margin-top: 0.5rem; }
-        .btn-action:hover { background-color: var(--primary-hover, #0369a1); box-shadow: 0 4px 12px rgba(2, 132, 199, 0.2); }
-        .btn-action:disabled { background-color: #94a3b8; cursor: not-allowed; box-shadow: none; }
-        
-        .btn-back { display: block; margin-top: 1.5rem; color: var(--text-body, #475569); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: var(--transition); text-align: center; }
+        .btn-back { display: block; margin-top: 2rem; color: var(--text-body, #475569); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: var(--transition); text-align: center; }
         .btn-back:hover { color: var(--primary); }
-
-        .status-message { font-size: 0.85rem; margin-top: 1rem; display: none; padding: 0.7rem; border-radius: var(--radius-sm, 8px); text-align: left;}
-        .status-success { color: #166534; background: #dcfce7; border: 1px solid rgba(22, 101, 52, 0.2); }
-        .status-error { color: var(--accent, #e11d48); background: var(--accent-light, #fff1f2); border: 1px solid rgba(225, 29, 72, 0.2); }
     </style>
 </head>
 <body>
@@ -95,7 +61,6 @@
             </div>
 
             <h2>Hồ sơ Giảng viên</h2>
-            <div class="profile-note">Mọi thông tin cá nhân đều được thiết lập cố định.</div>
             
             <!-- KHU VỰC THÔNG TIN (CHỈ XEM) -->
             <div class="input-group">
@@ -119,24 +84,6 @@
                 <input type="text" id="viewEmail" class="input-readonly" value="-" readonly>
             </div>
 
-            <!-- KHU VỰC ĐỔI MẬT KHẨU -->
-            <div class="password-section">
-                <h3><i class="fas fa-lock" style="color: var(--primary); margin-right: 5px;"></i> Đổi mật khẩu</h3>
-                <form id="passwordForm" onsubmit="return false;">
-                    <div class="input-group">
-                        <label>Mật khẩu mới</label>
-                        <input type="password" id="inputNewPassword" placeholder="Tối thiểu 6 ký tự" required minlength="6">
-                    </div>
-                    <div class="input-group">
-                        <label>Xác nhận mật khẩu mới</label>
-                        <input type="password" id="inputConfirmPassword" placeholder="Nhập lại mật khẩu mới" required minlength="6">
-                    </div>
-                    <button type="submit" id="btnChangePassword" class="btn-action">Cập nhật mật khẩu</button>
-                </form>
-            </div>
-
-            <div id="statusMessage" class="status-message"></div>
-
             <a href="dashboard.html" class="btn-back"><i class="fas fa-arrow-left" style="margin-right: 5px;"></i> Quay về Bảng điều khiển</a>
         </div>
     </main>
@@ -155,20 +102,6 @@
         
         const avatarImg = document.getElementById('avatarImg');
         const defaultAvatarIcon = document.getElementById('defaultAvatarIcon');
-        
-        const btnChangePassword = document.getElementById('btnChangePassword');
-        const inputNewPassword = document.getElementById('inputNewPassword');
-        const inputConfirmPassword = document.getElementById('inputConfirmPassword');
-        const statusMsg = document.getElementById('statusMessage');
-
-        function showMessage(msg, isSuccess) {
-            statusMsg.style.display = "block";
-            statusMsg.className = `status-message ${isSuccess ? 'status-success' : 'status-error'}`;
-            statusMsg.innerText = msg;
-        }
-        function hideMessage() {
-            statusMsg.style.display = "none";
-        }
 
         // Tải dữ liệu hồ sơ từ Firebase
         firebase.auth().onAuthStateChanged((user) => {
@@ -198,47 +131,6 @@
                 });
             } else {
                 window.location.replace("login.html");
-            }
-        });
-
-        // Xử lý đổi mật khẩu
-        btnChangePassword.addEventListener('click', () => {
-            hideMessage();
-            const pass = inputNewPassword.value;
-            const confirmPass = inputConfirmPassword.value;
-
-            if (!pass || !confirmPass) {
-                return showMessage("Vui lòng nhập đầy đủ mật khẩu mới.", false);
-            }
-            if (pass.length < 6) {
-                return showMessage("Mật khẩu phải có ít nhất 6 ký tự.", false);
-            }
-            if (pass !== confirmPass) {
-                return showMessage("Mật khẩu xác nhận không khớp.", false);
-            }
-
-            const user = firebase.auth().currentUser;
-            if (user) {
-                btnChangePassword.disabled = true;
-                btnChangePassword.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang cập nhật...';
-
-                user.updatePassword(pass).then(() => {
-                    showMessage("Cập nhật mật khẩu thành công! Bạn có thể dùng mật khẩu này cho lần đăng nhập sau.", true);
-                    inputNewPassword.value = "";
-                    inputConfirmPassword.value = "";
-                    btnChangePassword.disabled = false;
-                    btnChangePassword.innerHTML = 'Cập nhật mật khẩu';
-                }).catch((error) => {
-                    btnChangePassword.disabled = false;
-                    btnChangePassword.innerHTML = 'Cập nhật mật khẩu';
-                    
-                    // Xử lý lỗi Re-authenticate
-                    if (error.code === 'auth/requires-recent-login') {
-                        showMessage("Phiên đăng nhập đã cũ. Vì lý do bảo mật, vui lòng Đăng xuất và Đăng nhập lại trước khi đổi mật khẩu.", false);
-                    } else {
-                        showMessage("Lỗi: " + error.message, false);
-                    }
-                });
             }
         });
     </script>
