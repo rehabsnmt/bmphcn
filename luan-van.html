@@ -53,6 +53,8 @@
         .btn-danger:hover { background-color: #be123c; box-shadow: 0 4px 12px rgba(225, 29, 72, 0.2); }
         .btn-sm { padding: 5px 10px; font-size: 0.8rem; border-radius: 6px; }
         button:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn-page { background-color: var(--surface); color: var(--text-dark); border: 1px solid var(--border); padding: 5px 15px; border-radius: 6px; font-weight: 600; }
+        .btn-page:hover:not(:disabled) { background-color: var(--primary-light); color: var(--primary); border-color: var(--primary); }
 
         /* Bảng hiển thị */
         .table-container { overflow-x: auto; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--surface); box-shadow: var(--shadow-sm); position: relative; }
@@ -213,6 +215,13 @@
                 </tbody>
             </table>
         </div>
+
+        <!-- Phân trang -->
+        <div id="paginationContainer" style="display: flex; justify-content: center; align-items: center; margin-top: 20px; gap: 15px;">
+            <button id="btnPrevPage" class="btn-page" onclick="changePage(-1)">Trước</button>
+            <span id="pageInfo" style="font-size: 0.95rem; color: var(--text-body); font-weight: 600;">Trang 1 / 1</span>
+            <button id="btnNextPage" class="btn-page" onclick="changePage(1)">Sau</button>
+        </div>
     </main>
 
     <!-- Modals -->
@@ -305,6 +314,11 @@
         let targetDeleteTitle = "";
         let generatedSecurityCode = "";
 
+        // Biến phục vụ Phân trang
+        let currentPage = 1;
+        const itemsPerPage = 30;
+        let totalPages = 1;
+
         const tableBody = document.getElementById('dataTableBody');
         const thAction = document.getElementById('thAction');
         const adminSection = document.getElementById('adminSection');
@@ -333,6 +347,7 @@
                 btn.classList.add('active');
                 currentTab = btn.getAttribute('data-tab'); 
                 filterClass.value = 'Tất cả';
+                currentPage = 1; // Đưa về trang 1 khi đổi Tab
                 updateDynamicFilters(); 
                 renderTable();
             });
@@ -422,9 +437,21 @@
             document.getElementById('totalCountText').innerText = allTheses.filter(t => (t.studentClass || '').startsWith(currentTab)).length;
             document.getElementById('filteredCountText').innerText = filtered.length;
 
-            tableBody.innerHTML = filtered.length === 0 ? '<tr><td colspan="6" style="text-align:center;padding:30px">Không tìm thấy kết quả</td></tr>' : '';
+            // Xử lý Phân trang
+            totalPages = Math.ceil(filtered.length / itemsPerPage) || 1;
+            if (currentPage > totalPages) currentPage = totalPages;
+            
+            document.getElementById('pageInfo').innerText = `Trang ${currentPage} / ${totalPages}`;
+            document.getElementById('btnPrevPage').disabled = currentPage === 1;
+            document.getElementById('btnNextPage').disabled = currentPage === totalPages;
 
-            filtered.forEach((t, i) => {
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const paginatedData = filtered.slice(startIndex, startIndex + itemsPerPage);
+
+            tableBody.innerHTML = paginatedData.length === 0 ? '<tr><td colspan="6" style="text-align:center;padding:30px">Không tìm thấy kết quả</td></tr>' : '';
+
+            paginatedData.forEach((t, i) => {
+                const actualIndex = startIndex + i + 1; // Số thứ tự theo tổng danh sách
                 let actionHtml = '';
                 if (isAdmin) {
                     const dataStr = encodeURIComponent(JSON.stringify(t)).replace(/'/g, "%27");
@@ -438,7 +465,7 @@
 
                 tableBody.innerHTML += `
                     <tr>
-                        <td align="center" style="color:#94a3b8;font-weight:bold">${i+1}</td>
+                        <td align="center" style="color:#94a3b8;font-weight:bold">${actualIndex}</td>
                         <td><b>${t.author}</b></td>
                         <td style="white-space:normal;font-weight:600;color:var(--text-dark)">${t.title}</td>
                         <td>
@@ -451,9 +478,18 @@
             });
         }
 
-        document.getElementById('searchInput').addEventListener('input', renderTable);
-        filterClass.addEventListener('change', renderTable);
-        sortSelect.addEventListener('change', renderTable);
+        // Thay đổi Lọc, Tìm kiếm -> đưa về trang 1
+        document.getElementById('searchInput').addEventListener('input', () => { currentPage = 1; renderTable(); });
+        filterClass.addEventListener('change', () => { currentPage = 1; renderTable(); });
+        sortSelect.addEventListener('change', () => { currentPage = 1; renderTable(); });
+
+        // Hàm thay đổi Trang
+        window.changePage = (step) => {
+            currentPage += step;
+            if (currentPage < 1) currentPage = 1;
+            if (currentPage > totalPages) currentPage = totalPages;
+            renderTable();
+        };
 
         window.openAdvisorModal = (enN) => {
             const n = decodeURIComponent(enN);
