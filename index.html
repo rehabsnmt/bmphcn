@@ -182,7 +182,8 @@
             <a href="luan-van.html" class="nav-item">Luận văn & Khóa luận</a>
             <a href="tai-nguyen.html" class="nav-item">Tài nguyên</a>
             <a href="thong-bao.html" class="nav-item">Thông báo</a>
-            <a href="login.html" class="btn-login">Đăng nhập giảng viên</a>
+            <!-- Thêm ID btnAuthNav vào đây để điều khiển bằng JS -->
+            <a href="login.html" class="btn-login" id="btnAuthNav">Đăng nhập giảng viên</a>
         </nav>
     </header>
 
@@ -291,5 +292,48 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="js/firebase-config.js"></script>
+
+    <!-- SCRIPT KIỂM TRA TRẠNG THÁI ĐĂNG NHẬP VÀ ĐỔI TÊN NÚT -->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const btnAuthNav = document.getElementById('btnAuthNav');
+
+            // Lắng nghe trạng thái đăng nhập
+            if (typeof auth !== 'undefined' && typeof db !== 'undefined') {
+                auth.onAuthStateChanged((user) => {
+                    if (user) {
+                        // Người dùng đã đăng nhập -> Truy vấn Firestore lấy thông tin học vị & tên
+                        db.collection("users").where("email", "==", user.email).get()
+                        .then((querySnapshot) => {
+                            if (!querySnapshot.empty) {
+                                const userData = querySnapshot.docs[0].data();
+                                
+                                // Xử lý viết tắt học vị
+                                let degreePrefix = "";
+                                if (userData.degree === 'ThS') degreePrefix = "ThS. ";
+                                else if (userData.degree === 'TS') degreePrefix = "TS. ";
+                                else if (userData.degree === 'CN') degreePrefix = "CN. ";
+                                else if (userData.degree === 'PGS.TS') degreePrefix = "PGS.TS. ";
+
+                                // Đổi tên nút thành Học vị + Tên
+                                btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 5px;"></i> ${degreePrefix}${userData.fullName || 'Giảng viên'}`;
+                            } else {
+                                // Trường hợp có tài khoản Auth nhưng chưa có trong Database "users"
+                                btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 5px;"></i> Giảng viên`;
+                            }
+                        })
+                        .catch((error) => {
+                            console.error("Lỗi lấy thông tin người dùng: ", error);
+                            btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 5px;"></i> Giảng viên`;
+                        });
+                    } else {
+                        // Người dùng chưa đăng nhập -> Hiển thị mặc định
+                        btnAuthNav.innerHTML = 'Đăng nhập giảng viên';
+                        btnAuthNav.href = "login.html";
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html>
