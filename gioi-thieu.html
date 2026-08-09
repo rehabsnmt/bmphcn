@@ -3,133 +3,217 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đội ngũ Giảng viên - Bộ môn Phục hồi chức năng</title>
+    <meta name="description" content="Đội ngũ giảng viên Bộ môn Phục hồi chức năng.">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://cdnjs.cloudflare.com https://www.gstatic.com https://*.firebaseio.com https://*.googleapis.com; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' https://www.gstatic.com;">
+    <title>Giới thiệu Giảng viên - Bộ môn Phục hồi chức năng</title>
     
     <link rel="icon" href="images/logo_Bộ môn.png" type="image/png">
+    <link rel="apple-touch-icon" href="images/logo_Bộ môn.png">
     
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* CSS tối ưu cho Grid để không bao giờ bị nhảy layout */
-        .faculty-grid { 
-            display: grid; 
-            grid-template-columns: repeat(4, minmax(0, 1fr)); 
-            gap: 2rem; 
-            min-height: 400px;
-            margin-top: 2rem;
-            margin-bottom: 4rem;
+        header { gap: 3rem; }
+
+        .logo-link {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            text-decoration: none;
+            cursor: pointer;
         }
 
+        .logo-text { display: flex; flex-direction: column; justify-content: center; }
+        .logo-text div { white-space: nowrap; width: max-content; line-height: 1.2; transform-origin: left; }
+        #logo-line-1 { font-weight: 700; color: var(--text-dark, #0f172a); }
+        #logo-line-2 { font-weight: 600; color: var(--text-body, #475569); margin-top: 0.25em; }
+        #logo-line-3 { font-weight: 500; color: var(--text-body, #475569); margin-top: 0.15em; }
+
+        footer { text-align: center; padding: 2rem 1rem; background-color: var(--surface, #ffffff); border-top: 1px solid var(--border, #e2e8f0); color: var(--text-body, #475569); margin-top: auto; overflow: hidden; }
+        footer p { margin: 0; white-space: nowrap; font-size: clamp(0.55rem, 2.5vw, 0.9rem); }
+
+        .intro-container { max-width: 1100px; margin: 0 auto; width: 100%; padding: 2.5rem 3%; }
+        .section-title { text-align: center; margin-bottom: 3rem; }
+        .section-title h2 { font-size: 2.2rem; color: var(--text-dark); margin-bottom: 0; }
+
+        /* Lưới 3 cột rộng rãi, giúp khung thoải mái chứa tên dài */
+        .faculty-grid { 
+            display: grid; 
+            grid-template-columns: repeat(3, minmax(0, 1fr)); 
+            gap: 2.5rem; 
+            align-items: stretch;
+        }
+
+        /* Khung card rộng rãi, đồng bộ chiều cao và rộng tuyệt đối */
         .faculty-card { 
             background: var(--surface); 
-            border-radius: var(--radius-md); 
-            padding: 2rem 1.5rem; 
+            border-radius: var(--radius-md, 16px); 
+            padding: 2.8rem 1.8rem; 
             text-align: center; 
             border: 1px solid var(--border); 
             box-shadow: var(--shadow-sm); 
+            transition: var(--transition); 
             display: flex; 
             flex-direction: column; 
             align-items: center; 
-            height: 100%; 
-            transition: var(--transition);
-        }
-
-        .faculty-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-hover);
-            border-color: var(--primary-light);
-        }
-
-        .faculty-name { 
-            font-weight: 700; 
-            color: var(--text-dark); 
-            font-size: 1.1rem; 
-            white-space: nowrap; 
-            overflow: hidden; 
-            text-overflow: ellipsis; 
-            width: 100%;
-            margin-top: 0.5rem;
-        }
-
-        .faculty-avatar-box {
-            width: 100px; 
-            height: 100px; 
-            border-radius: 50%; 
-            overflow: hidden; 
-            margin-bottom: 1rem; 
-            background: var(--primary-light);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 2px solid var(--border);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-        }
-
-        .faculty-avatar-box img {
             width: 100%;
             height: 100%;
-            object-fit: cover; /* Giúp ảnh không bị méo, tự động cắt vừa khung tròn */
+            box-sizing: border-box;
+        }
+        
+        .faculty-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-hover); border-color: var(--primary); }
+
+        .faculty-avatar { width: 115px; height: 115px; border-radius: 50%; object-fit: cover; margin-bottom: 1.2rem; border: 3px solid var(--primary); background: var(--bg-page); display: flex; align-items: center; justify-content: center; font-size: 3rem; color: var(--text-body); box-shadow: 0 4px 10px rgba(2, 132, 199, 0.1); flex-shrink: 0; overflow: hidden; }
+        .faculty-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+        .faculty-degree { 
+            font-size: 0.9rem; 
+            font-weight: 600; 
+            color: var(--text-body); 
+            margin-bottom: 0.2rem; 
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        @media (max-width: 1024px) { .faculty-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-        @media (max-width: 768px) { .faculty-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-        @media (max-width: 480px) { .faculty-grid { grid-template-columns: repeat(1, minmax(0, 1fr)); } }
+        /* Tên giảng viên không ngắt dòng, thoải mái hiển thị trong khung rộng */
+        .faculty-name { 
+            font-size: 1.2rem; 
+            font-weight: 700; 
+            color: var(--text-dark); 
+            margin-bottom: 0.4rem; 
+            white-space: nowrap;
+        }
+
+        .faculty-position { font-size: 0.95rem; font-weight: 600; color: var(--primary); margin-bottom: 0.8rem; }
+        
+        .faculty-email { 
+            font-size: 0.85rem; 
+            color: var(--text-body); 
+            display: flex; 
+            align-items: center; 
+            gap: 6px; 
+            margin-top: auto; 
+            word-break: break-all; 
+        }
+
+        .loading-state, .empty-state { grid-column: 1 / -1; text-align: center; padding: 4rem 0; color: var(--text-body); font-size: 1.1rem; }
+
+        @media (max-width: 900px) {
+            .faculty-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        @media (max-width: 600px) {
+            header { gap: 1rem; }
+            .faculty-grid { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+        }
     </style>
 </head>
 <body style="display: flex; flex-direction: column; min-height: 100vh;">
-
-    <!-- HEADER DÙNG CHUNG -->
+    
     <header>
         <a href="index.html" class="logo-link">
             <div class="logo" style="margin: 0; border: none; padding: 0;">
                 <img src="images/logo_Bộ môn.png" alt="Logo Bộ môn Phục hồi chức năng">
             </div>
+            
             <div class="logo-text">
-                <div id="logo-line-1" style="font-weight: 700; color: var(--text-dark);">Bộ môn Phục hồi chức năng</div>
-                <div id="logo-line-2" style="font-size: 0.85rem; color: var(--text-body);">Trường Điều dưỡng - Kỹ thuật Y học</div>
-                <div id="logo-line-3" style="font-size: 0.85rem; color: var(--text-body);">Đại học Y Dược Thành Phố Hồ Chí Minh</div>
+                <div id="logo-line-1">Bộ môn Phục hồi chức năng</div>
+                <div id="logo-line-2">Trường Điều dưỡng - Kỹ thuật Y học</div>
+                <div id="logo-line-3">Đại học Y Dược Thành Phố Hồ Chí Minh</div>
             </div>
         </a>
-        <div class="menu-toggle" id="mobile-menu" aria-label="Menu"><i class="fas fa-bars"></i></div>
+        
+        <script>
+            function perfectAlignLogo() {
+                const l1 = document.getElementById('logo-line-1');
+                const l2 = document.getElementById('logo-line-2');
+                const l3 = document.getElementById('logo-line-3');
+                const logoImg = document.querySelector('.logo-link img');
+                const logoText = document.querySelector('.logo-text');
+                
+                if (!l1 || !l2 || !l3 || !logoImg || !logoText) return;
+                if (logoImg.complete === false || logoImg.naturalHeight === 0) {
+                    logoImg.onload = perfectAlignLogo; return;
+                }
+
+                const isMobile = window.innerWidth <= 768;
+                const baseFontSize = isMobile ? 16.8 : 22.4; 
+                l1.style.fontSize = '20px'; l2.style.fontSize = '20px'; l3.style.fontSize = '20px';
+                
+                const w1 = l1.getBoundingClientRect().width;
+                const w2 = l2.getBoundingClientRect().width;
+                const w3 = l3.getBoundingClientRect().width;
+                
+                let targetWidth = (w1 / 20) * baseFontSize;
+                const applySizes = (width) => {
+                    l1.style.fontSize = (20 * width / w1) + 'px';
+                    l2.style.fontSize = (20 * width / w2) + 'px';
+                    l3.style.fontSize = (20 * width / w3) + 'px';
+                };
+                applySizes(targetWidth);
+                
+                const imgHeight = logoImg.getBoundingClientRect().height || 48; 
+                const textHeight = logoText.getBoundingClientRect().height; 
+                if (textHeight > imgHeight && imgHeight > 0) {
+                    targetWidth = targetWidth * (imgHeight / textHeight);
+                    applySizes(targetWidth); 
+                }
+            }
+            perfectAlignLogo(); window.addEventListener('resize', perfectAlignLogo); document.fonts.ready.then(perfectAlignLogo);
+        </script>
+        
+        <div class="menu-toggle" id="mobile-menu" aria-label="Menu">
+            <i class="fas fa-bars"></i>
+        </div>
+
         <nav class="nav-links" id="nav-links">
-            <a href="gioi-thieu.html" class="nav-item" style="color:var(--primary); font-weight: 600;">Giới thiệu</a>
+            <a href="gioi-thieu.html" class="nav-item" style="color: var(--primary); font-weight: 600;">Giới thiệu</a>
             <a href="cong-bo.html" class="nav-item">Công bố khoa học</a>
             <a href="luan-van.html" class="nav-item">Luận văn & Khóa luận</a>
             <a href="tai-nguyen.html" class="nav-item">Tài nguyên</a>
             <a href="thong-bao.html" class="nav-item">Thông báo</a>
-            <a href="login.html" class="btn-login" id="btnAuthNav">Đăng nhập</a>
+            <!-- Thêm ID btnAuthNav để xử lý trạng thái hiển thị tên người dùng -->
+            <a href="login.html" class="btn-login" id="btnAuthNav">Đăng nhập giảng viên</a>
         </nav>
     </header>
 
-    <main style="flex: 1; padding: 2rem 5%; max-width: 1200px; margin: 0 auto; width: 100%;">
-        <div class="section-title" style="text-align: center; margin-bottom: 2rem;">
-            <h2 style="font-size: 2rem; color: var(--text-dark); margin: 0;">ĐỘI NGŨ GIẢNG VIÊN</h2>
-            <div style="font-size: 1rem; color: var(--text-body); font-weight: 600; margin-top: 5px;">BỘ MÔN PHỤC HỒI CHỨC NĂNG</div>
+    <main style="flex: 1; padding-top: 2rem;">
+    <div class="intro-container">
+        <!-- Đã thêm style="white-space: nowrap;" để tiêu đề không bao giờ bị ngắt -->
+        <div class="section-title">
+            <h2 style="white-space: nowrap; display: inline-block;">Đội ngũ Giảng viên</h2>
         </div>
-        
+
         <div class="faculty-grid" id="facultyGrid">
-            <!-- Dữ liệu sẽ được render bằng Javascript ngay lập tức -->
+            <!-- Dữ liệu sẽ được chèn qua JavaScript dưới đây -->
         </div>
+    </div>
     </main>
 
-    <footer style="text-align: center; padding: 2rem; color: var(--text-body); font-size: 0.9rem; border-top: 1px solid var(--border); margin-top: auto;">
+    <footer>
         <p>&copy; 2026 Bộ môn Phục hồi chức năng. Mọi quyền được bảo lưu.</p>
     </footer>
 
-    <!-- SCRIPT KIỂM TRA TRẠNG THÁI ĐĂNG NHẬP TRÊN HEADER -->
+    <script>
+        const mobileMenu = document.getElementById('mobile-menu');
+        const navLinks = document.getElementById('nav-links');
+        const icon = mobileMenu.querySelector('i');
+
+        mobileMenu.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+            icon.classList.toggle('fa-bars');
+            icon.classList.toggle('fa-times');
+        });
+    </script>
+
+    <!-- Khai báo thư viện Firebase (để duy trì trạng thái nút Đăng nhập) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="js/firebase-config.js"></script>
 
     <script>
-        // Xử lý Menu Mobile
-        const mobileMenu = document.getElementById('mobile-menu');
-        const navLinks = document.getElementById('nav-links');
-        mobileMenu.addEventListener('click', () => { navLinks.classList.toggle('active'); });
-
-        // Xử lý Nút Đăng nhập trên thanh Nav
+        // Xử lý đổi tên nút đăng nhập nếu có tài khoản Auth
         document.addEventListener("DOMContentLoaded", () => {
             const btnAuthNav = document.getElementById('btnAuthNav');
             if (typeof auth !== 'undefined' && typeof db !== 'undefined') {
@@ -148,66 +232,70 @@
                             } else {
                                 btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 5px;"></i> Giảng viên`;
                             }
-                        }).catch(() => { btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 5px;"></i> Giảng viên`; });
+                        }).catch(() => {});
                     } else {
-                        btnAuthNav.innerHTML = 'Đăng nhập';
+                        btnAuthNav.innerHTML = 'Đăng nhập giảng viên';
                         btnAuthNav.href = "login.html";
                     }
                 });
             }
         });
 
-        // HIỂN THỊ DANH SÁCH GIẢNG VIÊN KÈM ẢNH
+        // ==========================================
+        // DANH SÁCH GIẢNG VIÊN (Dữ liệu tĩnh)
+        // ==========================================
+        const facultyGrid = document.getElementById('facultyGrid');
+
         const facultyList = [
-            { name: "Lê Thanh Vân", position: "Trưởng Bộ môn", email: "lethanhvan@ump.edu.vn", image: "images/TS. Lê Thanh Vân.jpg" },
-            { name: "Nguyễn Thanh Duy", position: "Phó trưởng Bộ môn", email: "thduypt@ump.edu.vn", image: "images/TS. Nguyễn Thanh Duy.jpg" },
-            { name: "Phan Thế Nguyên", position: "Giáo vụ Sau Đại học", email: "phanthenguyenpt@ump.edu.vn", image: "images/ThS. Phan Thế Nguyên.jpg" },
-            { name: "Nguyễn Mai Ngọc Đoan", position: "Giáo vụ Đại học", email: "nguyenmaingocdoan@ump.edu.vn", image: "images/ThS. Nguyễn Mai Ngọc Đoan.jpg" },
-            { name: "Trần Hữu Đức", position: "Giáo vụ Đại học", email: "tranhuuduc@ump.edu.vn", image: "images/ThS. Trần Hữu Đức.jpg" },
-            { name: "Huỳnh Chung", position: "Giảng viên", email: "huynhchungpt@ump.edu.vn", image: "images/ThS. Huỳnh Chung.jpg" },
-            { name: "Nguyễn Minh Sang", position: "Giảng viên", email: "ngmsangpt@ump.edu.vn", image: "images/ThS. Nguyễn Minh Sang.jpg" },
-            { name: "Trần Thị Bích Hạnh", position: "Giảng viên", email: "hanhtranpt@ump.edu.vn", image: "images/ThS. Trần Thị Bích Hạnh.jpg" },
-            { name: "Nguyễn Ngọc Minh", position: "Giảng viên", email: "minhngpt@ump.edu.vn", image: "images/TS. Nguyễn Ngọc Minh.jpg" },
-            { name: "Nguyễn Đức Sinh", position: "Giảng viên", email: "nguyenducsinhpt@ump.edu.vn", image: "images/ThS. Nguyễn Đức Sinh.jpg" },
-            { name: "Trần Long Biên", position: "Giảng viên", email: "tlbien@ump.edu.vn", image: "images/ThS. Trần Long Biên.jpg" },
-            { name: "Nguyễn Huỳnh Ngọc Mai Trâm", position: "Giảng viên", email: "", image: "images/ThS. Nguyễn Huỳnh Ngọc Mai Trâm.jpg" },
-            { name: "Cao Minh Hạnh", position: "Giáo viên trung học", email: "cmhanhpt@ump.edu.vn", image: "images/ThS. Cao Minh Hạnh.jpg" },
-            { name: "Phạm Ngọc Đạt", position: "Giảng viên", email: "", image: "images/ThS. Phạm Ngọc Đạt.jpg" }
+            { degree: "Tiến sĩ", name: "Lê Thanh Vân", position: "Trưởng Bộ môn", email: "lethanhvan@ump.edu.vn", image: "images/TS. Lê Thanh Vân.jpg" },
+            { degree: "Tiến sĩ", name: "Nguyễn Thanh Duy", position: "Phó trưởng Bộ môn", email: "thduypt@ump.edu.vn", image: "images/TS. Nguyễn Thanh Duy.jpg" },
+            { degree: "Thạc sĩ", name: "Phan Thế Nguyên", position: "Giáo vụ Sau Đại học", email: "phanthenguyenpt@ump.edu.vn", image: "images/ThS. Phan Thế Nguyên.jpg" },
+            { degree: "Thạc sĩ", name: "Nguyễn Mai Ngọc Đoan", position: "Giáo vụ Đại học", email: "nguyenmaingocdoan@ump.edu.vn", image: "images/ThS. Nguyễn Mai Ngọc Đoan.jpg" },
+            { degree: "Thạc sĩ", name: "Trần Hữu Đức", position: "Giáo vụ Đại học", email: "tranhuuduc@ump.edu.vn", image: "images/ThS. Trần Hữu Đức.jpg" },
+            { degree: "Thạc sĩ", name: "Huỳnh Chung", position: "Giảng viên", email: "huynhchungpt@ump.edu.vn", image: "images/ThS. Huỳnh Chung.jpg" },
+            { degree: "Thạc sĩ", name: "Nguyễn Minh Sang", position: "Giảng viên", email: "ngmsangpt@ump.edu.vn", image: "images/ThS. Nguyễn Minh Sang.jpg" },
+            { degree: "Thạc sĩ", name: "Trần Thị Bích Hạnh", position: "Giảng viên", email: "hanhtranpt@ump.edu.vn", image: "images/ThS. Trần Thị Bích Hạnh.jpg" },
+            { degree: "Tiến sĩ", name: "Nguyễn Ngọc Minh", position: "Giảng viên", email: "minhngpt@ump.edu.vn", image: "images/TS. Nguyễn Ngọc Minh.jpg" },
+            { degree: "Thạc sĩ", name: "Nguyễn Đức Sinh", position: "Giảng viên", email: "nguyenducsinhpt@ump.edu.vn", image: "images/ThS. Nguyễn Đức Sinh.jpg" },
+            { degree: "Thạc sĩ", name: "Trần Long Biên", position: "Giảng viên", email: "tlbien@ump.edu.vn", image: "images/ThS. Trần Long Biên.jpg" },
+            { degree: "Thạc sĩ", name: "Nguyễn Huỳnh Ngọc Mai Trâm", position: "Giảng viên", email: "", image: "images/ThS. Nguyễn Huỳnh Ngọc Mai Trâm.jpg" },
+            { degree: "Thạc sĩ", name: "Cao Minh Hạnh", position: "Giáo viên trung học", email: "cmhanhpt@ump.edu.vn", image: "images/ThS. Cao Minh Hạnh.jpg" },
+            { degree: "Thạc sĩ", name: "Phạm Ngọc Đạt", position: "Giảng viên", email: "", image: "images/ThS. Phạm Ngọc Đạt.jpg" }
         ];
 
-        const facultyGrid = document.getElementById('facultyGrid');
-        
-        // Render ngay lập tức
-        facultyGrid.innerHTML = ""; 
-        
-        facultyList.forEach(data => {
-            const card = document.createElement('div');
-            card.className = 'faculty-card';
-            
-            // Xử lý hiển thị email nếu rỗng
-            const emailHtml = data.email 
-                ? `<a href="mailto:${data.email}" style="color: inherit; text-decoration: none;">${data.email}</a>` 
-                : `<span style="color: #94a3b8; font-style: italic;">Đang cập nhật</span>`;
-                
-            // Xử lý hiển thị ảnh (nếu có lỗi đường dẫn sẽ fallback về icon người)
-            const imageHtml = data.image 
-                ? `<img src="${data.image}" alt="Ảnh ${data.name}" onerror="this.onerror=null; this.outerHTML='<i class=\\'fas fa-user-tie\\' style=\\'font-size: 2.5rem; color: var(--primary);\\'></i>';">`
-                : `<i class="fas fa-user-tie" style="font-size: 2.5rem; color: var(--primary);"></i>`;
+        // Hàm render ngay lập tức khi load trang
+        function renderFaculty() {
+            facultyGrid.innerHTML = ""; 
 
-            card.innerHTML = `
-                <div class="faculty-avatar-box">
-                    ${imageHtml}
-                </div>
-                <div class="faculty-name" title="${data.name}">${data.name}</div>
-                <div class="faculty-position" style="color: var(--accent); font-weight: 600; margin: 0.5rem 0 0.8rem 0; font-size: 0.85rem; text-transform: uppercase;">
-                    ${data.position}
-                </div>
-                <div class="faculty-email" style="font-size: 0.8rem; margin-top: auto; color: var(--text-body);">
-                    <i class="fas fa-envelope" style="margin-right: 5px; color: var(--border);"></i>${emailHtml}
-                </div>
-            `;
-            facultyGrid.appendChild(card);
-        });
+            facultyList.forEach((data) => {
+                const card = document.createElement('div');
+                card.className = 'faculty-card';
+
+                // Xử lý fallback cho đường link email
+                const emailHtml = data.email 
+                    ? `<a href="mailto:${data.email}" style="color: inherit; text-decoration: none;">${data.email}</a>` 
+                    : `<span style="font-style: italic; color: #94a3b8;">Đang cập nhật</span>`;
+
+                // Xử lý fallback cho đường dẫn ảnh (nếu hỏng hoặc không có, tự đưa về icon)
+                const avatarHtml = `<img src="${data.image}" alt="Ảnh ${data.name}" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\\'fas fa-user\\' style=\\'font-size: 3rem; color: var(--text-body);\\'></i>';">`;
+
+                card.innerHTML = `
+                    <div class="faculty-avatar">
+                        ${avatarHtml}
+                    </div>
+                    <div class="faculty-degree">${data.degree}</div>
+                    <div class="faculty-name">${data.name}</div>
+                    <div class="faculty-position">${data.position}</div>
+                    <div class="faculty-email">
+                        <i class="fas fa-envelope" style="margin-right: 6px; color: var(--primary);"></i> ${emailHtml}
+                    </div>
+                `;
+
+                facultyGrid.appendChild(card);
+            });
+        }
+
+        renderFaculty();
     </script>
 </body>
 </html>
