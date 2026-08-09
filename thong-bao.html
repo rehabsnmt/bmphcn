@@ -31,7 +31,7 @@
         .header-section { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; border-bottom: 2px solid var(--border); padding-bottom: 1rem; flex-wrap: wrap; gap: 1rem; }
         .header-section h2 { font-size: 2.2rem; color: var(--text-dark); margin: 0; }
         
-        .btn-add { background-color: var(--primary); color: white; border: none; padding: 0.7rem 1.2rem; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: var(--transition); }
+        .btn-add { background-color: var(--primary); color: white; border: none; padding: 0.7rem 1.2rem; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: var(--transition); }
         .btn-add:hover { background-color: var(--primary-hover); }
         
         /* Form đăng bài */
@@ -39,20 +39,15 @@
         .admin-form-box.active { display: block; animation: fadeIn 0.3s ease-in-out; }
         .input-group { margin-bottom: 1rem; }
         .input-group label { display: block; font-size: 0.9rem; font-weight: 600; margin-bottom: 5px; color: var(--text-dark); }
-        .input-group input, .input-group select, .input-group textarea { width: 100%; padding: 0.8rem; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 0.95rem; outline: none; box-sizing: border-box; }
-        .input-group input:focus, .input-group select:focus, .input-group textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1); }
+        .input-group input, .input-group textarea { width: 100%; padding: 0.8rem; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 0.95rem; outline: none; box-sizing: border-box; }
+        .input-group input:focus, .input-group textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1); }
         .input-group textarea { min-height: 150px; resize: vertical; }
 
         /* Danh sách thông báo */
         .news-list { display: flex; flex-direction: column; gap: 1.5rem; }
-        .news-item { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; display: flex; flex-direction: column; gap: 10px; transition: var(--transition); cursor: pointer; text-decoration: none; color: inherit; }
+        .news-item { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; display: flex; flex-direction: column; gap: 10px; transition: var(--transition); cursor: pointer; text-decoration: none; color: inherit; position: relative; }
         .news-item:hover { box-shadow: var(--shadow-hover); border-color: var(--primary-light); transform: translateY(-3px); }
         
-        .news-tag { align-self: flex-start; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; }
-        .tag-tuyensinh { background-color: #fef3c7; color: #166534; border: 1px solid #d1fae5; }
-        .tag-daotao { background-color: #e0f2fe; color: #075985; border: 1px solid #bae6fd; }
-        .tag-chung { background-color: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
-
         .news-title { font-size: 1.3rem; font-weight: 700; color: var(--text-dark); margin: 0; line-height: 1.4; }
         .news-meta { font-size: 0.85rem; color: var(--text-body); display: flex; gap: 15px; align-items: center; }
         .news-excerpt { font-size: 0.95rem; color: var(--text-body); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
@@ -60,6 +55,20 @@
         .empty-state { text-align: center; padding: 3rem; color: var(--text-body); }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
         
+        /* CSS cho Nút Sửa/Xóa và Modal */
+        .btn-warning { background-color: #f59e0b; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 500; cursor: pointer; transition: var(--transition); }
+        .btn-warning:hover { background-color: #d97706; }
+        .btn-danger { background-color: var(--accent); color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 500; cursor: pointer; transition: var(--transition); }
+        .btn-danger:hover { background-color: #be123c; }
+        .btn-danger:disabled { opacity: 0.6; cursor: not-allowed; }
+        .action-buttons { display: flex; gap: 10px; margin-top: 10px; padding-top: 15px; border-top: 1px dashed var(--border); }
+        
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 2000; padding: 20px; }
+        .modal-content { background: var(--surface); padding: 30px; border-radius: var(--radius-md); max-width: 400px; width: 100%; box-shadow: var(--shadow-hover); position: relative; text-align: center; }
+        .modal-close { position: absolute; top: 15px; right: 15px; background: var(--bg-page); border: 1px solid var(--border); width: 35px; height: 35px; border-radius: 50%; cursor: pointer; color: var(--text-body); display: flex; align-items: center; justify-content: center; transition: var(--transition); }
+        .modal-close:hover { background: var(--border); color: var(--text-dark); }
+        .hidden { display: none !important; }
+
         @media (max-width: 768px) { header { gap: 1rem; } .header-section { flex-direction: column; align-items: stretch; text-align: center; } .btn-add { justify-content: center; } }
     </style>
 </head>
@@ -139,31 +148,27 @@
             </button>
         </div>
 
-        <!-- KHUNG ĐĂNG BÀI (Chỉ hiển thị cho GV) -->
+        <!-- KHUNG ĐĂNG BÀI / SỬA BÀI -->
         <div id="adminFormBox" class="admin-form-box">
-            <h3 style="margin-top:0; color:var(--primary);">Tạo thông báo mới</h3>
+            <h3 id="formTitle" style="margin-top:0; color:var(--primary);">Tạo thông báo mới</h3>
             <form id="formPostNews" onsubmit="return false;">
-                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-                    <div class="input-group" style="flex: 3; min-width: 250px;">
-                        <label>Tiêu đề thông báo *</label>
-                        <input type="text" id="newsTitle" placeholder="Nhập tiêu đề..." required>
-                    </div>
-                    <div class="input-group" style="flex: 1; min-width: 150px;">
-                        <label>Phân loại</label>
-                        <select id="newsCategory">
-                            <option value="Chung">Thông báo chung</option>
-                            <option value="Tuyển sinh">Tuyển sinh</option>
-                            <option value="Đào tạo">Đào tạo</option>
-                        </select>
-                    </div>
+                <input type="hidden" id="editNewsId">
+                <div class="input-group">
+                    <label>Tiêu đề thông báo *</label>
+                    <input type="text" id="newsTitle" placeholder="Nhập tiêu đề..." required>
                 </div>
                 <div class="input-group">
                     <label>Nội dung chi tiết *</label>
                     <textarea id="newsContent" placeholder="Nhập nội dung bài viết..." required></textarea>
                 </div>
-                <button type="submit" id="btnSubmitNews" class="btn-add" style="width: 100%; justify-content: center;">
-                    Đăng tải bài viết
-                </button>
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" id="btnSubmitNews" class="btn-add" style="flex: 1;">
+                        Đăng tải bài viết
+                    </button>
+                    <button type="button" id="btnCancelEdit" class="btn-danger" style="display: none; padding: 0.7rem 1.2rem; border-radius: 8px;">
+                        Hủy thao tác
+                    </button>
+                </div>
             </form>
         </div>
 
@@ -172,6 +177,20 @@
             <div class="empty-state"><i class="fas fa-spinner fa-spin" style="font-size: 2rem;"></i><p>Đang tải thông báo...</p></div>
         </div>
     </main>
+
+    <!-- MODAL XÓA BÀI -->
+    <div id="deleteConfirmModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeDeleteModal()"><i class="fas fa-times"></i></button>
+            <h3 style="color: var(--accent); margin-bottom: 15px;"><i class="fas fa-exclamation-triangle"></i> Xác nhận xóa</h3>
+            <p style="font-size: 0.9rem; color: var(--text-body);">Thông báo:</p>
+            <p id="deleteNewsTitlePreview" style="font-weight: 700; color: var(--text-dark); margin-bottom: 20px; line-height: 1.4;"></p>
+            <p style="font-size: 0.85rem;">Mã xác nhận:</p>
+            <div id="randomDeleteCodeDisplay" style="background: var(--bg-page); padding: 10px; border-radius: 6px; font-size: 1.5rem; font-weight: bold; color: var(--accent); letter-spacing: 5px; margin-bottom: 15px;">0000</div>
+            <input type="text" id="inputDeleteCodeConfirm" placeholder="Nhập mã xác nhận..." style="text-align: center; letter-spacing: 2px; width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; margin-bottom: 15px;">
+            <button id="btnExecuteFinalDelete" class="btn-danger" disabled style="width: 100%; padding: 10px; font-size: 1rem;">Xóa vĩnh viễn</button>
+        </div>
+    </div>
 
     <footer>
         <p>&copy; 2026 Bộ môn Phục hồi chức năng. Mọi quyền được bảo lưu.</p>
@@ -187,7 +206,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, serverTimestamp, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY",
@@ -208,10 +227,12 @@
         const newsList = document.getElementById('newsList');
         const btnAuthNav = document.getElementById('btnAuthNav');
         let currentAuthor = "Giảng viên";
+        let isAdmin = false;
 
         // Xác thực người dùng
         onAuthStateChanged(auth, async (user) => {
             if (user) {
+                isAdmin = true;
                 btnToggleForm.style.display = 'flex'; 
                 try {
                     const userDoc = await getDoc(doc(db, "users", user.uid));
@@ -219,7 +240,6 @@
                         const data = userDoc.data();
                         currentAuthor = data.fullName || "Giảng viên";
                         let degreePrefix = data.degree === 'ThS' ? 'ThS. ' : (data.degree === 'TS' ? 'TS. ' : '');
-                        // Đã thêm margin-right: 5px cho icon
                         btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 5px;"></i> ${degreePrefix}${currentAuthor}`;
                     } else {
                         btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 5px;"></i> Giảng viên`;
@@ -228,24 +248,27 @@
                     console.error("Lỗi lấy thông tin người dùng: ", error);
                 }
             } else {
+                isAdmin = false;
                 btnToggleForm.style.display = 'none';
                 btnAuthNav.innerHTML = 'Đăng nhập giảng viên';
             }
         });
 
-        // Bật/tắt Form
+        // Bật/tắt Form (Tạo mới)
         btnToggleForm.addEventListener('click', () => {
-            adminFormBox.classList.toggle('active');
-            if(adminFormBox.classList.contains('active')){
+            if(!adminFormBox.classList.contains('active')){
+                resetForm(); // Dọn dẹp form nếu đang ở chế độ sửa
+                adminFormBox.classList.add('active');
                 btnToggleForm.innerHTML = '<i class="fas fa-times"></i> Đóng khung soạn thảo';
                 btnToggleForm.style.backgroundColor = 'var(--text-body)';
             } else {
+                adminFormBox.classList.remove('active');
                 btnToggleForm.innerHTML = '<i class="fas fa-plus"></i> Đăng thông báo mới';
                 btnToggleForm.style.backgroundColor = 'var(--primary)';
             }
         });
 
-        // Đăng bài viết
+        // Đăng bài viết / Cập nhật
         document.getElementById('formPostNews').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btnSubmit = document.getElementById('btnSubmitNews');
@@ -253,20 +276,29 @@
             btnSubmit.innerHTML = "Đang xử lý...";
 
             const title = document.getElementById('newsTitle').value.trim();
-            const category = document.getElementById('newsCategory').value;
             const content = document.getElementById('newsContent').value.trim();
+            const editId = document.getElementById('editNewsId').value;
 
             try {
-                await addDoc(collection(db, "announcements"), {
-                    title: title, 
-                    category: category, 
-                    content: content, 
-                    author: currentAuthor,
-                    createdAt: serverTimestamp()
-                });
-                alert("Đăng thông báo thành công!");
-                document.getElementById('formPostNews').reset();
-                btnToggleForm.click();
+                if (editId) {
+                    await updateDoc(doc(db, "announcements", editId), {
+                        title: title, 
+                        content: content
+                    });
+                    alert("Cập nhật thông báo thành công!");
+                } else {
+                    await addDoc(collection(db, "announcements"), {
+                        title: title, 
+                        content: content, 
+                        author: currentAuthor,
+                        createdAt: serverTimestamp()
+                    });
+                    alert("Đăng thông báo thành công!");
+                }
+                resetForm();
+                adminFormBox.classList.remove('active');
+                btnToggleForm.innerHTML = '<i class="fas fa-plus"></i> Đăng thông báo mới';
+                btnToggleForm.style.backgroundColor = 'var(--primary)';
             } catch (err) {
                 alert("Lỗi: " + err.message);
             } finally {
@@ -275,11 +307,73 @@
             }
         });
 
-        function getTagClass(cat) {
-            if (cat === "Tuyển sinh") return "tag-tuyensinh";
-            if (cat === "Đào tạo") return "tag-daotao";
-            return "tag-chung";
+        // Dọn dẹp Form
+        function resetForm() {
+            document.getElementById('formPostNews').reset();
+            document.getElementById('editNewsId').value = '';
+            document.getElementById('formTitle').innerText = "Tạo thông báo mới";
+            document.getElementById('btnSubmitNews').innerText = "Đăng tải bài viết";
+            document.getElementById('btnCancelEdit').style.display = "none";
         }
+        document.getElementById('btnCancelEdit').addEventListener('click', () => {
+            resetForm();
+            adminFormBox.classList.remove('active');
+            btnToggleForm.innerHTML = '<i class="fas fa-plus"></i> Đăng thông báo mới';
+            btnToggleForm.style.backgroundColor = 'var(--primary)';
+        });
+
+        // ==========================================
+        // CÁC HÀM XỬ LÝ SỰ KIỆN TỪ GIAO DIỆN HIỂN THỊ
+        // (Gắn vào window để gọi từ chuỗi HTML nội tuyến)
+        // ==========================================
+        
+        window.triggerEdit = (id, enTitle, enContent) => {
+            document.getElementById('editNewsId').value = id;
+            document.getElementById('newsTitle').value = decodeURIComponent(enTitle);
+            document.getElementById('newsContent').value = decodeURIComponent(enContent);
+            
+            document.getElementById('formTitle').innerText = "Sửa thông báo";
+            document.getElementById('btnSubmitNews').innerHTML = '<i class="fas fa-save"></i> Cập nhật thay đổi';
+            document.getElementById('btnCancelEdit').style.display = "block";
+            
+            if (!adminFormBox.classList.contains('active')) {
+                adminFormBox.classList.add('active');
+                btnToggleForm.innerHTML = '<i class="fas fa-times"></i> Đóng khung soạn thảo';
+                btnToggleForm.style.backgroundColor = 'var(--text-body)';
+            }
+            adminFormBox.scrollIntoView({behavior: 'smooth', block: 'start'});
+        };
+
+        let targetDeleteId = null;
+        let generatedSecurityCode = "";
+
+        window.triggerDeleteConfirm = (id, enTitle) => {
+            targetDeleteId = id;
+            generatedSecurityCode = Math.floor(1000 + Math.random() * 9000).toString();
+            document.getElementById('deleteNewsTitlePreview').innerText = decodeURIComponent(enTitle);
+            document.getElementById('randomDeleteCodeDisplay').innerText = generatedSecurityCode;
+            document.getElementById('inputDeleteCodeConfirm').value = '';
+            document.getElementById('btnExecuteFinalDelete').disabled = true;
+            document.getElementById('deleteConfirmModal').classList.remove('hidden');
+        };
+
+        window.closeDeleteModal = () => {
+            document.getElementById('deleteConfirmModal').classList.add('hidden');
+        };
+
+        document.getElementById('inputDeleteCodeConfirm').addEventListener('input', (e) => {
+            document.getElementById('btnExecuteFinalDelete').disabled = (e.target.value.trim() !== generatedSecurityCode);
+        });
+
+        document.getElementById('btnExecuteFinalDelete').addEventListener('click', async () => {
+            if(!targetDeleteId) return;
+            try {
+                await deleteDoc(doc(db, "announcements", targetDeleteId));
+                closeDeleteModal();
+            } catch(e) {
+                alert("Lỗi xóa: " + e.message);
+            }
+        });
 
         // Tải danh sách
         const q = query(collection(db, "announcements"), orderBy("createdAt", "desc"));
@@ -292,25 +386,42 @@
             snapshot.forEach((docSnap) => {
                 const data = docSnap.data();
                 const id = docSnap.id;
+                
                 let dateStr = "Vừa xong";
                 if (data.createdAt) {
                     const dateObj = data.createdAt.toDate();
                     dateStr = dateObj.toLocaleDateString('vi-VN', {day:'2-digit', month:'2-digit', year:'numeric'}) + ' - ' + dateObj.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'});
                 }
+                
                 let excerpt = data.content.substring(0, 150);
                 if (data.content.length > 150) excerpt += "...";
+
+                // Xử lý chuỗi an toàn để đưa vào các hàm JS (tránh lỗi dấu nháy đơn)
+                const safeTitle = encodeURIComponent(data.title || '').replace(/'/g, "%27");
+                const safeContent = encodeURIComponent(data.content || '').replace(/'/g, "%27");
+
+                let actionHtml = '';
+                if (isAdmin) {
+                    // Dùng event.preventDefault() để khi bấm nút không bị nhảy sang trang chi tiết (do thẻ <a> bọc bên ngoài)
+                    actionHtml = `
+                        <div class="action-buttons" onclick="event.preventDefault();">
+                            <button class="btn-warning" onclick="event.preventDefault(); triggerEdit('${id}', '${safeTitle}', '${safeContent}')"><i class="fas fa-edit"></i> Sửa</button>
+                            <button class="btn-danger" onclick="event.preventDefault(); triggerDeleteConfirm('${id}', '${safeTitle}')"><i class="fas fa-trash"></i> Xóa</button>
+                        </div>
+                    `;
+                }
 
                 const a = document.createElement('a');
                 a.href = `xem-thong-bao.html?id=${id}`;
                 a.className = 'news-item';
                 a.innerHTML = `
-                    <div class="news-tag ${getTagClass(data.category)}">${data.category}</div>
                     <h3 class="news-title">${data.title}</h3>
                     <div class="news-excerpt">${excerpt}</div>
                     <div class="news-meta">
                         <span><i class="fas fa-calendar-alt"></i> ${dateStr}</span>
                         <span><i class="fas fa-pencil-alt"></i> Đăng bởi: ${data.author || 'Hệ thống'}</span>
                     </div>
+                    ${actionHtml}
                 `;
                 newsList.appendChild(a);
             });
