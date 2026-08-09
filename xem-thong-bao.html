@@ -13,17 +13,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* --- CSS CHUẨN HEADER & FOOTER --- */
+        /* --- CSS CHUẨN HEADER & FOOTER ĐỒNG BỘ TRANG GIỚI THIỆU --- */
         header { gap: 3rem; }
-
-        .logo-link {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            text-decoration: none;
-            cursor: pointer;
-        }
-
+        .logo-link { display: flex; align-items: center; gap: 15px; text-decoration: none; cursor: pointer; }
         .logo-text { display: flex; flex-direction: column; justify-content: center; }
         .logo-text div { white-space: nowrap; width: max-content; line-height: 1.2; transform-origin: left; }
         #logo-line-1 { font-weight: 700; color: var(--text-dark, #0f172a); }
@@ -126,7 +118,7 @@
         </nav>
     </header>
 
-    <main style="flex: 1;">
+    <main style="flex: 1; padding-top: 2rem;">
         <a href="thong-bao.html" class="btn-back"><i class="fas fa-arrow-left"></i> Quay lại danh sách thông báo</a>
         
         <div id="articleContainer" class="article-card">
@@ -175,7 +167,10 @@
                     if (userDoc.exists()) {
                         const data = userDoc.data();
                         let degreePrefix = data.degree === 'ThS' ? 'ThS. ' : (data.degree === 'TS' ? 'TS. ' : '');
-                        btnAuthNav.innerHTML = `<i class="fas fa-user-circle"></i> ${degreePrefix}${data.fullName || "Giảng viên"}`;
+                        // Đã thêm margin-right: 5px cho icon
+                        btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 5px;"></i> ${degreePrefix}${data.fullName || "Giảng viên"}`;
+                    } else {
+                        btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 5px;"></i> Giảng viên`;
                     }
                 } catch (error) {
                     console.error("Lỗi kết nối User DB:", error);
