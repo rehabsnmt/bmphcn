@@ -18,13 +18,11 @@
         ========================================= */
         main { max-width: 1200px; padding: 2rem 3%; margin: 0 auto; }
 
-        .view-counter-wrapper { display: flex; justify-content: center; align-items: center; font-size: 0.9rem; color: var(--text-body); margin-top: 10px; font-weight: 500; background: var(--bg-page); padding: 6px 15px; border-radius: var(--radius-pill); width: fit-content; margin: 10px auto 0; border: 1px solid var(--border); }
-        .view-counter-wrapper strong { color: var(--primary); margin-left: 5px;}
-
-        .header-actions { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 15px; }
-        .header-title-box { text-align: left; }
-        .header-title-box h2 { font-size: 1.8rem; color: var(--text-dark); margin: 0; }
-        .header-buttons { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+        /* Tiêu đề căn giữa */
+        .header-actions { display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid var(--border); gap: 10px; }
+        .header-title-box h2 { font-size: 1.6rem; color: var(--text-dark); margin: 0; font-weight: 700; }
+        .header-title-box .subtitle { font-size: 1rem; color: var(--text-body); font-weight: 600; margin-top: 5px; }
+        .header-buttons { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 10px; }
         
         .section-box { background: var(--surface); padding: 25px; border-radius: var(--radius-md); margin-bottom: 20px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
         .hidden { display: none !important; }
@@ -78,8 +76,8 @@
         .adv-avatar { width: 90px; height: 90px; border-radius: 50%; background-color: var(--primary-light); color: var(--primary); border: 2px solid var(--primary); display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: bold; margin: 0 auto 15px; }
 
         @media (max-width: 768px) {
-            .header-actions { flex-direction: column; text-align: center; align-items: center; }
-            .header-buttons { width: 100%; justify-content: center; margin-top: 15px; }
+            .header-title-box h2 { font-size: 1.3rem; }
+            .header-buttons { width: 100%; justify-content: center; margin-top: 10px; }
             .tabs-header { margin-top: 10px; }
         }
     </style>
@@ -89,12 +87,11 @@
     <main style="flex: 1;">
         <div class="header-actions">
             <div class="header-title-box">
-                <h2>Danh sách luận văn & khóa luận</h2>
-                <div class="view-counter-wrapper">
-                    <i class="fas fa-eye"></i> Tổng lượt tra cứu: <strong id="pageViewsCount">...</strong>
-                </div>
+                <h2>DANH SÁCH LUẬN VĂN THẠC SĨ VÀ KHÓA LUẬN CỬ NHÂN</h2>
+                <div class="subtitle">BỘ MÔN PHỤC HỒI CHỨC NĂNG</div>
             </div>
             <div class="header-buttons">
+                <!-- Nút thao tác của Admin sẽ tự động hiện nếu đã đăng nhập từ hệ thống (js/firebase-config.js) -->
                 <button id="btnOpenHistory" class="btn-primary hidden" onclick="openHistoryModal()"><i class="fas fa-history"></i> Lịch sử</button>
                 <button id="btnOpenBulk" class="btn-warning hidden"><i class="fas fa-file-excel"></i> Nhập Excel</button>
             </div>
@@ -195,9 +192,8 @@
             </div>
         </div>
 
-        <div style="margin-bottom: 15px; font-size: 0.95rem; color: var(--text-body); display: flex; justify-content: space-between; align-items: center;">
-            <div>Hiển thị <strong id="filteredCountText" style="color: var(--primary);">0</strong> / <strong id="totalCountText">0</strong> đề tài</div>
-            <div style="font-size: 0.85rem; font-style: italic; color: #94a3b8;">Vuốt ngang bảng để xem chi tiết 👉</div>
+        <div style="margin-bottom: 15px; font-size: 0.95rem; color: var(--text-body);">
+            Hiển thị <strong id="filteredCountText" style="color: var(--primary);">0</strong> / <strong id="totalCountText">0</strong> đề tài
         </div>
 
         <div class="table-container">
@@ -207,14 +203,12 @@
                         <th style="text-align: center; width: 60px;">STT</th>
                         <th style="width: 180px;">Tác Giả</th>
                         <th style="min-width: 300px;">Tên Đề Tài</th>
-                        <!-- GỘP CỘT LỚP & CHUYÊN NGÀNH TẠI ĐÂY -->
-                        <th style="width: 160px;">Lớp & Chuyên ngành</th>
+                        <th style="width: 160px;">LỚP</th>
                         <th style="min-width: 200px;">Giảng Viên Hướng Dẫn</th>
-                        <th id="thAction" class="hidden" style="text-align: center; width: 120px;">Quản lý</th>
+                        <th id="thAction" class="hidden" style="text-align: center; width: 120px;"></th>
                     </tr>
                 </thead>
                 <tbody id="dataTableBody">
-                    <!-- colspan thay đổi từ 7 thành 6 -->
                     <tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-body);"><i class="fas fa-spinner fa-spin"></i> Đang tải dữ liệu...</td></tr>
                 </tbody>
             </table>
@@ -281,7 +275,7 @@
     <!-- LOGIC FIREBASE DATA CHO THEESE-3FDCE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, query, orderBy, limit, increment, setDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
         
         const thesesFirebaseConfig = {
             apiKey: "AIzaSyDxZZRBDcb9606mNYXxXeLpgK2p1xfGF9A",
@@ -296,12 +290,6 @@
         const thesesApp = initializeApp(thesesFirebaseConfig, "ThesesDatabase");
         const firestoreDb = getFirestore(thesesApp);
         const firestoreAuth = firebase.auth();
-
-        const pageViewsDocRef = doc(firestoreDb, "settings", "pageViews");
-        setDoc(pageViewsDocRef, { count: increment(1) }, { merge: true }).catch(() => {});
-        onSnapshot(pageViewsDocRef, (docSnap) => {
-            document.getElementById('pageViewsCount').innerText = docSnap.exists() ? docSnap.data().count.toLocaleString('vi-VN') : "1";
-        });
 
         const internalAdvisors = {
             "TS. Lê Minh Trí": { degree: "Tiến sĩ / Trưởng bộ môn Phục hồi chức năng", email: "leminhtri@ump.edu.vn", research: "Phục hồi chức năng thần kinh, Đột quỵ, Đau mạn tính", bio: "TS. Lê Minh Trí có hơn 15 năm kinh nghiệm giảng dạy và nghiên cứu chuyên sâu về Phục hồi chức năng thần kinh sau đột quỵ và chấn thương sọ não." },
@@ -434,7 +422,6 @@
             document.getElementById('totalCountText').innerText = allTheses.filter(t => (t.studentClass || '').startsWith(currentTab)).length;
             document.getElementById('filteredCountText').innerText = filtered.length;
 
-            // Đổi colspan từ 7 thành 6
             tableBody.innerHTML = filtered.length === 0 ? '<tr><td colspan="6" style="text-align:center;padding:30px">Không tìm thấy kết quả</td></tr>' : '';
 
             filtered.forEach((t, i) => {
@@ -449,7 +436,6 @@
                     return internalAdvisors[n] ? `<span class="advisor-link" onclick="openAdvisorModal('${encodeURIComponent(n).replace(/'/g, "%27")}')">${n}</span>` : n;
                 }).join('<br>');
 
-                // CỘT LỚP VÀ CHUYÊN NGÀNH ĐƯỢC GỘP LẠI
                 tableBody.innerHTML += `
                     <tr>
                         <td align="center" style="color:#94a3b8;font-weight:bold">${i+1}</td>
