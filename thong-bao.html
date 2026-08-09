@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thông báo - Bộ môn Phục hồi chức năng</title>
+    
+    <link rel="icon" href="images/logo_Bộ môn.png" type="image/png">
+    
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* --- CSS TIÊU CHUẨN --- */
+        header { gap: 3rem; background: var(--surface, #ffffff); }
+        .logo-link { display: flex; align-items: center; gap: 15px; text-decoration: none; cursor: pointer; }
+        .logo-text { display: flex; flex-direction: column; justify-content: center; }
+        .logo-text div { white-space: nowrap; width: max-content; line-height: 1.2; transform-origin: left; }
+        #logo-line-1 { font-weight: 700; color: var(--text-dark, #0f172a); }
+        #logo-line-2 { font-weight: 600; color: var(--text-body, #475569); margin-top: 0.25em; }
+        #logo-line-3 { font-weight: 500; color: var(--text-body, #475569); margin-top: 0.15em; }
+        footer { text-align: center; padding: 2rem 1rem; background-color: var(--surface, #ffffff); border-top: 1px solid var(--border, #e2e8f0); color: var(--text-body, #475569); margin-top: auto; overflow: hidden; }
+        footer p { margin: 0; white-space: nowrap; font-size: clamp(0.55rem, 2.5vw, 0.9rem); }
+
+        /* --- CSS CHO TRANG THÔNG BÁO --- */
+        main { max-width: 1000px; padding: 2rem 3%; margin: 0 auto; width: 100%; box-sizing: border-box; }
+        
+        .header-section { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; border-bottom: 2px solid var(--border); padding-bottom: 1rem; flex-wrap: wrap; gap: 1rem; }
+        .header-section h2 { font-size: 2rem; color: var(--text-dark); margin: 0; }
+        
+        .btn-add { background-color: var(--primary); color: white; border: none; padding: 0.7rem 1.2rem; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: var(--transition); }
+        .btn-add:hover { background-color: var(--primary-hover); }
+        
+        /* Form đăng bài (Ẩn mặc định) */
+        .admin-form-box { background: var(--surface); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--primary-light); box-shadow: var(--shadow-sm); margin-bottom: 2rem; display: none; }
+        .admin-form-box.active { display: block; animation: fadeIn 0.3s ease-in-out; }
+        .input-group { margin-bottom: 1rem; }
+        .input-group label { display: block; font-size: 0.9rem; font-weight: 600; margin-bottom: 5px; color: var(--text-dark); }
+        .input-group input, .input-group select, .input-group textarea { width: 100%; padding: 0.8rem; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 0.95rem; outline: none; box-sizing: border-box; }
+        .input-group input:focus, .input-group select:focus, .input-group textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1); }
+        .input-group textarea { min-height: 150px; resize: vertical; }
+
+        /* Danh sách thông báo */
+        .news-list { display: flex; flex-direction: column; gap: 1.5rem; }
+        .news-item { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; display: flex; flex-direction: column; gap: 10px; transition: var(--transition); cursor: pointer; text-decoration: none; color: inherit; }
+        .news-item:hover { box-shadow: var(--shadow-hover); border-color: var(--primary-light); transform: translateY(-3px); }
+        
+        .news-tag { align-self: flex-start; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; }
+        .tag-tuyensinh { background-color: #fef3c7; color: #166534; border: 1px solid #d1fae5; }
+        .tag-daotao { background-color: #e0f2fe; color: #075985; border: 1px solid #bae6fd; }
+        .tag-chung { background-color: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+
+        .news-title { font-size: 1.3rem; font-weight: 700; color: var(--text-dark); margin: 0; line-height: 1.4; }
+        .news-meta { font-size: 0.85rem; color: var(--text-body); display: flex; gap: 15px; align-items: center; }
+        .news-excerpt { font-size: 0.95rem; color: var(--text-body); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+        .empty-state { text-align: center; padding: 3rem; color: var(--text-body); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        @media (max-width: 768px) { header { gap: 1rem; } .header-section { flex-direction: column; align-items: stretch; text-align: center; } .btn-add { justify-content: center; } }
+    </style>
+</head>
+<body style="display: flex; flex-direction: column; min-height: 100vh; background-color: var(--bg-page);">
+
+    <!-- HEADER -->
+    <header>
+        <a href="index.html" class="logo-link">
+            <div class="logo" style="margin: 0; border: none; padding: 0;">
+                <img src="images/logo_Bộ môn.png" alt="Logo Bộ môn Phục hồi chức năng">
+            </div>
+            <div class="logo-text">
+                <div id="logo-line-1">Bộ môn Phục hồi chức năng</div>
+                <div id="logo-line-2">Trường Điều dưỡng - Kỹ thuật Y học</div>
+                <div id="logo-line-3">Đại học Y Dược Thành Phố Hồ Chí Minh</div>
+            </div>
+        </a>
+        <div class="menu-toggle" id="mobile-menu" aria-label="Menu"><i class="fas fa-bars"></i></div>
+        <nav class="nav-links" id="nav-links">
+            <a href="gioi-thieu.html" class="nav-item">Giới thiệu</a>
+            <a href="cong-bo.html" class="nav-item">Công bố khoa học</a>
+            <a href="luan-van.html" class="nav-item">Luận văn & Khóa luận</a>
+            <a href="tai-nguyen.html" class="nav-item">Tài nguyên</a>
+            <a href="thong-bao.html" class="nav-item" style="color: var(--primary); font-weight: 600;">Thông báo</a>
+            <a href="login.html" class="btn-login" id="btnAuthNav">Đăng nhập</a>
+        </nav>
+    </header>
+
+    <main style="flex: 1;">
+        <div class="header-section">
+            <h2>THÔNG BÁO BỘ MÔN</h2>
+            <button id="btnToggleForm" class="btn-add" style="display: none;">
+                <i class="fas fa-plus"></i> Đăng thông báo mới
+            </button>
+        </div>
+
+        <!-- KHUNG ĐĂNG BÀI (Chỉ hiển thị cho GV) -->
+        <div id="adminFormBox" class="admin-form-box">
+            <h3 style="margin-top:0; color:var(--primary);">Tạo thông báo mới</h3>
+            <form id="formPostNews" onsubmit="return false;">
+                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                    <div class="input-group" style="flex: 3; min-width: 250px;">
+                        <label>Tiêu đề thông báo *</label>
+                        <input type="text" id="newsTitle" placeholder="Nhập tiêu đề..." required>
+                    </div>
+                    <div class="input-group" style="flex: 1; min-width: 150px;">
+                        <label>Phân loại</label>
+                        <select id="newsCategory">
+                            <option value="Chung">Thông báo chung</option>
+                            <option value="Tuyển sinh">Tuyển sinh</option>
+                            <option value="Đào tạo">Đào tạo</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Nội dung chi tiết *</label>
+                    <textarea id="newsContent" placeholder="Nhập nội dung bài viết..." required></textarea>
+                </div>
+                <button type="submit" id="btnSubmitNews" class="btn-add" style="width: 100%; justify-content: center;">
+                    Đăng tải bài viết
+                </button>
+            </form>
+        </div>
+
+        <!-- DANH SÁCH THÔNG BÁO -->
+        <div id="newsList" class="news-list">
+            <div class="empty-state"><i class="fas fa-spinner fa-spin" style="font-size: 2rem;"></i><p>Đang tải thông báo...</p></div>
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer>
+        <p>&copy; 2026 Bộ môn Phục hồi chức năng. Mọi quyền được bảo lưu.</p>
+    </footer>
+
+    <!-- FIREBASE -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="js/firebase-config.js"></script>
+
+    <script>
+        // Xử lý Menu mobile
+        document.getElementById('mobile-menu').addEventListener('click', () => {
+            document.getElementById('nav-links').classList.toggle('active');
+        });
+
+        const btnToggleForm = document.getElementById('btnToggleForm');
+        const adminFormBox = document.getElementById('adminFormBox');
+        const newsList = document.getElementById('newsList');
+        let currentAuthor = "Giảng viên";
+
+        // Xử lý xác thực người dùng
+        firebase.auth().onAuthStateChanged((user) => {
+            const btnAuthNav = document.getElementById('btnAuthNav');
+            if (user) {
+                btnToggleForm.style.display = 'flex'; // Hiện nút tạo bài cho Giảng viên
+                
+                db.collection("users").doc(user.uid).get().then(doc => {
+                    if (doc.exists) {
+                        currentAuthor = doc.data().fullName || "Giảng viên";
+                        let degreePrefix = doc.data().degree === 'ThS' ? 'ThS. ' : (doc.data().degree === 'TS' ? 'TS. ' : '');
+                        btnAuthNav.innerHTML = `<i class="fas fa-user-circle"></i> ${degreePrefix}${currentAuthor}`;
+                    }
+                });
+            } else {
+                btnToggleForm.style.display = 'none';
+                btnAuthNav.innerHTML = 'Đăng nhập giảng viên';
+            }
+        });
+
+        // Bật/tắt Form
+        btnToggleForm.addEventListener('click', () => {
+            adminFormBox.classList.toggle('active');
+            if(adminFormBox.classList.contains('active')){
+                btnToggleForm.innerHTML = '<i class="fas fa-times"></i> Đóng khung soạn thảo';
+                btnToggleForm.style.backgroundColor = 'var(--text-body)';
+            } else {
+                btnToggleForm.innerHTML = '<i class="fas fa-plus"></i> Đăng thông báo mới';
+                btnToggleForm.style.backgroundColor = 'var(--primary)';
+            }
+        });
+
+        // Đăng bài viết
+        document.getElementById('formPostNews').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const btnSubmit = document.getElementById('btnSubmitNews');
+            btnSubmit.disabled = true;
+            btnSubmit.innerHTML = "Đang xử lý...";
+
+            const title = document.getElementById('newsTitle').value.trim();
+            const category = document.getElementById('newsCategory').value;
+            const content = document.getElementById('newsContent').value.trim();
+
+            db.collection("announcements").add({
+                title: title,
+                category: category,
+                content: content,
+                author: currentAuthor,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            }).then(() => {
+                alert("Đăng thông báo thành công!");
+                document.getElementById('formPostNews').reset();
+                btnToggleForm.click(); // Đóng form
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = "Đăng tải bài viết";
+            }).catch(err => {
+                alert("Lỗi: " + err.message);
+                btnSubmit.disabled = false;
+            });
+        });
+
+        // Hàm helper lấy class màu thẻ tag
+        function getTagClass(cat) {
+            if (cat === "Tuyển sinh") return "tag-tuyensinh";
+            if (cat === "Đào tạo") return "tag-daotao";
+            return "tag-chung";
+        }
+
+        // Tải danh sách thông báo từ Firestore
+        db.collection("announcements").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
+            if (snapshot.empty) {
+                newsList.innerHTML = '<div class="empty-state">Chưa có thông báo nào.</div>';
+                return;
+            }
+
+            newsList.innerHTML = "";
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                const id = doc.id;
+                
+                // Format ngày
+                let dateStr = "Vừa xong";
+                if (data.createdAt) {
+                    const dateObj = data.createdAt.toDate();
+                    dateStr = dateObj.toLocaleDateString('vi-VN', {day:'2-digit', month:'2-digit', year:'numeric'}) + ' - ' + dateObj.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'});
+                }
+
+                // Trích xuất đoạn ngắn
+                let excerpt = data.content.substring(0, 150);
+                if (data.content.length > 150) excerpt += "...";
+
+                const a = document.createElement('a');
+                a.href = `xem-thong-bao.html?id=${id}`;
+                a.className = 'news-item';
+                a.innerHTML = `
+                    <div class="news-tag ${getTagClass(data.category)}">${data.category}</div>
+                    <h3 class="news-title">${data.title}</h3>
+                    <div class="news-excerpt">${excerpt}</div>
+                    <div class="news-meta">
+                        <span><i class="fas fa-calendar-alt"></i> ${dateStr}</span>
+                        <span><i class="fas fa-pencil-alt"></i> Đăng bởi: ${data.author || 'Hệ thống'}</span>
+                    </div>
+                `;
+                newsList.appendChild(a);
+            });
+        });
+        
+        // Điều chỉnh kích thước Logo
+        function perfectAlignLogo() {
+            const l1 = document.getElementById('logo-line-1'); const l2 = document.getElementById('logo-line-2'); const l3 = document.getElementById('logo-line-3');
+            const logoImg = document.querySelector('.logo-link img'); const logoText = document.querySelector('.logo-text');
+            if (!l1 || !l2 || !l3 || !logoImg || !logoText) return;
+            if (logoImg.complete === false || logoImg.naturalHeight === 0) { logoImg.onload = perfectAlignLogo; return; }
+            const isMobile = window.innerWidth <= 768; const baseFontSize = isMobile ? 16.8 : 22.4; 
+            l1.style.fontSize = '20px'; l2.style.fontSize = '20px'; l3.style.fontSize = '20px';
+            const w1 = l1.getBoundingClientRect().width; const w2 = l2.getBoundingClientRect().width; const w3 = l3.getBoundingClientRect().width;
+            let targetWidth = (w1 / 20) * baseFontSize;
+            const applySizes = (w) => { l1.style.fontSize=(20*w/w1)+'px'; l2.style.fontSize=(20*w/w2)+'px'; l3.style.fontSize=(20*w/w3)+'px'; };
+            applySizes(targetWidth);
+            const imgHeight = logoImg.getBoundingClientRect().height || 48; const textHeight = logoText.getBoundingClientRect().height; 
+            if (textHeight > imgHeight && imgHeight > 0) { targetWidth = targetWidth * (imgHeight / textHeight); applySizes(targetWidth); }
+        }
+        perfectAlignLogo(); window.addEventListener('resize', perfectAlignLogo); document.fonts.ready.then(perfectAlignLogo);
+    </script>
+</body>
+</html>
