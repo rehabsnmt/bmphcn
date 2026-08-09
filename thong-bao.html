@@ -3,22 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Danh sách thông báo Bộ môn Phục hồi chức năng.">
     <title>Thông báo - Bộ môn Phục hồi chức năng</title>
     
     <link rel="icon" href="images/logo_Bộ môn.png" type="image/png">
+    <link rel="apple-touch-icon" href="images/logo_Bộ môn.png">
     
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* --- CSS TIÊU CHUẨN --- */
-        header { gap: 3rem; background: var(--surface, #ffffff); }
-        .logo-link { display: flex; align-items: center; gap: 15px; text-decoration: none; cursor: pointer; }
+        /* --- CSS CHUẨN HEADER & FOOTER --- */
+        header { gap: 3rem; }
+
+        .logo-link {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
         .logo-text { display: flex; flex-direction: column; justify-content: center; }
         .logo-text div { white-space: nowrap; width: max-content; line-height: 1.2; transform-origin: left; }
         #logo-line-1 { font-weight: 700; color: var(--text-dark, #0f172a); }
         #logo-line-2 { font-weight: 600; color: var(--text-body, #475569); margin-top: 0.25em; }
         #logo-line-3 { font-weight: 500; color: var(--text-body, #475569); margin-top: 0.15em; }
+
         footer { text-align: center; padding: 2rem 1rem; background-color: var(--surface, #ffffff); border-top: 1px solid var(--border, #e2e8f0); color: var(--text-body, #475569); margin-top: auto; overflow: hidden; }
         footer p { margin: 0; white-space: nowrap; font-size: clamp(0.55rem, 2.5vw, 0.9rem); }
 
@@ -26,12 +37,12 @@
         main { max-width: 1000px; padding: 2rem 3%; margin: 0 auto; width: 100%; box-sizing: border-box; }
         
         .header-section { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; border-bottom: 2px solid var(--border); padding-bottom: 1rem; flex-wrap: wrap; gap: 1rem; }
-        .header-section h2 { font-size: 2rem; color: var(--text-dark); margin: 0; }
+        .header-section h2 { font-size: 2.2rem; color: var(--text-dark); margin: 0; }
         
         .btn-add { background-color: var(--primary); color: white; border: none; padding: 0.7rem 1.2rem; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: var(--transition); }
         .btn-add:hover { background-color: var(--primary-hover); }
         
-        /* Form đăng bài (Ẩn mặc định) */
+        /* Form đăng bài */
         .admin-form-box { background: var(--surface); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--primary-light); box-shadow: var(--shadow-sm); margin-bottom: 2rem; display: none; }
         .admin-form-box.active { display: block; animation: fadeIn 0.3s ease-in-out; }
         .input-group { margin-bottom: 1rem; }
@@ -60,34 +71,77 @@
         @media (max-width: 768px) { header { gap: 1rem; } .header-section { flex-direction: column; align-items: stretch; text-align: center; } .btn-add { justify-content: center; } }
     </style>
 </head>
-<body style="display: flex; flex-direction: column; min-height: 100vh; background-color: var(--bg-page);">
-
-    <!-- HEADER -->
+<body style="display: flex; flex-direction: column; min-height: 100vh;">
+    
     <header>
         <a href="index.html" class="logo-link">
             <div class="logo" style="margin: 0; border: none; padding: 0;">
                 <img src="images/logo_Bộ môn.png" alt="Logo Bộ môn Phục hồi chức năng">
             </div>
+            
             <div class="logo-text">
                 <div id="logo-line-1">Bộ môn Phục hồi chức năng</div>
                 <div id="logo-line-2">Trường Điều dưỡng - Kỹ thuật Y học</div>
                 <div id="logo-line-3">Đại học Y Dược Thành Phố Hồ Chí Minh</div>
             </div>
         </a>
-        <div class="menu-toggle" id="mobile-menu" aria-label="Menu"><i class="fas fa-bars"></i></div>
+        
+        <script>
+            function perfectAlignLogo() {
+                const l1 = document.getElementById('logo-line-1');
+                const l2 = document.getElementById('logo-line-2');
+                const l3 = document.getElementById('logo-line-3');
+                const logoImg = document.querySelector('.logo-link img');
+                const logoText = document.querySelector('.logo-text');
+                
+                if (!l1 || !l2 || !l3 || !logoImg || !logoText) return;
+                if (logoImg.complete === false || logoImg.naturalHeight === 0) {
+                    logoImg.onload = perfectAlignLogo; return;
+                }
+
+                const isMobile = window.innerWidth <= 768;
+                const baseFontSize = isMobile ? 16.8 : 22.4; 
+                l1.style.fontSize = '20px'; l2.style.fontSize = '20px'; l3.style.fontSize = '20px';
+                
+                const w1 = l1.getBoundingClientRect().width;
+                const w2 = l2.getBoundingClientRect().width;
+                const w3 = l3.getBoundingClientRect().width;
+                
+                let targetWidth = (w1 / 20) * baseFontSize;
+                const applySizes = (width) => {
+                    l1.style.fontSize = (20 * width / w1) + 'px';
+                    l2.style.fontSize = (20 * width / w2) + 'px';
+                    l3.style.fontSize = (20 * width / w3) + 'px';
+                };
+                applySizes(targetWidth);
+                
+                const imgHeight = logoImg.getBoundingClientRect().height || 48; 
+                const textHeight = logoText.getBoundingClientRect().height; 
+                if (textHeight > imgHeight && imgHeight > 0) {
+                    targetWidth = targetWidth * (imgHeight / textHeight);
+                    applySizes(targetWidth); 
+                }
+            }
+            perfectAlignLogo(); window.addEventListener('resize', perfectAlignLogo); document.fonts.ready.then(perfectAlignLogo);
+        </script>
+        
+        <div class="menu-toggle" id="mobile-menu" aria-label="Menu">
+            <i class="fas fa-bars"></i>
+        </div>
+
         <nav class="nav-links" id="nav-links">
             <a href="gioi-thieu.html" class="nav-item">Giới thiệu</a>
             <a href="cong-bo.html" class="nav-item">Công bố khoa học</a>
             <a href="luan-van.html" class="nav-item">Luận văn & Khóa luận</a>
             <a href="tai-nguyen.html" class="nav-item">Tài nguyên</a>
             <a href="thong-bao.html" class="nav-item" style="color: var(--primary); font-weight: 600;">Thông báo</a>
-            <a href="login.html" class="btn-login" id="btnAuthNav">Đăng nhập</a>
+            <a href="login.html" class="btn-login" id="btnAuthNav">Đăng nhập giảng viên</a>
         </nav>
     </header>
 
     <main style="flex: 1;">
         <div class="header-section">
-            <h2>THÔNG BÁO BỘ MÔN</h2>
+            <h2>Thông báo Bộ môn</h2>
             <button id="btnToggleForm" class="btn-add" style="display: none;">
                 <i class="fas fa-plus"></i> Đăng thông báo mới
             </button>
@@ -127,41 +181,57 @@
         </div>
     </main>
 
-    <!-- FOOTER -->
     <footer>
         <p>&copy; 2026 Bộ môn Phục hồi chức năng. Mọi quyền được bảo lưu.</p>
     </footer>
 
-    <!-- FIREBASE -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="js/firebase-config.js"></script>
-
     <script>
-        // Xử lý Menu mobile
-        document.getElementById('mobile-menu').addEventListener('click', () => {
-            document.getElementById('nav-links').classList.toggle('active');
+        document.getElementById('mobile-menu').addEventListener('click', () => { 
+            document.getElementById('nav-links').classList.toggle('active'); 
         });
+    </script>
+
+    <!-- FIREBASE MODULAR (V9) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY",
+            authDomain: "bmphcn-aa9c6.firebaseapp.com",
+            projectId: "bmphcn-aa9c6",
+            storageBucket: "bmphcn-aa9c6.firebasestorage.app",
+            messagingSenderId: "749494392719",
+            appId: "1:749494392719:web:f220c751ff541620045dfa",
+            measurementId: "G-LBLG62PTDK"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
         const btnToggleForm = document.getElementById('btnToggleForm');
         const adminFormBox = document.getElementById('adminFormBox');
         const newsList = document.getElementById('newsList');
+        const btnAuthNav = document.getElementById('btnAuthNav');
         let currentAuthor = "Giảng viên";
 
-        // Xử lý xác thực người dùng
-        firebase.auth().onAuthStateChanged((user) => {
-            const btnAuthNav = document.getElementById('btnAuthNav');
+        // Xác thực người dùng
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
-                btnToggleForm.style.display = 'flex'; // Hiện nút tạo bài cho Giảng viên
-                
-                db.collection("users").doc(user.uid).get().then(doc => {
-                    if (doc.exists) {
-                        currentAuthor = doc.data().fullName || "Giảng viên";
-                        let degreePrefix = doc.data().degree === 'ThS' ? 'ThS. ' : (doc.data().degree === 'TS' ? 'TS. ' : '');
+                btnToggleForm.style.display = 'flex'; 
+                try {
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    if (userDoc.exists()) {
+                        const data = userDoc.data();
+                        currentAuthor = data.fullName || "Giảng viên";
+                        let degreePrefix = data.degree === 'ThS' ? 'ThS. ' : (data.degree === 'TS' ? 'TS. ' : '');
                         btnAuthNav.innerHTML = `<i class="fas fa-user-circle"></i> ${degreePrefix}${currentAuthor}`;
                     }
-                });
+                } catch (error) {
+                    console.error("Lỗi lấy thông tin người dùng: ", error);
+                }
             } else {
                 btnToggleForm.style.display = 'none';
                 btnAuthNav.innerHTML = 'Đăng nhập giảng viên';
@@ -181,61 +251,57 @@
         });
 
         // Đăng bài viết
-        document.getElementById('formPostNews').addEventListener('submit', (e) => {
+        document.getElementById('formPostNews').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btnSubmit = document.getElementById('btnSubmitNews');
-            btnSubmit.disabled = true;
+            btnSubmit.disabled = true; 
             btnSubmit.innerHTML = "Đang xử lý...";
 
             const title = document.getElementById('newsTitle').value.trim();
             const category = document.getElementById('newsCategory').value;
             const content = document.getElementById('newsContent').value.trim();
 
-            db.collection("announcements").add({
-                title: title,
-                category: category,
-                content: content,
-                author: currentAuthor,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            }).then(() => {
+            try {
+                await addDoc(collection(db, "announcements"), {
+                    title: title, 
+                    category: category, 
+                    content: content, 
+                    author: currentAuthor,
+                    createdAt: serverTimestamp()
+                });
                 alert("Đăng thông báo thành công!");
                 document.getElementById('formPostNews').reset();
-                btnToggleForm.click(); // Đóng form
-                btnSubmit.disabled = false;
-                btnSubmit.innerHTML = "Đăng tải bài viết";
-            }).catch(err => {
+                btnToggleForm.click();
+            } catch (err) {
                 alert("Lỗi: " + err.message);
-                btnSubmit.disabled = false;
-            });
+            } finally {
+                btnSubmit.disabled = false; 
+                btnSubmit.innerHTML = "Đăng tải bài viết";
+            }
         });
 
-        // Hàm helper lấy class màu thẻ tag
         function getTagClass(cat) {
             if (cat === "Tuyển sinh") return "tag-tuyensinh";
             if (cat === "Đào tạo") return "tag-daotao";
             return "tag-chung";
         }
 
-        // Tải danh sách thông báo từ Firestore
-        db.collection("announcements").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
-            if (snapshot.empty) {
-                newsList.innerHTML = '<div class="empty-state">Chưa có thông báo nào.</div>';
-                return;
+        // Tải danh sách
+        const q = query(collection(db, "announcements"), orderBy("createdAt", "desc"));
+        onSnapshot(q, (snapshot) => {
+            if (snapshot.empty) { 
+                newsList.innerHTML = '<div class="empty-state">Chưa có thông báo nào.</div>'; 
+                return; 
             }
-
             newsList.innerHTML = "";
-            snapshot.forEach((doc) => {
-                const data = doc.data();
-                const id = doc.id;
-                
-                // Format ngày
+            snapshot.forEach((docSnap) => {
+                const data = docSnap.data();
+                const id = docSnap.id;
                 let dateStr = "Vừa xong";
                 if (data.createdAt) {
                     const dateObj = data.createdAt.toDate();
                     dateStr = dateObj.toLocaleDateString('vi-VN', {day:'2-digit', month:'2-digit', year:'numeric'}) + ' - ' + dateObj.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'});
                 }
-
-                // Trích xuất đoạn ngắn
                 let excerpt = data.content.substring(0, 150);
                 if (data.content.length > 150) excerpt += "...";
 
@@ -254,23 +320,6 @@
                 newsList.appendChild(a);
             });
         });
-        
-        // Điều chỉnh kích thước Logo
-        function perfectAlignLogo() {
-            const l1 = document.getElementById('logo-line-1'); const l2 = document.getElementById('logo-line-2'); const l3 = document.getElementById('logo-line-3');
-            const logoImg = document.querySelector('.logo-link img'); const logoText = document.querySelector('.logo-text');
-            if (!l1 || !l2 || !l3 || !logoImg || !logoText) return;
-            if (logoImg.complete === false || logoImg.naturalHeight === 0) { logoImg.onload = perfectAlignLogo; return; }
-            const isMobile = window.innerWidth <= 768; const baseFontSize = isMobile ? 16.8 : 22.4; 
-            l1.style.fontSize = '20px'; l2.style.fontSize = '20px'; l3.style.fontSize = '20px';
-            const w1 = l1.getBoundingClientRect().width; const w2 = l2.getBoundingClientRect().width; const w3 = l3.getBoundingClientRect().width;
-            let targetWidth = (w1 / 20) * baseFontSize;
-            const applySizes = (w) => { l1.style.fontSize=(20*w/w1)+'px'; l2.style.fontSize=(20*w/w2)+'px'; l3.style.fontSize=(20*w/w3)+'px'; };
-            applySizes(targetWidth);
-            const imgHeight = logoImg.getBoundingClientRect().height || 48; const textHeight = logoText.getBoundingClientRect().height; 
-            if (textHeight > imgHeight && imgHeight > 0) { targetWidth = targetWidth * (imgHeight / textHeight); applySizes(targetWidth); }
-        }
-        perfectAlignLogo(); window.addEventListener('resize', perfectAlignLogo); document.fonts.ready.then(perfectAlignLogo);
     </script>
 </body>
 </html>
