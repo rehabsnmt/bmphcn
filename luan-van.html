@@ -34,10 +34,10 @@
         .form-group { display: flex; flex-direction: column; }
         .form-group label { font-size: 0.85rem; font-weight: 600; color: var(--text-dark); margin-bottom: 5px; }
         
-        select {
-            width: 100%; padding: 0.6rem; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.95rem; background-color: var(--bg-page); color: var(--text-dark); outline: none; transition: var(--transition);
+        select, input[type="text"] {
+            width: 100%; padding: 0.6rem; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.95rem; background-color: var(--bg-page); color: var(--text-dark); outline: none; transition: var(--transition); box-sizing: border-box;
         }
-        select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15); background-color: var(--surface); }
+        select:focus, input[type="text"]:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15); background-color: var(--surface); }
 
         /* Tabs Chuyển hệ */
         .tabs-header { display: flex; border-bottom: 2px solid var(--border); margin-bottom: 20px; gap: 10px; }
@@ -46,11 +46,15 @@
         .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
 
         /* Nút phụ đặc thù */
-        .btn-warning { background-color: #f59e0b; color: white; }
+        button { cursor: pointer; transition: var(--transition); font-family: inherit; }
+        .btn-primary { background-color: var(--primary); color: white; padding: 0.6rem 1.2rem; border-radius: var(--radius-pill); border: none; font-weight: 500; }
+        .btn-primary:hover { background-color: var(--primary-hover); }
+        .btn-warning { background-color: #f59e0b; color: white; padding: 0.6rem 1.2rem; border-radius: var(--radius-pill); border: none; font-weight: 500; }
         .btn-warning:hover { background-color: #d97706; box-shadow: 0 4px 12px rgba(217, 119, 6, 0.2); }
-        .btn-danger { background-color: var(--accent); color: white; }
+        .btn-danger { background-color: var(--accent); color: white; padding: 0.6rem 1.2rem; border-radius: var(--radius-pill); border: none; font-weight: 500; }
         .btn-danger:hover { background-color: #be123c; box-shadow: 0 4px 12px rgba(225, 29, 72, 0.2); }
-        .btn-sm { padding: 5px 10px; font-size: 0.8rem; border-radius: 6px; border: none; cursor: pointer; display: inline-block; transition: var(--transition); }
+        .btn-sm { padding: 5px 10px; font-size: 0.8rem; border-radius: 6px; }
+        button:disabled { opacity: 0.6; cursor: not-allowed; }
 
         /* Bảng hiển thị */
         .table-container { overflow-x: auto; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--surface); box-shadow: var(--shadow-sm); position: relative; }
@@ -80,7 +84,7 @@
         }
     </style>
 </head>
-<body style="display: flex; flex-direction: column; min-height: 100vh;">
+<body style="display: flex; flex-direction: column; min-height: 100vh; background-color: var(--bg-page);">
 
     <main style="flex: 1;">
         <div class="header-actions">
@@ -91,13 +95,12 @@
                 </div>
             </div>
             <div class="header-buttons">
-                <!-- Nút thao tác của Admin sẽ tự động hiện nếu đã đăng nhập từ hệ thống (js/firebase-config.js) -->
                 <button id="btnOpenHistory" class="btn-primary hidden" onclick="openHistoryModal()"><i class="fas fa-history"></i> Lịch sử</button>
                 <button id="btnOpenBulk" class="btn-warning hidden"><i class="fas fa-file-excel"></i> Nhập Excel</button>
             </div>
         </div>
 
-        <!-- Khung nhập file Excel (Dành cho Quản trị viên) -->
+        <!-- Khung nhập file Excel -->
         <div id="bulkSection" class="section-box hidden" style="background: #fffbeb; border-color: #fde68a;">
             <h3 style="margin-top: 0; color: #b45309;"><i class="fas fa-file-import"></i> Nhập dữ liệu hàng loạt từ Excel</h3>
             <p style="font-size: 0.9rem; color: #78350f; margin-bottom: 15px; line-height: 1.6;">
@@ -117,7 +120,7 @@
             <div id="bulkLog" style="font-size: 0.9rem; font-weight: 600; color: #15803d; margin-top: 15px;"></div>
         </div>
 
-        <!-- Khung Thêm/Sửa (Dành cho Quản trị viên) -->
+        <!-- Khung Thêm/Sửa -->
         <div id="adminSection" class="section-box hidden">
             <h3 style="margin-top: 0; color: var(--primary);">
                 <i class="fas fa-edit"></i> <span id="formTitle">Thêm đề tài mới</span>
@@ -146,6 +149,7 @@
                         <option value="Vật lý trị liệu">Vật lý trị liệu</option>
                         <option value="Hoạt động trị liệu">Hoạt động trị liệu</option>
                         <option value="Ngôn ngữ trị liệu">Ngôn ngữ trị liệu</option>
+                        <option value="Khác">Khác</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -203,14 +207,15 @@
                         <th style="text-align: center; width: 60px;">STT</th>
                         <th style="width: 180px;">Tác Giả</th>
                         <th style="min-width: 300px;">Tên Đề Tài</th>
-                        <th style="width: 100px;">Lớp</th>
-                        <th style="width: 150px;">Chuyên Ngành</th>
+                        <!-- GỘP CỘT LỚP & CHUYÊN NGÀNH TẠI ĐÂY -->
+                        <th style="width: 160px;">Lớp & Chuyên ngành</th>
                         <th style="min-width: 200px;">Giảng Viên Hướng Dẫn</th>
                         <th id="thAction" class="hidden" style="text-align: center; width: 120px;">Quản lý</th>
                     </tr>
                 </thead>
                 <tbody id="dataTableBody">
-                    <tr><td colspan="7" style="text-align: center; padding: 40px; color: var(--text-body);"><i class="fas fa-spinner fa-spin"></i> Đang tải dữ liệu...</td></tr>
+                    <!-- colspan thay đổi từ 7 thành 6 -->
+                    <tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-body);"><i class="fas fa-spinner fa-spin"></i> Đang tải dữ liệu...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -243,7 +248,8 @@
                         <tr>
                             <th style="background: var(--bg-page); padding: 10px; width: 140px;">Thời gian</th>
                             <th style="background: var(--bg-page); padding: 10px; width: 90px;">Thao tác</th>
-                            <th style="background: var(--bg-page); padding: 10px;">Chi tiết đề tài</th>
+                            <th style="background: var(--bg-page); padding: 10px;">Tài khoản</th>
+                            <th style="background: var(--bg-page); padding: 10px;">Chi tiết</th>
                         </tr>
                     </thead>
                     <tbody id="historyTableBody"></tbody>
@@ -267,17 +273,16 @@
         </div>
     </div>
 
-    <!-- NHÚNG SẴN FIREBASE CONFIG CHUNG CỦA TOÀN TRANG ĐỂ KIỂM TRA ĐĂNG NHẬP (AUTH) -->
+    <!-- KHỞI TẠO FIREBASE AUTH TỪ HỆ THỐNG GỐC -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="js/firebase-config.js"></script>
 
-    <!-- LOGIC NGHIỆP VỤ LUẬN VĂN SỬ DỤNG DATABASE "THESES-3FDCE" -->
+    <!-- LOGIC FIREBASE DATA CHO THEESE-3FDCE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
         import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, query, orderBy, limit, increment, setDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
         
-        // 1. KHỞI TẠO APP FIREBASE THỨ 2 DÀNH RIÊNG CHO LUẬN VĂN
         const thesesFirebaseConfig = {
             apiKey: "AIzaSyDxZZRBDcb9606mNYXxXeLpgK2p1xfGF9A",
             authDomain: "theses-3fdce.firebaseapp.com",
@@ -288,25 +293,20 @@
             measurementId: "G-5LR1NLCMT0"
         };
         
-        // Đặt tên App là "ThesesDatabase" để không bị xung đột với App mặc định ở file js/firebase-config.js
         const thesesApp = initializeApp(thesesFirebaseConfig, "ThesesDatabase");
         const firestoreDb = getFirestore(thesesApp);
+        const firestoreAuth = firebase.auth();
 
-        // 2. TẬN DỤNG HỆ THỐNG ĐĂNG NHẬP GỐC
-        const firestoreAuth = firebase.auth(); // Kéo Auth từ hệ thống gốc
-
-        // TỔNG LƯỢT XЕМ
         const pageViewsDocRef = doc(firestoreDb, "settings", "pageViews");
         setDoc(pageViewsDocRef, { count: increment(1) }, { merge: true }).catch(() => {});
         onSnapshot(pageViewsDocRef, (docSnap) => {
             document.getElementById('pageViewsCount').innerText = docSnap.exists() ? docSnap.data().count.toLocaleString('vi-VN') : "1";
         });
 
-        // DANH SÁCH GIẢNG VIÊN MẪU
         const internalAdvisors = {
-            "TS. Lê Minh Trí": { degree: "Tiến sĩ", email: "leminhtri@ump.edu.vn", research: "Thần kinh", bio: "Hơn 15 năm kinh nghiệm." },
-            "ThS. Phạm Ngọc Thạch": { degree: "Thạc sĩ", email: "phamngocthach@ump.edu.vn", research: "Vật lý trị liệu", bio: "Chuyên phục hồi chấn thương thể thao." },
-            "PGS.TS. Nguyễn Thị Bích": { degree: "Phó Giáo sư / Tiến sĩ", email: "nguyenthibich@ump.edu.vn", research: "Hoạt động trị liệu", bio: "Chuyên gia đánh giá và can thiệp cho trẻ." }
+            "TS. Lê Minh Trí": { degree: "Tiến sĩ / Trưởng bộ môn Phục hồi chức năng", email: "leminhtri@ump.edu.vn", research: "Phục hồi chức năng thần kinh, Đột quỵ, Đau mạn tính", bio: "TS. Lê Minh Trí có hơn 15 năm kinh nghiệm giảng dạy và nghiên cứu chuyên sâu về Phục hồi chức năng thần kinh sau đột quỵ và chấn thương sọ não." },
+            "ThS. Phạm Ngọc Thạch": { degree: "Thạc sĩ / Giảng viên", email: "phamngocthach@ump.edu.vn", research: "Vật lý trị liệu cơ xương khớp, Phục hồi thể thao", bio: "ThS. Phạm Ngọc Thạch tốt nghiệp chuyên ngành VLTL tại nước ngoài, chuyên phụ trách mảng phục hồi chấn thương thể thao và can thiệp cột sống." },
+            "PGS.TS. Nguyễn Thị Bích": { degree: "Phó Giáo sư / Tiến sĩ", email: "nguyenthibich@ump.edu.vn", research: "Hoạt động trị liệu, Phục hồi chức năng nhi khoa", bio: "PGS.TS Nguyễn Thị Bích là chuyên gia đầu ngành trong lĩnh vực đánh giá và can thiệp Hoạt động trị liệu cho trẻ tự kỷ và bại não." }
         };
 
         let allTheses = [];
@@ -327,15 +327,18 @@
         const filterClass = document.getElementById('filterClass'); 
         const sortSelect = document.getElementById('sortSelect'); 
 
-        // Ghi Log
         async function logAction(actionType, detailString) {
             if (!firestoreAuth.currentUser) return;
             try {
-                await addDoc(collection(firestoreDb, "logs"), { action: actionType, user: firestoreAuth.currentUser.email, timestamp: new Date(), details: detailString });
+                await addDoc(collection(firestoreDb, "logs"), { 
+                    action: actionType, 
+                    user: firestoreAuth.currentUser.email, 
+                    timestamp: new Date(), 
+                    details: detailString 
+                });
             } catch (error) { console.error(error); }
         }
 
-        // Chuyển Tabs (CN/THS)
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -347,7 +350,6 @@
             });
         });
 
-        // Cập nhật Năm Đào Tạo Tự động
         function populateYears(levelType) {
             const addYear = document.getElementById('addYear');
             addYear.innerHTML = '';
@@ -362,7 +364,6 @@
         document.getElementById('addLevel').addEventListener('change', (e) => populateYears(e.target.value));
         populateYears('CN');
 
-        // PHÁT HIỆN TÀI KHOẢN TỪ HỆ THỐNG GỐC (ĐĂNG NHẬP CHUNG)
         firestoreAuth.onAuthStateChanged((user) => {
             if (user) {
                 isAdmin = true;
@@ -373,11 +374,16 @@
                 
                 onSnapshot(query(collection(firestoreDb, "logs"), orderBy("timestamp", "desc"), limit(50)), (snap) => {
                     const historyBody = document.getElementById('historyTableBody');
-                    historyBody.innerHTML = snap.empty ? '<tr><td colspan="3" align="center">Chưa có</td></tr>' : '';
+                    historyBody.innerHTML = snap.empty ? '<tr><td colspan="4" align="center">Chưa có</td></tr>' : '';
                     snap.forEach(d => {
                         const log = d.data();
-                        const c = log.action==='THÊM' ? '#16a34a' : log.action==='SỬA' ? '#d97706' : '#dc2626';
-                        historyBody.innerHTML += `<tr><td style="color:#64748b">${log.timestamp?.toDate().toLocaleString('vi-VN')}</td><td style="color:${c};font-weight:bold">${log.action}</td><td>${log.details}</td></tr>`;
+                        const c = log.action==='THÊM' ? '#16a34a' : log.action==='SỬA' ? '#d97706' : log.action==='XÓA' ? '#dc2626' : '#2563eb';
+                        historyBody.innerHTML += `<tr>
+                            <td style="color:#64748b">${log.timestamp?.toDate().toLocaleString('vi-VN')}</td>
+                            <td style="color:${c};font-weight:bold">${log.action}</td>
+                            <td>${log.user || ''}</td>
+                            <td>${log.details}</td>
+                        </tr>`;
                     });
                 });
             } else {
@@ -399,14 +405,12 @@
             filterClass.value = tabClasses.includes(currClass) ? currClass : 'Tất cả';
         }
 
-        // TẢI DỮ LIỆU TỪ FIREBASE
         onSnapshot(collection(firestoreDb, "theses"), (snapshot) => {
             allTheses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             updateDynamicFilters(); 
             renderTable();
         });
 
-        // RENDER BẢNG
         function renderTable() {
             const searchText = document.getElementById('searchInput').value.toLowerCase();
             const filterCls = filterClass.value; 
@@ -430,7 +434,8 @@
             document.getElementById('totalCountText').innerText = allTheses.filter(t => (t.studentClass || '').startsWith(currentTab)).length;
             document.getElementById('filteredCountText').innerText = filtered.length;
 
-            tableBody.innerHTML = filtered.length === 0 ? '<tr><td colspan="7" style="text-align:center;padding:30px">Không tìm thấy kết quả</td></tr>' : '';
+            // Đổi colspan từ 7 thành 6
+            tableBody.innerHTML = filtered.length === 0 ? '<tr><td colspan="6" style="text-align:center;padding:30px">Không tìm thấy kết quả</td></tr>' : '';
 
             filtered.forEach((t, i) => {
                 let actionHtml = '';
@@ -444,7 +449,19 @@
                     return internalAdvisors[n] ? `<span class="advisor-link" onclick="openAdvisorModal('${encodeURIComponent(n).replace(/'/g, "%27")}')">${n}</span>` : n;
                 }).join('<br>');
 
-                tableBody.innerHTML += `<tr><td align="center" style="color:#94a3b8;font-weight:bold">${i+1}</td><td><b>${t.author}</b></td><td style="white-space:normal;font-weight:600;color:var(--text-dark)">${t.title}</td><td>${t.studentClass||'—'}</td><td><span style="color:var(--primary)">${t.major||'—'}</span></td><td>${advHtml}</td>${actionHtml}</tr>`;
+                // CỘT LỚP VÀ CHUYÊN NGÀNH ĐƯỢC GỘP LẠI
+                tableBody.innerHTML += `
+                    <tr>
+                        <td align="center" style="color:#94a3b8;font-weight:bold">${i+1}</td>
+                        <td><b>${t.author}</b></td>
+                        <td style="white-space:normal;font-weight:600;color:var(--text-dark)">${t.title}</td>
+                        <td>
+                            <div style="font-weight: 600; color: var(--text-dark);">${t.studentClass||'—'}</div>
+                            <div style="font-size: 0.85rem; color: var(--primary); margin-top: 2px;">${t.major||'—'}</div>
+                        </td>
+                        <td>${advHtml}</td>
+                        ${actionHtml}
+                    </tr>`;
             });
         }
 
@@ -452,7 +469,6 @@
         filterClass.addEventListener('change', renderTable);
         sortSelect.addEventListener('change', renderTable);
 
-        // Chức năng Modal GV
         window.openAdvisorModal = (enN) => {
             const n = decodeURIComponent(enN);
             const inf = internalAdvisors[n];
@@ -467,11 +483,9 @@
         };
         window.closeAdvisorModal = () => document.getElementById('advisorModal').classList.add('hidden');
 
-        // Chức năng Modal History
         window.openHistoryModal = () => document.getElementById('historyModal').classList.remove('hidden');
         window.closeHistoryModal = () => document.getElementById('historyModal').classList.add('hidden');
 
-        // Chức năng Xóa
         window.triggerDeleteConfirm = (id, enT) => {
             targetDeleteId = id; targetDeleteTitle = decodeURIComponent(enT);
             generatedSecurityCode = Math.floor(1000 + Math.random() * 9000).toString();
@@ -495,21 +509,28 @@
             } catch(e) { alert("Lỗi xóa!"); }
         };
 
-        // Lưu Dữ liệu mới / Sửa
         document.getElementById('btnSaveData').onclick = async () => {
             const title = document.getElementById('addTitle').value.trim();
             const author = document.getElementById('addAuthor').value.trim();
             const advisor = document.getElementById('addAdvisor').value.trim();
             if(!title || !author || !advisor) return alert("Điền đủ thông tin có dấu *");
             
-            const obj = { title, author, advisor, major: document.getElementById('addMajor').value, studentClass: `${document.getElementById('addLevel').value}${document.getElementById('addYear').value}` };
+            const obj = { 
+                title, 
+                author, 
+                advisor, 
+                major: document.getElementById('addMajor').value, 
+                studentClass: `${document.getElementById('addLevel').value}${document.getElementById('addYear').value}`,
+                category: "Khác"
+            };
+            
             try {
                 if(isEditing && document.getElementById('editId').value) {
                     await updateDoc(doc(firestoreDb, "theses", document.getElementById('editId').value), obj);
-                    logAction("SỬA", `Cập nhật đề tài: "${title}"`);
+                    logAction("SỬA", `Lớp: ${obj.studentClass} | Đề tài: "${title.toUpperCase()}"`);
                 } else {
                     await addDoc(collection(firestoreDb, "theses"), obj);
-                    logAction("THÊM", `Thêm đề tài: "${title}"`);
+                    logAction("THÊM", `Lớp: ${obj.studentClass} | Đề tài: "${title.toUpperCase()}"`);
                 }
                 resetForm();
             } catch(e) { alert("Lỗi lưu dữ liệu!"); }
@@ -548,7 +569,6 @@
             document.getElementById('btnSaveData').innerText = 'Lưu dữ liệu';
         }
 
-        // Nhập Excel
         btnOpenBulk.onclick = () => { document.getElementById('bulkSection').classList.remove('hidden'); adminSection.classList.add('hidden'); };
         document.getElementById('btnCloseBulk').onclick = () => { document.getElementById('bulkSection').classList.add('hidden'); adminSection.classList.remove('hidden'); };
         
@@ -574,7 +594,14 @@
             let success = 0; document.getElementById('btnUploadExcel').disabled = true;
             for(const row of uploadData) {
                 try {
-                    await addDoc(collection(firestoreDb, "theses"), { author: row[0]?String(row[0]).trim():"Chưa rõ", title: row[1]?String(row[1]).trim():"Chưa có tên", advisor: row[2]?String(row[2]).trim():"Chưa rõ", studentClass: row[3]?String(row[3]).trim():"CN2022", major: row[4]?String(row[4]).trim():"Vật lý trị liệu" });
+                    await addDoc(collection(firestoreDb, "theses"), { 
+                        author: row[0]?String(row[0]).trim():"Chưa rõ", 
+                        title: row[1]?String(row[1]).trim():"Chưa có tên", 
+                        advisor: row[2]?String(row[2]).trim():"Chưa rõ", 
+                        studentClass: row[3]?String(row[3]).trim():"CN2022", 
+                        major: row[4]?String(row[4]).trim():"Vật lý trị liệu",
+                        category: "Khác"
+                    });
                     success++; document.getElementById('bulkLog').innerText = `Hoàn thành: ${success} / ${uploadData.length}`;
                 } catch(e){}
             }
