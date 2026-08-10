@@ -1,6 +1,12 @@
 document.addEventListener("DOMContentLoaded", function () {
     // 1. MÃ HTML CỦA HEADER
     const headerHTML = `
+        <style>
+            /* CSS Ẩn chữ bên cạnh logo khi màn hình <= 768px (Điện thoại) */
+            @media (max-width: 768px) {
+                .logo-text { display: none !important; }
+            }
+        </style>
         <header>
             <a href="index.html" class="logo-link">
                 <div class="logo" style="margin: 0; border: none; padding: 0;">
@@ -9,7 +15,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 <div class="logo-text">
                     <div id="logo-line-1">Bộ môn Phục hồi chức năng</div>
                     <div id="logo-line-2">Trường Điều dưỡng - Kỹ thuật Y học</div>
-                    <div id="logo-line-3">Đại học Y Dược Thành Phố Hồ Chí Minh</div>
+                    <div id="logo-line-3">Đại học Y Dược Thành phố Hồ Chí Minh</div>
                 </div>
             </a>
             
@@ -73,12 +79,15 @@ document.addEventListener("DOMContentLoaded", function () {
         const logoText = document.querySelector('.logo-text');
         
         if (!l1 || !l2 || !l3 || !logoImg || !logoText) return;
+
+        // Dừng việc tính toán chữ trên màn hình điện thoại (vì chữ đã bị CSS ẩn đi)
+        if (window.innerWidth <= 768) return;
+
         if (logoImg.complete === false || logoImg.naturalHeight === 0) {
             logoImg.onload = perfectAlignLogo; return;
         }
 
-        const isMobile = window.innerWidth <= 768;
-        const baseFontSize = isMobile ? 16.8 : 22.4; 
+        const baseFontSize = 22.4; 
         l1.style.fontSize = '20px'; l2.style.fontSize = '20px'; l3.style.fontSize = '20px';
         
         const w1 = l1.getBoundingClientRect().width;
