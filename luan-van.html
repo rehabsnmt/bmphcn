@@ -69,14 +69,6 @@
         .advisor-link { color: var(--primary); font-weight: 600; cursor: pointer; text-decoration: none; border-bottom: 1px dashed var(--primary); }
         .advisor-link:hover { color: var(--primary-hover); border-bottom-style: solid; }
 
-        /* Modals */
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 2000; padding: 20px; }
-        .modal-content { background: var(--surface); padding: 30px; border-radius: var(--radius-md); max-width: 500px; width: 100%; box-shadow: var(--shadow-hover); position: relative; max-height: 90vh; overflow-y: auto; }
-        .modal-close { position: absolute; top: 15px; right: 15px; background: var(--bg-page); border: 1px solid var(--border); width: 35px; height: 35px; border-radius: 50%; cursor: pointer; color: var(--text-body); display: flex; align-items: center; justify-content: center; transition: var(--transition); }
-        .modal-close:hover { background: var(--border); color: var(--text-dark); }
-        
-        .adv-avatar { width: 90px; height: 90px; border-radius: 50%; background-color: var(--primary-light); color: var(--primary); border: 2px solid var(--primary); display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: bold; margin: 0 auto 15px; }
-
         @media (max-width: 768px) {
             .header-title-box h2 { font-size: 1.3rem; }
             .header-buttons { width: 100%; justify-content: center; margin-top: 10px; }
@@ -84,7 +76,10 @@
         }
     </style>
 </head>
-<body style="display: flex; flex-direction: column; min-height: 100vh; background-color: var(--bg-page);">
+<body style="display: flex; flex-direction: column; min-height: 100vh;">
+
+    <!-- 1. HEADER CHUNG (Tự động load từ layout.js) -->
+    <div id="header-placeholder"></div>
 
     <main style="flex: 1;">
         <div class="header-actions">
@@ -93,7 +88,6 @@
                 <div class="subtitle">BỘ MÔN PHỤC HỒI CHỨC NĂNG</div>
             </div>
             <div class="header-buttons">
-                <!-- Nút thao tác của Admin sẽ tự động hiện nếu đã đăng nhập từ hệ thống (js/firebase-config.js) -->
                 <button id="btnOpenHistory" class="btn-primary hidden" onclick="openHistoryModal()"><i class="fas fa-history"></i> Lịch sử</button>
                 <button id="btnOpenBulk" class="btn-warning hidden"><i class="fas fa-file-excel"></i> Nhập Excel</button>
             </div>
@@ -269,23 +263,30 @@
             <p id="deleteThesisTitlePreview" style="font-weight: 700; color: var(--text-dark); margin-bottom: 20px;"></p>
             <p style="font-size: 0.85rem;">Mã xác nhận:</p>
             <div id="randomDeleteCodeDisplay" style="background: var(--bg-page); padding: 10px; border-radius: 6px; font-size: 1.5rem; font-weight: bold; color: var(--accent); letter-spacing: 5px; margin-bottom: 15px;">0000</div>
-            <input type="text" id="inputDeleteCodeConfirm" placeholder="Nhập mã xác nhận..." style="text-align: center; letter-spacing: 2px;">
+            <input type="text" id="inputDeleteCodeConfirm" placeholder="Nhập mã xác nhận..." style="text-align: center; letter-spacing: 2px; width: 100%; box-sizing: border-box; padding: 10px; border-radius: 6px; border: 1px solid var(--border);">
             <div style="display: flex; gap: 10px; margin-top: 15px;">
                 <button id="btnExecuteFinalDelete" class="btn-danger" disabled style="flex: 1; border:none; padding:10px; border-radius:8px;">Xóa vĩnh viễn</button>
             </div>
         </div>
     </div>
 
-    <!-- KHỞI TẠO FIREBASE AUTH TỪ HỆ THỐNG GỐC -->
+    <!-- 3. FOOTER CHUNG (Tự động load từ layout.js) -->
+    <div id="footer-placeholder"></div>
+
+    <!-- 4. GỌI LAYOUT CHUNG ĐỂ CHÈN HEADER VÀ FOOTER -->
+    <script src="js/layout.js"></script>
+
+    <!-- 5. FIREBASE SCRIPT -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="js/firebase-config.js"></script>
 
-    <!-- LOGIC FIREBASE DATA CHO THEESE-3FDCE -->
+    <!-- LOGIC FIREBASE DATA CHO BẢNG THEESES -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
         import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
         
+        // Config riêng cho data Luận văn
         const thesesFirebaseConfig = {
             apiKey: "AIzaSyDxZZRBDcb9606mNYXxXeLpgK2p1xfGF9A",
             authDomain: "theses-3fdce.firebaseapp.com",
@@ -298,7 +299,7 @@
         
         const thesesApp = initializeApp(thesesFirebaseConfig, "ThesesDatabase");
         const firestoreDb = getFirestore(thesesApp);
-        const firestoreAuth = firebase.auth();
+        const firestoreAuth = firebase.auth(); // Dùng Auth từ hệ thống gốc (bmphcn)
 
         const internalAdvisors = {
             "TS. Lê Minh Trí": { degree: "Tiến sĩ / Trưởng bộ môn Phục hồi chức năng", email: "leminhtri@ump.edu.vn", research: "Phục hồi chức năng thần kinh, Đột quỵ, Đau mạn tính", bio: "TS. Lê Minh Trí có hơn 15 năm kinh nghiệm giảng dạy và nghiên cứu chuyên sâu về Phục hồi chức năng thần kinh sau đột quỵ và chấn thương sọ não." },
@@ -367,6 +368,7 @@
         document.getElementById('addLevel').addEventListener('change', (e) => populateYears(e.target.value));
         populateYears('CN');
 
+        // Lắng nghe đăng nhập để ẩn/hiện công cụ
         firestoreAuth.onAuthStateChanged((user) => {
             if (user) {
                 isAdmin = true;
@@ -478,12 +480,11 @@
             });
         }
 
-        // Thay đổi Lọc, Tìm kiếm -> đưa về trang 1
+        // Đăng ký event thay đổi Lọc, Tìm kiếm
         document.getElementById('searchInput').addEventListener('input', () => { currentPage = 1; renderTable(); });
         filterClass.addEventListener('change', () => { currentPage = 1; renderTable(); });
         sortSelect.addEventListener('change', () => { currentPage = 1; renderTable(); });
 
-        // Hàm thay đổi Trang
         window.changePage = (step) => {
             currentPage += step;
             if (currentPage < 1) currentPage = 1;
