@@ -14,60 +14,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* --- CSS CHO HEADER VÀ KHU VỰC LOGO --- */
-        header {
-            gap: 3rem; 
-        }
-
-        .logo-text {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        /* Khóa chiều rộng bám sát chữ, không để bị rớt dòng */
-        .logo-text div {
-            white-space: nowrap;
-            width: max-content;
-            line-height: 1.2;
-            transform-origin: left;
-        }
-
-        #logo-line-1 {
-            font-weight: 700;
-            color: var(--text-dark, #0f172a);
-        }
-
-        #logo-line-2 {
-            font-weight: 600;
-            color: var(--text-body, #475569);
-            /* Sử dụng đơn vị 'em' để khoảng cách tự động co giãn theo cỡ chữ mới */
-            margin-top: 0.25em; 
-        }
-
-        #logo-line-3 {
-            font-weight: 500;
-            color: var(--text-body, #475569);
-            margin-top: 0.15em;
-        }
-
-        /* --- CSS CHO FOOTER --- */
-        footer {
-            text-align: center;
-            padding: 2rem 1rem;
-            background-color: var(--surface, #ffffff);
-            border-top: 1px solid var(--border, #e2e8f0);
-            color: var(--text-body, #475569);
-            margin-top: auto;
-            overflow: hidden; 
-        }
-
-        footer p {
-            margin: 0;
-            white-space: nowrap; 
-            font-size: clamp(0.55rem, 2.5vw, 0.9rem); 
-        }
-
         /* --- CSS CHO SLIDESHOW LƯỚT NGANG --- */
         .slideshow-container {
             width: 100%;
@@ -95,99 +41,16 @@
 
         /* --- RESPONSIVE MOBILE --- */
         @media (max-width: 768px) {
-            header { gap: 1rem; }
             .slider-track { height: 250px; }
         }
     </style>
 </head>
 <body style="display: flex; flex-direction: column; min-height: 100vh;">
-    <!-- HEADER -->
-    <header>
-        <div class="logo">
-            <img src="images/logo_Bộ môn.png" alt="Logo Bộ môn Phục hồi chức năng">
-            
-            <div class="logo-text">
-                <div id="logo-line-1">Bộ môn Phục hồi chức năng</div>
-                <div id="logo-line-2">Trường Điều dưỡng - Kỹ thuật Y học</div>
-                <div id="logo-line-3">Đại học Y Dược Thành Phố Hồ Chí Minh</div>
-            </div>
-            
-            <!-- Script Căn bằng chữ tuyệt đối và giới hạn chiều cao -->
-            <script>
-                function perfectAlignLogo() {
-                    const l1 = document.getElementById('logo-line-1');
-                    const l2 = document.getElementById('logo-line-2');
-                    const l3 = document.getElementById('logo-line-3');
-                    const logoImg = document.querySelector('.logo img');
-                    const logoText = document.querySelector('.logo-text');
-                    
-                    if (!l1 || !l2 || !l3 || !logoImg || !logoText) return;
+    
+    <!-- 1. HEADER CHUNG (Tự động load từ layout.js) -->
+    <div id="header-placeholder"></div>
 
-                    // Nếu ảnh chưa load xong, chờ load để lấy chiều cao chuẩn của ảnh
-                    if (logoImg.complete === false || logoImg.naturalHeight === 0) {
-                        logoImg.onload = perfectAlignLogo;
-                        return;
-                    }
-
-                    // 1. Kích thước mong muốn ban đầu (Dòng 1)
-                    const isMobile = window.innerWidth <= 768;
-                    const baseFontSize = isMobile ? 16.8 : 22.4; 
-                    
-                    // 2. Tạm đặt 20px để đo chiều rộng chuẩn
-                    l1.style.fontSize = '20px';
-                    l2.style.fontSize = '20px';
-                    l3.style.fontSize = '20px';
-                    
-                    const w1 = l1.getBoundingClientRect().width;
-                    const w2 = l2.getBoundingClientRect().width;
-                    const w3 = l3.getBoundingClientRect().width;
-                    
-                    // 3. Tính độ dài mục tiêu của toàn bộ khối
-                    let targetWidth = (w1 / 20) * baseFontSize;
-                    
-                    // Hàm áp dụng cỡ chữ mới để 3 dòng bằng nhau theo chiều ngang
-                    const applySizes = (width) => {
-                        l1.style.fontSize = (20 * width / w1) + 'px';
-                        l2.style.fontSize = (20 * width / w2) + 'px';
-                        l3.style.fontSize = (20 * width / w3) + 'px';
-                    };
-                    
-                    applySizes(targetWidth);
-                    
-                    // 4. Giới hạn chiều cao: Đảm bảo không vượt quá logo
-                    const imgHeight = logoImg.getBoundingClientRect().height || 48; // Lấy chiều cao ảnh, mặc định 48px
-                    const textHeight = logoText.getBoundingClientRect().height; // Tổng chiều cao của 3 dòng chữ
-                    
-                    if (textHeight > imgHeight && imgHeight > 0) {
-                        // Nếu chữ cao hơn ảnh, thu nhỏ độ dài mục tiêu theo đúng tỷ lệ dư thừa
-                        const ratio = imgHeight / textHeight;
-                        targetWidth = targetWidth * ratio;
-                        applySizes(targetWidth); // Set lại font-size cho cả 3 dòng
-                    }
-                }
-                
-                perfectAlignLogo();
-                window.addEventListener('resize', perfectAlignLogo);
-                document.fonts.ready.then(perfectAlignLogo);
-            </script>
-        </div>
-        
-        <div class="menu-toggle" id="mobile-menu" aria-label="Menu">
-            <i class="fas fa-bars"></i>
-        </div>
-
-        <nav class="nav-links" id="nav-links">
-            <a href="gioi-thieu.html" class="nav-item">Giới thiệu</a>
-            <a href="tuyen-sinh.html" class="nav-item">Tuyển sinh</a>
-            <a href="luan-van.html" class="nav-item">Luận văn & Khóa luận</a>
-            <a href="tai-nguyen.html" class="nav-item">Tài nguyên</a>
-            <a href="thong-bao.html" class="nav-item">Thông báo</a>
-            <!-- Thêm ID btnAuthNav vào đây để điều khiển bằng JS -->
-            <a href="login.html" class="btn-login" id="btnAuthNav">Đăng nhập giảng viên</a>
-        </nav>
-    </header>
-
-    <!-- NỘI DUNG CHÍNH -->
+    <!-- 2. NỘI DUNG CHÍNH (Riêng của trang chủ) -->
     <main style="flex: 1; padding-top: 2rem;">
         
         <!-- PHẦN SLIDESHOW CHẠY ẢNH -->
@@ -247,30 +110,14 @@
         </section>
     </main>
 
-    <!-- FOOTER -->
-    <footer>
-        <p>&copy; 2026 Bộ môn Phục hồi chức năng. Mọi quyền được bảo lưu.</p>
-    </footer>
+    <!-- 3. FOOTER CHUNG (Tự động load từ layout.js) -->
+    <div id="footer-placeholder"></div>
 
-    <!-- CÁC SCRIPT XỬ LÝ GIAO DIỆN -->
+    <!-- 4. GỌI LAYOUT CHUNG -->
+    <script src="js/layout.js"></script>
+
+    <!-- CÁC SCRIPT XỬ LÝ GIAO DIỆN RIÊNG -->
     <script>
-        // --- XỬ LÝ MENU ĐIỆN THOẠI ---
-        const mobileMenu = document.getElementById('mobile-menu');
-        const navLinks = document.getElementById('nav-links');
-        const icon = mobileMenu.querySelector('i');
-
-        mobileMenu.addEventListener('click', () => {
-            navLinks.classList.toggle('active');
-            
-            if (navLinks.classList.contains('active')) {
-                icon.classList.remove('fa-bars');
-                icon.classList.add('fa-times');
-            } else {
-                icon.classList.remove('fa-times');
-                icon.classList.add('fa-bars');
-            }
-        });
-
         // --- XỬ LÝ SLIDESHOW LƯỚT NGANG ---
         const track = document.getElementById('slider-track');
         let slideIndex = 0;
@@ -287,52 +134,51 @@
         setInterval(moveSlides, 3000);
     </script>
 
-    <!-- Cấu hình Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="js/firebase-config.js"></script>
+    <!-- Cấu hình Firebase V9 Modular -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
 
-    <!-- SCRIPT KIỂM TRA TRẠNG THÁI ĐĂNG NHẬP VÀ ĐỔI TÊN NÚT -->
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const btnAuthNav = document.getElementById('btnAuthNav');
+        const firebaseConfig = {
+            apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY",
+            authDomain: "bmphcn-aa9c6.firebaseapp.com",
+            projectId: "bmphcn-aa9c6",
+            storageBucket: "bmphcn-aa9c6.firebasestorage.app",
+            messagingSenderId: "749494392719",
+            appId: "1:749494392719:web:f220c751ff541620045dfa",
+            measurementId: "G-LBLG62PTDK"
+        };
 
-            // Lắng nghe trạng thái đăng nhập
-            if (typeof auth !== 'undefined' && typeof db !== 'undefined') {
-                auth.onAuthStateChanged((user) => {
-                    if (user) {
-                        // Người dùng đã đăng nhập -> Truy vấn Firestore lấy thông tin học vị & tên
-                        db.collection("users").where("email", "==", user.email).get()
-                        .then((querySnapshot) => {
-                            if (!querySnapshot.empty) {
-                                const userData = querySnapshot.docs[0].data();
-                                
-                                // Xử lý viết tắt học vị
-                                let degreePrefix = "";
-                                if (userData.degree === 'ThS') degreePrefix = "ThS. ";
-                                else if (userData.degree === 'TS') degreePrefix = "TS. ";
-                                else if (userData.degree === 'CN') degreePrefix = "CN. ";
-                                else if (userData.degree === 'PGS.TS') degreePrefix = "PGS.TS. ";
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
-                                // Đổi tên nút thành Học vị + Tên
-                                btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 5px;"></i> ${degreePrefix}${userData.fullName || 'Giảng viên'}`;
-                            } else {
-                                // Trường hợp có tài khoản Auth nhưng chưa có trong Database "users"
-                                btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 5px;"></i> Giảng viên`;
-                            }
-                        })
-                        .catch((error) => {
-                            console.error("Lỗi lấy thông tin người dùng: ", error);
+        // Lắng nghe trạng thái đăng nhập để đổi tên nút Auth trên Header
+        onAuthStateChanged(auth, async (user) => {
+            // Chờ một chút để layout.js kịp render Header vào DOM
+            setTimeout(async () => {
+                const btnAuthNav = document.getElementById('btnAuthNav');
+                if (!btnAuthNav) return;
+
+                if (user) {
+                    try {
+                        const userDoc = await getDoc(doc(db, "users", user.uid));
+                        if (userDoc.exists()) {
+                            const data = userDoc.data();
+                            let degreePrefix = data.degree === 'ThS' ? 'ThS. ' : (data.degree === 'TS' ? 'TS. ' : '');
+                            btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 5px;"></i> ${degreePrefix}${data.fullName || 'Giảng viên'}`;
+                        } else {
                             btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 5px;"></i> Giảng viên`;
-                        });
-                    } else {
-                        // Người dùng chưa đăng nhập -> Hiển thị mặc định
-                        btnAuthNav.innerHTML = 'Đăng nhập giảng viên';
-                        btnAuthNav.href = "login.html";
+                        }
+                    } catch (error) {
+                        console.error("Lỗi lấy thông tin: ", error);
                     }
-                });
-            }
+                } else {
+                    btnAuthNav.innerHTML = 'Đăng nhập giảng viên';
+                    btnAuthNav.href = "login.html";
+                }
+            }, 100);
         });
     </script>
 </body>
