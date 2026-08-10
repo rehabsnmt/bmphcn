@@ -14,30 +14,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        header { gap: 3rem; }
-
-        .logo-link {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            text-decoration: none;
-            cursor: pointer;
-        }
-
-        .logo-text { display: flex; flex-direction: column; justify-content: center; }
-        .logo-text div { white-space: nowrap; width: max-content; line-height: 1.2; transform-origin: left; }
-        #logo-line-1 { font-weight: 700; color: var(--text-dark, #0f172a); }
-        #logo-line-2 { font-weight: 600; color: var(--text-body, #475569); margin-top: 0.25em; }
-        #logo-line-3 { font-weight: 500; color: var(--text-body, #475569); margin-top: 0.15em; }
-
-        footer { text-align: center; padding: 2rem 1rem; background-color: var(--surface, #ffffff); border-top: 1px solid var(--border, #e2e8f0); color: var(--text-body, #475569); margin-top: auto; overflow: hidden; }
-        footer p { margin: 0; white-space: nowrap; font-size: clamp(0.55rem, 2.5vw, 0.9rem); }
-
+        /* --- CSS DÀNH RIÊNG CHO TRANG GIỚI THIỆU --- */
         .intro-container { max-width: 1100px; margin: 0 auto; width: 100%; padding: 2.5rem 3%; }
         .section-title { text-align: center; margin-bottom: 3rem; }
         .section-title h2 { font-size: 2.2rem; color: var(--text-dark); margin-bottom: 0; }
 
-        /* Lưới 3 cột rộng rãi, giúp khung thoải mái chứa tên dài */
+        /* Lưới 3 cột rộng rãi */
         .faculty-grid { 
             display: grid; 
             grid-template-columns: repeat(3, minmax(0, 1fr)); 
@@ -45,7 +27,7 @@
             align-items: stretch;
         }
 
-        /* Khung card rộng rãi, đồng bộ chiều cao và rộng tuyệt đối */
+        /* Khung card giảng viên */
         .faculty-card { 
             background: var(--surface); 
             border-radius: var(--radius-md, 16px); 
@@ -76,7 +58,6 @@
             letter-spacing: 0.5px;
         }
 
-        /* Tên giảng viên không ngắt dòng, thoải mái hiển thị trong khung rộng */
         .faculty-name { 
             font-size: 1.2rem; 
             font-weight: 700; 
@@ -97,153 +78,40 @@
             word-break: break-all; 
         }
 
-        .loading-state, .empty-state { grid-column: 1 / -1; text-align: center; padding: 4rem 0; color: var(--text-body); font-size: 1.1rem; }
-
         @media (max-width: 900px) {
             .faculty-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         }
         @media (max-width: 600px) {
-            header { gap: 1rem; }
             .faculty-grid { grid-template-columns: repeat(1, minmax(0, 1fr)); }
         }
     </style>
 </head>
 <body style="display: flex; flex-direction: column; min-height: 100vh;">
     
-    <header>
-        <a href="index.html" class="logo-link">
-            <div class="logo" style="margin: 0; border: none; padding: 0;">
-                <img src="images/logo_Bộ môn.png" alt="Logo Bộ môn Phục hồi chức năng">
-            </div>
-            
-            <div class="logo-text">
-                <div id="logo-line-1">Bộ môn Phục hồi chức năng</div>
-                <div id="logo-line-2">Trường Điều dưỡng - Kỹ thuật Y học</div>
-                <div id="logo-line-3">Đại học Y Dược Thành Phố Hồ Chí Minh</div>
-            </div>
-        </a>
-        
-        <script>
-            function perfectAlignLogo() {
-                const l1 = document.getElementById('logo-line-1');
-                const l2 = document.getElementById('logo-line-2');
-                const l3 = document.getElementById('logo-line-3');
-                const logoImg = document.querySelector('.logo-link img');
-                const logoText = document.querySelector('.logo-text');
-                
-                if (!l1 || !l2 || !l3 || !logoImg || !logoText) return;
-                if (logoImg.complete === false || logoImg.naturalHeight === 0) {
-                    logoImg.onload = perfectAlignLogo; return;
-                }
+    <!-- 1. HEADER CHUNG (Tự động load từ layout.js) -->
+    <div id="header-placeholder"></div>
 
-                const isMobile = window.innerWidth <= 768;
-                const baseFontSize = isMobile ? 16.8 : 22.4; 
-                l1.style.fontSize = '20px'; l2.style.fontSize = '20px'; l3.style.fontSize = '20px';
-                
-                const w1 = l1.getBoundingClientRect().width;
-                const w2 = l2.getBoundingClientRect().width;
-                const w3 = l3.getBoundingClientRect().width;
-                
-                let targetWidth = (w1 / 20) * baseFontSize;
-                const applySizes = (width) => {
-                    l1.style.fontSize = (20 * width / w1) + 'px';
-                    l2.style.fontSize = (20 * width / w2) + 'px';
-                    l3.style.fontSize = (20 * width / w3) + 'px';
-                };
-                applySizes(targetWidth);
-                
-                const imgHeight = logoImg.getBoundingClientRect().height || 48; 
-                const textHeight = logoText.getBoundingClientRect().height; 
-                if (textHeight > imgHeight && imgHeight > 0) {
-                    targetWidth = targetWidth * (imgHeight / textHeight);
-                    applySizes(targetWidth); 
-                }
-            }
-            perfectAlignLogo(); window.addEventListener('resize', perfectAlignLogo); document.fonts.ready.then(perfectAlignLogo);
-        </script>
-        
-        <div class="menu-toggle" id="mobile-menu" aria-label="Menu">
-            <i class="fas fa-bars"></i>
-        </div>
-
-        <nav class="nav-links" id="nav-links">
-            <a href="gioi-thieu.html" class="nav-item" style="color: var(--primary); font-weight: 600;">Giới thiệu</a>
-            <a href="tuyen-sinh.html" class="nav-item">Tuyển sinh</a>
-            <a href="luan-van.html" class="nav-item">Luận văn & Khóa luận</a>
-            <a href="tai-nguyen.html" class="nav-item">Tài nguyên</a>
-            <a href="thong-bao.html" class="nav-item">Thông báo</a>
-            <!-- Thêm ID btnAuthNav để xử lý trạng thái hiển thị tên người dùng -->
-            <a href="login.html" class="btn-login" id="btnAuthNav">Đăng nhập giảng viên</a>
-        </nav>
-    </header>
-
+    <!-- 2. NỘI DUNG CHÍNH CỦA TRANG -->
     <main style="flex: 1; padding-top: 2rem;">
-    <div class="intro-container">
-        <!-- Đã thêm style="white-space: nowrap;" để tiêu đề không bao giờ bị ngắt -->
-        <div class="section-title">
-            <h2 style="white-space: nowrap; display: inline-block;">Đội ngũ Giảng viên</h2>
-        </div>
+        <div class="intro-container">
+            <div class="section-title">
+                <h2 style="white-space: nowrap; display: inline-block;">Đội ngũ Giảng viên</h2>
+            </div>
 
-        <div class="faculty-grid" id="facultyGrid">
-            <!-- Dữ liệu sẽ được chèn qua JavaScript dưới đây -->
+            <div class="faculty-grid" id="facultyGrid">
+                <!-- Dữ liệu sẽ được chèn qua JavaScript dưới đây -->
+            </div>
         </div>
-    </div>
     </main>
 
-    <footer>
-        <p>&copy; 2026 Bộ môn Phục hồi chức năng. Mọi quyền được bảo lưu.</p>
-    </footer>
+    <!-- 3. FOOTER CHUNG (Tự động load từ layout.js) -->
+    <div id="footer-placeholder"></div>
 
+    <!-- 4. GỌI LAYOUT CHUNG -->
+    <script src="js/layout.js"></script>
+
+    <!-- SCRIPT RENDER DANH SÁCH GIẢNG VIÊN -->
     <script>
-        const mobileMenu = document.getElementById('mobile-menu');
-        const navLinks = document.getElementById('nav-links');
-        const icon = mobileMenu.querySelector('i');
-
-        mobileMenu.addEventListener('click', () => {
-            navLinks.classList.toggle('active');
-            icon.classList.toggle('fa-bars');
-            icon.classList.toggle('fa-times');
-        });
-    </script>
-
-    <!-- Khai báo thư viện Firebase (để duy trì trạng thái nút Đăng nhập) -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="js/firebase-config.js"></script>
-
-    <script>
-        // Xử lý đổi tên nút đăng nhập nếu có tài khoản Auth
-        document.addEventListener("DOMContentLoaded", () => {
-            const btnAuthNav = document.getElementById('btnAuthNav');
-            if (typeof auth !== 'undefined' && typeof db !== 'undefined') {
-                auth.onAuthStateChanged((user) => {
-                    if (user) {
-                        db.collection("users").where("email", "==", user.email).get()
-                        .then((querySnapshot) => {
-                            if (!querySnapshot.empty) {
-                                const userData = querySnapshot.docs[0].data();
-                                let degreePrefix = "";
-                                if (userData.degree === 'ThS') degreePrefix = "ThS. ";
-                                else if (userData.degree === 'TS') degreePrefix = "TS. ";
-                                else if (userData.degree === 'CN') degreePrefix = "CN. ";
-                                else if (userData.degree === 'PGS.TS') degreePrefix = "PGS.TS. ";
-                                btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 5px;"></i> ${degreePrefix}${userData.fullName || 'Giảng viên'}`;
-                            } else {
-                                btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 5px;"></i> Giảng viên`;
-                            }
-                        }).catch(() => {});
-                    } else {
-                        btnAuthNav.innerHTML = 'Đăng nhập giảng viên';
-                        btnAuthNav.href = "login.html";
-                    }
-                });
-            }
-        });
-
-        // ==========================================
-        // DANH SÁCH GIẢNG VIÊN (Dữ liệu tĩnh)
-        // ==========================================
         const facultyGrid = document.getElementById('facultyGrid');
 
         const facultyList = [
@@ -263,20 +131,16 @@
             { degree: "Thạc sĩ", name: "Phạm Ngọc Đạt", position: "Giảng viên", email: "", image: "images/ThS. Phạm Ngọc Đạt.jpg" }
         ];
 
-        // Hàm render ngay lập tức khi load trang
         function renderFaculty() {
             facultyGrid.innerHTML = ""; 
-
             facultyList.forEach((data) => {
                 const card = document.createElement('div');
                 card.className = 'faculty-card';
 
-                // Xử lý fallback cho đường link email
                 const emailHtml = data.email 
                     ? `<a href="mailto:${data.email}" style="color: inherit; text-decoration: none;">${data.email}</a>` 
                     : `<span style="font-style: italic; color: #94a3b8;">Đang cập nhật</span>`;
 
-                // Xử lý fallback cho đường dẫn ảnh (nếu hỏng hoặc không có, tự đưa về icon)
                 const avatarHtml = `<img src="${data.image}" alt="Ảnh ${data.name}" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\\'fas fa-user\\' style=\\'font-size: 3rem; color: var(--text-body);\\'></i>';">`;
 
                 card.innerHTML = `
@@ -290,12 +154,58 @@
                         <i class="fas fa-envelope" style="margin-right: 6px; color: var(--primary);"></i> ${emailHtml}
                     </div>
                 `;
-
                 facultyGrid.appendChild(card);
             });
         }
-
         renderFaculty();
+    </script>
+
+    <!-- 5. FIREBASE MODULAR (V9) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY",
+            authDomain: "bmphcn-aa9c6.firebaseapp.com",
+            projectId: "bmphcn-aa9c6",
+            storageBucket: "bmphcn-aa9c6.firebasestorage.app",
+            messagingSenderId: "749494392719",
+            appId: "1:749494392719:web:f220c751ff541620045dfa",
+            measurementId: "G-LBLG62PTDK"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Lắng nghe trạng thái đăng nhập để đổi tên nút Auth
+        onAuthStateChanged(auth, async (user) => {
+            // Chờ layout.js chèn Header xong mới lấy element
+            setTimeout(async () => {
+                const btnAuthNav = document.getElementById('btnAuthNav');
+                if (!btnAuthNav) return;
+
+                if (user) {
+                    try {
+                        const userDoc = await getDoc(doc(db, "users", user.uid));
+                        if (userDoc.exists()) {
+                            const data = userDoc.data();
+                            let degreePrefix = data.degree === 'ThS' ? 'ThS. ' : (data.degree === 'TS' ? 'TS. ' : '');
+                            btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 5px;"></i> ${degreePrefix}${data.fullName || 'Giảng viên'}`;
+                        } else {
+                            btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 5px;"></i> Giảng viên`;
+                        }
+                    } catch (error) {
+                        console.error("Lỗi lấy thông tin: ", error);
+                    }
+                } else {
+                    btnAuthNav.innerHTML = 'Đăng nhập giảng viên';
+                    btnAuthNav.href = "login.html";
+                }
+            }, 100);
+        });
     </script>
 </body>
 </html>
