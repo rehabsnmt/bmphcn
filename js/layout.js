@@ -1,13 +1,37 @@
 document.addEventListener("DOMContentLoaded", function () {
-    // 1. MÃ HTML CỦA HEADER
+    // 1. MÃ HTML CỦA HEADER (Đã thêm CSS cố định Header khi cuộn)
     const headerHTML = `
         <style>
+            /* Cố định phần chứa Header */
+            #header-placeholder {
+                position: sticky;
+                top: 0;
+                z-index: 1000;
+            }
+
+            /* Cố định thẻ header và thêm hiệu ứng mượt mà */
+            header {
+                position: sticky;
+                top: 0;
+                z-index: 1000;
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                transition: box-shadow 0.3s ease, background-color 0.3s ease;
+            }
+
+            /* Đổ bóng tự động khi cuộn trang xuống */
+            header.scrolled {
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+                background: rgba(255, 255, 255, 0.98);
+            }
+
             /* CSS Ẩn chữ bên cạnh logo khi màn hình <= 768px (Điện thoại) */
             @media (max-width: 768px) {
                 .logo-text { display: none !important; }
             }
         </style>
-        <header>
+        <header id="site-header">
             <a href="index.html" class="logo-link">
                 <div class="logo" style="margin: 0; border: none; padding: 0;">
                     <img src="images/logo_Bộ môn.png" alt="Logo Bộ môn Phục hồi chức năng">
@@ -70,7 +94,17 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // 6. CĂN CHỈNH KÍCH THƯỚC CHỮ LOGO TỰ ĐỘNG
+    // 6. TẠO HIỆU ỨNG ĐỔ BÓNG KHI CUỘN TRANG (Sticky Scroll Effect)
+    const siteHeader = document.getElementById('site-header');
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 10) {
+            siteHeader?.classList.add('scrolled');
+        } else {
+            siteHeader?.classList.remove('scrolled');
+        }
+    });
+
+    // 7. CĂN CHỈNH KÍCH THƯỚC CHỮ LOGO TỰ ĐỘNG
     function perfectAlignLogo() {
         const l1 = document.getElementById('logo-line-1');
         const l2 = document.getElementById('logo-line-2');
