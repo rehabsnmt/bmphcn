@@ -33,20 +33,6 @@
     </script>
 
     <style>
-        /* --- CSS CHUẨN HEADER & FOOTER --- */
-        header { gap: 3rem; background: var(--surface, #ffffff); }
-        .logo-link { display: flex; align-items: center; gap: 15px; text-decoration: none; cursor: pointer; }
-        .logo-text { display: flex; flex-direction: column; justify-content: center; }
-        .logo-text div { white-space: nowrap; width: max-content; line-height: 1.2; transform-origin: left; }
-        #logo-line-1 { font-weight: 700; color: var(--text-dark, #0f172a); }
-        #logo-line-2 { font-weight: 600; color: var(--text-body, #475569); margin-top: 0.25em; }
-        #logo-line-3 { font-weight: 500; color: var(--text-body, #475569); margin-top: 0.15em; }
-
-        footer { text-align: center; padding: 2rem 1rem; background-color: var(--surface, #ffffff); border-top: 1px solid var(--border, #e2e8f0); color: var(--text-body, #475569); margin-top: auto; overflow: hidden; }
-        footer p { margin: 0; white-space: nowrap; font-size: clamp(0.55rem, 2.5vw, 0.9rem); }
-
-        @media (max-width: 768px) { header { gap: 1rem; } }
-
         /* --- BẢN VÁ LỖI CHO KHU VỰC REACT ĐỂ ĐỒNG BỘ FONT --- */
         #root, #root * { 
             border-style: solid; 
@@ -62,71 +48,8 @@
 </head>
 <body style="display: flex; flex-direction: column; min-height: 100vh; background-color: #f8fafc; overflow-x: hidden;">
     
-    <header>
-        <a href="index.html" class="logo-link">
-            <div class="logo" style="margin: 0; border: none; padding: 0;">
-                <img src="images/logo_Bộ môn.png" alt="Logo Bộ môn Phục hồi chức năng">
-            </div>
-            
-            <div class="logo-text">
-                <div id="logo-line-1">Bộ môn Phục hồi chức năng</div>
-                <div id="logo-line-2">Trường Điều dưỡng - Kỹ thuật Y học</div>
-                <div id="logo-line-3">Đại học Y Dược Thành Phố Hồ Chí Minh</div>
-            </div>
-        </a>
-        
-        <script>
-            function perfectAlignLogo() {
-                const l1 = document.getElementById('logo-line-1');
-                const l2 = document.getElementById('logo-line-2');
-                const l3 = document.getElementById('logo-line-3');
-                const logoImg = document.querySelector('.logo-link img');
-                const logoText = document.querySelector('.logo-text');
-                
-                if (!l1 || !l2 || !l3 || !logoImg || !logoText) return;
-                if (logoImg.complete === false || logoImg.naturalHeight === 0) {
-                    logoImg.onload = perfectAlignLogo; return;
-                }
-
-                const isMobile = window.innerWidth <= 768;
-                const baseFontSize = isMobile ? 16.8 : 22.4; 
-                l1.style.fontSize = '20px'; l2.style.fontSize = '20px'; l3.style.fontSize = '20px';
-                
-                const w1 = l1.getBoundingClientRect().width;
-                const w2 = l2.getBoundingClientRect().width;
-                const w3 = l3.getBoundingClientRect().width;
-                
-                let targetWidth = (w1 / 20) * baseFontSize;
-                const applySizes = (width) => {
-                    l1.style.fontSize = (20 * width / w1) + 'px';
-                    l2.style.fontSize = (20 * width / w2) + 'px';
-                    l3.style.fontSize = (20 * width / w3) + 'px';
-                };
-                applySizes(targetWidth);
-                
-                const imgHeight = logoImg.getBoundingClientRect().height || 48; 
-                const textHeight = logoText.getBoundingClientRect().height; 
-                if (textHeight > imgHeight && imgHeight > 0) {
-                    targetWidth = targetWidth * (imgHeight / textHeight);
-                    applySizes(targetWidth); 
-                }
-            }
-            perfectAlignLogo(); window.addEventListener('resize', perfectAlignLogo); document.fonts.ready.then(perfectAlignLogo);
-        </script>
-        
-        <div class="menu-toggle" id="mobile-menu" aria-label="Menu">
-            <i class="fas fa-bars"></i>
-        </div>
-
-        <nav class="nav-links" id="nav-links">
-            <a href="gioi-thieu.html" class="nav-item">Giới thiệu</a>
-            <a href="tuyen-sinh.html" class="nav-item" style="color: var(--primary); font-weight: 600;">Tuyển sinh</a>
-            <a href="luan-van.html" class="nav-item">Luận văn & Khóa luận</a>
-            <a href="tai-nguyen.html" class="nav-item">Tài nguyên</a>
-            <a href="thong-bao.html" class="nav-item">Thông báo</a>
-            <a href="login.html" class="btn-login" id="btnAuthNav">Đăng nhập giảng viên</a>
-        </nav>
-    </header>
+    <!-- 1. HEADER CHUNG (Tự động load từ layout.js) -->
+    <div id="header-placeholder"></div>
 
     <main style="flex: 1; padding-top: 2rem; width: 100%;">
         <div style="text-align: center; margin-bottom: 2rem; padding: 0 1rem; overflow: hidden;">
@@ -138,50 +61,47 @@
         <div id="root"></div>
     </main>
 
-    <footer>
-        <p>&copy; 2026 Bộ môn Phục hồi chức năng. Mọi quyền được bảo lưu.</p>
-    </footer>
+    <!-- 3. FOOTER CHUNG (Tự động load từ layout.js) -->
+    <div id="footer-placeholder"></div>
 
-    <!-- SCRIPT KIỂM TRA TRẠNG THÁI ĐĂNG NHẬP VÀ MENU -->
+    <!-- 4. GỌI LAYOUT CHUNG -->
+    <script src="js/layout.js"></script>
+
+    <!-- SCRIPT KIỂM TRA TRẠNG THÁI ĐĂNG NHẬP VÀ ĐỔI TÊN NÚT TRÊN HEADER -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="js/firebase-config.js"></script>
     
     <script>
-        const mobileMenu = document.getElementById('mobile-menu');
-        const navLinks = document.getElementById('nav-links');
-        const icon = mobileMenu.querySelector('i');
-
-        mobileMenu.addEventListener('click', () => {
-            navLinks.classList.toggle('active');
-            icon.classList.toggle('fa-bars');
-            icon.classList.toggle('fa-times');
-        });
-
         document.addEventListener("DOMContentLoaded", () => {
-            const btnAuthNav = document.getElementById('btnAuthNav');
             if (typeof auth !== 'undefined' && typeof db !== 'undefined') {
                 auth.onAuthStateChanged((user) => {
-                    if (user) {
-                        db.collection("users").where("email", "==", user.email).get()
-                        .then((querySnapshot) => {
-                            if (!querySnapshot.empty) {
-                                const userData = querySnapshot.docs[0].data();
-                                let degreePrefix = "";
-                                if (userData.degree === 'ThS') degreePrefix = "ThS. ";
-                                else if (userData.degree === 'TS') degreePrefix = "TS. ";
-                                else if (userData.degree === 'CN') degreePrefix = "CN. ";
-                                else if (userData.degree === 'PGS.TS') degreePrefix = "PGS.TS. ";
-                                btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 5px;"></i> ${degreePrefix}${userData.fullName || 'Giảng viên'}`;
-                            } else {
-                                btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 5px;"></i> Giảng viên`;
-                            }
-                        }).catch(() => {});
-                    } else {
-                        btnAuthNav.innerHTML = 'Đăng nhập giảng viên';
-                        btnAuthNav.href = "login.html";
-                    }
+                    // Dùng setTimeout để đợi layout.js bơm Header vào
+                    setTimeout(() => {
+                        const btnAuthNav = document.getElementById('btnAuthNav');
+                        if(!btnAuthNav) return;
+                        
+                        if (user) {
+                            db.collection("users").where("email", "==", user.email).get()
+                            .then((querySnapshot) => {
+                                if (!querySnapshot.empty) {
+                                    const userData = querySnapshot.docs[0].data();
+                                    let degreePrefix = "";
+                                    if (userData.degree === 'ThS') degreePrefix = "ThS. ";
+                                    else if (userData.degree === 'TS') degreePrefix = "TS. ";
+                                    else if (userData.degree === 'CN') degreePrefix = "CN. ";
+                                    else if (userData.degree === 'PGS.TS') degreePrefix = "PGS.TS. ";
+                                    btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 5px;"></i> ${degreePrefix}${userData.fullName || 'Giảng viên'}`;
+                                } else {
+                                    btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 5px;"></i> Giảng viên`;
+                                }
+                            }).catch(() => {});
+                        } else {
+                            btnAuthNav.innerHTML = 'Đăng nhập giảng viên';
+                            btnAuthNav.href = "login.html";
+                        }
+                    }, 100);
                 });
             }
         });
@@ -397,7 +317,7 @@
           const activeJobs = majors[activeMajor].jobs;
 
           return (
-            <div className="w-full text-gray-900 pb-8">
+            <div className="w-full text-gray-900 pb-8" style={{ fontFamily: 'inherit' }}>
                 <div className="max-w-4xl mx-auto px-4">
                 
                 {/* --- KHU VỰC THÔNG TIN ĐĂNG KÝ NGUYỆN VỌNG --- */}
