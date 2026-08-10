@@ -26,8 +26,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 background: rgba(255, 255, 255, 0.98);
             }
 
-            /* CSS Ẩn chữ bên cạnh logo khi màn hình <= 768px (Điện thoại) */
-            @media (max-width: 768px) {
+            /* CSS Ẩn chữ bên cạnh logo khi màn hình <= 1024px (Điện thoại và iPad) */
+            @media (max-width: 1024px) {
                 .logo-text { display: none !important; }
             }
         </style>
@@ -114,8 +114,8 @@ document.addEventListener("DOMContentLoaded", function () {
         
         if (!l1 || !l2 || !l3 || !logoImg || !logoText) return;
 
-        // Dừng việc tính toán chữ trên màn hình điện thoại (vì chữ đã bị CSS ẩn đi)
-        if (window.innerWidth <= 768) return;
+        // Dừng việc tính toán chữ trên màn hình điện thoại & iPad (vì chữ đã bị CSS ẩn đi)
+        if (window.innerWidth <= 1024) return;
 
         if (logoImg.complete === false || logoImg.naturalHeight === 0) {
             logoImg.onload = perfectAlignLogo; return;
