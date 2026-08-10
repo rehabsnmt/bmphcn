@@ -13,18 +13,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* --- CSS CHUẨN HEADER & FOOTER --- */
-        header { gap: 3rem; }
-        .logo-link { display: flex; align-items: center; gap: 15px; text-decoration: none; cursor: pointer; }
-        .logo-text { display: flex; flex-direction: column; justify-content: center; }
-        .logo-text div { white-space: nowrap; width: max-content; line-height: 1.2; transform-origin: left; }
-        #logo-line-1 { font-weight: 700; color: var(--text-dark, #0f172a); }
-        #logo-line-2 { font-weight: 600; color: var(--text-body, #475569); margin-top: 0.25em; }
-        #logo-line-3 { font-weight: 500; color: var(--text-body, #475569); margin-top: 0.15em; }
-
-        footer { text-align: center; padding: 2rem 1rem; background-color: var(--surface, #ffffff); border-top: 1px solid var(--border, #e2e8f0); color: var(--text-body, #475569); margin-top: auto; overflow: hidden; }
-        footer p { margin: 0; white-space: nowrap; font-size: clamp(0.55rem, 2.5vw, 0.9rem); }
-
         /* --- CSS CHO TRANG THÔNG BÁO --- */
         main { max-width: 1000px; padding: 2rem 3%; margin: 0 auto; width: 100%; box-sizing: border-box; }
         
@@ -53,96 +41,15 @@
         .news-excerpt { font-size: 0.95rem; color: var(--text-body); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
         .empty-state { text-align: center; padding: 3rem; color: var(--text-body); }
+        
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        /* Chế độ hiển thị Tên người đăng */
-        .author-info { display: none; }
-        body.is-logged-in .author-info { display: flex; align-items: center; gap: 6px; }
-
-        /* CSS cho Nút Sửa/Xóa và Modal */
-        .btn-warning { background-color: #f59e0b; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 500; cursor: pointer; transition: var(--transition); }
-        .btn-warning:hover { background-color: #d97706; }
-        .btn-danger { background-color: var(--accent); color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 500; cursor: pointer; transition: var(--transition); }
-        .btn-danger:hover { background-color: #be123c; }
-        .btn-danger:disabled { opacity: 0.6; cursor: not-allowed; }
-        .action-buttons { display: flex; gap: 10px; margin-top: 10px; padding-top: 15px; border-top: 1px dashed var(--border); }
-        
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 2000; padding: 20px; }
-        .modal-content { background: var(--surface); padding: 30px; border-radius: var(--radius-md); max-width: 400px; width: 100%; box-shadow: var(--shadow-hover); position: relative; text-align: center; }
-        .modal-close { position: absolute; top: 15px; right: 15px; background: var(--bg-page); border: 1px solid var(--border); width: 35px; height: 35px; border-radius: 50%; cursor: pointer; color: var(--text-body); display: flex; align-items: center; justify-content: center; transition: var(--transition); }
-        .modal-close:hover { background: var(--border); color: var(--text-dark); }
-        .hidden { display: none !important; }
-
-        @media (max-width: 768px) { header { gap: 1rem; } .header-section { flex-direction: column; align-items: stretch; text-align: center; } .btn-add { justify-content: center; } }
+        @media (max-width: 768px) { .header-section { flex-direction: column; align-items: stretch; text-align: center; } .btn-add { justify-content: center; } }
     </style>
 </head>
 <body style="display: flex; flex-direction: column; min-height: 100vh;">
     
-    <header>
-        <a href="index.html" class="logo-link">
-            <div class="logo" style="margin: 0; border: none; padding: 0;">
-                <img src="images/logo_Bộ môn.png" alt="Logo Bộ môn Phục hồi chức năng">
-            </div>
-            
-            <div class="logo-text">
-                <div id="logo-line-1">Bộ môn Phục hồi chức năng</div>
-                <div id="logo-line-2">Trường Điều dưỡng - Kỹ thuật Y học</div>
-                <div id="logo-line-3">Đại học Y Dược Thành Phố Hồ Chí Minh</div>
-            </div>
-        </a>
-        
-        <script>
-            function perfectAlignLogo() {
-                const l1 = document.getElementById('logo-line-1');
-                const l2 = document.getElementById('logo-line-2');
-                const l3 = document.getElementById('logo-line-3');
-                const logoImg = document.querySelector('.logo-link img');
-                const logoText = document.querySelector('.logo-text');
-                
-                if (!l1 || !l2 || !l3 || !logoImg || !logoText) return;
-                if (logoImg.complete === false || logoImg.naturalHeight === 0) {
-                    logoImg.onload = perfectAlignLogo; return;
-                }
-
-                const isMobile = window.innerWidth <= 768;
-                const baseFontSize = isMobile ? 16.8 : 22.4; 
-                l1.style.fontSize = '20px'; l2.style.fontSize = '20px'; l3.style.fontSize = '20px';
-                
-                const w1 = l1.getBoundingClientRect().width;
-                const w2 = l2.getBoundingClientRect().width;
-                const w3 = l3.getBoundingClientRect().width;
-                
-                let targetWidth = (w1 / 20) * baseFontSize;
-                const applySizes = (width) => {
-                    l1.style.fontSize = (20 * width / w1) + 'px';
-                    l2.style.fontSize = (20 * width / w2) + 'px';
-                    l3.style.fontSize = (20 * width / w3) + 'px';
-                };
-                applySizes(targetWidth);
-                
-                const imgHeight = logoImg.getBoundingClientRect().height || 48; 
-                const textHeight = logoText.getBoundingClientRect().height; 
-                if (textHeight > imgHeight && imgHeight > 0) {
-                    targetWidth = targetWidth * (imgHeight / textHeight);
-                    applySizes(targetWidth); 
-                }
-            }
-            perfectAlignLogo(); window.addEventListener('resize', perfectAlignLogo); document.fonts.ready.then(perfectAlignLogo);
-        </script>
-        
-        <div class="menu-toggle" id="mobile-menu" aria-label="Menu">
-            <i class="fas fa-bars"></i>
-        </div>
-
-        <nav class="nav-links" id="nav-links">
-            <a href="gioi-thieu.html" class="nav-item">Giới thiệu</a>
-            <a href="tuyen-sinh.html" class="nav-item">Tuyển sinh</a>
-            <a href="luan-van.html" class="nav-item">Luận văn & Khóa luận</a>
-            <a href="tai-nguyen.html" class="nav-item">Tài nguyên</a>
-            <a href="thong-bao.html" class="nav-item" style="color: var(--primary); font-weight: 600;">Thông báo</a>
-            <a href="login.html" class="btn-login" id="btnAuthNav">Đăng nhập giảng viên</a>
-        </nav>
-    </header>
+    <!-- 1. HEADER CHUNG (Tự động load từ layout.js) -->
+    <div id="header-placeholder"></div>
 
     <main style="flex: 1; padding-top: 2rem;">
         <div class="header-section">
@@ -196,15 +103,11 @@
         </div>
     </div>
 
-    <footer>
-        <p>&copy; 2026 Bộ môn Phục hồi chức năng. Mọi quyền được bảo lưu.</p>
-    </footer>
+    <!-- 3. FOOTER CHUNG (Tự động load từ layout.js) -->
+    <div id="footer-placeholder"></div>
 
-    <script>
-        document.getElementById('mobile-menu').addEventListener('click', () => { 
-            document.getElementById('nav-links').classList.toggle('active'); 
-        });
-    </script>
+    <!-- 4. GỌI LAYOUT CHUNG -->
+    <script src="js/layout.js"></script>
 
     <!-- FIREBASE MODULAR (V9) -->
     <script type="module">
@@ -229,35 +132,41 @@
         const btnToggleForm = document.getElementById('btnToggleForm');
         const adminFormBox = document.getElementById('adminFormBox');
         const newsList = document.getElementById('newsList');
-        const btnAuthNav = document.getElementById('btnAuthNav');
         let currentAuthor = "Giảng viên";
         let isAdmin = false;
 
         // Xác thực người dùng
         onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                isAdmin = true;
-                document.body.classList.add('is-logged-in'); // Hiện tên tác giả
-                btnToggleForm.style.display = 'flex'; 
-                try {
-                    const userDoc = await getDoc(doc(db, "users", user.uid));
-                    if (userDoc.exists()) {
-                        const data = userDoc.data();
-                        currentAuthor = data.fullName || "Giảng viên";
-                        let degreePrefix = data.degree === 'ThS' ? 'ThS. ' : (data.degree === 'TS' ? 'TS. ' : '');
-                        btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 5px;"></i> ${degreePrefix}${currentAuthor}`;
-                    } else {
-                        btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 5px;"></i> Giảng viên`;
+            // Sử dụng setTimeout để đợi file layout.js chèn nút Đăng nhập vào trang
+            setTimeout(async () => {
+                const btnAuthNav = document.getElementById('btnAuthNav');
+                if (user) {
+                    isAdmin = true;
+                    document.body.classList.add('is-logged-in'); // Hiện tên tác giả
+                    btnToggleForm.style.display = 'flex'; 
+                    try {
+                        const userDoc = await getDoc(doc(db, "users", user.uid));
+                        if (userDoc.exists()) {
+                            const data = userDoc.data();
+                            currentAuthor = data.fullName || "Giảng viên";
+                            let degreePrefix = data.degree === 'ThS' ? 'ThS. ' : (data.degree === 'TS' ? 'TS. ' : '');
+                            if(btnAuthNav) btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 5px;"></i> ${degreePrefix}${currentAuthor}`;
+                        } else {
+                            if(btnAuthNav) btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 5px;"></i> Giảng viên`;
+                        }
+                    } catch (error) {
+                        console.error("Lỗi lấy thông tin người dùng: ", error);
                     }
-                } catch (error) {
-                    console.error("Lỗi lấy thông tin người dùng: ", error);
+                } else {
+                    isAdmin = false;
+                    document.body.classList.remove('is-logged-in'); // Ẩn tên tác giả
+                    btnToggleForm.style.display = 'none';
+                    if(btnAuthNav) {
+                        btnAuthNav.innerHTML = 'Đăng nhập giảng viên';
+                        btnAuthNav.href = "login.html";
+                    }
                 }
-            } else {
-                isAdmin = false;
-                document.body.classList.remove('is-logged-in'); // Ẩn tên tác giả
-                btnToggleForm.style.display = 'none';
-                btnAuthNav.innerHTML = 'Đăng nhập giảng viên';
-            }
+            }, 100);
         });
 
         // Bật/tắt Form (Tạo mới)
