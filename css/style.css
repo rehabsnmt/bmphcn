@@ -65,9 +65,18 @@ header {
   justify-content: space-between;
   align-items: center;
   transition: var(--transition);
+  gap: 3rem; 
 }
 
 /* Cấu hình hiển thị Logo */
+.logo-link { 
+  display: flex; 
+  align-items: center; 
+  gap: 15px; 
+  text-decoration: none; 
+  cursor: pointer; 
+}
+
 .logo {
   display: flex;
   align-items: center;
@@ -80,12 +89,22 @@ header {
   object-fit: contain;
 }
 
-.logo h1 {
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: var(--text-dark);
-  letter-spacing: -0.02em;
+.logo-text { 
+  display: flex; 
+  flex-direction: column; 
+  justify-content: center; 
 }
+
+.logo-text div { 
+  white-space: nowrap; 
+  width: max-content; 
+  line-height: 1.2; 
+  transform-origin: left; 
+}
+
+#logo-line-1 { font-weight: 700; color: var(--text-dark); }
+#logo-line-2 { font-weight: 600; color: var(--text-body); margin-top: 0.25em; }
+#logo-line-3 { font-weight: 500; color: var(--text-body); margin-top: 0.15em; }
 
 .nav-links {
   display: flex;
@@ -315,9 +334,144 @@ input:focus {
 }
 
 /* =========================================
-   7. RESPONSIVE (DÀNH CHO ĐIỆN THOẠI/TABLET)
+   7. FOOTER CHUNG
+========================================= */
+footer { 
+    text-align: center; 
+    padding: 2rem 1rem; 
+    background-color: var(--surface); 
+    border-top: 1px solid var(--border); 
+    color: var(--text-body); 
+    margin-top: auto; 
+    overflow: hidden; 
+}
+footer p { 
+    margin: 0; 
+    white-space: nowrap; 
+    font-size: clamp(0.55rem, 2.5vw, 0.9rem); 
+}
+
+/* =========================================
+   8. COMPONENT CHUNG (TỪ TRANG THÔNG BÁO)
+========================================= */
+
+/* Trạng thái hiển thị người đăng bài (Dành cho trang Thông báo) */
+.author-info {
+    display: none !important;
+}
+
+body.is-logged-in .author-info {
+    display: flex !important;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Khung chức năng (Sửa/Xóa) - Chỉ hiện khi Đăng nhập */
+.action-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+    padding-top: 15px;
+    border-top: 1px dashed var(--border);
+}
+
+.btn-warning {
+    background-color: #f59e0b;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 0.85rem;
+}
+
+.btn-warning:hover {
+    background-color: #d97706;
+}
+
+.btn-danger {
+    background-color: var(--accent);
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 0.85rem;
+}
+
+.btn-danger:hover {
+    background-color: #be123c;
+}
+
+.btn-danger:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Modal Xác nhận bảo mật (Xóa) */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    padding: 20px;
+}
+
+.modal-content {
+    background: var(--surface);
+    padding: 30px;
+    border-radius: var(--radius-md);
+    max-width: 400px;
+    width: 100%;
+    box-shadow: var(--shadow-hover);
+    position: relative;
+    text-align: center;
+}
+
+.modal-close {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: var(--bg-page);
+    border: 1px solid var(--border);
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    cursor: pointer;
+    color: var(--text-body);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+}
+
+.modal-close:hover {
+    background: var(--border);
+    color: var(--text-dark);
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* =========================================
+   9. RESPONSIVE (DÀNH CHO ĐIỆN THOẠI/TABLET)
 ========================================= */
 @media (max-width: 768px) {
+  header { gap: 1rem; }
+  
   .menu-toggle { 
     display: block; 
   }
@@ -357,13 +511,5 @@ input:focus {
     margin: 1rem 2rem;
     width: calc(100% - 4rem);
     text-align: center;
-  }
-
-  .logo img {
-    height: 40px;
-  }
-
-  .logo h1 {
-    font-size: 1.1rem;
   }
 }
