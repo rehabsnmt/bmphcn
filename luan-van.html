@@ -120,13 +120,13 @@
 </head>
 <body style="display: flex; flex-direction: column; min-height: 100vh;">
 
-    <!-- 1. HEADER CHUNG -->
+    <!-- 1. HEADER CHUNG (Tự động load từ layout.js) -->
     <div id="header-placeholder"></div>
 
     <!-- Khung chứa thông báo nổi -->
     <div id="toastContainer" class="toast-container"></div>
 
-    <main style="flex: 1;">
+    <main style="flex: 1; padding-top: 2rem;">
         <div class="header-actions">
             <div class="header-title-box">
                 <h2>DANH SÁCH LUẬN VĂN THẠC SĨ VÀ KHÓA LUẬN CỬ NHÂN</h2>
@@ -320,34 +320,34 @@
         </div>
     </div>
 
-    <!-- 3. FOOTER CHUNG -->
+    <!-- 3. FOOTER CHUNG (Tự động load từ layout.js) -->
     <div id="footer-placeholder"></div>
 
+    <!-- 4. GỌI LAYOUT CHUNG ĐỂ CHÈN HEADER VÀ FOOTER -->
     <script src="js/layout.js"></script>
 
-    <!-- 5. FIREBASE SCRIPT -->
+    <!-- 5. FIREBASE SCRIPT TỪ DỰ ÁN MỚI -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="js/firebase-config.js"></script>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, query, orderBy, limit, getDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
         
-        // Config riêng cho data Luận văn
-        const thesesFirebaseConfig = {
-            apiKey: "AIzaSyDxZZRBDcb9606mNYXxXeLpgK2p1xfGF9A",
-            authDomain: "theses-3fdce.firebaseapp.com",
-            projectId: "theses-3fdce",
-            storageBucket: "theses-3fdce.firebasestorage.app",
-            messagingSenderId: "660887163293",
-            appId: "1:660887163293:web:caeaece108f6fd96cddf74",
-            measurementId: "G-5LR1NLCMT0"
+        // CHỈ DÙNG 1 CẤU HÌNH DUY NHẤT TỪ BMPHCN
+        const firebaseConfig = {
+            apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY",
+            authDomain: "bmphcn-aa9c6.firebaseapp.com",
+            projectId: "bmphcn-aa9c6",
+            storageBucket: "bmphcn-aa9c6.firebasestorage.app",
+            messagingSenderId: "749494392719",
+            appId: "1:749494392719:web:f220c751ff541620045dfa",
+            measurementId: "G-LBLG62PTDK"
         };
         
-        const thesesApp = initializeApp(thesesFirebaseConfig, "ThesesDatabase");
-        const firestoreDb = getFirestore(thesesApp);
-        const firestoreAuth = firebase.auth(); 
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = firebase.auth(); 
 
         const internalAdvisors = {
             "TS. Lê Minh Trí": { degree: "Tiến sĩ / Trưởng bộ môn Phục hồi chức năng", email: "leminhtri@ump.edu.vn", research: "Phục hồi chức năng thần kinh, Đột quỵ, Đau mạn tính", bio: "TS. Lê Minh Trí có hơn 15 năm kinh nghiệm giảng dạy và nghiên cứu chuyên sâu về Phục hồi chức năng thần kinh sau đột quỵ và chấn thương sọ não." },
@@ -363,7 +363,7 @@
         let targetDeleteTitle = "";
         let generatedSecurityCode = "";
         
-        let lastEditedId = null; // Vẫn giữ để tính lại Trang (Pagination)
+        let lastEditedId = null; 
         let originalEditData = null; 
 
         let currentPage = 1;
@@ -390,13 +390,9 @@
             if (type === 'warning') icon = 'fa-exclamation-triangle';
             if (type === 'danger') icon = 'fa-trash-alt';
 
-            toast.innerHTML = `
-                <i class="fas ${icon} toast-icon"></i>
-                <span>${message}</span>
-            `;
+            toast.innerHTML = `<i class="fas ${icon} toast-icon"></i><span>${message}</span>`;
             
             container.appendChild(toast);
-            
             setTimeout(() => toast.classList.add('show'), 10);
             
             setTimeout(() => {
@@ -405,14 +401,12 @@
             }, 3000);
         }
 
-        // Hàm tạo và tải file Excel Mẫu
         document.getElementById('btnDownloadTemplate').addEventListener('click', () => {
             const templateData = [
                 ["Tác giả", "Tên đề tài", "Giảng viên hướng dẫn", "Lớp", "Chuyên ngành"],
                 ["Nguyễn Văn A", "Đánh giá chất lượng cuộc sống bệnh nhân...", "TS. Lê Minh Trí", "CN2022", "Vật lý trị liệu"],
                 ["Trần Thị B", "Ứng dụng hoạt động trị liệu trên trẻ tự kỷ...", "PGS.TS. Nguyễn Thị Bích / ThS. Phạm Ngọc Thạch", "THS2023", "Hoạt động trị liệu"]
             ];
-
             const wb = XLSX.utils.book_new();
             const ws = XLSX.utils.aoa_to_sheet(templateData);
             ws['!cols'] = [ {wpx: 20}, {wpx: 50}, {wpx: 30}, {wpx: 15}, {wpx: 20} ];
@@ -421,11 +415,11 @@
         });
 
         async function logAction(actionType, detailString) {
-            if (!firestoreAuth.currentUser) return;
+            if (!auth.currentUser) return;
             try {
-                await addDoc(collection(firestoreDb, "logs"), { 
+                await addDoc(collection(db, "logs"), { 
                     action: actionType, 
-                    user: firestoreAuth.currentUser.email, 
+                    user: auth.currentUser.email, 
                     timestamp: new Date(), 
                     details: detailString 
                 });
@@ -458,7 +452,7 @@
         document.getElementById('addLevel').addEventListener('change', (e) => populateYears(e.target.value));
         populateYears('CN');
 
-        firestoreAuth.onAuthStateChanged((user) => {
+        auth.onAuthStateChanged((user) => {
             if (user) {
                 isAdmin = true;
                 btnOpenBulk.classList.remove('hidden');
@@ -466,7 +460,19 @@
                 adminSection.classList.remove('hidden');
                 thAction.classList.remove('hidden');
                 
-                onSnapshot(query(collection(firestoreDb, "logs"), orderBy("timestamp", "desc"), limit(50)), (snap) => {
+                setTimeout(async () => {
+                    const btnAuthNav = document.getElementById('btnAuthNav');
+                    if(btnAuthNav) {
+                        const userDoc = await getDoc(doc(db, "users", user.uid));
+                        if (userDoc.exists()) {
+                            const data = userDoc.data();
+                            let degreePrefix = data.degree === 'ThS' ? 'ThS. ' : (data.degree === 'TS' ? 'TS. ' : '');
+                            btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 5px;"></i> ${degreePrefix}${data.fullName || 'Giảng viên'}`;
+                        }
+                    }
+                }, 100);
+
+                onSnapshot(query(collection(db, "logs"), orderBy("timestamp", "desc"), limit(50)), (snap) => {
                     const historyBody = document.getElementById('historyTableBody');
                     historyBody.innerHTML = snap.empty ? '<tr><td colspan="4" align="center">Chưa có</td></tr>' : '';
                     snap.forEach(d => {
@@ -487,6 +493,13 @@
                 thAction.classList.add('hidden');
                 btnOpenBulk.classList.add('hidden');
                 btnOpenHistory.classList.add('hidden');
+                setTimeout(() => {
+                    const btnAuthNav = document.getElementById('btnAuthNav');
+                    if(btnAuthNav) {
+                        btnAuthNav.innerHTML = 'Đăng nhập giảng viên';
+                        btnAuthNav.href = "login.html";
+                    }
+                }, 100);
             }
             renderTable();
         });
@@ -499,7 +512,7 @@
             filterClass.value = tabClasses.includes(currClass) ? currClass : 'Tất cả';
         }
 
-        onSnapshot(collection(firestoreDb, "theses"), (snapshot) => {
+        onSnapshot(collection(db, "theses"), (snapshot) => {
             allTheses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             updateDynamicFilters(); 
             renderTable();
@@ -528,13 +541,12 @@
             document.getElementById('totalCountText').innerText = allTheses.filter(t => (t.studentClass || '').startsWith(currentTab)).length;
             document.getElementById('filteredCountText').innerText = filtered.length;
 
-            // Xử lý giữ nguyên trang chứa đề tài vừa chỉnh sửa
             if (lastEditedId) {
                 const editedIndex = filtered.findIndex(t => t.id === lastEditedId);
                 if (editedIndex !== -1) {
                     currentPage = Math.floor(editedIndex / itemsPerPage) + 1;
                 }
-                lastEditedId = null; // Đã xong nhiệm vụ tính page, reset biến
+                lastEditedId = null; 
             }
 
             totalPages = Math.ceil(filtered.length / itemsPerPage) || 1;
@@ -622,14 +634,13 @@
         document.getElementById('btnExecuteFinalDelete').onclick = async () => {
             if(!targetDeleteId) return;
             try {
-                await deleteDoc(doc(firestoreDb, "theses", targetDeleteId));
+                await deleteDoc(doc(db, "theses", targetDeleteId));
                 logAction("XÓA", `<strong>Đề tài:</strong> ${targetDeleteTitle}`);
                 closeDeleteModal();
                 showToast("Đã xóa đề tài thành công!", "danger");
             } catch(e) { showToast("Lỗi xóa đề tài!", "danger"); }
         };
 
-        // LƯU DỮ LIỆU & GHI LỊCH SỬ CHI TIẾT
         document.getElementById('btnSaveData').onclick = async () => {
             const title = document.getElementById('addTitle').value.trim();
             const author = document.getElementById('addAuthor').value.trim();
@@ -652,9 +663,8 @@
             try {
                 const editIdValue = document.getElementById('editId').value;
                 if(isEditing && editIdValue) {
-                    await updateDoc(doc(firestoreDb, "theses", editIdValue), obj);
+                    await updateDoc(doc(db, "theses", editIdValue), obj);
                     
-                    // Tạo chuỗi lịch sử so sánh Cũ vs Mới
                     let changes = [];
                     if(originalEditData.title !== obj.title) changes.push(`- <b>Tên đề tài:</b> ${originalEditData.title} ➔ <span style="color:#d97706">${obj.title}</span>`);
                     if(originalEditData.author !== obj.author) changes.push(`- <b>Tác giả:</b> ${originalEditData.author} ➔ <span style="color:#d97706">${obj.author}</span>`);
@@ -665,10 +675,10 @@
                     let historyString = changes.length > 0 ? changes.join('<br>') : "<i>Không có thay đổi dữ liệu thực tế.</i>";
                     
                     logAction("SỬA", historyString);
-                    lastEditedId = editIdValue; // Kích hoạt page calculation
+                    lastEditedId = editIdValue; 
                     showToast("Đã cập nhật thay đổi thành công!", "success");
                 } else {
-                    await addDoc(collection(firestoreDb, "theses"), obj);
+                    await addDoc(collection(db, "theses"), obj);
                     logAction("THÊM", `<strong>Đề tài:</strong> ${title}<br><strong>Lớp:</strong> ${obj.studentClass} | <strong>Tác giả:</strong> ${author}`);
                     showToast("Đã thêm đề tài mới!", "success");
                 }
@@ -676,10 +686,9 @@
             } catch(e) { showToast("Lỗi lưu dữ liệu: " + e.message, "danger"); }
         };
 
-        // KHI BẤM NÚT SỬA TẠI MỘT DÒNG (VẪN CHO CUỘN LÊN ĐỂ SỬA)
         window.triggerEdit = (enD) => {
             const t = JSON.parse(decodeURIComponent(enD));
-            originalEditData = t; // LƯU LẠI DỮ LIỆU CŨ ĐỂ SO SÁNH
+            originalEditData = t;
             
             document.getElementById('editId').value = t.id;
             document.getElementById('addTitle').value = t.title||'';
@@ -699,9 +708,7 @@
                 if (currentTab !== targetLvl) {
                     document.querySelectorAll('.tab-btn').forEach(b => {
                         b.classList.remove('active');
-                        if(b.getAttribute('data-tab') === targetLvl) {
-                            b.classList.add('active');
-                        }
+                        if(b.getAttribute('data-tab') === targetLvl) b.classList.add('active');
                     });
                     currentTab = targetLvl;
                     filterClass.value = 'Tất cả';
@@ -721,7 +728,7 @@
         document.getElementById('btnCancelEdit').onclick = resetForm;
         function resetForm() {
             isEditing = false; 
-            originalEditData = null; // Xóa data tạm
+            originalEditData = null; 
             document.getElementById('editId').value = '';
             document.getElementById('addTitle').value = ''; document.getElementById('addAuthor').value = ''; document.getElementById('addAdvisor').value = '';
             document.getElementById('formTitle').innerText = 'Thêm đề tài mới';
@@ -755,7 +762,7 @@
             let success = 0; document.getElementById('btnUploadExcel').disabled = true;
             for(const row of uploadData) {
                 try {
-                    await addDoc(collection(firestoreDb, "theses"), { 
+                    await addDoc(collection(db, "theses"), { 
                         author: row[0]?String(row[0]).trim():"Chưa rõ", 
                         title: row[1]?String(row[1]).trim():"Chưa có tên", 
                         advisor: row[2]?String(row[2]).trim():"Chưa rõ", 
