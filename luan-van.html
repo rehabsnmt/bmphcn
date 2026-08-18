@@ -61,28 +61,60 @@
         /* Bảng hiển thị */
         .table-container { overflow-x: auto; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--surface); box-shadow: var(--shadow-sm); position: relative; }
         table { width: 100%; border-collapse: collapse; white-space: nowrap; font-size: 0.95rem; }
-        th, td { padding: 15px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: middle; transition: background-color 0.8s ease; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: middle; }
         th { background-color: var(--bg-page); font-weight: 600; color: var(--text-dark); text-transform: uppercase; font-size: 0.85rem; position: sticky; top: 0; z-index: 10; letter-spacing: 0.5px;}
         tr:hover { background-color: var(--primary-light); }
         
         #thAction, .td-action { position: sticky; right: 0; background-color: var(--surface); z-index: 5; box-shadow: -4px 0 8px rgba(0,0,0,0.02); border-left: 1px solid var(--border); }
         tr:hover .td-action { background-color: var(--primary-light); }
 
-        /* Hiệu ứng nháy màu (highlight) khi cuộn tới dòng vừa sửa */
-        @keyframes highlightFlash {
-            0% { background-color: rgba(34, 197, 94, 0.3); } /* Xanh lá nhạt */
-            50% { background-color: rgba(34, 197, 94, 0.15); }
-            100% { background-color: transparent; }
-        }
-        .highlight-row td { animation: highlightFlash 3.5s ease-out; }
-
         .advisor-link { color: var(--primary); font-weight: 600; cursor: pointer; text-decoration: none; border-bottom: 1px dashed var(--primary); }
         .advisor-link:hover { color: var(--primary-hover); border-bottom-style: solid; }
+
+        /* =========================================
+           CSS THÔNG BÁO TOAST (POPUP GÓC DƯỚI)
+        ========================================= */
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .toast {
+            min-width: 250px;
+            background-color: var(--surface);
+            color: var(--text-dark);
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transform: translateX(120%);
+            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.3s;
+            font-weight: 600;
+            border-left: 5px solid;
+            opacity: 0;
+            font-size: 0.95rem;
+        }
+        .toast.show { transform: translateX(0); opacity: 1; }
+        .toast.success { border-left-color: #22c55e; }
+        .toast.warning { border-left-color: #f59e0b; }
+        .toast.danger { border-left-color: #ef4444; }
+        .toast-icon { font-size: 1.2rem; }
+        .toast.success .toast-icon { color: #22c55e; }
+        .toast.warning .toast-icon { color: #f59e0b; }
+        .toast.danger .toast-icon { color: #ef4444; }
 
         @media (max-width: 768px) {
             .header-title-box h2 { font-size: 1.3rem; }
             .header-buttons { width: 100%; justify-content: center; margin-top: 10px; }
             .tabs-header { margin-top: 10px; }
+            .toast-container { bottom: 10px; right: 10px; left: 10px; }
+            .toast { min-width: unset; width: 100%; box-sizing: border-box; }
         }
     </style>
 </head>
@@ -90,6 +122,9 @@
 
     <!-- 1. HEADER CHUNG -->
     <div id="header-placeholder"></div>
+
+    <!-- Khung chứa thông báo nổi -->
+    <div id="toastContainer" class="toast-container"></div>
 
     <main style="flex: 1;">
         <div class="header-actions">
@@ -114,7 +149,6 @@
                         <em>Mẹo: Nếu có 2 Giảng viên, hãy dùng dấu "/" để ngăn cách ở Cột C.</em>
                     </p>
                 </div>
-                <!-- Nút tải file mẫu -->
                 <button id="btnDownloadTemplate" class="btn-secondary"><i class="fas fa-download"></i> Tải Excel Mẫu</button>
             </div>
             
@@ -329,8 +363,7 @@
         let targetDeleteTitle = "";
         let generatedSecurityCode = "";
         
-        // BIẾN QUAN TRỌNG ĐỂ AUTO-SCROLL VÀ SO SÁNH LỊCH SỬ
-        let lastEditedId = null; 
+        let lastEditedId = null; // Vẫn giữ để tính lại Trang (Pagination)
         let originalEditData = null; 
 
         let currentPage = 1;
@@ -346,6 +379,31 @@
         const btnOpenHistory = document.getElementById('btnOpenHistory');
         const filterClass = document.getElementById('filterClass'); 
         const sortSelect = document.getElementById('sortSelect'); 
+
+        // Hàm gọi Toast Thông Báo
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            let icon = 'fa-check-circle';
+            if (type === 'warning') icon = 'fa-exclamation-triangle';
+            if (type === 'danger') icon = 'fa-trash-alt';
+
+            toast.innerHTML = `
+                <i class="fas ${icon} toast-icon"></i>
+                <span>${message}</span>
+            `;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => toast.classList.add('show'), 10);
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 400); 
+            }, 3000);
+        }
 
         // Hàm tạo và tải file Excel Mẫu
         document.getElementById('btnDownloadTemplate').addEventListener('click', () => {
@@ -470,12 +528,13 @@
             document.getElementById('totalCountText').innerText = allTheses.filter(t => (t.studentClass || '').startsWith(currentTab)).length;
             document.getElementById('filteredCountText').innerText = filtered.length;
 
-            // XỬ LÝ AUTO-SCROLL (Tìm trang chứa đề tài vừa sửa)
+            // Xử lý giữ nguyên trang chứa đề tài vừa chỉnh sửa
             if (lastEditedId) {
                 const editedIndex = filtered.findIndex(t => t.id === lastEditedId);
                 if (editedIndex !== -1) {
                     currentPage = Math.floor(editedIndex / itemsPerPage) + 1;
                 }
+                lastEditedId = null; // Đã xong nhiệm vụ tính page, reset biến
             }
 
             totalPages = Math.ceil(filtered.length / itemsPerPage) || 1;
@@ -504,7 +563,7 @@
                 }).join('<br>');
 
                 tableBody.innerHTML += `
-                    <tr id="row-${t.id}">
+                    <tr>
                         <td align="center" style="color:#94a3b8;font-weight:bold">${actualIndex}</td>
                         <td><b>${t.author}</b></td>
                         <td style="white-space:normal;font-weight:600;color:var(--text-dark)">${t.title}</td>
@@ -516,18 +575,6 @@
                         ${actionHtml}
                     </tr>`;
             });
-
-            // Sau khi in bảng xong, cuộn đến vị trí vừa sửa
-            if (lastEditedId) {
-                setTimeout(() => {
-                    const targetRow = document.getElementById(`row-${lastEditedId}`);
-                    if (targetRow) {
-                        targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        targetRow.classList.add('highlight-row');
-                        lastEditedId = null; // Trả lại rỗng để không nháy nữa
-                    }
-                }, 400); // Đợi DOM cập nhật xong
-            }
         }
 
         document.getElementById('searchInput').addEventListener('input', () => { currentPage = 1; renderTable(); });
@@ -578,7 +625,8 @@
                 await deleteDoc(doc(firestoreDb, "theses", targetDeleteId));
                 logAction("XÓA", `<strong>Đề tài:</strong> ${targetDeleteTitle}`);
                 closeDeleteModal();
-            } catch(e) { alert("Lỗi xóa!"); }
+                showToast("Đã xóa đề tài thành công!", "danger");
+            } catch(e) { showToast("Lỗi xóa đề tài!", "danger"); }
         };
 
         // LƯU DỮ LIỆU & GHI LỊCH SỬ CHI TIẾT
@@ -586,7 +634,11 @@
             const title = document.getElementById('addTitle').value.trim();
             const author = document.getElementById('addAuthor').value.trim();
             const advisor = document.getElementById('addAdvisor').value.trim();
-            if(!title || !author || !advisor) return alert("Điền đủ thông tin có dấu *");
+            
+            if(!title || !author || !advisor) {
+                showToast("Vui lòng điền đủ thông tin có dấu *", "warning");
+                return;
+            }
             
             const obj = { 
                 title, 
@@ -613,16 +665,18 @@
                     let historyString = changes.length > 0 ? changes.join('<br>') : "<i>Không có thay đổi dữ liệu thực tế.</i>";
                     
                     logAction("SỬA", historyString);
-                    lastEditedId = editIdValue; // Kích hoạt auto-scroll
+                    lastEditedId = editIdValue; // Kích hoạt page calculation
+                    showToast("Đã cập nhật thay đổi thành công!", "success");
                 } else {
                     await addDoc(collection(firestoreDb, "theses"), obj);
                     logAction("THÊM", `<strong>Đề tài:</strong> ${title}<br><strong>Lớp:</strong> ${obj.studentClass} | <strong>Tác giả:</strong> ${author}`);
+                    showToast("Đã thêm đề tài mới!", "success");
                 }
                 resetForm();
-            } catch(e) { alert("Lỗi lưu dữ liệu!"); }
+            } catch(e) { showToast("Lỗi lưu dữ liệu: " + e.message, "danger"); }
         };
 
-        // KHI BẤM NÚT SỬA TẠI MỘT DÒNG
+        // KHI BẤM NÚT SỬA TẠI MỘT DÒNG (VẪN CHO CUỘN LÊN ĐỂ SỬA)
         window.triggerEdit = (enD) => {
             const t = JSON.parse(decodeURIComponent(enD));
             originalEditData = t; // LƯU LẠI DỮ LIỆU CŨ ĐỂ SO SÁNH
@@ -713,7 +767,7 @@
                 } catch(e){}
             }
             logAction("NHẬP EXCEL", `Đã nhập <b>${success}</b> đề tài hàng loạt.`);
-            alert(`Hoàn tất tải lên ${success} đề tài!`);
+            showToast(`Hoàn tất tải lên ${success} đề tài!`, "success");
             document.getElementById('btnCloseBulk').click();
             uploadData = []; document.getElementById('excelFile').value = '';
             document.getElementById('btnUploadExcel').disabled = false; document.getElementById('btnUploadExcel').classList.add('hidden');
