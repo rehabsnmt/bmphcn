@@ -53,7 +53,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 <a href="luan-van.html" class="nav-item" data-path="luan-van.html">Luận văn & Khóa luận</a>
                 <a href="tai-nguyen.html" class="nav-item" data-path="tai-nguyen.html">Tài nguyên</a>
                 <a href="thong-bao.html" class="nav-item" data-path="thong-bao.html">Thông báo</a>
-                <a href="login.html" class="btn-login" id="btnAuthNav">Đăng nhập giảng viên</a>
+                <!-- Đổi href thành # để JS bên dưới xử lý luồng đi -->
+                <a href="#" class="btn-login" id="btnAuthNav">Đăng nhập giảng viên</a>
             </nav>
         </header>
     `;
@@ -147,4 +148,25 @@ document.addEventListener("DOMContentLoaded", function () {
     // Đợi một chút để ảnh render xong rồi mới căn chỉnh
     setTimeout(perfectAlignLogo, 50); 
     window.addEventListener('resize', perfectAlignLogo);
+
+    // =========================================================================
+    // 8. ĐIỀU HƯỚNG THÔNG MINH CHO NÚT "TÀI KHOẢN / ĐĂNG NHẬP" (VỪA THÊM VÀO)
+    // =========================================================================
+    const btnAuthNav = document.getElementById('btnAuthNav');
+    if (btnAuthNav) {
+        btnAuthNav.addEventListener('click', function(e) {
+            e.preventDefault(); // Ngăn trình duyệt tự động chuyển trang theo thẻ href mặc định
+            
+            const currentText = this.innerText.toLowerCase();
+            
+            // Nếu chữ trên nút có chứa từ "đăng nhập" -> Chuyển sang trang Login
+            if (currentText.includes('đăng nhập')) {
+                window.location.href = 'login.html';
+            } 
+            // Nếu chữ đã đổi (Thành tên giảng viên) -> Chuyển sang trang Dashboard
+            else {
+                window.location.href = 'dashboard.html';
+            }
+        });
+    }
 });
