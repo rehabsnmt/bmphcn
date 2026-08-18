@@ -61,7 +61,7 @@
         /* Bảng hiển thị */
         .table-container { overflow-x: auto; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--surface); box-shadow: var(--shadow-sm); position: relative; }
         table { width: 100%; border-collapse: collapse; white-space: nowrap; font-size: 0.95rem; }
-        th, td { padding: 15px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: middle; transition: background-color 0.5s ease; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: middle; transition: background-color 0.8s ease; }
         th { background-color: var(--bg-page); font-weight: 600; color: var(--text-dark); text-transform: uppercase; font-size: 0.85rem; position: sticky; top: 0; z-index: 10; letter-spacing: 0.5px;}
         tr:hover { background-color: var(--primary-light); }
         
@@ -70,11 +70,11 @@
 
         /* Hiệu ứng nháy màu (highlight) khi cuộn tới dòng vừa sửa */
         @keyframes highlightFlash {
-            0% { background-color: rgba(2, 132, 199, 0.2); }
-            50% { background-color: rgba(2, 132, 199, 0.1); }
+            0% { background-color: rgba(34, 197, 94, 0.3); } /* Xanh lá nhạt */
+            50% { background-color: rgba(34, 197, 94, 0.15); }
             100% { background-color: transparent; }
         }
-        .highlight-row { animation: highlightFlash 3s ease-out; }
+        .highlight-row td { animation: highlightFlash 3.5s ease-out; }
 
         .advisor-link { color: var(--primary); font-weight: 600; cursor: pointer; text-decoration: none; border-bottom: 1px dashed var(--primary); }
         .advisor-link:hover { color: var(--primary-hover); border-bottom-style: solid; }
@@ -88,7 +88,7 @@
 </head>
 <body style="display: flex; flex-direction: column; min-height: 100vh;">
 
-    <!-- 1. HEADER CHUNG (Tự động load từ layout.js) -->
+    <!-- 1. HEADER CHUNG -->
     <div id="header-placeholder"></div>
 
     <main style="flex: 1;">
@@ -250,9 +250,9 @@
         </div>
     </div>
 
-    <!-- Modals History và Delete -->
+    <!-- Modals History -->
     <div id="historyModal" class="modal-overlay hidden">
-        <div class="modal-content" style="max-width: 800px;">
+        <div class="modal-content" style="max-width: 900px;">
             <button class="modal-close" onclick="closeHistoryModal()"><i class="fas fa-times"></i></button>
             <h2 style="color: var(--text-dark); margin-bottom: 10px;">Lịch sử hoạt động</h2>
             <div style="max-height: 400px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-sm);">
@@ -261,8 +261,8 @@
                         <tr>
                             <th style="background: var(--bg-page); padding: 10px; width: 140px;">Thời gian</th>
                             <th style="background: var(--bg-page); padding: 10px; width: 90px;">Thao tác</th>
-                            <th style="background: var(--bg-page); padding: 10px;">Tài khoản</th>
-                            <th style="background: var(--bg-page); padding: 10px;">Chi tiết</th>
+                            <th style="background: var(--bg-page); padding: 10px; width: 150px;">Tài khoản</th>
+                            <th style="background: var(--bg-page); padding: 10px; white-space: normal;">Chi tiết cập nhật</th>
                         </tr>
                     </thead>
                     <tbody id="historyTableBody"></tbody>
@@ -286,10 +286,9 @@
         </div>
     </div>
 
-    <!-- 3. FOOTER CHUNG (Tự động load từ layout.js) -->
+    <!-- 3. FOOTER CHUNG -->
     <div id="footer-placeholder"></div>
 
-    <!-- 4. GỌI LAYOUT CHUNG ĐỂ CHÈN HEADER VÀ FOOTER -->
     <script src="js/layout.js"></script>
 
     <!-- 5. FIREBASE SCRIPT -->
@@ -297,7 +296,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="js/firebase-config.js"></script>
 
-    <!-- LOGIC FIREBASE DATA CHO BẢNG THEESES -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
         import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
@@ -330,7 +328,10 @@
         let targetDeleteId = null;
         let targetDeleteTitle = "";
         let generatedSecurityCode = "";
-        let lastEditedId = null; // Biến lưu ID của dòng vừa được chỉnh sửa
+        
+        // BIẾN QUAN TRỌNG ĐỂ AUTO-SCROLL VÀ SO SÁNH LỊCH SỬ
+        let lastEditedId = null; 
+        let originalEditData = null; 
 
         let currentPage = 1;
         const itemsPerPage = 30;
@@ -356,10 +357,7 @@
 
             const wb = XLSX.utils.book_new();
             const ws = XLSX.utils.aoa_to_sheet(templateData);
-            
-            // Chỉnh độ rộng cột cho đẹp
             ws['!cols'] = [ {wpx: 20}, {wpx: 50}, {wpx: 30}, {wpx: 15}, {wpx: 20} ];
-
             XLSX.utils.book_append_sheet(wb, ws, "LuanVan_Mau");
             XLSX.writeFile(wb, "Bieu_Mau_Nhap_Luan_Van.xlsx");
         });
@@ -419,8 +417,8 @@
                         historyBody.innerHTML += `<tr>
                             <td style="color:#64748b">${log.timestamp?.toDate().toLocaleString('vi-VN')}</td>
                             <td style="color:${c};font-weight:bold">${log.action}</td>
-                            <td>${log.user || ''}</td>
-                            <td>${log.details}</td>
+                            <td style="word-break: break-all;">${log.user || ''}</td>
+                            <td style="white-space: normal; line-height: 1.5;">${log.details}</td>
                         </tr>`;
                     });
                 });
@@ -472,6 +470,14 @@
             document.getElementById('totalCountText').innerText = allTheses.filter(t => (t.studentClass || '').startsWith(currentTab)).length;
             document.getElementById('filteredCountText').innerText = filtered.length;
 
+            // XỬ LÝ AUTO-SCROLL (Tìm trang chứa đề tài vừa sửa)
+            if (lastEditedId) {
+                const editedIndex = filtered.findIndex(t => t.id === lastEditedId);
+                if (editedIndex !== -1) {
+                    currentPage = Math.floor(editedIndex / itemsPerPage) + 1;
+                }
+            }
+
             totalPages = Math.ceil(filtered.length / itemsPerPage) || 1;
             if (currentPage > totalPages) currentPage = totalPages;
             
@@ -492,13 +498,11 @@
                     actionHtml = `<td class="td-action" align="center"><button class="btn-sm btn-warning" onclick="triggerEdit('${dataStr}')">Sửa</button> <button class="btn-sm btn-danger" onclick="triggerDeleteConfirm('${t.id}', '${encodeURIComponent(t.title||'').replace(/'/g, "%27")}')">Xóa</button></td>`;
                 }
 
-                // Tương thích với cách chia tách bằng dấu / hoặc ,
                 const advHtml = (t.advisor||'').split(/[\/,]+/).map(a => {
                     let n = a.trim();
                     return internalAdvisors[n] ? `<span class="advisor-link" onclick="openAdvisorModal('${encodeURIComponent(n).replace(/'/g, "%27")}')">${n}</span>` : n;
                 }).join('<br>');
 
-                // Gắn ID vào thẻ tr để scroll tới sau khi Sửa
                 tableBody.innerHTML += `
                     <tr id="row-${t.id}">
                         <td align="center" style="color:#94a3b8;font-weight:bold">${actualIndex}</td>
@@ -513,17 +517,16 @@
                     </tr>`;
             });
 
-            // Sau khi render xong bảng, kiểm tra xem có phải vừa sửa xong không
-            // Nếu có, thực hiện cuộn và nháy sáng
+            // Sau khi in bảng xong, cuộn đến vị trí vừa sửa
             if (lastEditedId) {
                 setTimeout(() => {
                     const targetRow = document.getElementById(`row-${lastEditedId}`);
                     if (targetRow) {
                         targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         targetRow.classList.add('highlight-row');
-                        lastEditedId = null; // Trả lại rỗng để không nháy nữa ở lần render sau
+                        lastEditedId = null; // Trả lại rỗng để không nháy nữa
                     }
-                }, 300); // Chờ 300ms để DOM cập nhật xong
+                }, 400); // Đợi DOM cập nhật xong
             }
         }
 
@@ -573,11 +576,12 @@
             if(!targetDeleteId) return;
             try {
                 await deleteDoc(doc(firestoreDb, "theses", targetDeleteId));
-                logAction("XÓA", `Đề tài: "${targetDeleteTitle}"`);
+                logAction("XÓA", `<strong>Đề tài:</strong> ${targetDeleteTitle}`);
                 closeDeleteModal();
             } catch(e) { alert("Lỗi xóa!"); }
         };
 
+        // LƯU DỮ LIỆU & GHI LỊCH SỬ CHI TIẾT
         document.getElementById('btnSaveData').onclick = async () => {
             const title = document.getElementById('addTitle').value.trim();
             const author = document.getElementById('addAuthor').value.trim();
@@ -597,18 +601,32 @@
                 const editIdValue = document.getElementById('editId').value;
                 if(isEditing && editIdValue) {
                     await updateDoc(doc(firestoreDb, "theses", editIdValue), obj);
-                    logAction("SỬA", `Lớp: ${obj.studentClass} | Đề tài: "${title.toUpperCase()}"`);
-                    lastEditedId = editIdValue; // Ghi nhớ ID vừa sửa
+                    
+                    // Tạo chuỗi lịch sử so sánh Cũ vs Mới
+                    let changes = [];
+                    if(originalEditData.title !== obj.title) changes.push(`- <b>Tên đề tài:</b> ${originalEditData.title} ➔ <span style="color:#d97706">${obj.title}</span>`);
+                    if(originalEditData.author !== obj.author) changes.push(`- <b>Tác giả:</b> ${originalEditData.author} ➔ <span style="color:#d97706">${obj.author}</span>`);
+                    if(originalEditData.advisor !== obj.advisor) changes.push(`- <b>GVHD:</b> ${originalEditData.advisor} ➔ <span style="color:#d97706">${obj.advisor}</span>`);
+                    if(originalEditData.studentClass !== obj.studentClass) changes.push(`- <b>Lớp:</b> ${originalEditData.studentClass} ➔ <span style="color:#d97706">${obj.studentClass}</span>`);
+                    if(originalEditData.major !== obj.major) changes.push(`- <b>Chuyên ngành:</b> ${originalEditData.major} ➔ <span style="color:#d97706">${obj.major}</span>`);
+                    
+                    let historyString = changes.length > 0 ? changes.join('<br>') : "<i>Không có thay đổi dữ liệu thực tế.</i>";
+                    
+                    logAction("SỬA", historyString);
+                    lastEditedId = editIdValue; // Kích hoạt auto-scroll
                 } else {
                     await addDoc(collection(firestoreDb, "theses"), obj);
-                    logAction("THÊM", `Lớp: ${obj.studentClass} | Đề tài: "${title.toUpperCase()}"`);
+                    logAction("THÊM", `<strong>Đề tài:</strong> ${title}<br><strong>Lớp:</strong> ${obj.studentClass} | <strong>Tác giả:</strong> ${author}`);
                 }
                 resetForm();
             } catch(e) { alert("Lỗi lưu dữ liệu!"); }
         };
 
+        // KHI BẤM NÚT SỬA TẠI MỘT DÒNG
         window.triggerEdit = (enD) => {
             const t = JSON.parse(decodeURIComponent(enD));
+            originalEditData = t; // LƯU LẠI DỮ LIỆU CŨ ĐỂ SO SÁNH
+            
             document.getElementById('editId').value = t.id;
             document.getElementById('addTitle').value = t.title||'';
             document.getElementById('addAuthor').value = t.author||'';
@@ -622,7 +640,6 @@
                 if(yr) document.getElementById('addYear').value = yr;
             }
             
-            // Nếu giảng viên muốn sửa khác tab hệ hiện hành, chuyển đổi tab trước
             if (t.studentClass) {
                 const targetLvl = t.studentClass.startsWith('THS') ? 'THS' : 'CN';
                 if (currentTab !== targetLvl) {
@@ -644,13 +661,14 @@
             document.getElementById('editModeBadge').classList.remove('hidden');
             document.getElementById('btnCancelEditContainer').classList.remove('hidden');
             document.getElementById('btnSaveData').innerText = 'Cập nhật';
-            // Tự động cuộn mượt mà lên khu vực form sửa
             document.getElementById('adminSection').scrollIntoView({behavior: 'smooth', block: 'start'});
         };
 
         document.getElementById('btnCancelEdit').onclick = resetForm;
         function resetForm() {
-            isEditing = false; document.getElementById('editId').value = '';
+            isEditing = false; 
+            originalEditData = null; // Xóa data tạm
+            document.getElementById('editId').value = '';
             document.getElementById('addTitle').value = ''; document.getElementById('addAuthor').value = ''; document.getElementById('addAdvisor').value = '';
             document.getElementById('formTitle').innerText = 'Thêm đề tài mới';
             document.getElementById('editModeBadge').classList.add('hidden');
@@ -694,7 +712,7 @@
                     success++; document.getElementById('bulkLog').innerText = `Hoàn thành: ${success} / ${uploadData.length}`;
                 } catch(e){}
             }
-            logAction("NHẬP EXCEL", `Đã nhập ${success} đề tài.`);
+            logAction("NHẬP EXCEL", `Đã nhập <b>${success}</b> đề tài hàng loạt.`);
             alert(`Hoàn tất tải lên ${success} đề tài!`);
             document.getElementById('btnCloseBulk').click();
             uploadData = []; document.getElementById('excelFile').value = '';
