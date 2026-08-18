@@ -39,9 +39,52 @@
             flex-shrink: 0; 
         }
 
+        /* --- CSS CHO NÚT LƯỢT XEM --- */
+        .view-counter-widget {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, var(--primary), #3b82f6);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 50px;
+            box-shadow: 0 8px 25px rgba(2, 132, 199, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            z-index: 1000;
+            border: 2px solid rgba(255,255,255,0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: default;
+        }
+
+        .view-counter-widget:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(2, 132, 199, 0.4);
+        }
+
+        .view-counter-widget i {
+            font-size: 1.1rem;
+            animation: pulse-icon 2s infinite;
+        }
+
+        @keyframes pulse-icon {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
         /* --- RESPONSIVE MOBILE --- */
         @media (max-width: 768px) {
             .slider-track { height: 250px; }
+            .view-counter-widget {
+                bottom: 15px;
+                right: 15px;
+                padding: 10px 15px;
+                font-size: 0.85rem;
+            }
         }
     </style>
 </head>
@@ -110,6 +153,12 @@
         </section>
     </main>
 
+    <!-- NÚT HIỂN THỊ LƯỢT XEM NỔI -->
+    <div class="view-counter-widget" id="viewCounterWidget" style="display: none;">
+        <i class="fas fa-eye"></i>
+        <span>Đã có <b id="viewCountNumber">...</b> lượt xem</span>
+    </div>
+
     <!-- 3. FOOTER CHUNG (Tự động load từ layout.js) -->
     <div id="footer-placeholder"></div>
 
@@ -138,7 +187,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, updateDoc, increment, setDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY",
@@ -154,7 +203,52 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Lắng nghe trạng thái đăng nhập để đổi tên nút Auth trên Header
+        // --- XỬ LÝ BỘ ĐẾM LƯỢT XEM TRANG CHỦ ---
+        async function updateAndFetchViews() {
+            const counterRef = doc(db, "settings", "viewCounter");
+            
+            try {
+                // 1. Lấy thông tin bộ đếm hiện tại
+                const docSnap = await getDoc(counterRef);
+                
+                // Tránh tình trạng F5 (reload liên tục) làm tăng bộ đếm ảo.
+                // Chỉ đếm 1 lượt xem cho mỗi Session (phiên làm việc của trình duyệt).
+                const hasVisited = sessionStorage.getItem("hasVisitedIndex");
+
+                if (!docSnap.exists()) {
+                    // Nếu bảng đếm chưa từng được tạo, tạo mới nó
+                    await setDoc(counterRef, { totalViews: 1 });
+                    document.getElementById('viewCountNumber').innerText = "1";
+                    sessionStorage.setItem("hasVisitedIndex", "true");
+                } else {
+                    let currentViews = docSnap.data().totalViews || 0;
+                    
+                    if (!hasVisited) {
+                        // Nếu đây là lần truy cập mới, cộng thêm 1 lượt xem vào Database
+                        await updateDoc(counterRef, {
+                            totalViews: increment(1)
+                        });
+                        currentViews += 1;
+                        sessionStorage.setItem("hasVisitedIndex", "true");
+                    }
+                    
+                    // Hiển thị số lượt xem lên màn hình (định dạng dấu chấm hàng nghìn)
+                    document.getElementById('viewCountNumber').innerText = currentViews.toLocaleString('vi-VN');
+                }
+                
+                // Hiển thị nút lên màn hình sau khi đã có dữ liệu
+                document.getElementById('viewCounterWidget').style.display = 'flex';
+
+            } catch (error) {
+                console.error("Lỗi khi kết nối bộ đếm lượt xem:", error);
+            }
+        }
+
+        // Gọi hàm đếm view ngay khi trang tải xong
+        updateAndFetchViews();
+
+
+        // --- Lắng nghe trạng thái đăng nhập để đổi tên nút Auth trên Header ---
         onAuthStateChanged(auth, async (user) => {
             // Chờ một chút để layout.js kịp render Header vào DOM
             setTimeout(async () => {
