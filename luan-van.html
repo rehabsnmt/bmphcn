@@ -51,6 +51,8 @@
         .btn-warning:hover { background-color: #d97706; box-shadow: 0 4px 12px rgba(217, 119, 6, 0.2); }
         .btn-danger { background-color: var(--accent); color: white; padding: 0.6rem 1.2rem; border-radius: var(--radius-pill); border: none; font-weight: 500; }
         .btn-danger:hover { background-color: #be123c; box-shadow: 0 4px 12px rgba(225, 29, 72, 0.2); }
+        .btn-secondary { background-color: var(--bg-page); color: var(--text-dark); padding: 0.6rem 1.2rem; border-radius: var(--radius-pill); border: 1px solid var(--border); font-weight: 500; }
+        .btn-secondary:hover { background-color: #e2e8f0; }
         .btn-sm { padding: 5px 10px; font-size: 0.8rem; border-radius: 6px; }
         button:disabled { opacity: 0.6; cursor: not-allowed; }
         .btn-page { background-color: var(--surface); color: var(--text-dark); border: 1px solid var(--border); padding: 5px 15px; border-radius: 6px; font-weight: 600; }
@@ -59,12 +61,20 @@
         /* Bảng hiển thị */
         .table-container { overflow-x: auto; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--surface); box-shadow: var(--shadow-sm); position: relative; }
         table { width: 100%; border-collapse: collapse; white-space: nowrap; font-size: 0.95rem; }
-        th, td { padding: 15px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: middle; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: middle; transition: background-color 0.5s ease; }
         th { background-color: var(--bg-page); font-weight: 600; color: var(--text-dark); text-transform: uppercase; font-size: 0.85rem; position: sticky; top: 0; z-index: 10; letter-spacing: 0.5px;}
         tr:hover { background-color: var(--primary-light); }
         
         #thAction, .td-action { position: sticky; right: 0; background-color: var(--surface); z-index: 5; box-shadow: -4px 0 8px rgba(0,0,0,0.02); border-left: 1px solid var(--border); }
         tr:hover .td-action { background-color: var(--primary-light); }
+
+        /* Hiệu ứng nháy màu (highlight) khi cuộn tới dòng vừa sửa */
+        @keyframes highlightFlash {
+            0% { background-color: rgba(2, 132, 199, 0.2); }
+            50% { background-color: rgba(2, 132, 199, 0.1); }
+            100% { background-color: transparent; }
+        }
+        .highlight-row { animation: highlightFlash 3s ease-out; }
 
         .advisor-link { color: var(--primary); font-weight: 600; cursor: pointer; text-decoration: none; border-bottom: 1px dashed var(--primary); }
         .advisor-link:hover { color: var(--primary-hover); border-bottom-style: solid; }
@@ -95,12 +105,19 @@
 
         <!-- Khung nhập file Excel -->
         <div id="bulkSection" class="section-box hidden" style="background: #fffbeb; border-color: #fde68a;">
-            <h3 style="margin-top: 0; color: #b45309;"><i class="fas fa-file-import"></i> Nhập dữ liệu hàng loạt từ Excel</h3>
-            <p style="font-size: 0.9rem; color: #78350f; margin-bottom: 15px; line-height: 1.6;">
-                <strong>Cấu trúc file Excel bắt buộc:</strong> Hàng đầu tiên là tiêu đề. Dữ liệu bắt đầu từ hàng 2.<br>
-                <strong>Thứ tự cột:</strong> Cột A (Tác giả) | Cột B (Tên đề tài) | Cột C (Giảng viên hướng dẫn) | Cột D (Lớp) | Cột E (Chuyên ngành)<br>
-                <em>Mẹo: Nếu có 2 Giảng viên, hãy dùng dấu phẩy ngăn cách ở Cột C.</em>
-            </p>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px;">
+                <div>
+                    <h3 style="margin-top: 0; margin-bottom: 10px; color: #b45309;"><i class="fas fa-file-import"></i> Nhập dữ liệu hàng loạt từ Excel</h3>
+                    <p style="font-size: 0.9rem; color: #78350f; margin-bottom: 15px; line-height: 1.6;">
+                        <strong>Cấu trúc file Excel bắt buộc:</strong> Hàng đầu tiên là tiêu đề. Dữ liệu bắt đầu từ hàng 2.<br>
+                        <strong>Thứ tự cột:</strong> Cột A (Tác giả) | Cột B (Tên đề tài) | Cột C (Giảng viên hướng dẫn) | Cột D (Lớp) | Cột E (Chuyên ngành)<br>
+                        <em>Mẹo: Nếu có 2 Giảng viên, hãy dùng dấu "/" để ngăn cách ở Cột C.</em>
+                    </p>
+                </div>
+                <!-- Nút tải file mẫu -->
+                <button id="btnDownloadTemplate" class="btn-secondary"><i class="fas fa-download"></i> Tải Excel Mẫu</button>
+            </div>
+            
             <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;">
                 <input type="file" id="excelFile" accept=".xlsx, .xls, .csv" style="display: none;">
                 <button id="btnSelectFile" class="btn-warning" style="border: none;">Chọn file Excel</button>
@@ -142,12 +159,11 @@
                         <option value="Vật lý trị liệu">Vật lý trị liệu</option>
                         <option value="Hoạt động trị liệu">Hoạt động trị liệu</option>
                         <option value="Ngôn ngữ trị liệu">Ngôn ngữ trị liệu</option>
-                        <option value="Khác">Khác</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label>Giảng viên hướng dẫn *</label>
-                    <input type="text" id="addAdvisor" placeholder="Cách nhau bằng dấu phẩy">
+                    <input type="text" id="addAdvisor" placeholder="Cách nhau bằng dấu /">
                 </div>
                 <div class="form-group">
                     <label>&nbsp;</label>
@@ -299,7 +315,7 @@
         
         const thesesApp = initializeApp(thesesFirebaseConfig, "ThesesDatabase");
         const firestoreDb = getFirestore(thesesApp);
-        const firestoreAuth = firebase.auth(); // Dùng Auth từ hệ thống gốc (bmphcn)
+        const firestoreAuth = firebase.auth(); 
 
         const internalAdvisors = {
             "TS. Lê Minh Trí": { degree: "Tiến sĩ / Trưởng bộ môn Phục hồi chức năng", email: "leminhtri@ump.edu.vn", research: "Phục hồi chức năng thần kinh, Đột quỵ, Đau mạn tính", bio: "TS. Lê Minh Trí có hơn 15 năm kinh nghiệm giảng dạy và nghiên cứu chuyên sâu về Phục hồi chức năng thần kinh sau đột quỵ và chấn thương sọ não." },
@@ -314,8 +330,8 @@
         let targetDeleteId = null;
         let targetDeleteTitle = "";
         let generatedSecurityCode = "";
+        let lastEditedId = null; // Biến lưu ID của dòng vừa được chỉnh sửa
 
-        // Biến phục vụ Phân trang
         let currentPage = 1;
         const itemsPerPage = 30;
         let totalPages = 1;
@@ -329,6 +345,24 @@
         const btnOpenHistory = document.getElementById('btnOpenHistory');
         const filterClass = document.getElementById('filterClass'); 
         const sortSelect = document.getElementById('sortSelect'); 
+
+        // Hàm tạo và tải file Excel Mẫu
+        document.getElementById('btnDownloadTemplate').addEventListener('click', () => {
+            const templateData = [
+                ["Tác giả", "Tên đề tài", "Giảng viên hướng dẫn", "Lớp", "Chuyên ngành"],
+                ["Nguyễn Văn A", "Đánh giá chất lượng cuộc sống bệnh nhân...", "TS. Lê Minh Trí", "CN2022", "Vật lý trị liệu"],
+                ["Trần Thị B", "Ứng dụng hoạt động trị liệu trên trẻ tự kỷ...", "PGS.TS. Nguyễn Thị Bích / ThS. Phạm Ngọc Thạch", "THS2023", "Hoạt động trị liệu"]
+            ];
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(templateData);
+            
+            // Chỉnh độ rộng cột cho đẹp
+            ws['!cols'] = [ {wpx: 20}, {wpx: 50}, {wpx: 30}, {wpx: 15}, {wpx: 20} ];
+
+            XLSX.utils.book_append_sheet(wb, ws, "LuanVan_Mau");
+            XLSX.writeFile(wb, "Bieu_Mau_Nhap_Luan_Van.xlsx");
+        });
 
         async function logAction(actionType, detailString) {
             if (!firestoreAuth.currentUser) return;
@@ -348,7 +382,7 @@
                 btn.classList.add('active');
                 currentTab = btn.getAttribute('data-tab'); 
                 filterClass.value = 'Tất cả';
-                currentPage = 1; // Đưa về trang 1 khi đổi Tab
+                currentPage = 1; 
                 updateDynamicFilters(); 
                 renderTable();
             });
@@ -368,7 +402,6 @@
         document.getElementById('addLevel').addEventListener('change', (e) => populateYears(e.target.value));
         populateYears('CN');
 
-        // Lắng nghe đăng nhập để ẩn/hiện công cụ
         firestoreAuth.onAuthStateChanged((user) => {
             if (user) {
                 isAdmin = true;
@@ -439,7 +472,6 @@
             document.getElementById('totalCountText').innerText = allTheses.filter(t => (t.studentClass || '').startsWith(currentTab)).length;
             document.getElementById('filteredCountText').innerText = filtered.length;
 
-            // Xử lý Phân trang
             totalPages = Math.ceil(filtered.length / itemsPerPage) || 1;
             if (currentPage > totalPages) currentPage = totalPages;
             
@@ -453,20 +485,22 @@
             tableBody.innerHTML = paginatedData.length === 0 ? '<tr><td colspan="6" style="text-align:center;padding:30px">Không tìm thấy kết quả</td></tr>' : '';
 
             paginatedData.forEach((t, i) => {
-                const actualIndex = startIndex + i + 1; // Số thứ tự theo tổng danh sách
+                const actualIndex = startIndex + i + 1;
                 let actionHtml = '';
                 if (isAdmin) {
                     const dataStr = encodeURIComponent(JSON.stringify(t)).replace(/'/g, "%27");
                     actionHtml = `<td class="td-action" align="center"><button class="btn-sm btn-warning" onclick="triggerEdit('${dataStr}')">Sửa</button> <button class="btn-sm btn-danger" onclick="triggerDeleteConfirm('${t.id}', '${encodeURIComponent(t.title||'').replace(/'/g, "%27")}')">Xóa</button></td>`;
                 }
 
-                const advHtml = (t.advisor||'').split(',').map(a => {
+                // Tương thích với cách chia tách bằng dấu / hoặc ,
+                const advHtml = (t.advisor||'').split(/[\/,]+/).map(a => {
                     let n = a.trim();
                     return internalAdvisors[n] ? `<span class="advisor-link" onclick="openAdvisorModal('${encodeURIComponent(n).replace(/'/g, "%27")}')">${n}</span>` : n;
                 }).join('<br>');
 
+                // Gắn ID vào thẻ tr để scroll tới sau khi Sửa
                 tableBody.innerHTML += `
-                    <tr>
+                    <tr id="row-${t.id}">
                         <td align="center" style="color:#94a3b8;font-weight:bold">${actualIndex}</td>
                         <td><b>${t.author}</b></td>
                         <td style="white-space:normal;font-weight:600;color:var(--text-dark)">${t.title}</td>
@@ -478,9 +512,21 @@
                         ${actionHtml}
                     </tr>`;
             });
+
+            // Sau khi render xong bảng, kiểm tra xem có phải vừa sửa xong không
+            // Nếu có, thực hiện cuộn và nháy sáng
+            if (lastEditedId) {
+                setTimeout(() => {
+                    const targetRow = document.getElementById(`row-${lastEditedId}`);
+                    if (targetRow) {
+                        targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        targetRow.classList.add('highlight-row');
+                        lastEditedId = null; // Trả lại rỗng để không nháy nữa ở lần render sau
+                    }
+                }, 300); // Chờ 300ms để DOM cập nhật xong
+            }
         }
 
-        // Đăng ký event thay đổi Lọc, Tìm kiếm
         document.getElementById('searchInput').addEventListener('input', () => { currentPage = 1; renderTable(); });
         filterClass.addEventListener('change', () => { currentPage = 1; renderTable(); });
         sortSelect.addEventListener('change', () => { currentPage = 1; renderTable(); });
@@ -548,9 +594,11 @@
             };
             
             try {
-                if(isEditing && document.getElementById('editId').value) {
-                    await updateDoc(doc(firestoreDb, "theses", document.getElementById('editId').value), obj);
+                const editIdValue = document.getElementById('editId').value;
+                if(isEditing && editIdValue) {
+                    await updateDoc(doc(firestoreDb, "theses", editIdValue), obj);
                     logAction("SỬA", `Lớp: ${obj.studentClass} | Đề tài: "${title.toUpperCase()}"`);
+                    lastEditedId = editIdValue; // Ghi nhớ ID vừa sửa
                 } else {
                     await addDoc(collection(firestoreDb, "theses"), obj);
                     logAction("THÊM", `Lớp: ${obj.studentClass} | Đề tài: "${title.toUpperCase()}"`);
@@ -574,12 +622,30 @@
                 if(yr) document.getElementById('addYear').value = yr;
             }
             
+            // Nếu giảng viên muốn sửa khác tab hệ hiện hành, chuyển đổi tab trước
+            if (t.studentClass) {
+                const targetLvl = t.studentClass.startsWith('THS') ? 'THS' : 'CN';
+                if (currentTab !== targetLvl) {
+                    document.querySelectorAll('.tab-btn').forEach(b => {
+                        b.classList.remove('active');
+                        if(b.getAttribute('data-tab') === targetLvl) {
+                            b.classList.add('active');
+                        }
+                    });
+                    currentTab = targetLvl;
+                    filterClass.value = 'Tất cả';
+                    currentPage = 1;
+                    updateDynamicFilters();
+                }
+            }
+            
             isEditing = true;
             document.getElementById('formTitle').innerText = 'Sửa đề tài';
             document.getElementById('editModeBadge').classList.remove('hidden');
             document.getElementById('btnCancelEditContainer').classList.remove('hidden');
             document.getElementById('btnSaveData').innerText = 'Cập nhật';
-            document.getElementById('adminSection').scrollIntoView({behavior: 'smooth'});
+            // Tự động cuộn mượt mà lên khu vực form sửa
+            document.getElementById('adminSection').scrollIntoView({behavior: 'smooth', block: 'start'});
         };
 
         document.getElementById('btnCancelEdit').onclick = resetForm;
