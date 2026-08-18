@@ -38,7 +38,7 @@
 </head>
 <body style="display: flex; flex-direction: column; min-height: 100vh;">
     
-    <!-- 1. HEADER CHUNG (Tự động load từ layout.js) -->
+    <!-- 1. HEADER CHUNG -->
     <div id="header-placeholder"></div>
 
     <!-- 2. NỘI DUNG CHÍNH (DASHBOARD) -->
@@ -82,7 +82,7 @@
         </section>
     </main>
 
-    <!-- 3. FOOTER CHUNG (Tự động load từ layout.js) -->
+    <!-- 3. FOOTER CHUNG -->
     <div id="footer-placeholder"></div>
 
     <!-- 4. GỌI LAYOUT CHUNG -->
@@ -108,23 +108,26 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Chờ layout.js chèn Header xong mới bắt đầu thao tác
+        // Đợi layout.js load xong Header rồi mới tùy chỉnh DOM
         setTimeout(() => {
             const dashboardAvatarContainer = document.getElementById('dashboardAvatarContainer');
             const welcomeTitle = document.getElementById('welcomeTitle');
             const navLinks = document.getElementById('nav-links');
             const btnAuthNav = document.getElementById('btnAuthNav');
 
-            // Xóa nút "Đăng nhập" cũ và thay bằng [Profile + Logout]
-            if(navLinks && btnAuthNav) {
+            // 1. Gỡ nút "Đăng nhập giảng viên" mặc định
+            if (btnAuthNav) {
                 btnAuthNav.remove(); 
-                
+            }
+            
+            // 2. Tạo sẵn Nút Xem Hồ Sơ và Nút Đăng Xuất trên Navbar
+            if (navLinks) {
                 const profileBtn = document.createElement('a');
                 profileBtn.href = "profile.html";
                 profileBtn.className = "user-profile-header";
                 profileBtn.title = "Xem hồ sơ của bạn";
                 profileBtn.innerHTML = `
-                    <div class="header-avatar-placeholder"><i class="fas fa-user"></i></div>
+                    <div class="header-avatar-placeholder" id="navAvatarPlaceholder"><i class="fas fa-user"></i></div>
                     <span id="headerNameDisplay">Đang tải...</span>
                 `;
 
@@ -134,7 +137,7 @@
                 
                 logoutBtn.addEventListener('click', async () => {
                     await signOut(auth);
-                    window.location.replace("login.html");
+                    window.location.href = "login.html"; // Chuyển trang an toàn
                 });
 
                 navLinks.appendChild(profileBtn);
@@ -147,14 +150,14 @@
                     try {
                         const userDoc = await getDoc(doc(db, "users", user.uid));
                         const headerNameDisplay = document.getElementById('headerNameDisplay');
-                        const userProfileHeader = document.querySelector('.user-profile-header');
+                        const navAvatarPlaceholder = document.getElementById('navAvatarPlaceholder');
 
                         if (userDoc.exists()) {
                             const data = userDoc.data();
                             
-                            // Xử lý tên
+                            // Xử lý Hiển thị Tên
                             let titleName = data.fullName || "Giảng viên";
-                            if(data.degree) {
+                            if (data.degree) {
                                 let degreePrefix = data.degree === 'ThS' ? 'ThS. ' : (data.degree === 'TS' ? 'TS. ' : '');
                                 titleName = `${degreePrefix}${data.fullName}`;
                             }
@@ -162,28 +165,30 @@
                             if (headerNameDisplay) headerNameDisplay.innerText = titleName;
                             if (welcomeTitle) welcomeTitle.innerText = `Xin chào, ${titleName}`;
 
-                            // Xử lý Avatar
+                            // Xử lý Hiển thị Ảnh đại diện (Avatar)
                             if (data.avatar) {
-                                if(userProfileHeader) {
-                                    userProfileHeader.querySelector('.header-avatar-placeholder').outerHTML = `<img src="${data.avatar}" alt="Avatar">`;
+                                if (navAvatarPlaceholder) {
+                                    navAvatarPlaceholder.outerHTML = `<img src="${data.avatar}" alt="Avatar">`;
                                 }
-                                if(dashboardAvatarContainer) {
+                                if (dashboardAvatarContainer) {
                                     dashboardAvatarContainer.innerHTML = `<img src="${data.avatar}" alt="Avatar">`;
                                 }
                             }
                         } else {
-                            if (headerNameDisplay) headerNameDisplay.innerText = "Hồ sơ chưa cập nhật";
+                            if (headerNameDisplay) headerNameDisplay.innerText = "Chưa cập nhật";
                             if (welcomeTitle) welcomeTitle.innerText = "Vui lòng cập nhật hồ sơ giảng viên";
                         }
                     } catch (error) {
-                        console.error("Lỗi:", error);
+                        console.error("Lỗi tải dữ liệu người dùng:", error);
+                        const headerNameDisplay = document.getElementById('headerNameDisplay');
                         if (headerNameDisplay) headerNameDisplay.innerText = user.email;
                     }
                 } else {
-                    window.location.replace("login.html");
+                    // Nếu chưa đăng nhập, đá văng ra ngoài
+                    window.location.href = "login.html";
                 }
             });
-        }, 100); // Chờ 100ms
+        }, 150); // Chờ 150ms đảm bảo DOM từ layout.js đã nằm gọn trong HTML
     </script>
 </body>
 </html>
