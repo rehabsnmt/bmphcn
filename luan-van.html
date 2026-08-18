@@ -7,18 +7,12 @@
     
     <link rel="icon" href="images/logo_Bộ môn.png" type="image/png">
     
-    <!-- Link CSS gốc để đồng bộ giao diện -->
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     
     <style>
-        /* =========================================
-           TÙY CHỈNH DÀNH RIÊNG CHO TRANG LUẬN VĂN
-        ========================================= */
         main { max-width: 1200px; padding: 2rem 3%; margin: 0 auto; }
-
-        /* Tiêu đề căn giữa */
         .header-actions { display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid var(--border); gap: 10px; }
         .header-title-box h2 { font-size: 1.6rem; color: var(--text-dark); margin: 0; font-weight: 700; }
         .header-title-box .subtitle { font-size: 1rem; color: var(--text-body); font-weight: 600; margin-top: 5px; }
@@ -27,7 +21,6 @@
         .section-box { background: var(--surface); padding: 25px; border-radius: var(--radius-md); margin-bottom: 20px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
         .hidden { display: none !important; }
 
-        /* Bố cục Form */
         .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; align-items: end; }
         .form-group { display: flex; flex-direction: column; }
         .form-group label { font-size: 0.85rem; font-weight: 600; color: var(--text-dark); margin-bottom: 5px; }
@@ -37,13 +30,11 @@
         }
         select:focus, input[type="text"]:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15); background-color: var(--surface); }
 
-        /* Tabs Chuyển hệ */
         .tabs-header { display: flex; border-bottom: 2px solid var(--border); margin-bottom: 20px; gap: 10px; }
         .tab-btn { flex: 1; padding: 12px; text-align: center; font-size: 1rem; font-weight: 600; color: var(--text-body); background: transparent; border: none; cursor: pointer; transition: var(--transition); border-bottom: 3px solid transparent; }
         .tab-btn:hover { color: var(--text-dark); }
         .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
 
-        /* Nút phụ đặc thù */
         button { cursor: pointer; transition: var(--transition); font-family: inherit; }
         .btn-primary { background-color: var(--primary); color: white; padding: 0.6rem 1.2rem; border-radius: var(--radius-pill); border: none; font-weight: 500; }
         .btn-primary:hover { background-color: var(--primary-hover); }
@@ -58,7 +49,6 @@
         .btn-page { background-color: var(--surface); color: var(--text-dark); border: 1px solid var(--border); padding: 5px 15px; border-radius: 6px; font-weight: 600; }
         .btn-page:hover:not(:disabled) { background-color: var(--primary-light); color: var(--primary); border-color: var(--primary); }
 
-        /* Bảng hiển thị */
         .table-container { overflow-x: auto; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--surface); box-shadow: var(--shadow-sm); position: relative; }
         table { width: 100%; border-collapse: collapse; white-space: nowrap; font-size: 0.95rem; }
         th, td { padding: 15px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: middle; }
@@ -71,9 +61,6 @@
         .advisor-link { color: var(--primary); font-weight: 600; cursor: pointer; text-decoration: none; border-bottom: 1px dashed var(--primary); }
         .advisor-link:hover { color: var(--primary-hover); border-bottom-style: solid; }
 
-        /* =========================================
-           CSS THÔNG BÁO TOAST (POPUP GÓC DƯỚI)
-        ========================================= */
         .toast-container {
             position: fixed;
             bottom: 20px;
@@ -120,7 +107,7 @@
 </head>
 <body style="display: flex; flex-direction: column; min-height: 100vh;">
 
-    <!-- 1. HEADER CHUNG (Tự động load từ layout.js) -->
+    <!-- 1. HEADER CHUNG -->
     <div id="header-placeholder"></div>
 
     <!-- Khung chứa thông báo nổi -->
@@ -320,18 +307,14 @@
         </div>
     </div>
 
-    <!-- 3. FOOTER CHUNG (Tự động load từ layout.js) -->
+    <!-- 3. FOOTER CHUNG -->
     <div id="footer-placeholder"></div>
 
-    <!-- 4. GỌI LAYOUT CHUNG ĐỂ CHÈN HEADER VÀ FOOTER -->
     <script src="js/layout.js"></script>
-
-    <!-- 5. FIREBASE SCRIPT TỪ DỰ ÁN MỚI -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, query, orderBy, limit, getDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
         
         // CHỈ DÙNG 1 CẤU HÌNH DUY NHẤT TỪ BMPHCN
@@ -347,12 +330,25 @@
         
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const auth = firebase.auth(); 
+        const auth = getAuth(app); // CẬP NHẬT CÚ PHÁP LẤY AUTH V9
 
         const internalAdvisors = {
             "TS. Lê Minh Trí": { degree: "Tiến sĩ / Trưởng bộ môn Phục hồi chức năng", email: "leminhtri@ump.edu.vn", research: "Phục hồi chức năng thần kinh, Đột quỵ, Đau mạn tính", bio: "TS. Lê Minh Trí có hơn 15 năm kinh nghiệm giảng dạy và nghiên cứu chuyên sâu về Phục hồi chức năng thần kinh sau đột quỵ và chấn thương sọ não." },
             "ThS. Phạm Ngọc Thạch": { degree: "Thạc sĩ / Giảng viên", email: "phamngocthach@ump.edu.vn", research: "Vật lý trị liệu cơ xương khớp, Phục hồi thể thao", bio: "ThS. Phạm Ngọc Thạch tốt nghiệp chuyên ngành VLTL tại nước ngoài, chuyên phụ trách mảng phục hồi chấn thương thể thao và can thiệp cột sống." },
-            "PGS.TS. Nguyễn Thị Bích": { degree: "Phó Giáo sư / Tiến sĩ", email: "nguyenthibich@ump.edu.vn", research: "Hoạt động trị liệu, Phục hồi chức năng nhi khoa", bio: "PGS.TS Nguyễn Thị Bích là chuyên gia đầu ngành trong lĩnh vực đánh giá và can thiệp Hoạt động trị liệu cho trẻ tự kỷ và bại não." }
+            "PGS.TS. Nguyễn Thị Bích": { degree: "Phó Giáo sư / Tiến sĩ", email: "nguyenthibich@ump.edu.vn", research: "Hoạt động trị liệu, Phục hồi chức năng nhi khoa", bio: "PGS.TS Nguyễn Thị Bích là chuyên gia đầu ngành trong lĩnh vực đánh giá và can thiệp Hoạt động trị liệu cho trẻ tự kỷ và bại não." },
+            "ThS. Cao Minh Hạnh": { degree: "Thạc sĩ / Giảng viên", email: "cmhanhpt@ump.edu.vn", research: "Nhi khoa", bio: ""},
+            "TS. Nguyễn Thanh Duy": { degree: "Tiến sĩ / Giảng viên", email: "thduypt@ump.edu.vn", research: "Thần kinh", bio: ""},
+            "ThS. Huỳnh Chung": { degree: "Thạc sĩ / Giảng viên", email: "huynhchungpt@ump.edu.vn", research: "Tim mạch - Hô hấp", bio: ""},
+            "ThS. Nguyễn Minh Sang": { degree: "Thạc sĩ / Giảng viên", email: "ngmsangpt@ump.edu.vn", research: "Cơ Xương Khớp", bio: ""},
+            "ThS. Trần Thị Bích Hạnh": { degree: "Thạc sĩ / Giảng viên", email: "hanhtranpt@ump.edu.vn", research: "Hoạt động trị liệu", bio: ""},
+            "TS. Nguyễn Ngọc Minh": { degree: "Tiến sĩ / Giảng viên", email: "minhngpt@ump.edu.vn", research: "Cơ Xương Khớp, Y học thể thao", bio: ""},
+            "ThS. Phạm Ngọc Đạt": { degree: "Thạc sĩ / Giảng viên", email: "phamngocdat@ump.edu.vn", research: "Cơ Xương Khớp", bio: ""},
+            "ThS. Nguyễn Huỳnh Ngọc Mai Trâm": { degree: "Thạc sĩ / Giảng viên", email: "nguyen.tram@ump.edu.vn", research: "Hoạt động trị liệu", bio: ""},
+            "ThS. Nguyễn Đức Sinh": { degree: "Thạc sĩ / Giảng viên", email: "nguyenducsinhpt@ump.edu.vn", research: "Hoạt động trị liệu", bio: ""},
+            "ThS. Trần Long Biên": { degree: "Thạc sĩ / Giảng viên", email: "tlbien@ump.edu.vn", research: "Cơ Xương Khớp", bio: ""},
+            "ThS. Trần Hữu Đức": { degree: "Thạc sĩ / Giảng viên", email: "tranhuuduc@ump.edu.vn", research: "Cơ Xương Khớp", bio: ""},
+            "ThS. Phan Thế Nguyên": { degree: "Thạc sĩ / Giảng viên", email: "phanthenguyenpt@ump.edu.vn", research: "Thần kinh", bio: ""},
+            "ThS. Nguyễn Mai Ngọc Đoan": { degree: "Thạc sĩ / Giảng viên", email: "nguyenmaingocdoan@ump.edu.vn", research: "Nhi khoa", bio: ""}
         };
 
         let allTheses = [];
@@ -369,6 +365,8 @@
         let currentPage = 1;
         const itemsPerPage = 30;
         let totalPages = 1;
+        
+        let unsubscribeLogs = null;
 
         const tableBody = document.getElementById('dataTableBody');
         const thAction = document.getElementById('thAction');
@@ -452,7 +450,7 @@
         document.getElementById('addLevel').addEventListener('change', (e) => populateYears(e.target.value));
         populateYears('CN');
 
-        auth.onAuthStateChanged((user) => {
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
                 isAdmin = true;
                 btnOpenBulk.classList.remove('hidden');
@@ -463,16 +461,22 @@
                 setTimeout(async () => {
                     const btnAuthNav = document.getElementById('btnAuthNav');
                     if(btnAuthNav) {
-                        const userDoc = await getDoc(doc(db, "users", user.uid));
-                        if (userDoc.exists()) {
-                            const data = userDoc.data();
-                            let degreePrefix = data.degree === 'ThS' ? 'ThS. ' : (data.degree === 'TS' ? 'TS. ' : '');
-                            btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 5px;"></i> ${degreePrefix}${data.fullName || 'Giảng viên'}`;
+                        try {
+                            const userDoc = await getDoc(doc(db, "users", user.uid));
+                            if (userDoc.exists()) {
+                                const data = userDoc.data();
+                                let degreePrefix = data.degree === 'ThS' ? 'ThS. ' : (data.degree === 'TS' ? 'TS. ' : '');
+                                btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 5px;"></i> ${degreePrefix}${data.fullName || 'Giảng viên'}`;
+                            } else {
+                                btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 5px;"></i> Giảng viên`;
+                            }
+                        } catch (error) {
+                            console.error("Lỗi lấy thông tin:", error);
                         }
                     }
                 }, 100);
 
-                onSnapshot(query(collection(db, "logs"), orderBy("timestamp", "desc"), limit(50)), (snap) => {
+                unsubscribeLogs = onSnapshot(query(collection(db, "logs"), orderBy("timestamp", "desc"), limit(50)), (snap) => {
                     const historyBody = document.getElementById('historyTableBody');
                     historyBody.innerHTML = snap.empty ? '<tr><td colspan="4" align="center">Chưa có</td></tr>' : '';
                     snap.forEach(d => {
@@ -487,6 +491,10 @@
                     });
                 });
             } else {
+                if (unsubscribeLogs) {
+                    unsubscribeLogs();
+                    unsubscribeLogs = null;
+                }
                 isAdmin = false;
                 adminSection.classList.add('hidden');
                 bulkSection.classList.add('hidden');
