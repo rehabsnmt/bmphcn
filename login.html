@@ -339,18 +339,8 @@
                 .then((userCredential) => {
                     const user = userCredential.user;
                     
-                    // Kiểm tra trạng thái xác minh email
-                    if (!user.emailVerified) {
-                        // Bắt buộc đăng xuất nếu chưa xác minh
-                        firebase.auth().signOut().then(() => {
-                            btnSubmit.disabled = false;
-                            btnSubmit.innerText = "Đăng nhập";
-                            showMessage("Tài khoản chưa được xác minh. Vui lòng kiểm tra hộp thư email (kể cả thư rác) và nhấp vào liên kết xác minh trước khi đăng nhập.");
-                        });
-                    } else {
-                        // Chuyển hướng sang dashboard nếu hợp lệ
-                        window.location.href = "dashboard.html";
-                    }
+                   // Đã bỏ kiểm tra trạng thái xác minh email, chuyển hướng thẳng sang dashboard
+                    window.location.href = "dashboard.html";
                 })
                 .catch((error) => {
                     btnSubmit.disabled = false;
@@ -365,7 +355,6 @@
                     }
                 });
         });
-
         // --- 6. LOGIC ĐĂNG KÝ VÀ LƯU HỒ SƠ ---
         document.getElementById('btnRegisterSubmit').addEventListener('click', () => {
             const facultyId = regSelect.value;
