@@ -266,7 +266,7 @@
                 <p><strong><i class="fas fa-envelope" style="color:var(--primary); margin-right:8px;"></i></strong> <span id="modalEmail">...</span></p>
                 <p><strong><i class="fas fa-microscope" style="color:var(--primary); margin-right:8px;"></i></strong> <span id="modalResearch">...</span></p>
                 <p style="margin-top: 15px; margin-bottom: 5px;"><strong><i class="fas fa-info-circle" style="color:var(--primary); margin-right:8px;"></i>Giới thiệu:</strong></p>
-                <p id="modalBio" style="background: var(--bg-page); padding: 12px; border-radius: 8px; color: var(--text-body); margin: 0; font-style: italic;">...</p>
+                <p id="modalBio" style="background: var(--bg-page); padding: 12px; border-radius: 8px; color: var(--text-body); margin: 0; line-height: 1.6;">...</p>
             </div>
         </div>
     </div>
@@ -312,12 +312,12 @@
 
     <script src="js/layout.js"></script>
 
+    <!-- FIREBASE SCRIPT V9 TỪ DỰ ÁN MỚI -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, query, orderBy, limit, getDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
         
-        // CHỈ DÙNG 1 CẤU HÌNH DUY NHẤT TỪ BMPHCN
         const firebaseConfig = {
             apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY",
             authDomain: "bmphcn-aa9c6.firebaseapp.com",
@@ -330,27 +330,97 @@
         
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const auth = getAuth(app); // CẬP NHẬT CÚ PHÁP LẤY AUTH V9
+        const auth = getAuth(app); 
 
+        // ==========================================
+        // DANH SÁCH THÔNG TIN GIẢNG VIÊN ĐẦY ĐỦ
+        // ==========================================
         const internalAdvisors = {
-            "TS. Lê Minh Trí": { degree: "Tiến sĩ / Trưởng bộ môn Phục hồi chức năng", email: "leminhtri@ump.edu.vn", research: "Phục hồi chức năng thần kinh, Đột quỵ, Đau mạn tính", bio: "TS. Lê Minh Trí có hơn 15 năm kinh nghiệm giảng dạy và nghiên cứu chuyên sâu về Phục hồi chức năng thần kinh sau đột quỵ và chấn thương sọ não." },
-            "ThS. Phạm Ngọc Thạch": { degree: "Thạc sĩ / Giảng viên", email: "phamngocthach@ump.edu.vn", research: "Vật lý trị liệu cơ xương khớp, Phục hồi thể thao", bio: "ThS. Phạm Ngọc Thạch tốt nghiệp chuyên ngành VLTL tại nước ngoài, chuyên phụ trách mảng phục hồi chấn thương thể thao và can thiệp cột sống." },
-            "PGS.TS. Nguyễn Thị Bích": { degree: "Phó Giáo sư / Tiến sĩ", email: "nguyenthibich@ump.edu.vn", research: "Hoạt động trị liệu, Phục hồi chức năng nhi khoa", bio: "PGS.TS Nguyễn Thị Bích là chuyên gia đầu ngành trong lĩnh vực đánh giá và can thiệp Hoạt động trị liệu cho trẻ tự kỷ và bại não." },
-            "ThS. Cao Minh Hạnh": { degree: "Thạc sĩ / Giảng viên", email: "cmhanhpt@ump.edu.vn", research: "Nhi khoa", bio: ""},
-            "TS. Nguyễn Thanh Duy": { degree: "Tiến sĩ / Giảng viên", email: "thduypt@ump.edu.vn", research: "Thần kinh", bio: ""},
-            "ThS. Huỳnh Chung": { degree: "Thạc sĩ / Giảng viên", email: "huynhchungpt@ump.edu.vn", research: "Tim mạch - Hô hấp", bio: ""},
-            "ThS. Nguyễn Minh Sang": { degree: "Thạc sĩ / Giảng viên", email: "ngmsangpt@ump.edu.vn", research: "Cơ Xương Khớp", bio: ""},
-            "ThS. Trần Thị Bích Hạnh": { degree: "Thạc sĩ / Giảng viên", email: "hanhtranpt@ump.edu.vn", research: "Hoạt động trị liệu", bio: ""},
-            "TS. Nguyễn Ngọc Minh": { degree: "Tiến sĩ / Giảng viên", email: "minhngpt@ump.edu.vn", research: "Cơ Xương Khớp, Y học thể thao", bio: ""},
-            "ThS. Phạm Ngọc Đạt": { degree: "Thạc sĩ / Giảng viên", email: "phamngocdat@ump.edu.vn", research: "Cơ Xương Khớp", bio: ""},
-            "ThS. Nguyễn Huỳnh Ngọc Mai Trâm": { degree: "Thạc sĩ / Giảng viên", email: "nguyen.tram@ump.edu.vn", research: "Hoạt động trị liệu", bio: ""},
-            "ThS. Nguyễn Đức Sinh": { degree: "Thạc sĩ / Giảng viên", email: "nguyenducsinhpt@ump.edu.vn", research: "Hoạt động trị liệu", bio: ""},
-            "ThS. Trần Long Biên": { degree: "Thạc sĩ / Giảng viên", email: "tlbien@ump.edu.vn", research: "Cơ Xương Khớp", bio: ""},
-            "ThS. Trần Hữu Đức": { degree: "Thạc sĩ / Giảng viên", email: "tranhuuduc@ump.edu.vn", research: "Cơ Xương Khớp", bio: ""},
-            "ThS. Phan Thế Nguyên": { degree: "Thạc sĩ / Giảng viên", email: "phanthenguyenpt@ump.edu.vn", research: "Thần kinh", bio: ""},
-            "ThS. Nguyễn Mai Ngọc Đoan": { degree: "Thạc sĩ / Giảng viên", email: "nguyenmaingocdoan@ump.edu.vn", research: "Nhi khoa", bio: ""}
+            "TS. Lê Thanh Vân": { 
+                degree: "Tiến sĩ / Trưởng Bộ môn", 
+                email: "lethanhvan@ump.edu.vn", 
+                research: "Vật lý trị liệu", 
+                bio: "Lê Thanh Vân" 
+            },
+            "TS. Nguyễn Thanh Duy": { 
+                degree: "Tiến sĩ / Giảng viên", 
+                email: "thduypt@ump.edu.vn", 
+                research: "Vật lý trị liệu", 
+                bio: "Nguyễn Thanh Duy" 
+            },
+            "ThS. Phan Thế Nguyên": { 
+                degree: "Thạc sĩ / Giáo vụ Sau Đại học", 
+                email: "phanthenguyenpt@ump.edu.vn", 
+                research: "Vật lý trị liệu", 
+                bio: "Phan Thế Nguyên" 
+            },
+            "ThS. Cao Minh Hạnh": { 
+                degree: "Thạc sĩ / Giảng viên", 
+                email: "cmhanhpt@ump.edu.vn", 
+                research: "Vật lý trị liệu", 
+                bio: "Cao Minh Hạnh" 
+            },
+            "ThS. Huỳnh Chung": { 
+                degree: "Thạc sĩ / Giảng viên", 
+                email: "huynhchungpt@ump.edu.vn", 
+                research: "Vật lý trị liệu", 
+                bio: "Huỳnh Chung" 
+            },
+            "ThS. Nguyễn Minh Sang": { 
+                degree: "Thạc sĩ / Giảng viên", 
+                email: "ngmsangpt@ump.edu.vn", 
+                research: "Vật lý trị liệu", 
+                bio: "Nguyễn Minh Sang" 
+            },
+            "ThS. Trần Thị Bích Hạnh": { 
+                degree: "Thạc sĩ / Giảng viên", 
+                email: "hanhtranpt@ump.edu.vn", 
+                research: "Ngôn ngữ trị liệu", 
+                bio: "Trần Thị Bích Hạnh" 
+            },
+            "TS. Nguyễn Ngọc Minh": { 
+                degree: "Tiến sĩ / Giảng viên", 
+                email: "minhngpt@ump.edu.vn", 
+                research: "Vật lý trị liệu", 
+                bio: "Nguyễn Ngọc Minh" 
+            },
+            "ThS. Phạm Ngọc Đạt": { 
+                degree: "Thạc sĩ / Giảng viên", 
+                email: "phamngocdat@ump.edu.vn", 
+                research: "Hoạt động trị liệu", 
+                bio: "Phạm Ngọc Đạt" 
+            },
+            "ThS. Nguyễn Huỳnh Ngọc Mai Trâm": { 
+                degree: "Thạc sĩ / Giảng viên", 
+                email: "nguyen.tram@ump.edu.vn", 
+                research: "Hoạt động trị liệu", 
+                bio: "Nguyễn Huỳnh Ngọc Mai Trâm" 
+            },
+            "ThS. Nguyễn Đức Sinh": { 
+                degree: "Thạc sĩ / Giảng viên", 
+                email: "nguyenducsinhpt@ump.edu.vn", 
+                research: "Ngôn ngữ trị liệu", 
+                bio: "Nguyễn Đức Sinh" 
+            },
+            "ThS. Trần Long Biên": { 
+                degree: "Thạc sĩ / Giảng viên", 
+                email: "tlbien@ump.edu.vn", 
+                research: "Vật lý trị liệu", 
+                bio: "Trần Long Biên" 
+            },
+            "ThS. Trần Hữu Đức": { 
+                degree: "Thạc sĩ / Giảng viên", 
+                email: "tranhuuduc@ump.edu.vn", 
+                research: "Ngôn ngữ trị liệu", 
+                bio: "Trần Hữu Đức" 
+            },
+            "ThS. Nguyễn Mai Ngọc Đoan": { 
+                degree: "Thạc sĩ / Giảng viên", 
+                email: "nguyenmaingocdoan@ump.edu.vn", 
+                research: "Vật lý trị liệu", 
+                bio: "Nguyễn Mai Ngọc Đoan" 
+            }
         };
-
         let allTheses = [];
         let isAdmin = false;
         let isEditing = false; 
@@ -402,8 +472,8 @@
         document.getElementById('btnDownloadTemplate').addEventListener('click', () => {
             const templateData = [
                 ["Tác giả", "Tên đề tài", "Giảng viên hướng dẫn", "Lớp", "Chuyên ngành"],
-                ["Nguyễn Văn A", "Đánh giá chất lượng cuộc sống bệnh nhân...", "TS. Lê Minh Trí", "CN2022", "Vật lý trị liệu"],
-                ["Trần Thị B", "Ứng dụng hoạt động trị liệu trên trẻ tự kỷ...", "PGS.TS. Nguyễn Thị Bích / ThS. Phạm Ngọc Thạch", "THS2023", "Hoạt động trị liệu"]
+                ["Nguyễn Văn A", "Đánh giá chất lượng cuộc sống bệnh nhân...", "TS. Lê Thanh Vân", "CN2022", "Vật lý trị liệu"],
+                ["Trần Thị B", "Ứng dụng hoạt động trị liệu trên trẻ tự kỷ...", "ThS. Cao Minh Hạnh / ThS. Nguyễn Mai Ngọc Đoan", "THS2023", "Hoạt động trị liệu"]
             ];
             const wb = XLSX.utils.book_new();
             const ws = XLSX.utils.aoa_to_sheet(templateData);
@@ -577,6 +647,7 @@
                     actionHtml = `<td class="td-action" align="center"><button class="btn-sm btn-warning" onclick="triggerEdit('${dataStr}')">Sửa</button> <button class="btn-sm btn-danger" onclick="triggerDeleteConfirm('${t.id}', '${encodeURIComponent(t.title||'').replace(/'/g, "%27")}')">Xóa</button></td>`;
                 }
 
+                // Tách giảng viên bằng dấu / hoặc , 
                 const advHtml = (t.advisor||'').split(/[\/,]+/).map(a => {
                     let n = a.trim();
                     return internalAdvisors[n] ? `<span class="advisor-link" onclick="openAdvisorModal('${encodeURIComponent(n).replace(/'/g, "%27")}')">${n}</span>` : n;
