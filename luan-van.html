@@ -7,12 +7,18 @@
     
     <link rel="icon" href="images/logo_Bộ môn.png" type="image/png">
     
+    <!-- Link CSS gốc để đồng bộ giao diện -->
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     
     <style>
+        /* =========================================
+           TÙY CHỈNH DÀNH RIÊNG CHO TRANG LUẬN VĂN
+        ========================================= */
         main { max-width: 1200px; padding: 2rem 3%; margin: 0 auto; }
+
+        /* Tiêu đề căn giữa */
         .header-actions { display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid var(--border); gap: 10px; }
         .header-title-box h2 { font-size: 1.6rem; color: var(--text-dark); margin: 0; font-weight: 700; }
         .header-title-box .subtitle { font-size: 1rem; color: var(--text-body); font-weight: 600; margin-top: 5px; }
@@ -21,6 +27,7 @@
         .section-box { background: var(--surface); padding: 25px; border-radius: var(--radius-md); margin-bottom: 20px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
         .hidden { display: none !important; }
 
+        /* Bố cục Form */
         .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; align-items: end; }
         .form-group { display: flex; flex-direction: column; }
         .form-group label { font-size: 0.85rem; font-weight: 600; color: var(--text-dark); margin-bottom: 5px; }
@@ -30,11 +37,13 @@
         }
         select:focus, input[type="text"]:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15); background-color: var(--surface); }
 
+        /* Tabs Chuyển hệ */
         .tabs-header { display: flex; border-bottom: 2px solid var(--border); margin-bottom: 20px; gap: 10px; }
         .tab-btn { flex: 1; padding: 12px; text-align: center; font-size: 1rem; font-weight: 600; color: var(--text-body); background: transparent; border: none; cursor: pointer; transition: var(--transition); border-bottom: 3px solid transparent; }
         .tab-btn:hover { color: var(--text-dark); }
         .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
 
+        /* Nút phụ đặc thù */
         button { cursor: pointer; transition: var(--transition); font-family: inherit; }
         .btn-primary { background-color: var(--primary); color: white; padding: 0.6rem 1.2rem; border-radius: var(--radius-pill); border: none; font-weight: 500; }
         .btn-primary:hover { background-color: var(--primary-hover); }
@@ -51,6 +60,7 @@
         .btn-page { background-color: var(--surface); color: var(--text-dark); border: 1px solid var(--border); padding: 5px 15px; border-radius: 6px; font-weight: 600; }
         .btn-page:hover:not(:disabled) { background-color: var(--primary-light); color: var(--primary); border-color: var(--primary); }
 
+        /* Bảng hiển thị */
         .table-container { overflow-x: auto; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--surface); box-shadow: var(--shadow-sm); position: relative; }
         table { width: 100%; border-collapse: collapse; white-space: nowrap; font-size: 0.95rem; }
         th, td { padding: 15px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: middle; }
@@ -60,12 +70,16 @@
         #thAction, .td-action { position: sticky; right: 0; background-color: var(--surface); z-index: 5; box-shadow: -4px 0 8px rgba(0,0,0,0.02); border-left: 1px solid var(--border); }
         tr:hover .td-action { background-color: var(--primary-light); }
 
+        /* Tương tác tên đề tài & GVHD */
         .advisor-link { color: var(--primary); font-weight: 600; cursor: pointer; text-decoration: none; border-bottom: 1px dashed var(--primary); }
         .advisor-link:hover { color: var(--primary-hover); border-bottom-style: solid; }
         
         .thesis-title-link { cursor: pointer; color: var(--text-dark); transition: color 0.2s; font-weight: 600; line-height: 1.5; }
         .thesis-title-link:hover { color: var(--primary); }
 
+        /* =========================================
+           CSS THÔNG BÁO TOAST (POPUP GÓC DƯỚI)
+        ========================================= */
         .toast-container {
             position: fixed;
             bottom: 20px;
@@ -101,6 +115,9 @@
         .toast.warning .toast-icon { color: #f59e0b; }
         .toast.danger .toast-icon { color: #ef4444; }
 
+        /* =========================================
+           RESPONSIVE DÀNH RIÊNG CHO ĐIỆN THOẠI
+        ========================================= */
         @media (max-width: 768px) {
             .header-title-box h2 { font-size: 1.3rem; }
             .header-buttons { width: 100%; justify-content: center; margin-top: 10px; }
@@ -108,11 +125,13 @@
             .toast-container { bottom: 10px; right: 10px; left: 10px; }
             .toast { min-width: unset; width: 100%; box-sizing: border-box; }
 
+            /* ẨN CÁC CỘT KHÔNG CẦN THIẾT TRÊN MOBILE */
             .table-container th:nth-child(2), .table-container td:nth-child(2), 
             .table-container th:nth-child(4), .table-container td:nth-child(4), 
             .table-container th:nth-child(5), .table-container td:nth-child(5)  
             { display: none; }
 
+            /* Mở rộng cột tên đề tài */
             .table-container th:nth-child(3), .table-container td:nth-child(3) { width: 100% !important; min-width: unset !important; }
             .thesis-title-link { color: var(--primary); font-size: 0.95rem; }
             .mobile-hint { display: block !important; } 
@@ -121,7 +140,10 @@
 </head>
 <body style="display: flex; flex-direction: column; min-height: 100vh;">
 
+    <!-- 1. HEADER CHUNG -->
     <div id="header-placeholder"></div>
+
+    <!-- Khung chứa thông báo nổi -->
     <div id="toastContainer" class="toast-container"></div>
 
     <main style="flex: 1; padding-top: 2rem;">
@@ -138,6 +160,7 @@
             </div>
         </div>
 
+        <!-- Khung nhập file Excel -->
         <div id="bulkSection" class="section-box hidden" style="background: #fffbeb; border-color: #fde68a;">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px;">
                 <div>
@@ -163,6 +186,7 @@
             <div id="bulkLog" style="font-size: 0.9rem; font-weight: 600; color: #15803d; margin-top: 15px;"></div>
         </div>
 
+        <!-- Khung Thêm/Sửa -->
         <div id="adminSection" class="section-box hidden">
             <h3 style="margin-top: 0; color: var(--primary);">
                 <i class="fas fa-edit"></i> <span id="formTitle">Thêm đề tài mới</span>
@@ -208,6 +232,7 @@
             </div>
         </div>
 
+        <!-- Giao diện hiển thị chung -->
         <div class="tabs-header">
             <button class="tab-btn active" data-tab="CN">Cử nhân (CN)</button>
             <button class="tab-btn" data-tab="THS">Thạc sĩ (THS)</button>
@@ -257,6 +282,7 @@
             </table>
         </div>
 
+        <!-- Phân trang -->
         <div id="paginationContainer" style="display: flex; justify-content: center; align-items: center; margin-top: 20px; gap: 15px;">
             <button id="btnPrevPage" class="btn-page" onclick="changePage(-1)">Trước</button>
             <span id="pageInfo" style="font-size: 0.95rem; color: var(--text-body); font-weight: 600;">Trang 1 / 1</span>
@@ -264,7 +290,7 @@
         </div>
     </main>
 
-    <!-- MODAL CHI TIẾT ĐỀ TÀI -->
+    <!-- MODAL 1: CHI TIẾT ĐỀ TÀI TRÊN MOBILE -->
     <div id="thesisDetailModal" class="modal-overlay hidden">
         <div class="modal-content" style="max-width: 500px; text-align: left; position: relative;">
             <button class="modal-close" onclick="closeThesisDetailModal()"><i class="fas fa-times"></i></button>
@@ -294,7 +320,7 @@
         </div>
     </div>
 
-    <!-- MODAL THÔNG TIN GIẢNG VIÊN -->
+    <!-- MODAL 2: THÔNG TIN GIẢNG VIÊN -->
     <div id="advisorModal" class="modal-overlay hidden">
         <div class="modal-content" style="text-align: center;">
             <button class="modal-close" onclick="closeAdvisorModal()"><i class="fas fa-times"></i></button>
@@ -310,7 +336,7 @@
         </div>
     </div>
 
-    <!-- MODAL THÙNG RÁC (TRASH) -->
+    <!-- MODAL 3: THÙNG RÁC (TRASH) -->
     <div id="trashModal" class="modal-overlay hidden">
         <div class="modal-content" style="max-width: 900px;">
             <button class="modal-close" onclick="closeTrashModal()"><i class="fas fa-times"></i></button>
@@ -333,7 +359,7 @@
         </div>
     </div>
 
-    <!-- MODAL LỊCH SỬ -->
+    <!-- MODAL 4: LỊCH SỬ -->
     <div id="historyModal" class="modal-overlay hidden">
         <div class="modal-content" style="max-width: 900px;">
             <button class="modal-close" onclick="closeHistoryModal()"><i class="fas fa-times"></i></button>
@@ -354,7 +380,7 @@
         </div>
     </div>
 
-    <!-- MODAL XÁC NHẬN XÓA -->
+    <!-- MODAL 5: XÁC NHẬN XÓA -->
     <div id="deleteConfirmModal" class="modal-overlay hidden">
         <div class="modal-content" style="max-width: 400px; text-align: center;">
             <button class="modal-close" onclick="closeDeleteModal()"><i class="fas fa-times"></i></button>
@@ -449,19 +475,6 @@
             }, 3000);
         }
 
-        document.getElementById('btnDownloadTemplate').addEventListener('click', () => {
-            const templateData = [
-                ["Tác giả", "Tên đề tài", "Giảng viên hướng dẫn", "Lớp", "Chuyên ngành"],
-                ["Nguyễn Văn A", "Đánh giá chất lượng cuộc sống bệnh nhân...", "TS. Lê Thanh Vân", "CN2022", "Vật lý trị liệu"],
-                ["Trần Thị B", "Ứng dụng hoạt động trị liệu trên trẻ tự kỷ...", "ThS. Cao Minh Hạnh / ThS. Nguyễn Mai Ngọc Đoan", "THS2023", "Hoạt động trị liệu"]
-            ];
-            const wb = XLSX.utils.book_new();
-            const ws = XLSX.utils.aoa_to_sheet(templateData);
-            ws['!cols'] = [ {wpx: 20}, {wpx: 50}, {wpx: 30}, {wpx: 15}, {wpx: 20} ];
-            XLSX.utils.book_append_sheet(wb, ws, "LuanVan_Mau");
-            XLSX.writeFile(wb, "Bieu_Mau_Nhap_Luan_Van.xlsx");
-        });
-
         async function logAction(actionType, detailString) {
             if (!auth.currentUser) return;
             try {
@@ -508,7 +521,7 @@
                 adminSection.classList.remove('hidden');
                 thAction.classList.remove('hidden');
 
-                // Quyền riêng cho email hiển thị nút Thùng Rác
+                // Quyền riêng hiển thị nút Thùng rác
                 if (user.email.toLowerCase() === 'hoangtran1483@gmail.com') {
                     document.getElementById('btnOpenTrash').classList.remove('hidden');
                 } else {
@@ -572,9 +585,13 @@
             renderTable();
         });
 
+        // ==========================================
+        // CÁC HÀM XỬ LÝ DỮ LIỆU ĐƯỢC BỌC BỞI String()
+        // Để chống lỗi .trim() is not a function
+        // ==========================================
         function updateDynamicFilters() {
             const currClass = filterClass.value;
-            const tabClasses = [...new Set(allTheses.map(t => (t.studentClass || '').trim()).filter(c => c.startsWith(currentTab)))].sort();
+            const tabClasses = [...new Set(allTheses.map(t => String(t.studentClass || '').trim()).filter(c => c.startsWith(currentTab)))].sort();
             filterClass.innerHTML = '<option value="Tất cả">Tất cả lớp</option>';
             tabClasses.forEach(c => filterClass.innerHTML += `<option value="${c}">${c}</option>`);
             filterClass.value = tabClasses.includes(currClass) ? currClass : 'Tất cả';
@@ -592,21 +609,25 @@
             const sortType = sortSelect.value; 
 
             let filtered = allTheses.filter(t => {
-                const classStr = (t.studentClass || '').trim();
+                const classStr = String(t.studentClass || '').trim();
                 if (!classStr.startsWith(currentTab)) return false;
-                const txtMatch = (t.title||'').toLowerCase().includes(searchText) || (t.author||'').toLowerCase().includes(searchText) || (t.advisor||'').toLowerCase().includes(searchText);
+                
+                const txtMatch = String(t.title||'').toLowerCase().includes(searchText) 
+                              || String(t.author||'').toLowerCase().includes(searchText) 
+                              || String(t.advisor||'').toLowerCase().includes(searchText);
+                              
                 return txtMatch && (filterCls === 'Tất cả' || classStr === filterCls);
             });
 
             filtered.sort((a, b) => {
-                const cmp = (b.studentClass||'').localeCompare((a.studentClass||''), 'vi');
+                const cmp = String(b.studentClass||'').localeCompare(String(a.studentClass||''), 'vi');
                 if(cmp !== 0) return cmp;
-                if(sortType === 'title_asc') return (a.title||'').localeCompare((b.title||''), 'vi');
-                if(sortType === 'title_desc') return (b.title||'').localeCompare((a.title||''), 'vi');
-                return (a.author||'').localeCompare((b.author||''), 'vi');
+                if(sortType === 'title_asc') return String(a.title||'').localeCompare(String(b.title||''), 'vi');
+                if(sortType === 'title_desc') return String(b.title||'').localeCompare(String(a.title||''), 'vi');
+                return String(a.author||'').localeCompare(String(b.author||''), 'vi');
             });
 
-            document.getElementById('totalCountText').innerText = allTheses.filter(t => (t.studentClass || '').startsWith(currentTab)).length;
+            document.getElementById('totalCountText').innerText = allTheses.filter(t => String(t.studentClass || '').startsWith(currentTab)).length;
             document.getElementById('filteredCountText').innerText = filtered.length;
 
             if (lastEditedId) {
@@ -636,10 +657,10 @@
                 const dataStrObj = encodeURIComponent(JSON.stringify(t)).replace(/'/g, "%27");
 
                 if (isAdmin) {
-                    actionHtml = `<td class="td-action" align="center"><button class="btn-sm btn-warning" onclick="triggerEdit('${dataStrObj}')">Sửa</button> <button class="btn-sm btn-danger" onclick="triggerDeleteConfirm('${t.id}', '${encodeURIComponent(t.title||'').replace(/'/g, "%27")}')">Xóa</button></td>`;
+                    actionHtml = `<td class="td-action" align="center"><button class="btn-sm btn-warning" onclick="triggerEdit('${dataStrObj}')">Sửa</button> <button class="btn-sm btn-danger" onclick="triggerDeleteConfirm('${t.id}', '${encodeURIComponent(String(t.title||'')).replace(/'/g, "%27")}')">Xóa</button></td>`;
                 }
 
-                const advHtml = (t.advisor||'').split(/[\/,]+/).map(a => {
+                const advHtml = String(t.advisor||'').split(/[\/,]+/).map(a => {
                     let n = a.trim();
                     return internalAdvisors[n] ? `<span class="advisor-link" onclick="openAdvisorModal('${encodeURIComponent(n).replace(/'/g, "%27")}')">${n}</span>` : n;
                 }).join('<br>');
@@ -664,6 +685,20 @@
             });
         }
 
+        document.getElementById('searchInput').addEventListener('input', () => { currentPage = 1; renderTable(); });
+        filterClass.addEventListener('change', () => { currentPage = 1; renderTable(); });
+        sortSelect.addEventListener('change', () => { currentPage = 1; renderTable(); });
+
+        window.changePage = (step) => {
+            currentPage += step;
+            if (currentPage < 1) currentPage = 1;
+            if (currentPage > totalPages) currentPage = totalPages;
+            renderTable();
+        };
+
+        // ==========================================
+        // CÁC POPUP KHÁC
+        // ==========================================
         window.openThesisDetailModal = (encodedData) => {
             const t = JSON.parse(decodeURIComponent(encodedData));
             
@@ -672,7 +707,7 @@
             document.getElementById('detailClass').innerText = t.studentClass || '—';
             document.getElementById('detailMajor').innerText = t.major || '—';
             
-            const advHtml = (t.advisor||'').split(/[\/,]+/).map(a => {
+            const advHtml = String(t.advisor||'').split(/[\/,]+/).map(a => {
                 let n = a.trim();
                 return internalAdvisors[n] ? `<span class="advisor-link" onclick="openAdvisorModal('${encodeURIComponent(n).replace(/'/g, "%27")}')">${n}</span>` : n;
             }).join('<br>');
@@ -710,7 +745,7 @@
         window.closeHistoryModal = () => document.getElementById('historyModal').classList.add('hidden');
 
         // ==========================================
-        // CÁC HÀM XỬ LÝ THÙNG RÁC (TRASH & RESTORE)
+        // KHỐI XỬ LÝ THÙNG RÁC VÀ XÓA ĐỀ TÀI
         // ==========================================
         window.openTrashModal = async () => {
             document.getElementById('trashModal').classList.remove('hidden');
@@ -756,11 +791,8 @@
                 delete restoreData.deletedAt;
                 delete restoreData.expireAt;
 
-                // Khôi phục lại vào bảng gốc theses
                 await setDoc(doc(db, "theses", id), restoreData);
-                // Xóa khỏi thùng rác
                 await deleteDoc(doc(db, "thesesbackup", id));
-                // Xóa dòng khỏi giao diện thùng rác
                 const row = document.getElementById(`trash-row-${id}`);
                 if (row) row.remove();
                 
@@ -787,8 +819,9 @@
         
         document.getElementById('btnExecuteFinalDelete').onclick = async () => {
             if(!targetDeleteId) return;
+            
+            // 1. CHẠY SAO LƯU (BỌC BỞI TRY CATCH ĐỂ NẾU BỊ LỖI QUYỀN VẪN CHO PHÉP XÓA BẢN CHÍNH)
             try {
-                // ĐƯA VÀO THÙNG RÁC TRƯỚC KHI XÓA
                 const deletedItem = allTheses.find(t => t.id === targetDeleteId);
                 if (deletedItem) {
                     const backupData = { ...deletedItem };
@@ -801,15 +834,24 @@
 
                     await setDoc(doc(db, "thesesbackup", targetDeleteId), backupData);
                 }
+            } catch (backupError) {
+                console.warn("Lỗi sao lưu thùng rác:", backupError);
+            }
 
-                // Xóa ở bảng gốc
+            // 2. THỰC THI XÓA Ở BẢNG GỐC
+            try {
                 await deleteDoc(doc(db, "theses", targetDeleteId));
                 logAction("XÓA", `<strong>Đề tài:</strong> ${targetDeleteTitle}`);
                 closeDeleteModal();
-                showToast("Đã xóa và chuyển vào Thùng rác (lưu 30 ngày)!", "danger");
-            } catch(e) { showToast("Lỗi xóa đề tài: " + e.message, "danger"); }
+                showToast("Đã xóa đề tài thành công!", "danger");
+            } catch(e) { 
+                showToast("Lỗi xóa đề tài: " + e.message, "danger"); 
+            }
         };
 
+        // ==========================================
+        // CÁC HÀM LƯU / NHẬP EXCEL
+        // ==========================================
         document.getElementById('btnSaveData').onclick = async () => {
             const title = document.getElementById('addTitle').value.trim();
             const author = document.getElementById('addAuthor').value.trim();
@@ -866,14 +908,14 @@
             document.getElementById('addMajor').value = t.major||'Vật lý trị liệu';
             
             if (t.studentClass) {
-                let lvl = t.studentClass.startsWith('THS') ? 'THS' : 'CN';
-                let yr = t.studentClass.replace(lvl, '');
+                let lvl = String(t.studentClass).startsWith('THS') ? 'THS' : 'CN';
+                let yr = String(t.studentClass).replace(lvl, '');
                 document.getElementById('addLevel').value = lvl; populateYears(lvl);
                 if(yr) document.getElementById('addYear').value = yr;
             }
             
             if (t.studentClass) {
-                const targetLvl = t.studentClass.startsWith('THS') ? 'THS' : 'CN';
+                const targetLvl = String(t.studentClass).startsWith('THS') ? 'THS' : 'CN';
                 if (currentTab !== targetLvl) {
                     document.querySelectorAll('.tab-btn').forEach(b => {
                         b.classList.remove('active');
