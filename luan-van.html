@@ -336,7 +336,7 @@
         </div>
     </div>
 
-    <!-- MODAL 3: THÙNG RÁC (TRASH) -->
+    <!-- MODAL 3: THÙNG RÁC (RECYCLE) -->
     <div id="trashModal" class="modal-overlay hidden">
         <div class="modal-content" style="max-width: 900px;">
             <button class="modal-close" onclick="closeTrashModal()"><i class="fas fa-times"></i></button>
@@ -521,7 +521,7 @@
                 adminSection.classList.remove('hidden');
                 thAction.classList.remove('hidden');
 
-                // Quyền riêng hiển thị nút Thùng rác
+                // Quyền riêng cho email hiển thị nút Thùng Rác
                 if (user.email.toLowerCase() === 'hoangtran1483@gmail.com') {
                     document.getElementById('btnOpenTrash').classList.remove('hidden');
                 } else {
@@ -587,7 +587,6 @@
 
         // ==========================================
         // CÁC HÀM XỬ LÝ DỮ LIỆU ĐƯỢC BỌC BỞI String()
-        // Để chống lỗi .trim() is not a function
         // ==========================================
         function updateDynamicFilters() {
             const currClass = filterClass.value;
@@ -745,7 +744,7 @@
         window.closeHistoryModal = () => document.getElementById('historyModal').classList.add('hidden');
 
         // ==========================================
-        // KHỐI XỬ LÝ THÙNG RÁC VÀ XÓA ĐỀ TÀI
+        // KHỐI XỬ LÝ THÙNG RÁC (RECYCLE) VÀ XÓA ĐỀ TÀI
         // ==========================================
         window.openTrashModal = async () => {
             document.getElementById('trashModal').classList.remove('hidden');
@@ -753,7 +752,8 @@
             tbody.innerHTML = '<tr><td colspan="4" align="center"><i class="fas fa-spinner fa-spin"></i> Đang tải dữ liệu...</td></tr>';
             
             try {
-                const snap = await getDocs(collection(db, "thesesbackup"));
+                // ĐÃ THAY ĐỔI: Sử dụng collection 'recycle'
+                const snap = await getDocs(collection(db, "recycle"));
                 if(snap.empty) {
                     tbody.innerHTML = '<tr><td colspan="4" align="center">Thùng rác đang trống.</td></tr>';
                     return;
@@ -792,7 +792,10 @@
                 delete restoreData.expireAt;
 
                 await setDoc(doc(db, "theses", id), restoreData);
-                await deleteDoc(doc(db, "thesesbackup", id));
+                
+                // ĐÃ THAY ĐỔI: Xóa khỏi collection 'recycle'
+                await deleteDoc(doc(db, "recycle", id));
+                
                 const row = document.getElementById(`trash-row-${id}`);
                 if (row) row.remove();
                 
@@ -820,7 +823,6 @@
         document.getElementById('btnExecuteFinalDelete').onclick = async () => {
             if(!targetDeleteId) return;
             
-            // 1. CHẠY SAO LƯU (BỌC BỞI TRY CATCH ĐỂ NẾU BỊ LỖI QUYỀN VẪN CHO PHÉP XÓA BẢN CHÍNH)
             try {
                 const deletedItem = allTheses.find(t => t.id === targetDeleteId);
                 if (deletedItem) {
@@ -829,16 +831,16 @@
                     
                     backupData.deletedAt = new Date();
                     const expireDate = new Date();
-                    expireDate.setDate(expireDate.getDate() + 30); // Giữ 30 ngày
+                    expireDate.setDate(expireDate.getDate() + 30); 
                     backupData.expireAt = expireDate;
 
-                    await setDoc(doc(db, "thesesbackup", targetDeleteId), backupData);
+                    // ĐÃ THAY ĐỔI: Lưu vào collection 'recycle'
+                    await setDoc(doc(db, "recycle", targetDeleteId), backupData);
                 }
             } catch (backupError) {
                 console.warn("Lỗi sao lưu thùng rác:", backupError);
             }
 
-            // 2. THỰC THI XÓA Ở BẢNG GỐC
             try {
                 await deleteDoc(doc(db, "theses", targetDeleteId));
                 logAction("XÓA", `<strong>Đề tài:</strong> ${targetDeleteTitle}`);
@@ -953,6 +955,20 @@
         
         let uploadData = [];
         document.getElementById('btnSelectFile').onclick = () => document.getElementById('excelFile').click();
+        
+        document.getElementById('btnDownloadTemplate').addEventListener('click', () => {
+            const templateData = [
+                ["Tác giả", "Tên đề tài", "Giảng viên hướng dẫn", "Lớp", "Chuyên ngành"],
+                ["Nguyễn Văn A", "Đánh giá chất lượng cuộc sống bệnh nhân...", "TS. Lê Thanh Vân", "CN2022", "Vật lý trị liệu"],
+                ["Trần Thị B", "Ứng dụng hoạt động trị liệu trên trẻ tự kỷ...", "ThS. Cao Minh Hạnh / ThS. Nguyễn Mai Ngọc Đoan", "THS2023", "Hoạt động trị liệu"]
+            ];
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(templateData);
+            ws['!cols'] = [ {wpx: 20}, {wpx: 50}, {wpx: 30}, {wpx: 15}, {wpx: 20} ];
+            XLSX.utils.book_append_sheet(wb, ws, "LuanVan_Mau");
+            XLSX.writeFile(wb, "Bieu_Mau_Nhap_Luan_Van.xlsx");
+        });
+
         document.getElementById('excelFile').onchange = (e) => {
             const f = e.target.files[0]; if(!f) return;
             document.getElementById('fileNameDisplay').innerText = f.name;
