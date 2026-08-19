@@ -387,7 +387,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, query, orderBy, limit, getDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, query, orderBy, limit, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
         
         const firebaseConfig = {
             apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY",
@@ -762,6 +762,10 @@
             } catch(e) { showToast("Lỗi xóa đề tài!", "danger"); }
         };
 
+        // ==========================================
+        // CẬP NHẬT: TÍCH HỢP TỰ ĐỘNG SAO LƯU (BACKUP) 
+        // VÀO QUÁ TRÌNH LƯU DỮ LIỆU
+        // ==========================================
         document.getElementById('btnSaveData').onclick = async () => {
             const title = document.getElementById('addTitle').value.trim();
             const author = document.getElementById('addAuthor').value.trim();
@@ -784,7 +788,11 @@
             try {
                 const editIdValue = document.getElementById('editId').value;
                 if(isEditing && editIdValue) {
+                    // Cập nhật bảng gốc
                     await updateDoc(doc(db, "theses", editIdValue), obj);
+                    
+                    // --- AUTO BACKUP: Cập nhật luôn vào bảng thesesbackup ---
+                    try { await setDoc(doc(db, "thesesbackup", editIdValue), obj, { merge: true }); } catch (backupErr) { console.error("Lỗi Backup:", backupErr); }
                     
                     let changes = [];
                     if(originalEditData.title !== obj.title) changes.push(`- <b>Tên đề tài:</b> ${originalEditData.title} ➔ <span style="color:#d97706">${obj.title}</span>`);
@@ -799,7 +807,12 @@
                     lastEditedId = editIdValue; 
                     showToast("Đã cập nhật thay đổi thành công!", "success");
                 } else {
-                    await addDoc(collection(db, "theses"), obj);
+                    // Thêm mới vào bảng gốc, lấy ID được sinh ra
+                    const docRef = await addDoc(collection(db, "theses"), obj);
+                    
+                    // --- AUTO BACKUP: Lưu bản copy sang bảng thesesbackup cùng ID ---
+                    try { await setDoc(doc(db, "thesesbackup", docRef.id), obj); } catch (backupErr) { console.error("Lỗi Backup:", backupErr); }
+                    
                     logAction("THÊM", `<strong>Đề tài:</strong> ${title}<br><strong>Lớp:</strong> ${obj.studentClass} | <strong>Tác giả:</strong> ${author}`);
                     showToast("Đã thêm đề tài mới!", "success");
                 }
@@ -883,14 +896,19 @@
             let success = 0; document.getElementById('btnUploadExcel').disabled = true;
             for(const row of uploadData) {
                 try {
-                    await addDoc(collection(db, "theses"), { 
+                    const obj = { 
                         author: row[0]?String(row[0]).trim():"Chưa rõ", 
                         title: row[1]?String(row[1]).trim():"Chưa có tên", 
                         advisor: row[2]?String(row[2]).trim():"Chưa rõ", 
                         studentClass: row[3]?String(row[3]).trim():"CN2022", 
                         major: row[4]?String(row[4]).trim():"Vật lý trị liệu",
                         category: "Khác"
-                    });
+                    };
+                    
+                    const docRef = await addDoc(collection(db, "theses"), obj);
+                    // --- AUTO BACKUP: Lưu bản copy sang bảng thesesbackup khi upload Excel ---
+                    try { await setDoc(doc(db, "thesesbackup", docRef.id), obj); } catch (e) {}
+
                     success++; document.getElementById('bulkLog').innerText = `Hoàn thành: ${success} / ${uploadData.length}`;
                 } catch(e){}
             }
