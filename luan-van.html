@@ -68,8 +68,12 @@
         #thAction, .td-action { position: sticky; right: 0; background-color: var(--surface); z-index: 5; box-shadow: -4px 0 8px rgba(0,0,0,0.02); border-left: 1px solid var(--border); }
         tr:hover .td-action { background-color: var(--primary-light); }
 
+        /* Tương tác tên đề tài & GVHD */
         .advisor-link { color: var(--primary); font-weight: 600; cursor: pointer; text-decoration: none; border-bottom: 1px dashed var(--primary); }
         .advisor-link:hover { color: var(--primary-hover); border-bottom-style: solid; }
+        
+        .thesis-title-link { cursor: pointer; color: var(--text-dark); transition: color 0.2s; font-weight: 600; line-height: 1.5; }
+        .thesis-title-link:hover { color: var(--primary); }
 
         /* =========================================
            CSS THÔNG BÁO TOAST (POPUP GÓC DƯỚI)
@@ -109,12 +113,33 @@
         .toast.warning .toast-icon { color: #f59e0b; }
         .toast.danger .toast-icon { color: #ef4444; }
 
+        /* =========================================
+           RESPONSIVE DÀNH RIÊNG CHO ĐIỆN THOẠI
+        ========================================= */
         @media (max-width: 768px) {
             .header-title-box h2 { font-size: 1.3rem; }
             .header-buttons { width: 100%; justify-content: center; margin-top: 10px; }
             .tabs-header { margin-top: 10px; }
             .toast-container { bottom: 10px; right: 10px; left: 10px; }
             .toast { min-width: unset; width: 100%; box-sizing: border-box; }
+
+            /* ẨN CÁC CỘT KHÔNG CẦN THIẾT TRÊN MOBILE */
+            .table-container th:nth-child(2), .table-container td:nth-child(2), /* Tác giả */
+            .table-container th:nth-child(4), .table-container td:nth-child(4), /* Lớp */
+            .table-container th:nth-child(5), .table-container td:nth-child(5)  /* GVHD */
+            {
+                display: none;
+            }
+
+            /* Mở rộng cột tên đề tài */
+            .table-container th:nth-child(3), .table-container td:nth-child(3) {
+                width: 100% !important;
+                min-width: unset !important;
+            }
+
+            /* Đổi màu tên đề tài để người dùng biết có thể bấm vào */
+            .thesis-title-link { color: var(--primary); font-size: 0.95rem; }
+            .mobile-hint { display: block !important; } /* Hiện dòng chữ "Chạm để xem chi tiết" */
         }
     </style>
 </head>
@@ -268,14 +293,43 @@
         </div>
     </main>
 
-    <!-- Modals (Đã cập nhật để hiển thị Ảnh thay vì Chữ) -->
+    <!-- MODAL 1: CHI TIẾT ĐỀ TÀI (Sẽ hiện ra khi bấm tên đề tài) -->
+    <div id="thesisDetailModal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 500px; text-align: left; position: relative;">
+            <button class="modal-close" onclick="closeThesisDetailModal()"><i class="fas fa-times"></i></button>
+            
+            <h3 style="color: var(--primary); margin-top: 0; border-bottom: 2px solid var(--primary-light); padding-bottom: 15px; margin-bottom: 20px;">Thông tin Đề tài</h3>
+            
+            <div style="margin-bottom: 12px; font-size: 0.95rem;">
+                <span style="color: var(--text-body); font-size: 0.85rem; display: block; margin-bottom: 3px;">Tên đề tài:</span>
+                <strong id="detailTitle" style="color: var(--text-dark); font-size: 1.1rem; line-height: 1.4;"></strong>
+            </div>
+            <div style="margin-bottom: 12px; font-size: 0.95rem;">
+                <span style="color: var(--text-body); font-size: 0.85rem; display: block; margin-bottom: 3px;">Tác giả:</span>
+                <strong id="detailAuthor" style="color: var(--text-dark);"></strong>
+            </div>
+            <div style="display: flex; gap: 30px; margin-bottom: 12px; font-size: 0.95rem;">
+                <div>
+                    <span style="color: var(--text-body); font-size: 0.85rem; display: block; margin-bottom: 3px;">Lớp:</span>
+                    <strong id="detailClass" style="color: var(--primary);"></strong>
+                </div>
+                <div>
+                    <span style="color: var(--text-body); font-size: 0.85rem; display: block; margin-bottom: 3px;">Chuyên ngành:</span>
+                    <strong id="detailMajor" style="color: var(--text-dark);"></strong>
+                </div>
+            </div>
+            <div style="margin-bottom: 10px; font-size: 0.95rem; background: var(--bg-page); padding: 12px; border-radius: 8px;">
+                <span style="color: var(--text-body); font-size: 0.85rem; display: block; margin-bottom: 5px;">Giảng viên hướng dẫn:</span>
+                <div id="detailAdvisor" style="line-height: 1.6;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: THÔNG TIN GIẢNG VIÊN HƯỚNG DẪN -->
     <div id="advisorModal" class="modal-overlay hidden">
         <div class="modal-content" style="text-align: center;">
             <button class="modal-close" onclick="closeAdvisorModal()"><i class="fas fa-times"></i></button>
-            
-            <!-- Đổi thẻ Div thành thẻ Img -->
             <img id="modalAvatar" src="" alt="Avatar GV" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin: 0 auto 15px auto; border: 3px solid var(--primary); display: block; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-            
             <h2 id="modalName" style="color: var(--text-dark); margin-bottom: 5px;">Tên GV</h2>
             <p id="modalDegree" style="color: var(--text-body); font-size: 0.9rem; margin-bottom: 20px;">Học hàm / Học vị</p>
             <div style="border-top: 1px solid var(--border); padding-top: 20px; text-align: left; font-size: 0.95rem;">
@@ -308,6 +362,7 @@
         </div>
     </div>
 
+    <!-- Modals Confirm Delete -->
     <div id="deleteConfirmModal" class="modal-overlay hidden">
         <div class="modal-content" style="max-width: 400px; text-align: center;">
             <button class="modal-close" onclick="closeDeleteModal()"><i class="fas fa-times"></i></button>
@@ -352,90 +407,20 @@
         // DANH SÁCH THÔNG TIN GIẢNG VIÊN
         // ==========================================
         const internalAdvisors = {
-            "TS. Lê Thanh Vân": { 
-                degree: "Tiến sĩ / Trưởng Bộ môn", 
-                email: "lethanhvan@ump.edu.vn", 
-                research: "Vật lý trị liệu", 
-                bio: "Lê Thanh Vân" 
-            },
-            "TS. Nguyễn Thanh Duy": { 
-                degree: "Tiến sĩ / Giảng viên", 
-                email: "thduypt@ump.edu.vn", 
-                research: "Vật lý trị liệu", 
-                bio: "Nguyễn Thanh Duy" 
-            },
-            "ThS. Phan Thế Nguyên": { 
-                degree: "Thạc sĩ / Giáo vụ", 
-                email: "phanthenguyenpt@ump.edu.vn", 
-                research: "Vật lý trị liệu", 
-                bio: "Phan Thế Nguyên" 
-            },
-            "ThS. Cao Minh Hạnh": { 
-                degree: "Thạc sĩ / Giảng viên", 
-                email: "cmhanhpt@ump.edu.vn", 
-                research: "Vật lý trị liệu", 
-                bio: "Cao Minh Hạnh" 
-            },
-            "ThS. Huỳnh Chung": { 
-                degree: "Thạc sĩ / Giảng viên", 
-                email: "huynhchungpt@ump.edu.vn", 
-                research: "Vật lý trị liệu", 
-                bio: "Huỳnh Chung" 
-            },
-            "ThS. Nguyễn Minh Sang": { 
-                degree: "Thạc sĩ / Giảng viên", 
-                email: "ngmsangpt@ump.edu.vn", 
-                research: "Vật lý trị liệu", 
-                bio: "Nguyễn Minh Sang" 
-            },
-            "ThS. Trần Thị Bích Hạnh": { 
-                degree: "Thạc sĩ / Giảng viên", 
-                email: "hanhtranpt@ump.edu.vn", 
-                research: "Ngôn ngữ trị liệu", 
-                bio: "Trần Thị Bích Hạnh" 
-            },
-            "TS. Nguyễn Ngọc Minh": { 
-                degree: "Tiến sĩ / Giảng viên", 
-                email: "minhngpt@ump.edu.vn", 
-                research: "Vật lý trị liệu", 
-                bio: "Nguyễn Ngọc Minh" 
-            },
-            "ThS. Phạm Ngọc Đạt": { 
-                degree: "Thạc sĩ / Giảng viên", 
-                email: "phamngocdat@ump.edu.vn", 
-                research: "Hoạt động trị liệu", 
-                bio: "Phạm Ngọc Đạt" 
-            },
-            "ThS. Nguyễn Huỳnh Ngọc Mai Trâm": { 
-                degree: "Thạc sĩ / Giảng viên", 
-                email: "nguyen.tram@ump.edu.vn", 
-                research: "Hoạt động trị liệu", 
-                bio: "Nguyễn Huỳnh Ngọc Mai Trâm" 
-            },
-            "ThS. Nguyễn Đức Sinh": { 
-                degree: "Thạc sĩ / Giảng viên", 
-                email: "nguyenducsinhpt@ump.edu.vn", 
-                research: "Ngôn ngữ trị liệu", 
-                bio: "Nguyễn Đức Sinh" 
-            },
-            "ThS. Trần Long Biên": { 
-                degree: "Thạc sĩ / Giảng viên", 
-                email: "tlbien@ump.edu.vn", 
-                research: "Vật lý trị liệu", 
-                bio: "Trần Long Biên" 
-            },
-            "ThS. Trần Hữu Đức": { 
-                degree: "Thạc sĩ / Giảng viên", 
-                email: "tranhuuduc@ump.edu.vn", 
-                research: "Ngôn ngữ trị liệu", 
-                bio: "Trần Hữu Đức" 
-            },
-            "ThS. Nguyễn Mai Ngọc Đoan": { 
-                degree: "Thạc sĩ / Giảng viên", 
-                email: "nguyenmaingocdoan@ump.edu.vn", 
-                research: "Vật lý trị liệu", 
-                bio: "Nguyễn Mai Ngọc Đoan" 
-            }
+            "TS. Lê Thanh Vân": { degree: "Tiến sĩ / Trưởng Bộ môn", email: "lethanhvan@ump.edu.vn", research: "Vật lý trị liệu", bio: "Lê Thanh Vân" },
+            "TS. Nguyễn Thanh Duy": { degree: "Tiến sĩ / Giảng viên", email: "thduypt@ump.edu.vn", research: "Vật lý trị liệu", bio: "Nguyễn Thanh Duy" },
+            "ThS. Phan Thế Nguyên": { degree: "Thạc sĩ / Giáo vụ", email: "phanthenguyenpt@ump.edu.vn", research: "Vật lý trị liệu", bio: "Phan Thế Nguyên" },
+            "ThS. Cao Minh Hạnh": { degree: "Thạc sĩ / Giảng viên", email: "cmhanhpt@ump.edu.vn", research: "Vật lý trị liệu", bio: "Cao Minh Hạnh" },
+            "ThS. Huỳnh Chung": { degree: "Thạc sĩ / Giảng viên", email: "huynhchungpt@ump.edu.vn", research: "Vật lý trị liệu", bio: "Huỳnh Chung" },
+            "ThS. Nguyễn Minh Sang": { degree: "Thạc sĩ / Giảng viên", email: "ngmsangpt@ump.edu.vn", research: "Vật lý trị liệu", bio: "Nguyễn Minh Sang" },
+            "ThS. Trần Thị Bích Hạnh": { degree: "Thạc sĩ / Giảng viên", email: "hanhtranpt@ump.edu.vn", research: "Ngôn ngữ trị liệu", bio: "Trần Thị Bích Hạnh" },
+            "TS. Nguyễn Ngọc Minh": { degree: "Tiến sĩ / Giảng viên", email: "minhngpt@ump.edu.vn", research: "Vật lý trị liệu", bio: "Nguyễn Ngọc Minh" },
+            "ThS. Phạm Ngọc Đạt": { degree: "Thạc sĩ / Giảng viên", email: "phamngocdat@ump.edu.vn", research: "Hoạt động trị liệu", bio: "Phạm Ngọc Đạt" },
+            "ThS. Nguyễn Huỳnh Ngọc Mai Trâm": { degree: "Thạc sĩ / Giảng viên", email: "nguyen.tram@ump.edu.vn", research: "Hoạt động trị liệu", bio: "Nguyễn Huỳnh Ngọc Mai Trâm" },
+            "ThS. Nguyễn Đức Sinh": { degree: "Thạc sĩ / Giảng viên", email: "nguyenducsinhpt@ump.edu.vn", research: "Ngôn ngữ trị liệu", bio: "Nguyễn Đức Sinh" },
+            "ThS. Trần Long Biên": { degree: "Thạc sĩ / Giảng viên", email: "tlbien@ump.edu.vn", research: "Vật lý trị liệu", bio: "Trần Long Biên" },
+            "ThS. Trần Hữu Đức": { degree: "Thạc sĩ / Giảng viên", email: "tranhuuduc@ump.edu.vn", research: "Ngôn ngữ trị liệu", bio: "Trần Hữu Đức" },
+            "ThS. Nguyễn Mai Ngọc Đoan": { degree: "Thạc sĩ / Giảng viên", email: "nguyenmaingocdoan@ump.edu.vn", research: "Vật lý trị liệu", bio: "Nguyễn Mai Ngọc Đoan" }
         };
 
         let allTheses = [];
@@ -470,16 +455,12 @@
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
-            
             let icon = 'fa-check-circle';
             if (type === 'warning') icon = 'fa-exclamation-triangle';
             if (type === 'danger') icon = 'fa-trash-alt';
-
             toast.innerHTML = `<i class="fas ${icon} toast-icon"></i><span>${message}</span>`;
-            
             container.appendChild(toast);
             setTimeout(() => toast.classList.add('show'), 10);
-            
             setTimeout(() => {
                 toast.classList.remove('show');
                 setTimeout(() => toast.remove(), 400); 
@@ -557,6 +538,7 @@
                             } else {
                                 btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 5px;"></i> Giảng viên`;
                             }
+                            btnAuthNav.href = "dashboard.html";
                         } catch (error) {
                             console.error("Lỗi lấy thông tin:", error);
                         }
@@ -659,12 +641,13 @@
             paginatedData.forEach((t, i) => {
                 const actualIndex = startIndex + i + 1;
                 let actionHtml = '';
+                
+                const dataStrObj = encodeURIComponent(JSON.stringify(t)).replace(/'/g, "%27");
+
                 if (isAdmin) {
-                    const dataStr = encodeURIComponent(JSON.stringify(t)).replace(/'/g, "%27");
-                    actionHtml = `<td class="td-action" align="center"><button class="btn-sm btn-warning" onclick="triggerEdit('${dataStr}')">Sửa</button> <button class="btn-sm btn-danger" onclick="triggerDeleteConfirm('${t.id}', '${encodeURIComponent(t.title||'').replace(/'/g, "%27")}')">Xóa</button></td>`;
+                    actionHtml = `<td class="td-action" align="center"><button class="btn-sm btn-warning" onclick="triggerEdit('${dataStrObj}')">Sửa</button> <button class="btn-sm btn-danger" onclick="triggerDeleteConfirm('${t.id}', '${encodeURIComponent(t.title||'').replace(/'/g, "%27")}')">Xóa</button></td>`;
                 }
 
-                // Tách giảng viên bằng dấu / hoặc , 
                 const advHtml = (t.advisor||'').split(/[\/,]+/).map(a => {
                     let n = a.trim();
                     return internalAdvisors[n] ? `<span class="advisor-link" onclick="openAdvisorModal('${encodeURIComponent(n).replace(/'/g, "%27")}')">${n}</span>` : n;
@@ -674,7 +657,13 @@
                     <tr>
                         <td align="center" style="color:#94a3b8;font-weight:bold">${actualIndex}</td>
                         <td><b>${t.author}</b></td>
-                        <td style="white-space:normal;font-weight:600;color:var(--text-dark)">${t.title}</td>
+                        
+                        <!-- Cột hiển thị Tên Đề Tài & Tính năng chạm xem popup -->
+                        <td style="white-space:normal;">
+                            <div class="thesis-title-link" onclick="openThesisDetailModal('${dataStrObj}')" title="Nhấn để xem chi tiết">${t.title}</div>
+                            <div class="mobile-hint" style="font-size: 0.8rem; color: var(--primary); margin-top: 5px; font-weight: normal; display: none;"><i class="fas fa-hand-pointer"></i> Chạm để xem chi tiết</div>
+                        </td>
+
                         <td>
                             <div style="font-weight: 600; color: var(--text-dark);">${t.studentClass||'—'}</div>
                             <div style="font-size: 0.85rem; color: var(--primary); margin-top: 2px;">${t.major||'—'}</div>
@@ -696,16 +685,41 @@
             renderTable();
         };
 
-        // KHI ẤN VÀO TÊN GIẢNG VIÊN HƯỚNG DẪN ĐỂ XEM MODAL
+        // ==========================================
+        // KHỐI POPUP XEM CHI TIẾT ĐỀ TÀI TRÊN MOBILE
+        // ==========================================
+        window.openThesisDetailModal = (encodedData) => {
+            const t = JSON.parse(decodeURIComponent(encodedData));
+            
+            document.getElementById('detailTitle').innerText = t.title || 'Chưa có tên';
+            document.getElementById('detailAuthor').innerText = t.author || 'Chưa rõ';
+            document.getElementById('detailClass').innerText = t.studentClass || '—';
+            document.getElementById('detailMajor').innerText = t.major || '—';
+            
+            // Xử lý gắn link Giảng viên vào popup chi tiết
+            const advHtml = (t.advisor||'').split(/[\/,]+/).map(a => {
+                let n = a.trim();
+                return internalAdvisors[n] ? `<span class="advisor-link" onclick="openAdvisorModal('${encodeURIComponent(n).replace(/'/g, "%27")}')">${n}</span>` : n;
+            }).join('<br>');
+            
+            document.getElementById('detailAdvisor').innerHTML = advHtml || 'Chưa rõ';
+            document.getElementById('thesisDetailModal').classList.remove('hidden');
+        };
+
+        window.closeThesisDetailModal = () => {
+            document.getElementById('thesisDetailModal').classList.add('hidden');
+        };
+
+        // ==========================================
+        // CÁC POPUP KHÁC
+        // ==========================================
         window.openAdvisorModal = (enN) => {
             const n = decodeURIComponent(enN);
             const inf = internalAdvisors[n];
             if(!inf) return;
             
-            // Xử lý gắn link ảnh thay vì viết tắt 2 chữ
             const avatarImg = document.getElementById('modalAvatar');
             avatarImg.src = `images/${n}.jpg`;
-            // Nếu ảnh bị lỗi/không tồn tại, tự động lấy logo làm fallback
             avatarImg.onerror = function() {
                 this.src = 'images/logo_Bộ môn.png';
             };
@@ -715,6 +729,8 @@
             document.getElementById('modalEmail').innerText = inf.email;
             document.getElementById('modalResearch').innerText = inf.research;
             document.getElementById('modalBio').innerText = inf.bio;
+            
+            // Nếu bấm GV từ trong popup Chi tiết đề tài, thì nó sẽ xếp chồng lên hoặc ta có thể chỉ hiện 1 popup
             document.getElementById('advisorModal').classList.remove('hidden');
         };
         window.closeAdvisorModal = () => document.getElementById('advisorModal').classList.add('hidden');
