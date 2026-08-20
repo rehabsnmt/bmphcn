@@ -17,42 +17,63 @@
 
         .hidden { display: none !important; }
         
+        /* Tabs Chọn Lớp */
+        .tabs-header { display: flex; border-bottom: 2px solid var(--border); margin-bottom: 20px; gap: 10px; }
+        .tab-btn { flex: 1; padding: 12px; text-align: center; font-size: 1rem; font-weight: 600; color: var(--text-body); background: transparent; border: none; cursor: pointer; transition: 0.3s; border-bottom: 3px solid transparent; }
+        .tab-btn:hover { color: var(--text-dark); }
+        .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+
         .table-container { overflow-x: auto; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--surface); box-shadow: var(--shadow-sm); }
         table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
-        th, td { padding: 15px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: middle; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: middle; }
         th { background-color: var(--bg-page); font-weight: 600; color: var(--text-dark); text-transform: uppercase; font-size: 0.85rem; position: sticky; top: 0; z-index: 10; }
-        tr:hover { background-color: var(--primary-light); }
+        
+        /* Header Nhóm môn học */
+        .group-header { background-color: #f1f5f9 !important; cursor: pointer; transition: 0.2s; border-top: 2px solid #cbd5e1; }
+        .group-header:hover { background-color: #e2e8f0 !important; }
+        .group-title { font-weight: 700; color: var(--primary); font-size: 1.05rem; }
+        .group-icon { margin-right: 8px; transition: transform 0.3s; }
+        .group-collapsed .group-icon { transform: rotate(-90deg); }
 
-        .subject-link { color: var(--text-dark); font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .subject-row:hover { background-color: var(--primary-light); }
+
+        .subject-link { color: var(--text-dark); font-weight: 600; cursor: pointer; transition: 0.2s; line-height: 1.5; }
         .subject-link:hover { color: var(--primary); text-decoration: underline; }
 
         .btn-primary { background-color: var(--primary); color: white; padding: 0.5rem 1rem; border-radius: 6px; border: none; font-weight: 500; cursor: pointer; transition: 0.2s; }
         .btn-primary:hover { background-color: var(--primary-hover); }
-        .btn-outline { background-color: white; color: var(--primary); border: 1px solid var(--primary); padding: 0.5rem 1rem; border-radius: 6px; font-weight: 600; cursor: pointer; }
+        .btn-outline { background-color: white; color: var(--primary); border: 1px solid var(--primary); padding: 0.5rem 1rem; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s; }
         .btn-outline:hover { background-color: var(--primary-light); }
         .btn-danger { background-color: var(--accent); color: white; padding: 0.4rem 0.8rem; border-radius: 6px; border: none; cursor: pointer; }
+        .btn-danger:hover { background-color: #be123c; }
+        .btn-success { background-color: #16a34a; color: white; padding: 0.4rem 0.8rem; border-radius: 6px; border: none; cursor: pointer; }
         
-        /* Tiến độ */
         .progress-container { width: 100%; background-color: #e2e8f0; border-radius: 4px; margin-top: 5px; overflow: hidden; height: 8px; }
         .progress-bar { height: 100%; background-color: #16a34a; transition: width 0.4s ease; }
         .progress-text { font-size: 0.8rem; color: var(--text-body); font-weight: 600; margin-top: 3px; display: inline-block; }
 
-        /* Khóa truy cập */
         #accessDenied { text-align: center; padding: 50px 20px; }
         #accessDenied i { font-size: 4rem; color: var(--accent); margin-bottom: 20px; }
 
-        /* Modal Phân công */
-        .alloc-row { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; padding: 10px; background: var(--bg-page); border-radius: 6px; }
-        .alloc-row select, .alloc-row input { padding: 8px; border: 1px solid var(--border); border-radius: 4px; outline: none; }
-        
-        /* Toast Notifications */
+        .alloc-row { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; padding: 12px; background: var(--bg-page); border-radius: 6px; flex-wrap: wrap; border: 1px solid #e2e8f0; }
+        .alloc-row select, .alloc-row input { padding: 8px; border: 1px solid var(--border); border-radius: 4px; outline: none; font-size: 0.9rem; }
+        .alloc-row input:focus, .alloc-row select:focus { border-color: var(--primary); }
+
         .toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
         .toast { min-width: 250px; background-color: var(--surface); padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.3s; font-weight: 600; border-left: 5px solid #22c55e; opacity: 0; }
         .toast.show { transform: translateX(0); opacity: 1; }
         .toast.danger { border-left-color: #ef4444; }
 
-        /* CHI TIẾT MÔN HỌC - JUSTIFY */
         #subjectModal .modal-content { text-align: justify; line-height: 1.6; }
+        
+        .alloc-label { font-size: 0.8rem; font-weight: 600; color: var(--text-body); margin-bottom: 4px; display: block; }
+        
+        @media (max-width: 768px) {
+            .table-container th:nth-child(3), .table-container td:nth-child(3),
+            .table-container th:nth-child(5), .table-container td:nth-child(5) { display: none; }
+            .alloc-row { flex-direction: column; align-items: stretch; }
+            .alloc-row > div { width: 100%; }
+        }
     </style>
 </head>
 <body>
@@ -60,10 +81,18 @@
     <div id="header-placeholder"></div>
     <div id="toastContainer" class="toast-container"></div>
 
+    <!-- Datalist lưu trữ GV Cơ hữu & Thỉnh giảng -->
+    <datalist id="gv-list"></datalist>
+
     <main id="mainContent" class="hidden">
         <div class="header-title-box">
             <h2>PHÂN CÔNG CÔNG TÁC GIẢNG DẠY</h2>
-            <div class="subtitle">CHƯƠNG TRÌNH THẠC SĨ KỸ THUẬT PHỤC HỒI CHỨC NĂNG (2026 - 2028)</div>
+            <div class="subtitle">CHƯƠNG TRÌNH THẠC SĨ KỸ THUẬT PHỤC HỒI CHỨC NĂNG</div>
+        </div>
+
+        <div class="tabs-header">
+            <button class="tab-btn active" data-class="THS2026" onclick="switchClass('THS2026', this)">Lớp Thạc sĩ 2026 - 2028</button>
+            <button class="tab-btn" data-class="THS2025" onclick="switchClass('THS2025', this)">Lớp Thạc sĩ 2025 - 2027</button>
         </div>
 
         <div class="table-container">
@@ -71,21 +100,20 @@
                 <thead>
                     <tr>
                         <th style="width: 50px; text-align: center;">STT</th>
-                        <th style="min-width: 300px;">Môn học</th>
+                        <th style="min-width: 320px;">Tên Học phần</th>
                         <th style="width: 120px;">Học kỳ</th>
-                        <th style="min-width: 250px;">Giảng viên phụ trách</th>
+                        <th style="min-width: 250px;">Phân công Giảng viên</th>
                         <th style="width: 180px;">Tiến độ</th>
-                        <th style="width: 120px; text-align: center;">Thao tác</th>
+                        <th class="col-action hidden" style="width: 120px; text-align: center;">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody">
-                    <tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-body);"><i class="fas fa-spinner fa-spin"></i> Đang tải dữ liệu...</td></tr>
+                    <tr><td colspan="6" style="text-align: center; padding: 40px;"><i class="fas fa-spinner fa-spin"></i> Đang tải dữ liệu...</td></tr>
                 </tbody>
             </table>
         </div>
     </main>
 
-    <!-- MÀN HÌNH CHẶN TRUY CẬP -->
     <div id="accessDenied" class="hidden">
         <i class="fas fa-lock"></i>
         <h2 style="color: var(--text-dark);">Khu vực giới hạn</h2>
@@ -95,18 +123,18 @@
 
     <!-- MODAL CHI TIẾT MÔN HỌC -->
     <div id="subjectModal" class="modal-overlay hidden">
-        <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-content" style="max-width: 450px;">
             <button class="modal-close" onclick="document.getElementById('subjectModal').classList.add('hidden')"><i class="fas fa-times"></i></button>
             <h3 style="color: var(--primary); margin-top: 0; border-bottom: 1px solid var(--border); padding-bottom: 10px; text-align: center;">Chi tiết học phần</h3>
             
             <p><strong>Môn học:</strong> <span id="detName"></span></p>
+            <p><strong>Nhóm:</strong> <span id="detGroup" style="color: #64748b;"></span></p>
             <p><strong>Bộ môn phụ trách:</strong> <span id="detDept"></span></p>
             <p><strong>Số tín chỉ:</strong> <span id="detCredits"></span> TC</p>
             <p><strong>Lý thuyết:</strong> <span id="detTheory"></span> TC (<span id="detTheorySessions"></span> buổi)</p>
-            <p><strong>Thực hành:</strong> <span id="detPractice"></span> TC (<span id="detPracticeSessions"></span> buổi)</p>
+            <p><strong>Thực hành / Lâm sàng:</strong> <span id="detPractice"></span> TC (<span id="detPracticeSessions"></span> buổi)</p>
             <p style="font-size: 0.85rem; color: var(--text-body); margin-top: -10px; font-style: italic;" id="detPracticeNote"></p>
             
-            <!-- Khu vực hiển thị Lịch học cho các môn cơ sở -->
             <p id="detScheduleContainer" class="hidden" style="background: var(--bg-page); padding: 15px; border-radius: 8px; margin-top: 15px; border-left: 4px solid var(--primary);">
                 <strong><i class="fas fa-calendar-alt" style="color: var(--primary);"></i> Lịch học dự kiến:</strong><br>
                 <span id="detSchedule" style="display: block; margin-top: 8px; font-size: 0.95rem; line-height: 1.5;"></span>
@@ -118,13 +146,16 @@
         </div>
     </div>
 
-    <!-- MODAL PHÂN CÔNG -->
+    <!-- MODAL PHÂN CÔNG (MÔN THƯỜNG) -->
     <div id="assignModal" class="modal-overlay hidden">
-        <div class="modal-content" style="max-width: 650px;">
+        <div class="modal-content" style="max-width: 800px; max-height: 90vh; overflow-y: auto;">
             <button class="modal-close" onclick="document.getElementById('assignModal').classList.add('hidden')"><i class="fas fa-times"></i></button>
             <h3 style="color: var(--primary); margin-top: 0;"><i class="fas fa-sitemap"></i> Phân công giảng dạy</h3>
             <p style="font-weight: bold; color: var(--text-dark); margin-bottom: 5px;" id="asgName">Tên môn học</p>
-            <p style="font-size: 0.95rem; color: var(--text-body); margin-bottom: 20px;">Tổng khối lượng yêu cầu: <strong id="asgTotal" style="color: var(--accent); font-size: 1.1rem;">0</strong> buổi.</p>
+            <div style="font-size: 0.95rem; color: var(--text-body); margin-bottom: 20px; display: flex; gap: 15px;">
+                <span>Lý thuyết: <strong id="asgLT" style="color: var(--primary);">0</strong> buổi</span>
+                <span>Thực hành/LS: <strong id="asgTH" style="color: var(--primary);">0</strong> buổi</span>
+            </div>
             
             <div style="margin-bottom: 20px;">
                 <label style="font-weight: 600; display: block; margin-bottom: 5px;">Chọn Học kỳ:</label>
@@ -139,15 +170,40 @@
 
             <div style="border-top: 1px solid var(--border); padding-top: 15px; margin-bottom: 15px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <label style="font-weight: 600;">Danh sách Giảng viên phụ trách:</label>
-                    <button class="btn-outline" style="padding: 4px 10px; font-size: 0.8rem;" onclick="addAllocRow()"><i class="fas fa-plus"></i> Thêm GV</button>
+                    <label style="font-weight: 600;">Chi tiết công việc:</label>
+                    <button class="btn-outline" style="padding: 4px 10px; font-size: 0.8rem;" onclick="addAllocRow()"><i class="fas fa-plus"></i> Thêm CV</button>
                 </div>
-                <div id="allocContainer">
-                    <!-- Javascript sẽ tự động điền các dòng Giảng viên -->
-                </div>
+                <div id="allocContainer"></div>
             </div>
 
             <button class="btn-primary" style="width: 100%; padding: 12px; font-size: 1rem;" onclick="saveAssignment()"><i class="fas fa-save"></i> Lưu phân công</button>
+        </div>
+    </div>
+
+    <!-- MODAL PHÂN CÔNG (LUẬN VĂN / ĐỀ ÁN) -->
+    <div id="thesisAssignModal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 800px; max-height: 90vh; overflow-y: auto;">
+            <button class="modal-close" onclick="document.getElementById('thesisAssignModal').classList.add('hidden')"><i class="fas fa-times"></i></button>
+            <h3 style="color: var(--primary); margin-top: 0;"><i class="fas fa-graduation-cap"></i> Phân công Hướng dẫn</h3>
+            <p style="font-weight: bold; color: var(--text-dark); margin-bottom: 20px;" id="tasgName">Tên môn học</p>
+
+            <div style="margin-bottom: 20px;">
+                <label style="font-weight: 600; display: block; margin-bottom: 5px;">Chọn Học kỳ:</label>
+                <select id="tasgSemester" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border);">
+                    <option value="Học kỳ 3">Học kỳ 3</option>
+                    <option value="Học kỳ 4" selected>Học kỳ 4</option>
+                </select>
+            </div>
+
+            <div style="border-top: 1px solid var(--border); padding-top: 15px; margin-bottom: 15px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <label style="font-weight: 600;">Danh sách Học viên & GVHD:</label>
+                    <button class="btn-outline" style="padding: 4px 10px; font-size: 0.8rem;" onclick="addThesisRow()"><i class="fas fa-plus"></i> Thêm Học viên</button>
+                </div>
+                <div id="thesisAllocContainer"></div>
+            </div>
+
+            <button class="btn-primary" style="width: 100%; padding: 12px; font-size: 1rem;" onclick="saveThesisAssignment()"><i class="fas fa-save"></i> Lưu phân công</button>
         </div>
     </div>
 
@@ -174,90 +230,96 @@
         const db = getFirestore(app);
         const auth = getAuth(app); 
 
-        const lecturersList = [
+        // Danh sách GV Cơ hữu
+        const internalLecturers = [
             "TS. Lê Thanh Vân", "TS. Nguyễn Thanh Duy", "ThS. Phan Thế Nguyên", "ThS. Cao Minh Hạnh",
             "ThS. Huỳnh Chung", "ThS. Nguyễn Minh Sang", "ThS. Trần Thị Bích Hạnh", "TS. Nguyễn Ngọc Minh",
             "ThS. Phạm Ngọc Đạt", "ThS. Nguyễn Huỳnh Ngọc Mai Trâm", "ThS. Nguyễn Đức Sinh",
-            "ThS. Trần Long Biên", "ThS. Trần Hữu Đức", "ThS. Nguyễn Mai Ngọc Đoan", "Giảng viên thỉnh giảng"
+            "ThS. Trần Long Biên", "ThS. Trần Hữu Đức", "ThS. Nguyễn Mai Ngọc Đoan"
         ];
+        
+        let visitingLecturers = []; 
+        let currentClass = 'THS2026';
+        let assignmentsDB = {}; 
+        let currentEditingSubId = null;
+        let isHOD = false;
 
-        // Dữ liệu Tên môn - Cập nhật đầy đủ 49 môn của ĐH ƯD và ĐH Nghiên cứu (bao gồm lịch học)
+        // Dữ liệu Môn học - Đã bóc tách và phân nhóm theo chuẩn
         const subjectsData = [
-            {"id": "sub_1", "name": "Triết học", "credits": 3, "theory": 3, "practice": 0, "department": "BM KHXH-NV", "isPHCN": false, "schedule": "Thứ 3 (Chiều)<br>Tuần 1 - Tuần 9 (07/9 - 06/11)<br><i>Địa điểm: Giảng đường 7A, Đại giảng đường Trường Dược, Giảng đường 7B.</i>"},
-            {"id": "sub_2", "name": "Ngoại ngữ", "credits": 2, "theory": 2, "practice": 0, "department": "BM Ngoại ngữ", "isPHCN": false, "schedule": "Thứ 5 (Chiều)<br>Tuần 1 - Tuần 6 (30/11 - 08/01)<br><i>Địa điểm: Đại Giảng đường Y, GĐ 7A, GĐ 2 (Trường Dược), PH1 (Điều Dưỡng - 201 NCT), GĐ 5B2, GĐ 5B1.</i>"},
-            {"id": "sub_3", "name": "Sinh học phân tử", "credits": 2, "theory": 0, "practice": 2, "department": "TT Y sinh học phân tử", "isPHCN": false, "schedule": "Thứ 3 (Chiều)<br>Tuần 1 - Tuần 6 (30/11 - 08/01)<br><i>Địa điểm: Đại Giảng đường Y, Giảng đường 6A, Giảng đường 6B.</i>"},
-            {"id": "sub_4", "name": "Y đức - Xã hội học", "credits": 2, "theory": 0, "practice": 2, "department": "BM Y đức", "isPHCN": false, "schedule": "Thứ 5 (Chiều)<br>Tuần 1 - Tuần 8 (07/9 - 30/10)<br><i>Địa điểm: Đại giảng đường Điều Dưỡng, Đại giảng đường Trường Dược, Giảng đường 7B.</i>"},
-            {"id": "sub_5", "name": "Phương pháp nghiên cứu khoa học", "credits": 2, "theory": 1, "practice": 1, "department": "TT Giáo dục y học", "isPHCN": false, "schedule": "Thứ 5 (Chiều)<br>Tuần 1 - Tuần 10 (01/3 - 07/5)<br><i>Địa điểm: Đại Giảng đường Y, Giảng đường 7B, Giảng đường 6B.</i>"},
-            {"id": "sub_6", "name": "Thống kê y học", "credits": 2, "theory": 1, "practice": 1, "department": "BM Thống kê Y học", "isPHCN": false, "schedule": "Thứ 3 (Chiều)<br>Tuần 1 - Tuần 9 (01/3 - 30/4)<br><i>Địa điểm: Đại giảng đường Trường Dược, Giảng đường 7B, Giảng đường 7A.</i>"},
+            { id: "sub_1", name: "Triết học", credits: 3, theory: 3, practice: 0, department: "BM KHXH-NV", isPHCN: false, group: "1. PHẦN KIẾN THỨC CHUNG", schedule: "Thứ 3 (Chiều)<br>Tuần 1 - Tuần 9 (07/9 - 06/11)<br><i>Địa điểm: Giảng đường 7A, Đại giảng đường Trường Dược, Giảng đường 7B.</i>" },
+            { id: "sub_2", name: "Ngoại ngữ", credits: 2, theory: 2, practice: 0, department: "BM Ngoại ngữ", isPHCN: false, group: "1. PHẦN KIẾN THỨC CHUNG", schedule: "Thứ 5 (Chiều)<br>Tuần 1 - Tuần 6 (30/11 - 08/01)<br><i>Địa điểm: Đại Giảng đường Y, GĐ 7A, GĐ 2 (Trường Dược), PH1 (Điều Dưỡng - 201 NCT), GĐ 5B2, GĐ 5B1.</i>" },
             
-            {"id": "sub_7", "name": "Phương pháp dạy và học trong phục hồi chức năng", "credits": 2, "theory": 1, "practice": 1, "department": "BMPHCN", "isPHCN": true},
-            {"id": "sub_8", "name": "Quản lý và lãnh đạo trong phục hồi chức năng", "credits": 2, "theory": 1, "practice": 1, "department": "BMPHCN", "isPHCN": true},
-            {"id": "sub_9", "name": "Kỹ năng hướng dẫn lâm sàng và lý luận lâm sàng trong PHCN", "credits": 2, "theory": 1, "practice": 1, "department": "BMPHCN", "isPHCN": true},
-            {"id": "sub_10", "name": "Thực hành kỹ năng hướng dẫn lâm sàng", "credits": 2, "theory": 1, "practice": 1, "department": "BMPHCN", "isPHCN": true},
-            {"id": "sub_11", "name": "Thực hành dựa trên chứng cứ", "credits": 2, "theory": 1, "practice": 1, "department": "BMPHCN", "isPHCN": true},
+            { id: "sub_3", name: "Sinh học phân tử", credits: 2, theory: 0, practice: 2, department: "TT Y sinh học phân tử", isPHCN: false, group: "2. PHẦN KIẾN THỨC CƠ SỞ", schedule: "Thứ 3 (Chiều)<br>Tuần 1 - Tuần 6 (30/11 - 08/01)<br><i>Địa điểm: Đại Giảng đường Y, Giảng đường 6A, Giảng đường 6B.</i>" },
+            { id: "sub_4", name: "Y đức - Xã hội học", credits: 2, theory: 0, practice: 2, department: "BM Y đức", isPHCN: false, group: "2. PHẦN KIẾN THỨC CƠ SỞ", schedule: "Thứ 5 (Chiều)<br>Tuần 1 - Tuần 8 (07/9 - 30/10)<br><i>Địa điểm: Đại giảng đường Điều Dưỡng, Đại giảng đường Trường Dược, Giảng đường 7B.</i>" },
+            { id: "sub_5", name: "Phương pháp nghiên cứu khoa học", credits: 2, theory: 1, practice: 1, department: "TT Giáo dục y học", isPHCN: false, group: "2. PHẦN KIẾN THỨC CƠ SỞ", schedule: "Thứ 5 (Chiều)<br>Tuần 1 - Tuần 10 (01/3 - 07/5)<br><i>Địa điểm: Đại Giảng đường Y, Giảng đường 7B, Giảng đường 6B.</i>" },
+            { id: "sub_6", name: "Thống kê y học", credits: 2, theory: 1, practice: 1, department: "BM Thống kê Y học", isPHCN: false, group: "2. PHẦN KIẾN THỨC CƠ SỞ", schedule: "Thứ 3 (Chiều)<br>Tuần 1 - Tuần 9 (01/3 - 30/4)<br><i>Địa điểm: Đại giảng đường Trường Dược, Giảng đường 7B, Giảng đường 7A.</i>" },
             
-            {"id": "sub_12", "name": "Rối loạn nuốt", "credits": 3, "theory": 2, "practice": 1, "department": "BMPHCN", "isPHCN": true},
-            {"id": "sub_13", "name": "Rối loạn vận động tạo lời nói và nói lắp", "credits": 2, "theory": 1, "practice": 1, "department": "BMPHCN", "isPHCN": true},
-            {"id": "sub_14", "name": "Những rối loạn giao tiếp & nhận thức có nguồn gốc thần kinh", "credits": 3, "theory": 2, "practice": 1, "department": "BMPHCN", "isPHCN": true},
-            {"id": "sub_15", "name": "Những rối loạn phát sinh từ khiếm khuyết/Phẫu thuật vùng đầu và cổ", "credits": 2, "theory": 0, "practice": 2, "department": "BMPHCN", "isPHCN": true},
-            {"id": "sub_16", "name": "Khuyết tật giao tiếp suốt đời và giao tiếp tăng cường và thay thế", "credits": 2, "theory": 0, "practice": 2, "department": "BMPHCN", "isPHCN": true},
-            {"id": "sub_17", "name": "Thính lực học và PHCN thính giác", "credits": 2, "theory": 0, "practice": 2, "department": "BMPHCN", "isPHCN": true},
-            {"id": "sub_18", "name": "Quản lý ca bệnh phức tạp", "credits": 2, "theory": 0, "practice": 2, "department": "BMPHCN", "isPHCN": true},
-            {"id": "sub_19", "name": "Thực hành lâm sàng cho rối loạn giọng", "credits": 2, "theory": 0, "practice": 2, "department": "BMPHCN", "isPHCN": true},
-            {"id": "sub_20", "name": "Thực hành lâm sàng cho vấn đề rối loạn ngôn ngữ có nguồn gốc thần kinh", "credits": 2, "theory": 0, "practice": 2, "department": "BMPHCN", "isPHCN": true},
-            {"id": "sub_21", "name": "Thực hành lâm sàng cho người khuyết tật suốt đời", "credits": 2, "theory": 0, "practice": 2, "department": "BMPHCN", "isPHCN": true},
-            {"id": "sub_22", "name": "Thực hành lâm sàng cho trẻ em có rối loạn giao tiếp và nuốt", "credits": 2, "theory": 0, "practice": 2, "department": "BMPHCN", "isPHCN": true},
-            {"id": "sub_23", "name": "Thực hành lâm sàng ca bệnh phức tạp ở người lớn và trẻ em", "credits": 2, "theory": 0, "practice": 2, "department": "BMPHCN", "isPHCN": true},
+            { id: "sub_7", name: "Phương pháp dạy và học trong phục hồi chức năng", credits: 2, theory: 1, practice: 1, department: "BMPHCN", isPHCN: true, group: "3. KIẾN THỨC NGÀNH - BẮT BUỘC" },
+            { id: "sub_8", name: "Quản lý và lãnh đạo trong phục hồi chức năng", credits: 2, theory: 1, practice: 1, department: "BMPHCN", isPHCN: true, group: "3. KIẾN THỨC NGÀNH - BẮT BUỘC" },
+            { id: "sub_9", name: "Kỹ năng hướng dẫn lâm sàng và lý luận lâm sàng trong PHCN", credits: 2, theory: 1, practice: 1, department: "BMPHCN", isPHCN: true, group: "3. KIẾN THỨC NGÀNH - BẮT BUỘC" },
+            { id: "sub_10", name: "Thực hành kỹ năng hướng dẫn lâm sàng", credits: 2, theory: 1, practice: 1, department: "BMPHCN", isPHCN: true, group: "3. KIẾN THỨC NGÀNH - BẮT BUỘC" },
+            { id: "sub_11", name: "Thực hành dựa trên chứng cứ", credits: 2, theory: 1, practice: 1, department: "BMPHCN", isPHCN: true, group: "3. KIẾN THỨC NGÀNH - BẮT BUỘC" },
             
-            {"id": "sub_24", "name": "Vật lý trị liệu Nhi nâng cao", "credits": 3, "theory": 1, "practice": 2, "department": "BMPHCN", "isPHCN": true},
-            {"id": "sub_25", "name": "Vật lý trị liệu Thần kinh cơ nâng cao", "credits": 2, "theory": 1, "practice": 1, "department": "BMPHCN", "isPHCN": true},
-            {"id": "sub_26", "name": "Vật lý trị liệu Cơ xương nâng cao", "credits": 2, "theory": 1, "practice": 1, "department": "BMPHCN", "isPHCN": true},
-            {"id": "sub_27", "name": "Vật lý trị liệu Tim mạch – Hô hấp nâng cao", "credits": 3, "theory": 1, "practice": 2, "department": "BMPHCN", "isPHCN": true},
-            {"id": "sub_28", "name": "Vật lý trị liệu trong thể thao", "credits": 3, "theory": 1, "practice": 2, "department": "BMPHCN", "isPHCN": true},
-            {"id": "sub_29", "name": "Ứng dụng công thái học trong can thiệp Vật lý trị liệu", "credits": 4, "theory": 2, "practice": 2, "department": "BMPHCN", "isPHCN": true},
-            {"id": "sub_30", "name": "Thực hành lâm sàng Vật lý trị liệu nâng cao 1", "credits": 4, "theory": 0, "practice": 4, "department": "BMPHCN", "isPHCN": true},
-            {"id": "sub_31", "name": "Thực hành lâm sàng Vật lý trị liệu nâng cao 2", "credits": 4, "theory": 0, "practice": 4, "department": "BMPHCN", "isPHCN": true},
+            { id: "sub_12", name: "Rối loạn nuốt", credits: 3, theory: 2, practice: 1, department: "BMPHCN", isPHCN: true, group: "4. KIẾN THỨC NGÀNH - NGÔN NGỮ TRỊ LIỆU" },
+            { id: "sub_13", name: "Rối loạn vận động tạo lời nói và nói lắp", credits: 2, theory: 1, practice: 1, department: "BMPHCN", isPHCN: true, group: "4. KIẾN THỨC NGÀNH - NGÔN NGỮ TRỊ LIỆU" },
+            { id: "sub_14", name: "Những rối loạn giao tiếp & nhận thức có nguồn gốc thần kinh", credits: 3, theory: 2, practice: 1, department: "BMPHCN", isPHCN: true, group: "4. KIẾN THỨC NGÀNH - NGÔN NGỮ TRỊ LIỆU" },
+            { id: "sub_15", name: "Những rối loạn phát sinh từ khiếm khuyết/Phẫu thuật vùng đầu và cổ", credits: 2, theory: 0, practice: 2, department: "BMPHCN", isPHCN: true, group: "4. KIẾN THỨC NGÀNH - NGÔN NGỮ TRỊ LIỆU" },
+            { id: "sub_16", name: "Khuyết tật giao tiếp suốt đời và giao tiếp tăng cường và thay thế", credits: 2, theory: 0, practice: 2, department: "BMPHCN", isPHCN: true, group: "4. KIẾN THỨC NGÀNH - NGÔN NGỮ TRỊ LIỆU" },
+            { id: "sub_17", name: "Thính lực học và PHCN thính giác", credits: 2, theory: 0, practice: 2, department: "BMPHCN", isPHCN: true, group: "4. KIẾN THỨC NGÀNH - NGÔN NGỮ TRỊ LIỆU" },
+            { id: "sub_18", name: "Quản lý ca bệnh phức tạp", credits: 2, theory: 0, practice: 2, department: "BMPHCN", isPHCN: true, group: "4. KIẾN THỨC NGÀNH - NGÔN NGỮ TRỊ LIỆU" },
+            { id: "sub_19", name: "Thực hành lâm sàng cho rối loạn giọng", credits: 2, theory: 0, practice: 2, department: "BMPHCN", isPHCN: true, group: "4. KIẾN THỨC NGÀNH - NGÔN NGỮ TRỊ LIỆU" },
+            { id: "sub_20", name: "Thực hành lâm sàng cho vấn đề rối loạn ngôn ngữ có nguồn gốc thần kinh", credits: 2, theory: 0, practice: 2, department: "BMPHCN", isPHCN: true, group: "4. KIẾN THỨC NGÀNH - NGÔN NGỮ TRỊ LIỆU" },
+            { id: "sub_21", name: "Thực hành lâm sàng cho người khuyết tật suốt đời", credits: 2, theory: 0, practice: 2, department: "BMPHCN", isPHCN: true, group: "4. KIẾN THỨC NGÀNH - NGÔN NGỮ TRỊ LIỆU" },
+            { id: "sub_22", name: "Thực hành lâm sàng cho trẻ em có rối loạn giao tiếp và nuốt", credits: 2, theory: 0, practice: 2, department: "BMPHCN", isPHCN: true, group: "4. KIẾN THỨC NGÀNH - NGÔN NGỮ TRỊ LIỆU" },
+            { id: "sub_23", name: "Thực hành lâm sàng ca bệnh phức tạp ở người lớn và trẻ em", credits: 2, theory: 0, practice: 2, department: "BMPHCN", isPHCN: true, group: "4. KIẾN THỨC NGÀNH - NGÔN NGỮ TRỊ LIỆU" },
             
-            {"id": "sub_32", "name": "Những vấn đề chuyên môn trong Hoạt động trị liệu", "credits": 3, "theory": 1, "practice": 2, "department": "BMPHCN", "isPHCN": true},
-            {"id": "sub_33", "name": "Lãnh đạo và quản lý trong Hoạt động trị liệu", "credits": 3, "theory": 1, "practice": 2, "department": "BMPHCN", "isPHCN": true},
-            {"id": "sub_34", "name": "Thiết kế và đánh giá chương trình Hoạt động trị liệu", "credits": 3, "theory": 1, "practice": 2, "department": "BMPHCN", "isPHCN": true},
-            {"id": "sub_35", "name": "Hoạt động trị liệu và quản lý chấn thương", "credits": 3, "theory": 1, "practice": 2, "department": "BMPHCN", "isPHCN": true},
-            {"id": "sub_36", "name": "Hoạt động trị liệu trong thực hành sức khỏe tâm thần trong suốt quá trình phát triển", "credits": 3, "theory": 1, "practice": 2, "department": "BMPHCN", "isPHCN": true},
-            {"id": "sub_37", "name": "Hoạt động trị liệu trong lão khoa", "credits": 3, "theory": 1, "practice": 2, "department": "BMPHCN", "isPHCN": true},
-            {"id": "sub_38", "name": "Thực hành hoạt động trị liệu 1", "credits": 3, "theory": 0, "practice": 3, "department": "BMPHCN", "isPHCN": true},
-            {"id": "sub_39", "name": "Thực hành hoạt động trị liệu 2", "credits": 3, "theory": 0, "practice": 3, "department": "BMPHCN", "isPHCN": true},
-            {"id": "sub_40", "name": "Thực hành hoạt động trị liệu 3", "credits": 3, "theory": 0, "practice": 3, "department": "BMPHCN", "isPHCN": true},
+            { id: "sub_24", name: "Vật lý trị liệu Nhi nâng cao", credits: 3, theory: 1, practice: 2, department: "BMPHCN", isPHCN: true, group: "5. KIẾN THỨC NGÀNH - VẬT LÝ TRỊ LIỆU" },
+            { id: "sub_25", name: "Vật lý trị liệu Thần kinh cơ nâng cao", credits: 2, theory: 1, practice: 1, department: "BMPHCN", isPHCN: true, group: "5. KIẾN THỨC NGÀNH - VẬT LÝ TRỊ LIỆU" },
+            { id: "sub_26", name: "Vật lý trị liệu Cơ xương nâng cao", credits: 2, theory: 1, practice: 1, department: "BMPHCN", isPHCN: true, group: "5. KIẾN THỨC NGÀNH - VẬT LÝ TRỊ LIỆU" },
+            { id: "sub_27", name: "Vật lý trị liệu Tim mạch – Hô hấp nâng cao", credits: 3, theory: 1, practice: 2, department: "BMPHCN", isPHCN: true, group: "5. KIẾN THỨC NGÀNH - VẬT LÝ TRỊ LIỆU" },
+            { id: "sub_28", name: "Vật lý trị liệu trong thể thao", credits: 3, theory: 1, practice: 2, department: "BMPHCN", isPHCN: true, group: "5. KIẾN THỨC NGÀNH - VẬT LÝ TRỊ LIỆU" },
+            { id: "sub_29", name: "Ứng dụng công thái học trong can thiệp Vật lý trị liệu", credits: 4, theory: 2, practice: 2, department: "BMPHCN", isPHCN: true, group: "5. KIẾN THỨC NGÀNH - VẬT LÝ TRỊ LIỆU" },
+            { id: "sub_30", name: "Thực hành lâm sàng Vật lý trị liệu nâng cao 1", credits: 4, theory: 0, practice: 4, department: "BMPHCN", isPHCN: true, group: "5. KIẾN THỨC NGÀNH - VẬT LÝ TRỊ LIỆU" },
+            { id: "sub_31", name: "Thực hành lâm sàng Vật lý trị liệu nâng cao 2", credits: 4, theory: 0, practice: 4, department: "BMPHCN", isPHCN: true, group: "5. KIẾN THỨC NGÀNH - VẬT LÝ TRỊ LIỆU" },
             
-            {"id": "sub_41", "name": "Thực hành lâm sàng Kỹ thuật Phục hồi chức năng 1", "credits": 2, "theory": 0, "practice": 2, "department": "BMPHCN", "isPHCN": true},
-            {"id": "sub_42", "name": "Thực hành lâm sàng Kỹ thuật Phục hồi chức năng 2", "credits": 2, "theory": 0, "practice": 2, "department": "BMPHCN", "isPHCN": true},
-            {"id": "sub_43", "name": "Thực hành lâm sàng Kỹ thuật Phục hồi chức năng 3", "credits": 2, "theory": 0, "practice": 2, "department": "BMPHCN", "isPHCN": true},
+            { id: "sub_32", name: "Những vấn đề chuyên môn trong Hoạt động trị liệu", credits: 3, theory: 1, practice: 2, department: "BMPHCN", isPHCN: true, group: "6. KIẾN THỨC NGÀNH - HOẠT ĐỘNG TRỊ LIỆU" },
+            { id: "sub_33", name: "Lãnh đạo và quản lý trong Hoạt động trị liệu", credits: 3, theory: 1, practice: 2, department: "BMPHCN", isPHCN: true, group: "6. KIẾN THỨC NGÀNH - HOẠT ĐỘNG TRỊ LIỆU" },
+            { id: "sub_34", name: "Thiết kế và đánh giá chương trình Hoạt động trị liệu", credits: 3, theory: 1, practice: 2, department: "BMPHCN", isPHCN: true, group: "6. KIẾN THỨC NGÀNH - HOẠT ĐỘNG TRỊ LIỆU" },
+            { id: "sub_35", name: "Hoạt động trị liệu và quản lý chấn thương", credits: 3, theory: 1, practice: 2, department: "BMPHCN", isPHCN: true, group: "6. KIẾN THỨC NGÀNH - HOẠT ĐỘNG TRỊ LIỆU" },
+            { id: "sub_36", name: "Hoạt động trị liệu trong thực hành sức khỏe tâm thần trong suốt quá trình phát triển", credits: 3, theory: 1, practice: 2, department: "BMPHCN", isPHCN: true, group: "6. KIẾN THỨC NGÀNH - HOẠT ĐỘNG TRỊ LIỆU" },
+            { id: "sub_37", name: "Hoạt động trị liệu trong lão khoa", credits: 3, theory: 1, practice: 2, department: "BMPHCN", isPHCN: true, group: "6. KIẾN THỨC NGÀNH - HOẠT ĐỘNG TRỊ LIỆU" },
+            { id: "sub_38", name: "Thực hành hoạt động trị liệu 1", credits: 3, theory: 0, practice: 3, department: "BMPHCN", isPHCN: true, group: "6. KIẾN THỨC NGÀNH - HOẠT ĐỘNG TRỊ LIỆU" },
+            { id: "sub_39", name: "Thực hành hoạt động trị liệu 2", credits: 3, theory: 0, practice: 3, department: "BMPHCN", isPHCN: true, group: "6. KIẾN THỨC NGÀNH - HOẠT ĐỘNG TRỊ LIỆU" },
+            { id: "sub_40", name: "Thực hành hoạt động trị liệu 3", credits: 3, theory: 0, practice: 3, department: "BMPHCN", isPHCN: true, group: "6. KIẾN THỨC NGÀNH - HOẠT ĐỘNG TRỊ LIỆU" },
             
-            {"id": "sub_44", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 1", "credits": 3, "theory": 1, "practice": 2, "department": "BMPHCN", "isPHCN": true},
-            {"id": "sub_45", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 2", "credits": 3, "theory": 1, "practice": 2, "department": "BMPHCN", "isPHCN": true},
-            {"id": "sub_46", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 3", "credits": 3, "theory": 1, "practice": 2, "department": "BMPHCN", "isPHCN": true},
-            {"id": "sub_47", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 4", "credits": 3, "theory": 1, "practice": 2, "department": "BMPHCN", "isPHCN": true},
+            { id: "sub_41", name: "Thực hành lâm sàng Kỹ thuật Phục hồi chức năng 1", credits: 2, theory: 0, practice: 2, department: "BMPHCN", isPHCN: true, group: "7. PHẦN THỰC TẬP" },
+            { id: "sub_42", name: "Thực hành lâm sàng Kỹ thuật Phục hồi chức năng 2", credits: 2, theory: 0, practice: 2, department: "BMPHCN", isPHCN: true, group: "7. PHẦN THỰC TẬP" },
+            { id: "sub_43", name: "Thực hành lâm sàng Kỹ thuật Phục hồi chức năng 3", credits: 2, theory: 0, practice: 2, department: "BMPHCN", isPHCN: true, group: "7. PHẦN THỰC TẬP" },
             
-            {"id": "sub_48", "name": "Đề án tốt nghiệp", "credits": 6, "theory": 0, "practice": 6, "department": "BMPHCN", "isPHCN": true},
-            {"id": "sub_49", "name": "Luận văn", "credits": 12, "theory": 0, "practice": 12, "department": "BMPHCN", "isPHCN": true}
+            { id: "sub_44", name: "Chuyên đề nâng cao trong Phục hồi chức năng 1", credits: 3, theory: 1, practice: 2, department: "BMPHCN", isPHCN: true, group: "8. CHUYÊN ĐỀ NGHIÊN CỨU" },
+            { id: "sub_45", name: "Chuyên đề nâng cao trong Phục hồi chức năng 2", credits: 3, theory: 1, practice: 2, department: "BMPHCN", isPHCN: true, group: "8. CHUYÊN ĐỀ NGHIÊN CỨU" },
+            { id: "sub_46", name: "Chuyên đề nâng cao trong Phục hồi chức năng 3", credits: 3, theory: 1, practice: 2, department: "BMPHCN", isPHCN: true, group: "8. CHUYÊN ĐỀ NGHIÊN CỨU" },
+            { id: "sub_47", name: "Chuyên đề nâng cao trong Phục hồi chức năng 4", credits: 3, theory: 1, practice: 2, department: "BMPHCN", isPHCN: true, group: "8. CHUYÊN ĐỀ NGHIÊN CỨU" },
+            
+            { id: "sub_48", name: "Đề án tốt nghiệp", credits: 6, theory: 0, practice: 6, department: "BMPHCN", isPHCN: true, group: "9. ĐỀ ÁN & LUẬN VĂN" },
+            { id: "sub_49", name: "Luận văn", credits: 12, theory: 0, practice: 12, department: "BMPHCN", isPHCN: true, group: "9. ĐỀ ÁN & LUẬN VĂN" }
         ];
 
         // LẬP TRÌNH TÍNH TOÁN SỐ BUỔI CHUẨN XÁC
         subjectsData.forEach(sub => {
-            // 1 TC LT = 15 tiết = 3 buổi
             sub.theorySessions = sub.theory * 3; 
-            
-            // Nếu môn có chữ "thực hành lâm sàng" -> 1 TC TH = 40 tiết = 8 buổi. Còn lại = 30 tiết = 6 buổi.
-            if (sub.name.toLowerCase().includes("thực hành lâm sàng")) {
-                sub.practiceSessions = sub.practice * 8; 
+            if (sub.name.toLowerCase().includes("lâm sàng")) {
+                sub.practiceSessions = sub.practice * 8; // 40 tiết = 8 buổi
             } else {
-                sub.practiceSessions = sub.practice * 6;
+                sub.practiceSessions = sub.practice * 6; // 30 tiết = 6 buổi
             }
-            
             sub.totalSessions = sub.theorySessions + sub.practiceSessions;
         });
 
-        let assignmentsDB = {}; 
-        let currentEditingSubId = null;
+        // Nguồn dữ liệu Task
+        const taskOptions = [
+            "Lý thuyết", "Thực hành", "Thực tế", "Ra đề thi", "Coi thi", "Chấm thi", "Soạn mới, sửa BG/GT", "Công việc khác"
+        ];
 
         function showToast(message, type = 'success') {
             const container = document.getElementById('toastContainer');
@@ -269,13 +331,35 @@
             setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
         }
 
+        window.switchClass = (cls, btnElement) => {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btnElement.classList.add('active');
+            currentClass = cls;
+            renderTable();
+        };
+
+        // Lấy dữ liệu danh sách GV Thỉnh giảng từ DB
+        onSnapshot(collection(db, "visiting_lecturers"), (snapshot) => {
+            visitingLecturers = snapshot.docs.map(d => d.data().name);
+            updateGVList();
+        });
+
+        function updateGVList() {
+            const dl = document.getElementById('gv-list');
+            dl.innerHTML = '';
+            const allGVs = [...internalLecturers, ...visitingLecturers];
+            allGVs.forEach(g => {
+                dl.innerHTML += `<option value="${g}">`;
+            });
+        }
+
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 const email = user.email.toLowerCase();
-                // CHỈ CHO PHÉP TRƯỞNG BỘ MÔN TRUY CẬP
                 if (email !== 'lethanhvan@ump.edu.vn') {
                     document.getElementById('accessDenied').classList.remove('hidden');
                 } else {
+                    isHOD = true;
                     document.getElementById('mainContent').classList.remove('hidden');
                     
                     onSnapshot(collection(db, "assignments"), (snapshot) => {
@@ -284,76 +368,120 @@
                         renderTable();
                     });
                 }
-
-                setTimeout(async () => {
-                    const btnAuthNav = document.getElementById('btnAuthNav');
-                    if(btnAuthNav) {
-                        const userDoc = await getDoc(doc(db, "users", user.uid));
-                        let title = "Giảng viên";
-                        if (userDoc.exists()) {
-                            const data = userDoc.data();
-                            let prefix = data.degree === 'ThS' ? 'ThS. ' : (data.degree === 'TS' ? 'TS. ' : '');
-                            title = `${prefix}${data.fullName}`;
-                        }
-                        btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 5px;"></i> ${title}`;
-                        btnAuthNav.href = "dashboard.html";
-                    }
-                }, 100);
             } else {
                 window.location.href = "login.html";
             }
         });
 
+        // Hàm Đóng Mở Nhóm (Accordion)
+        window.toggleGroup = (groupClass, iconId) => {
+            const rows = document.querySelectorAll('.' + groupClass);
+            const icon = document.getElementById(iconId);
+            let isHidden = false;
+            rows.forEach(r => {
+                if(r.classList.contains('hidden')) { r.classList.remove('hidden'); isHidden = false; }
+                else { r.classList.add('hidden'); isHidden = true; }
+            });
+            if (isHidden) icon.parentElement.classList.add('group-collapsed');
+            else icon.parentElement.classList.remove('group-collapsed');
+        };
+
         function renderTable() {
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
 
-            subjectsData.forEach((sub, index) => {
-                const asg = assignmentsDB[sub.id] || { semester: '', allocations: [] };
+            // Gom nhóm
+            const groupedData = {};
+            subjectsData.forEach(s => {
+                if(!groupedData[s.group]) groupedData[s.group] = [];
+                groupedData[s.group].push(s);
+            });
+
+            let stt = 1;
+            Object.keys(groupedData).forEach((groupName, gIdx) => {
+                const gClass = `grp-${gIdx}`;
                 
-                let gvHtml = '<span style="color:#94a3b8; font-style:italic;">Chưa phân công</span>';
-                let completedSessions = 0;
-                
-                if (asg.allocations.length > 0) {
-                    // Hiển thị Đầy đủ họ tên (a.gv) thay vì viết tắt
-                    gvHtml = asg.allocations.map(a => `<div style="margin-bottom:3px;"><i class="fas fa-user-tie" style="color:var(--primary); margin-right:5px; font-size:0.85rem;"></i> <b style="color:var(--text-dark);">${a.gv}</b> (${a.assigned} buổi)</div>`).join('');
-                    completedSessions = asg.allocations.reduce((sum, a) => sum + (parseInt(a.completed) || 0), 0);
-                }
-
-                const pct = Math.min(100, Math.round((completedSessions / sub.totalSessions) * 100));
-                let pColor = '#16a34a'; if (pct < 50) pColor = '#f59e0b'; if (pct === 0) pColor = '#e2e8f0';
-
-                let actionHtml = '';
-                let progressHtml = '';
-
-                if (sub.isPHCN) {
-                    actionHtml = `<button class="btn-outline" onclick="openAssignModal('${sub.id}')"><i class="fas fa-edit"></i> Phân công</button>`;
-                    progressHtml = `
-                        <div class="progress-container"><div class="progress-bar" style="width: ${pct}%; background-color: ${pColor};"></div></div>
-                        <span class="progress-text">${completedSessions} / ${sub.totalSessions} buổi (${pct}%)</span>
-                    `;
-                } else {
-                    gvHtml = `<span style="color:#64748b; font-weight: 500;"><i class="fas fa-building"></i> ${sub.department}</span>`;
-                    progressHtml = `<span style="color:#94a3b8; font-size:0.85rem;">Không do BM quản lý</span>`;
-                }
-
+                // In dòng Header Group
                 tbody.innerHTML += `
-                    <tr>
-                        <td align="center" style="font-weight:bold; color:#94a3b8;">${index + 1}</td>
-                        <td><div class="subject-link" onclick="openSubjectModal('${sub.id}')">${sub.name}</div></td>
-                        <td style="font-weight:600; color:var(--text-dark);">${asg.semester || '—'}</td>
-                        <td>${gvHtml}</td>
-                        <td>${progressHtml}</td>
-                        <td align="center">${actionHtml}</td>
+                    <tr class="group-header" onclick="toggleGroup('${gClass}', 'icon-${gIdx}')">
+                        <td colspan="6" class="group-title">
+                            <i id="icon-${gIdx}" class="fas fa-chevron-down group-icon"></i> ${groupName}
+                        </td>
                     </tr>
                 `;
+
+                // In các môn học
+                groupedData[groupName].forEach(sub => {
+                    // Dữ liệu của Lớp hiện tại
+                    const asgDoc = assignmentsDB[sub.id] || {};
+                    const asg = asgDoc[currentClass] || { semester: '', allocations: [] };
+                    const isThesis = sub.name.includes("Luận văn") || sub.name.includes("Đề án");
+                    
+                    let gvHtml = '<span style="color:#94a3b8; font-style:italic;">Chưa phân công</span>';
+                    let progressHtml = '';
+                    
+                    if (isThesis) {
+                        // Tính tiến độ cho Luận văn/Đề án
+                        if (asg.allocations.length > 0) {
+                            gvHtml = asg.allocations.map(a => `<div style="margin-bottom:5px;"><i class="fas fa-user-graduate" style="color:var(--accent);"></i> HV: <b>${a.student || 'Chưa gán HV'}</b><br><i class="fas fa-chalkboard-teacher" style="color:var(--primary); font-size:0.8rem; margin-left:15px;"></i> GV: ${a.gv1} ${a.gv2 ? `& ${a.gv2}` : ''}</div>`).join('');
+                            progressHtml = `<span class="progress-text">Đã phân công ${asg.allocations.length} Học viên</span>`;
+                        } else {
+                            progressHtml = `<span style="color:#94a3b8; font-size:0.85rem;">0 Học viên</span>`;
+                        }
+                    } else {
+                        // Tính tiến độ cho môn học bình thường
+                        let completedLT_TH = 0;
+                        if (asg.allocations.length > 0) {
+                            let gvListDisplay = [];
+                            asg.allocations.forEach(a => {
+                                gvListDisplay.push(`<div style="margin-bottom:3px;"><i class="fas fa-user-tie" style="color:var(--primary); font-size:0.85rem;"></i> <b style="color:var(--text-dark);">${a.gv}</b> [${a.task}] (${a.assigned})</div>`);
+                                if (a.task === 'Lý thuyết' || a.task === 'Thực hành' || a.task === 'Thực tế') {
+                                    completedLT_TH += (parseInt(a.completed) || 0);
+                                }
+                            });
+                            gvHtml = gvListDisplay.join('');
+                        }
+                        
+                        const pct = sub.totalSessions > 0 ? Math.min(100, Math.round((completedLT_TH / sub.totalSessions) * 100)) : 100;
+                        let pColor = '#16a34a'; if (pct < 50) pColor = '#f59e0b'; if (pct === 0) pColor = '#e2e8f0';
+
+                        if (sub.isPHCN) {
+                            progressHtml = `
+                                <div class="progress-container"><div class="progress-bar" style="width: ${pct}%; background-color: ${pColor};"></div></div>
+                                <span class="progress-text">${completedLT_TH} / ${sub.totalSessions} buổi (${pct}%)</span>
+                            `;
+                        } else {
+                            gvHtml = `<span style="color:#64748b; font-weight: 500;"><i class="fas fa-building"></i> ${sub.department}</span>`;
+                            progressHtml = `<span style="color:#94a3b8; font-size:0.85rem;">Không do BM quản lý</span>`;
+                        }
+                    }
+
+                    let actionHtml = '';
+                    if (isHOD && sub.isPHCN) {
+                        actionHtml = `<button class="btn-outline" onclick="openAssignModal('${sub.id}')"><i class="fas fa-edit"></i> Phân công</button>`;
+                    }
+
+                    tbody.innerHTML += `
+                        <tr class="subject-row ${gClass}">
+                            <td align="center" style="font-weight:bold; color:#94a3b8;">${stt++}</td>
+                            <td><div class="subject-link" onclick="openSubjectModal('${sub.id}')">${sub.name}</div></td>
+                            <td style="font-weight:600; color:var(--text-dark);">${asg.semester || '—'}</td>
+                            <td>${gvHtml}</td>
+                            <td>${progressHtml}</td>
+                            <td class="${isHOD ? '' : 'hidden'}" align="center">${actionHtml}</td>
+                        </tr>
+                    `;
+                });
             });
+            
+            // Ẩn cột thao tác nếu ko phải Admin
+            if(!isHOD) { document.querySelector('.col-action').classList.add('hidden'); }
         }
 
-        // --- MỞ POPUP CHI TIẾT MÔN HỌC ---
         window.openSubjectModal = (id) => {
             const sub = subjectsData.find(s => s.id === id);
             document.getElementById('detName').innerText = sub.name;
+            document.getElementById('detGroup').innerText = sub.group;
             document.getElementById('detDept').innerText = sub.department;
             document.getElementById('detCredits').innerText = sub.credits;
             document.getElementById('detTheory').innerText = sub.theory;
@@ -361,7 +489,6 @@
             document.getElementById('detPractice').innerText = sub.practice;
             document.getElementById('detPracticeSessions').innerText = sub.practiceSessions;
             
-            // Hiện chữ chú thích riêng cho Lâm sàng
             const noteEl = document.getElementById('detPracticeNote');
             if (sub.name.toLowerCase().includes("lâm sàng")) {
                 noteEl.innerText = "(Khối lượng Lâm sàng: 1 TC = 40 tiết = 8 buổi)";
@@ -383,77 +510,181 @@
             document.getElementById('subjectModal').classList.remove('hidden');
         };
 
-        // --- MỞ POPUP PHÂN CÔNG ---
         window.openAssignModal = (id) => {
             currentEditingSubId = id;
             const sub = subjectsData.find(s => s.id === id);
-            const asg = assignmentsDB[id] || { semester: '', allocations: [] };
+            const asgDoc = assignmentsDB[id] || {};
+            const asg = asgDoc[currentClass] || { semester: '', allocations: [] };
 
-            document.getElementById('asgName').innerText = sub.name;
-            document.getElementById('asgTotal').innerText = sub.totalSessions;
-            document.getElementById('asgSemester').value = asg.semester;
-            
-            document.getElementById('allocContainer').innerHTML = '';
-            
-            if (asg.allocations.length === 0) {
-                addAllocRow(); 
+            if(sub.name.includes("Luận văn") || sub.name.includes("Đề án")) {
+                // Hiển thị Modal cho Luận Văn
+                document.getElementById('tasgName').innerText = `${sub.name} (Khóa: ${currentClass})`;
+                document.getElementById('tasgSemester').value = asg.semester;
+                document.getElementById('thesisAllocContainer').innerHTML = '';
+                
+                if (asg.allocations.length === 0) { addThesisRow(); } 
+                else { asg.allocations.forEach(a => addThesisRow(a.student, a.gv1, a.gv2)); }
+                document.getElementById('thesisAssignModal').classList.remove('hidden');
             } else {
-                asg.allocations.forEach(a => addAllocRow(a.gv, a.assigned, a.completed));
+                // Hiển thị Modal Thường
+                document.getElementById('asgName').innerText = `${sub.name} (Khóa: ${currentClass})`;
+                document.getElementById('asgLT').innerText = sub.theorySessions;
+                document.getElementById('asgTH').innerText = sub.practiceSessions;
+                document.getElementById('asgSemester').value = asg.semester;
+                
+                document.getElementById('allocContainer').innerHTML = '';
+                
+                if (asg.allocations.length === 0) { addAllocRow(); } 
+                else { asg.allocations.forEach(a => addAllocRow(a.gv, a.task, a.assigned, a.completed)); }
+                document.getElementById('assignModal').classList.remove('hidden');
             }
-
-            document.getElementById('assignModal').classList.remove('hidden');
         };
 
-        window.addAllocRow = (gv = '', assigned = '', completed = 0) => {
+        // UI Modal Thường
+        window.addAllocRow = (gv = '', task = '', assigned = '', completed = 0) => {
             const container = document.getElementById('allocContainer');
             const row = document.createElement('div');
             row.className = 'alloc-row';
             
-            let options = '<option value="">-- Chọn Giảng viên --</option>';
-            lecturersList.forEach(l => {
-                options += `<option value="${l}" ${gv === l ? 'selected' : ''}>${l}</option>`;
-            });
+            let taskOpts = '<option value="">-- Chọn Công việc --</option>';
+            taskOptions.forEach(t => { taskOpts += `<option value="${t}" ${task === t ? 'selected' : ''}>${t}</option>`; });
 
             row.innerHTML = `
-                <select class="sel-gv" style="flex: 2;">${options}</select>
-                <input type="number" class="inp-assigned" placeholder="Số buổi dạy" style="flex: 1;" value="${assigned}" min="1">
-                <input type="number" class="inp-completed" placeholder="Đã dạy" style="flex: 1;" value="${completed}" min="0">
-                <button class="btn-danger" onclick="this.parentElement.remove()" style="padding: 8px;"><i class="fas fa-trash"></i></button>
+                <div style="flex: 2;">
+                    <span class="alloc-label">Giảng viên</span>
+                    <input type="text" list="gv-list" class="inp-gv" placeholder="Tên GV..." value="${gv}" style="width:100%;">
+                </div>
+                <div style="flex: 2;">
+                    <span class="alloc-label">Công việc</span>
+                    <select class="sel-task" style="width:100%;">${taskOpts}</select>
+                </div>
+                <div style="flex: 1;">
+                    <span class="alloc-label">Phân công (Buổi/Đợt)</span>
+                    <input type="number" class="inp-assigned" value="${assigned}" min="1" style="width:100%;">
+                </div>
+                <div style="flex: 1;">
+                    <span class="alloc-label">Hoàn thành</span>
+                    <input type="number" class="inp-completed" value="${completed}" min="0" style="width:100%;">
+                </div>
+                <div style="display:flex; align-items:flex-end;">
+                    <button class="btn-danger" onclick="this.parentElement.parentElement.remove()" style="padding: 10px; margin-bottom: 2px;"><i class="fas fa-trash"></i></button>
+                </div>
             `;
             container.appendChild(row);
         };
 
-        // --- LƯU & KIỂM TRA ĐIỀU KIỆN ---
+        // LƯU Modal Thường
         window.saveAssignment = async () => {
             const semester = document.getElementById('asgSemester').value;
-            const rows = document.querySelectorAll('.alloc-row');
+            const rows = document.querySelectorAll('#allocContainer .alloc-row');
             let allocations = [];
-            let totalAssigned = 0;
+            
+            let sumLT = 0, sumTH = 0;
+            const currentSub = subjectsData.find(s => s.id === currentEditingSubId);
+            const externalGVsToSave = new Set();
             
             for (let row of rows) {
-                const gv = row.querySelector('.sel-gv').value;
+                const gv = row.querySelector('.inp-gv').value.trim();
+                const task = row.querySelector('.sel-task').value;
                 const assigned = parseInt(row.querySelector('.inp-assigned').value) || 0;
                 const completed = parseInt(row.querySelector('.inp-completed').value) || 0;
                 
-                if (gv && assigned > 0) {
-                    allocations.push({ gv, assigned, completed });
-                    totalAssigned += assigned;
+                if (gv && task && assigned > 0) {
+                    allocations.push({ gv, task, assigned, completed });
+                    
+                    // Ràng buộc số buổi Lý Thuyết & Thực hành
+                    if (task === 'Lý thuyết') sumLT += assigned;
+                    if (task === 'Thực hành' || task === 'Thực tế') sumTH += assigned;
+
+                    // Lưu GV mới
+                    if (!internalLecturers.includes(gv) && !visitingLecturers.includes(gv)) {
+                        externalGVsToSave.add(gv);
+                    }
                 }
             }
 
-            // Lấy thông tin tổng số buổi của môn hiện tại
-            const currentSub = subjectsData.find(s => s.id === currentEditingSubId);
-            
-            // RÀO CẢN: Nếu tổng số buổi gán cho GV vượt quá tổng số buổi môn học
-            if (totalAssigned > currentSub.totalSessions) {
-                showToast(`Lỗi: Tổng số buổi phân công (${totalAssigned}) vượt quá định mức của môn học (${currentSub.totalSessions})!`, "danger");
-                return; // Ngưng không cho lưu
+            if (sumLT > currentSub.theorySessions) {
+                showToast(`Lỗi: Tổng số buổi Lý thuyết (${sumLT}) vượt quá định mức (${currentSub.theorySessions})!`, "danger"); return;
+            }
+            if (sumTH > currentSub.practiceSessions) {
+                showToast(`Lỗi: Tổng số buổi TH/LS (${sumTH}) vượt quá định mức (${currentSub.practiceSessions})!`, "danger"); return;
+            }
+
+            // Lưu GV Thỉnh giảng mới
+            for (let gv of externalGVsToSave) {
+                try { await setDoc(doc(collection(db, "visiting_lecturers")), { name: gv }); } catch(e){}
             }
 
             try {
-                await setDoc(doc(db, "assignments", currentEditingSubId), { semester, allocations });
+                // Cập nhật cấu trúc: document theo id môn, field theo class
+                await setDoc(doc(db, "assignments", currentEditingSubId), { 
+                    [currentClass]: { semester, allocations } 
+                }, { merge: true });
+                
                 document.getElementById('assignModal').classList.add('hidden');
                 showToast("Lưu phân công thành công!");
+            } catch (e) {
+                showToast("Lỗi khi lưu: " + e.message, "danger");
+            }
+        };
+
+        // UI Modal Luận Văn
+        window.addThesisRow = (student = '', gv1 = '', gv2 = '') => {
+            const container = document.getElementById('thesisAllocContainer');
+            const row = document.createElement('div');
+            row.className = 'alloc-row';
+            
+            row.innerHTML = `
+                <div style="flex: 2;">
+                    <span class="alloc-label">Họ tên Học viên</span>
+                    <input type="text" class="inp-student" placeholder="Nhập tên HV..." value="${student}" style="width:100%;">
+                </div>
+                <div style="flex: 2;">
+                    <span class="alloc-label">GV Hướng dẫn 1 (Chính)</span>
+                    <input type="text" list="gv-list" class="inp-gv1" placeholder="Nhập tên GV1..." value="${gv1}" style="width:100%;">
+                </div>
+                <div style="flex: 2;">
+                    <span class="alloc-label">GV Hướng dẫn 2 (Phụ)</span>
+                    <input type="text" list="gv-list" class="inp-gv2" placeholder="Tùy chọn..." value="${gv2}" style="width:100%;">
+                </div>
+                <div style="display:flex; align-items:flex-end;">
+                    <button class="btn-danger" onclick="this.parentElement.parentElement.remove()" style="padding: 10px; margin-bottom: 2px;"><i class="fas fa-trash"></i></button>
+                </div>
+            `;
+            container.appendChild(row);
+        };
+
+        // LƯU Modal Luận Văn
+        window.saveThesisAssignment = async () => {
+            const semester = document.getElementById('tasgSemester').value;
+            const rows = document.querySelectorAll('#thesisAllocContainer .alloc-row');
+            let allocations = [];
+            const externalGVsToSave = new Set();
+            
+            for (let row of rows) {
+                const student = row.querySelector('.inp-student').value.trim();
+                const gv1 = row.querySelector('.inp-gv1').value.trim();
+                const gv2 = row.querySelector('.inp-gv2').value.trim();
+                
+                if (student && gv1) {
+                    allocations.push({ student, gv1, gv2, task: 'Hướng dẫn LV, LATS' });
+                    
+                    if (!internalLecturers.includes(gv1) && !visitingLecturers.includes(gv1)) externalGVsToSave.add(gv1);
+                    if (gv2 && !internalLecturers.includes(gv2) && !visitingLecturers.includes(gv2)) externalGVsToSave.add(gv2);
+                }
+            }
+
+            for (let gv of externalGVsToSave) {
+                try { await setDoc(doc(collection(db, "visiting_lecturers")), { name: gv }); } catch(e){}
+            }
+
+            try {
+                await setDoc(doc(db, "assignments", currentEditingSubId), { 
+                    [currentClass]: { semester, allocations } 
+                }, { merge: true });
+                
+                document.getElementById('thesisAssignModal').classList.add('hidden');
+                showToast("Lưu phân công HD Luận văn thành công!");
             } catch (e) {
                 showToast("Lỗi khi lưu: " + e.message, "danger");
             }
