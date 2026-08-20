@@ -17,7 +17,7 @@
 
         .hidden { display: none !important; }
         
-        /* Tabs & Controls */
+        /* Tabs & Controls Đầu Trang */
         .controls-wrapper { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; background: var(--surface); padding: 15px 20px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 20px; gap: 15px; box-shadow: var(--shadow-sm); }
         .tabs-header { display: flex; gap: 10px; border-bottom: 2px solid transparent; }
         .tab-btn { padding: 8px 15px; text-align: center; font-size: 0.95rem; font-weight: 600; color: var(--text-body); background: var(--bg-page); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; transition: 0.3s; }
@@ -35,11 +35,13 @@
         
         .group-header { background-color: #f1f5f9 !important; cursor: pointer; transition: 0.2s; border-top: 2px solid #cbd5e1; }
         .group-header:hover { background-color: #e2e8f0 !important; }
-        .group-title { font-weight: 700; color: var(--primary); font-size: 1.05rem; display: flex; align-items: center; }
-        .group-icon { margin-right: 8px; transition: transform 0.3s; width: 20px; text-align: center; }
+        
+        /* CHỐNG XUỐNG DÒNG ĐỀ MỤC */
+        .group-title { font-weight: 700; color: var(--primary); font-size: 1.05rem; white-space: nowrap; }
+        .group-title i { display: inline-block; width: 20px; text-align: center; transition: transform 0.3s; }
         .group-collapsed .group-icon { transform: rotate(-90deg); }
+        
         .subject-row:hover { background-color: var(--primary-light); }
-
         .subject-link { color: var(--text-dark); font-weight: 600; cursor: pointer; transition: 0.2s; line-height: 1.6; text-align: justify; display: block; }
         .subject-link:hover { color: var(--primary); text-decoration: underline; }
         .gv-allocation-text { text-align: justify; line-height: 1.5; color: var(--text-dark); margin-bottom: 5px; }
@@ -64,25 +66,33 @@
         #accessDenied { text-align: center; padding: 50px 20px; }
         #accessDenied i { font-size: 4rem; color: var(--accent); margin-bottom: 20px; }
 
-        /* CẤU TRÚC MODAL PHÂN CÔNG (DÀN HÀNG NGANG) */
+        /* Modal Phân công ngang */
         .alloc-row { display: flex; flex-direction: row; gap: 10px; align-items: flex-end; margin-bottom: 12px; padding: 12px; background: var(--bg-page); border-radius: 6px; border: 1px solid #e2e8f0; flex-wrap: nowrap; }
         .alloc-row > div { display: flex; flex-direction: column; gap: 5px; }
         .alloc-row input, .alloc-row select { padding: 8px; border: 1px solid var(--border); border-radius: 4px; outline: none; font-size: 0.9rem; width: 100%; box-sizing: border-box; }
         .alloc-row input:focus, .alloc-row select:focus { border-color: var(--primary); }
         .alloc-label { font-size: 0.75rem; font-weight: 600; color: var(--text-body); white-space: nowrap; }
         
-        /* Toast Notifications */
-        .toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        #subjectModal .modal-content { text-align: justify; line-height: 1.6; }
+
+        /* BONG BÓNG TRẠNG THÁI GÓC DƯỚI */
+        .floating-bubble { position: fixed; bottom: 20px; right: 20px; background: var(--primary); color: white; padding: 12px 20px; border-radius: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); cursor: pointer; z-index: 1000; display: flex; align-items: center; gap: 10px; font-weight: 600; transition: 0.3s; }
+        .floating-bubble:hover { background: var(--primary-hover); transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.25); }
+        .floating-menu { position: fixed; bottom: 75px; right: 20px; background: var(--surface); padding: 20px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); z-index: 1000; border: 1px solid var(--border); width: 260px; transform-origin: bottom right; transition: 0.3s; }
+        .floating-menu.hidden { opacity: 0; transform: scale(0.8); pointer-events: none; }
+        .floating-menu label { font-size: 0.85rem; font-weight: 600; color: var(--text-body); display: block; margin-bottom: 5px; }
+        .floating-menu select { width: 100%; padding: 8px; margin-bottom: 15px; border-radius: 6px; border: 1px solid var(--border); font-family: inherit; font-size: 0.9rem; outline: none; }
+        .floating-menu select:focus { border-color: var(--primary); }
+
+        /* Toast Dời Lên Góc Trên Tránh Đụng Bong Bóng */
+        .toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
         .toast { min-width: 250px; background-color: var(--surface); padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: 0.4s; font-weight: 600; border-left: 5px solid #22c55e; opacity: 0; }
         .toast.show { transform: translateX(0); opacity: 1; }
         .toast.danger { border-left-color: #ef4444; }
 
-        #subjectModal .modal-content { text-align: justify; line-height: 1.6; }
-
         @media (max-width: 1024px) {
             .table-container th:nth-child(3), .table-container td:nth-child(3),
             .table-container th:nth-child(5), .table-container td:nth-child(5) { display: none; }
-            /* Chuyển dòng phân công thành cột trên Mobile để không bị bóp méo */
             .alloc-row { flex-wrap: wrap; }
             .alloc-row > div { flex: 1 1 100%; width: 100%; }
         }
@@ -93,21 +103,46 @@
     <div id="header-placeholder"></div>
     <div id="toastContainer" class="toast-container"></div>
 
+    <!-- Datalist GV -->
+    <datalist id="gv-list"></datalist>
+
+    <!-- BONG BÓNG TIỆN ÍCH -->
+    <div class="floating-bubble" onclick="toggleFloatMenu()">
+        <i class="fas fa-sliders-h"></i>
+        <span id="bubbleText">Lớp 25 • Khung CT</span>
+    </div>
+    
+    <div id="floatingMenu" class="floating-menu hidden">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid var(--border); padding-bottom:10px;">
+            <h4 style="margin:0; color:var(--primary);"><i class="fas fa-cog"></i> Tùy chỉnh hiển thị</h4>
+            <i class="fas fa-times" style="cursor:pointer; color:var(--text-body); font-size:1.2rem;" onclick="toggleFloatMenu()"></i>
+        </div>
+        <label>Khóa học:</label>
+        <select id="floatClassSelect" onchange="syncControls('float')">
+            <option value="THS2025">Lớp Thạc sĩ 2025-2027</option>
+            <option value="THS2026">Lớp Thạc sĩ 2026-2028</option>
+        </select>
+        <label>Chế độ xem:</label>
+        <select id="floatViewSelect" onchange="syncControls('float')">
+            <option value="STRUCT">Xem theo Cấu trúc CT</option>
+            <option value="SEM">Xem theo Thứ tự Học kỳ</option>
+        </select>
+    </div>
+
     <main id="mainContent" class="hidden">
         <div class="header-title-box">
             <h2>PHÂN CÔNG CÔNG TÁC GIẢNG DẠY</h2>
             <div class="subtitle">CHƯƠNG TRÌNH THẠC SĨ KỸ THUẬT PHỤC HỒI CHỨC NĂNG</div>
         </div>
 
+        <!-- BẢNG ĐIỀU KHIỂN TRÊN CÙNG -->
         <div class="controls-wrapper">
             <div class="tabs-header" style="margin: 0; border: none;">
-                <!-- ƯU TIÊN LỚP 25 TRƯỚC -->
                 <button class="tab-btn active" data-class="THS2025" onclick="switchClass('THS2025', this)">Khóa 2025-2027</button>
                 <button class="tab-btn" data-class="THS2026" onclick="switchClass('THS2026', this)">Khóa 2026-2028</button>
             </div>
-            
             <div class="filter-controls">
-                <select id="viewModeSelect" onchange="renderTable()">
+                <select id="viewModeSelect" onchange="syncControls('top')">
                     <option value="STRUCT">Xem theo Cấu trúc Khung CT</option>
                     <option value="SEM">Xem theo Thứ tự Học kỳ</option>
                 </select>
@@ -257,7 +292,7 @@
 
         let internalLecturers = []; 
         let visitingLecturers = []; 
-        let currentClass = 'THS2025'; // Mặc định Lớp 25 trước
+        let currentClass = 'THS2025'; 
         let assignmentsDB = {}; 
         let currentEditingSubId = null;
         let isHOD = false;
@@ -336,14 +371,39 @@
             setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
         }
 
+        // BONG BÓNG VÀ MENU NỔI
+        window.toggleFloatMenu = () => {
+            const menu = document.getElementById('floatingMenu');
+            menu.classList.toggle('hidden');
+        };
+
         window.switchClass = (cls, btnElement) => {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            btnElement.classList.add('active');
             currentClass = cls;
+            syncControls('top');
+        };
+
+        window.syncControls = (source) => {
+            if (source === 'top') {
+                document.getElementById('floatClassSelect').value = currentClass;
+                document.getElementById('floatViewSelect').value = document.getElementById('viewModeSelect').value;
+            } else if (source === 'float') {
+                currentClass = document.getElementById('floatClassSelect').value;
+                document.getElementById('viewModeSelect').value = document.getElementById('floatViewSelect').value;
+                
+                document.querySelectorAll('.tab-btn').forEach(b => {
+                    if (b.getAttribute('data-class') === currentClass) b.classList.add('active');
+                    else b.classList.remove('active');
+                });
+            }
+
+            const viewVal = document.getElementById('viewModeSelect').value;
+            const viewText = viewVal === 'STRUCT' ? 'Khung CT' : 'Học kỳ';
+            const classText = currentClass === 'THS2025' ? 'Lớp 25' : 'Lớp 26';
+            document.getElementById('bubbleText').innerText = `${classText} • ${viewText}`;
+            
             window.renderTable();
         };
 
-        // Hàm tạo Dropdown GV dùng chung (kéo từ Firebase)
         window.getGvOptionsHtml = (selectedGv) => {
             let html = '<option value="">-- Chọn Giảng viên --</option>';
             html += '<optgroup label="Cơ hữu">';
@@ -352,7 +412,6 @@
             visitingLecturers.forEach(g => { html += `<option value="${g}" ${g === selectedGv ? 'selected' : ''}>${g}</option>`; });
             html += '</optgroup>';
             
-            // Xử lý trường hợp có GV cũ nhưng chưa được cache vào List
             const isCustom = selectedGv && !internalLecturers.includes(selectedGv) && !visitingLecturers.includes(selectedGv);
             html += `<option value="OTHER" ${isCustom ? 'selected' : ''}>+ Nhập tên khác...</option>`;
             return { html, isCustom };
@@ -398,7 +457,7 @@
                     onSnapshot(collection(db, "assignments"), (snapshot) => {
                         assignmentsDB = {};
                         snapshot.forEach(doc => { assignmentsDB[doc.id] = doc.data(); });
-                        window.renderTable();
+                        syncControls('top'); // render lần đầu
                     });
                 }
             } else {
@@ -424,14 +483,12 @@
             
             const viewMode = document.getElementById('viewModeSelect').value;
             
-            // ĐIỀU CHỈNH: Lớp 2025 CHỈ xem Định hướng Nghiên cứu (NC)
             let filteredSubs = subjectsData;
             if (currentClass === 'THS2025') {
                 filteredSubs = subjectsData.filter(s => s.orientations.includes("NC"));
             }
 
             if (viewMode === 'STRUCT') {
-                // XEM THEO CẤU TRÚC
                 const groupedData = {};
                 filteredSubs.forEach(s => {
                     if(!groupedData[s.group]) groupedData[s.group] = [];
@@ -446,7 +503,6 @@
                     groupedData[groupName].forEach(sub => { appendSubjectRow(tbody, sub, gClass, stt++); });
                 });
             } else {
-                // XEM THEO HỌC KỲ
                 const semData = {};
                 filteredSubs.forEach(sub => {
                     const asg = (assignmentsDB[sub.id] && assignmentsDB[sub.id][currentClass]) || { semester: 'Chưa phân bổ', allocations: [] };
@@ -470,7 +526,6 @@
             const asg = asgDoc[currentClass] || { semester: '', allocations: [] };
             const isThesis = sub.name.includes("Luận văn") || sub.name.includes("Đề án");
             
-            // Xử lý Huy hiệu (Badge) cho môn đặc thù của Khóa 26
             let badgeHtml = '';
             if (currentClass === 'THS2026' && sub.orientations.length === 1) {
                 const isUD = sub.orientations[0] === 'UD';
@@ -482,7 +537,7 @@
             
             if (isThesis) {
                 if (asg.allocations.length > 0) {
-                    gvHtml = asg.allocations.map(a => `<div class="gv-allocation-text">HV: <b>${a.student}</b> | GVHD: ${a.gv1} ${a.gv2 ? `& ${a.gv2}` : ''}</div>`).join('');
+                    gvHtml = asg.allocations.map(a => `<div class="gv-allocation-text"><b>HV:</b> ${a.student}<br><b>GVHD:</b> ${a.gv1} ${a.gv2 ? `& ${a.gv2}` : ''}</div><hr style="border-top:1px dashed #cbd5e1; border-bottom:none; margin: 8px 0;">`).join('');
                     progressHtml = `<span class="progress-text" style="color:var(--primary);">Đã gán ${asg.allocations.length} Học viên</span>`;
                 }
             } else {
@@ -506,7 +561,7 @@
                     let pColor = '#16a34a'; if (pct < 50) pColor = '#f59e0b'; if (pct === 0) pColor = '#e2e8f0';
                     progressHtml = `<div class="progress-container"><div class="progress-bar" style="width: ${pct}%; background-color: ${pColor};"></div></div><span class="progress-text">${completedLT_TH} / ${sub.totalSessions} buổi (${pct}%)</span>`;
                 } else {
-                    gvHtml = `<span style="color:#64748b; font-weight: 600;">${sub.department}</span>`;
+                    gvHtml = `<b>${sub.department}</b>`;
                     progressHtml = `<span style="color:#94a3b8; font-size:0.85rem;">Không giới hạn</span>`;
                 }
             }
@@ -564,7 +619,6 @@
             document.getElementById('subjectModal').classList.remove('hidden');
         };
 
-        // MODAL HỌC KỲ CHO MÔN NGOÀI BM
         window.openSemesterModal = (id) => {
             currentEditingSubId = id;
             const sub = subjectsData.find(s => s.id === id);
@@ -586,7 +640,6 @@
             } catch (e) { showToast("Lỗi: " + e.message, "danger"); }
         }
 
-        // MODAL PHÂN CÔNG CHÍNH
         window.openAssignModal = (id) => {
             currentEditingSubId = id;
             const sub = subjectsData.find(s => s.id === id);
@@ -614,7 +667,6 @@
             }
         };
 
-        // GIAO DIỆN TẠO DÒNG (NẰM NGANG)
         window.addAllocRow = (gv = '', task = '', assigned = '', completed = 0, note = '') => {
             const container = document.getElementById('allocContainer');
             const row = document.createElement('div');
@@ -637,7 +689,7 @@
                 </div>
                 <div style="flex: 1; min-width: 80px;">
                     <span class="alloc-label">Phân công</span>
-                    <input type="number" class="inp-assigned" value="${assigned}" placeholder="Số buổi">
+                    <input type="number" class="inp-assigned" value="${assigned}" placeholder="Số lượng">
                 </div>
                 <div style="flex: 1; min-width: 80px;">
                     <span class="alloc-label">Đã xong</span>
@@ -645,7 +697,7 @@
                 </div>
                 <div style="flex: 2; min-width: 150px;">
                     <span class="alloc-label">Ghi chú (Tùy chọn)</span>
-                    <input type="text" class="inp-note" placeholder="Ví dụ: Bài 1,2..." value="${note}">
+                    <input type="text" class="inp-note" placeholder="Vd: Dạy phần 1..." value="${note}">
                 </div>
                 <div style="flex: 0; padding-bottom: 2px;">
                     <button class="btn-danger" onclick="this.parentElement.parentElement.remove()">Xóa</button>
@@ -672,7 +724,6 @@
                 const completed = parseInt(row.querySelector('.inp-completed').value) || 0;
                 const note = row.querySelector('.inp-note').value.trim();
                 
-                // BẮT BUỘC CHỌN ĐỦ
                 if (!gv || !task || isNaN(assigned) || assigned <= 0) {
                     hasError = true;
                     break;
@@ -711,7 +762,6 @@
             } catch (e) { showToast("Lỗi khi lưu: " + e.message, "danger"); }
         };
 
-        // GIAO DIỆN TẠO DÒNG LUẬN VĂN
         window.addThesisRow = (student = '', gv1 = '', gv2 = '') => {
             const container = document.getElementById('thesisAllocContainer');
             const row = document.createElement('div');
@@ -751,10 +801,8 @@
             
             for (let row of rows) {
                 const student = row.querySelector('.inp-student').value.trim();
-                
                 const sel1 = row.querySelector('.sel-gv1');
                 let gv1 = sel1.value === 'OTHER' ? sel1.nextElementSibling.value.trim() : sel1.value;
-                
                 const sel2 = row.querySelector('.sel-gv2');
                 let gv2 = sel2.value === 'OTHER' ? sel2.nextElementSibling.value.trim() : sel2.value;
                 
@@ -769,7 +817,7 @@
             }
 
             if (hasError) {
-                showToast("Vui lòng nhập Học viên và tối thiểu GV Hướng dẫn 1!", "danger"); return;
+                showToast("Vui lòng nhập đầy đủ Tên Học viên và tối thiểu GV Hướng dẫn 1!", "danger"); return;
             }
 
             for (let gv of externalGVsToSave) {
