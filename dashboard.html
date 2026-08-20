@@ -11,7 +11,6 @@
     
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script> <!-- Thư viện xuất Excel -->
     
     <style>
         /* --- CSS HEADER DASHBOARD --- */
@@ -26,64 +25,31 @@
         .dashboard-avatar img { width: 100%; height: 100%; object-fit: cover; }
         .dashboard-welcome-text h2 { font-size: 1.6rem; color: var(--text-dark); margin-bottom: 0.3rem; }
         .dashboard-welcome-text p { color: var(--text-body); font-size: 0.95rem; }
-        .badge-role { display: inline-block; background: var(--primary); color: white; padding: 3px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; margin-top: 5px; }
-        .badge-hod { background: #be123c; } /* Màu đỏ cho Trưởng bộ môn */
+        
+        .badge-role { display: inline-block; background: var(--primary); color: white; padding: 3px 12px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; margin-top: 5px; }
+        .badge-hod { background: #be123c; } /* Đỏ đô - Trưởng bộ môn */
+        .badge-manager { background: #d97706; } /* Cam - Giáo vụ / Quản lý */
 
         /* --- SMART HOVER CARDS --- */
-        .smart-card { position: relative; overflow: hidden; cursor: pointer; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); padding: 25px; transition: all 0.3s ease; display: flex; flex-direction: column; align-items: center; text-align: center; box-shadow: var(--shadow-sm); }
+        .smart-card { position: relative; overflow: hidden; cursor: pointer; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); padding: 30px 20px; transition: all 0.3s ease; display: flex; flex-direction: column; align-items: center; text-align: center; box-shadow: var(--shadow-sm); }
         .smart-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-color: var(--primary); }
-        .smart-card .icon-wrapper { width: 60px; height: 60px; border-radius: 50%; background-color: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 15px; transition: transform 0.3s ease; }
+        .smart-card .icon-wrapper { width: 65px; height: 65px; border-radius: 50%; background-color: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.6rem; margin-bottom: 15px; transition: transform 0.3s ease; }
         .smart-card:hover .icon-wrapper { transform: scale(1.1); }
-        .smart-card h3 { color: var(--text-dark); font-size: 1.1rem; margin-bottom: 10px; font-weight: 700; }
+        .smart-card h3 { color: var(--text-dark); font-size: 1.15rem; margin-bottom: 10px; font-weight: 700; }
         .smart-card p { color: var(--text-body); font-size: 0.9rem; line-height: 1.5; margin: 0; }
         
-        /* Lớp thông tin phủ lên khi Hover */
+        /* Overlay thông tin trượt lên */
         .smart-card-overlay { position: absolute; bottom: 0; left: 0; width: 100%; height: 0; background: linear-gradient(to top, rgba(2, 132, 199, 0.95), rgba(2, 132, 199, 0.85)); color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 0 20px; box-sizing: border-box; }
         .smart-card:hover .smart-card-overlay { height: 100%; opacity: 1; }
         .smart-card-overlay strong { font-size: 1.1rem; margin-bottom: 8px; }
-        .smart-card-overlay span { font-size: 0.9rem; text-align: center; }
+        .smart-card-overlay span { font-size: 0.95rem; text-align: center; line-height: 1.6; }
 
         .hidden { display: none !important; }
-
-        /* --- GIAO DIỆN ĐIỀU HÀNH BỘ MÔN (HOD WORKSPACE) --- */
-        .management-workspace { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: var(--radius-md); margin-top: 20px; overflow: hidden; box-shadow: var(--shadow-sm); animation: slideDown 0.4s ease-out forwards; }
-        @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
-        
-        .workspace-header { background: white; padding: 20px 25px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        .workspace-header h3 { margin: 0; color: #be123c; display: flex; align-items: center; gap: 10px; }
-        
-        /* Tabs Workspace */
-        .ws-tabs { display: flex; background: white; border-bottom: 1px solid var(--border); }
-        .ws-tab-btn { flex: 1; padding: 15px; border: none; background: transparent; font-weight: 600; color: var(--text-body); cursor: pointer; transition: 0.3s; border-bottom: 3px solid transparent; }
-        .ws-tab-btn:hover { color: var(--primary); background: #f1f5f9; }
-        .ws-tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
-
-        .ws-content { padding: 25px; background: white; }
-        
-        /* Các ô nhập liệu */
-        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
-        .form-group { display: flex; flex-direction: column; gap: 5px; }
-        .form-group label { font-size: 0.85rem; font-weight: 600; color: var(--text-dark); }
-        .form-control { padding: 10px; border: 1px solid var(--border); border-radius: 6px; outline: none; }
-        .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1); }
-        
-        .btn { padding: 10px 20px; border-radius: 6px; font-weight: 600; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: var(--primary-hover); }
-        .btn-success { background: #16a34a; color: white; }
-        .btn-success:hover { background: #15803d; }
-        .btn-outline { background: white; border: 1px solid var(--border); color: var(--text-dark); }
-        .btn-outline:hover { background: #f1f5f9; }
-
-        /* Upload Zone */
-        .upload-zone { border: 2px dashed var(--primary); background: #f0f9ff; padding: 30px; text-align: center; border-radius: 8px; margin-top: 20px; }
-        .upload-zone i { font-size: 3rem; color: var(--primary); margin-bottom: 10px; }
 
         @media (max-width: 768px) {
             .btn-logout { width: 100%; margin-top: 0.5rem; }
             .user-profile-header { margin: 10px 20px; justify-content: center; }
             .dashboard-welcome { flex-direction: column; text-align: center; gap: 10px; }
-            .ws-tabs { flex-direction: column; }
         }
     </style>
 </head>
@@ -106,128 +72,64 @@
         </div>
 
         <!-- LƯỚI CÁC PHÂN MỤC (SẼ ĐƯỢC ẨN/HIỆN DỰA THEO QUYỀN) -->
-        <section class="quick-links" style="margin-bottom: 1rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+        <section class="quick-links" style="margin-bottom: 2rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
             
-            <!-- 1. THẺ: ĐIỀU HÀNH BỘ MÔN (CHỈ DÀNH CHO TRƯỞNG BỘ MÔN) -->
-            <div id="cardHod" class="smart-card hidden" onclick="toggleWorkspace('workspaceHod')">
-                <div class="icon-wrapper" style="color: #be123c; background-color: #ffe4e6;"><i class="fas fa-cogs"></i></div>
-                <h3>Điều hành bộ môn</h3>
-                <p>Phân công giảng dạy, quản lý sinh viên, tải lên danh sách lớp học.</p>
-                <div class="smart-card-overlay" style="background: linear-gradient(to top, #be123c, #e11d48);">
-                    <strong><i class="fas fa-magic"></i> Click để mở</strong>
-                    <span>- Giao việc cho Giảng viên<br>- Quản lý file Excel SV/HV<br>- Cập nhật danh sách</span>
-                </div>
-            </div>
-
-            <!-- 2. THẺ: PHÂN CÔNG CÔNG TÁC (DÀNH CHO GIẢNG VIÊN) -->
-            <div id="cardLecturer" class="smart-card hidden" onclick="toggleWorkspace('workspaceLecturer')">
-                <div class="icon-wrapper"><i class="fas fa-tasks"></i></div>
+            <!-- 1. PHÂN CÔNG CÔNG TÁC (CHỈ TRƯỞNG BỘ MÔN) -->
+            <div id="cardPhanCongHOD" class="smart-card hidden" onclick="window.location.href='phan-cong-cong-tac.html'">
+                <div class="icon-wrapper" style="color: #be123c; background-color: #ffe4e6;"><i class="fas fa-sitemap"></i></div>
                 <h3>Phân công công tác</h3>
-                <p>Xem lịch phân công giảng dạy lý thuyết và hướng dẫn lâm sàng.</p>
-                <div class="smart-card-overlay">
-                    <strong><i class="fas fa-eye"></i> Click để mở</strong>
-                    <span>- Xem lịch dạy tuần này<br>- Danh sách nhóm lâm sàng<br>- Xác nhận công việc</span>
+                <p>Giao nhiệm vụ, lớp học và khối lượng công việc cho từng Giảng viên.</p>
+                <div class="smart-card-overlay" style="background: linear-gradient(to top, #be123c, #e11d48);">
+                    <strong><i class="fas fa-lock"></i> Quyền Quản trị</strong>
+                    <span>- Chọn môn & Buổi học<br>- Gán Giảng viên phụ trách<br>- Quản lý chung</span>
                 </div>
             </div>
 
-            <!-- 3. THẺ CHUNG -->
-            <div class="smart-card" onclick="window.location.href='luan-van.html'">
-                <div class="icon-wrapper"><i class="fas fa-graduation-cap"></i></div>
+            <!-- 2. XẾP LỊCH CÔNG TÁC GIẢNG VIÊN (TẤT CẢ ĐỀU THẤY, NHƯNG CHỈ ADMIN ĐƯỢC SỬA BÊN TRONG) -->
+            <div id="cardXepLich" class="smart-card hidden" onclick="window.location.href='lich-cong-tac.html'">
+                <div class="icon-wrapper" style="color: #0ea5e9; background-color: #e0f2fe;"><i class="fas fa-calendar-plus"></i></div>
+                <h3>Xếp lịch công tác</h3>
+                <p>Tra cứu và thiết lập lịch làm việc, giảng dạy và thực hành lâm sàng.</p>
+                <div class="smart-card-overlay">
+                    <strong><i class="fas fa-calendar-alt"></i> Lịch làm việc chung</strong>
+                    <span>- Lịch giảng dạy lý thuyết<br>- Lịch hướng dẫn lâm sàng<br>- Sự kiện bộ môn</span>
+                </div>
+            </div>
+
+            <!-- 3. XEM PHÂN CÔNG CÁ NHÂN (TẤT CẢ) -->
+            <div id="cardXemPhanCong" class="smart-card hidden" onclick="window.location.href='xem-phan-cong.html'">
+                <div class="icon-wrapper" style="color: #10b981; background-color: #dcfce7;"><i class="fas fa-clipboard-check"></i></div>
+                <h3>Xem phân công cá nhân</h3>
+                <p>Xem danh sách các lớp, nhóm thực hành do chính bạn phụ trách.</p>
+                <div class="smart-card-overlay" style="background: linear-gradient(to top, #15803d, #16a34a);">
+                    <strong><i class="fas fa-user-check"></i> Công việc của tôi</strong>
+                    <span>- Xem nhiệm vụ được giao<br>- Trạng thái xác nhận<br>- Theo dõi tiến độ</span>
+                </div>
+            </div>
+
+            <!-- 4. TÍNH GIỜ GIẢNG (TẤT CẢ) -->
+            <div id="cardGioGiang" class="smart-card hidden" onclick="window.location.href='gio-giang.html'">
+                <div class="icon-wrapper" style="color: #8b5cf6; background-color: #ede9fe;"><i class="fas fa-calculator"></i></div>
+                <h3>Tính giờ giảng</h3>
+                <p>Thống kê số tiết lý thuyết, lâm sàng và quy đổi khối lượng giờ chuẩn.</p>
+                <div class="smart-card-overlay" style="background: linear-gradient(to top, #7c3aed, #8b5cf6);">
+                    <strong><i class="fas fa-chart-bar"></i> Báo cáo & Thống kê</strong>
+                    <span>- Tổng hợp giờ thực tế<br>- Quy đổi giờ chuẩn<br>- Xuất file báo cáo</span>
+                </div>
+            </div>
+
+            <!-- 5. QUẢN LÝ LUẬN VĂN (TẤT CẢ) -->
+            <div id="cardLuanVan" class="smart-card hidden" onclick="window.location.href='luan-van.html'">
+                <div class="icon-wrapper" style="color: #f59e0b; background-color: #fef3c7;"><i class="fas fa-graduation-cap"></i></div>
                 <h3>Quản lý Luận văn</h3>
-                <p>Cập nhật danh sách đề tài, điểm số và tiến độ khóa luận.</p>
-                <div class="smart-card-overlay">
-                    <strong><i class="fas fa-link"></i> Truy cập ngay</strong>
-                    <span>- Thêm mới luận văn<br>- Xuất danh sách ra Excel</span>
-                </div>
-            </div>
-
-            <div class="smart-card">
-                <div class="icon-wrapper" style="color: var(--accent); background-color: var(--accent-light);"><i class="fas fa-certificate"></i></div>
-                <h3>CME & Hội thảo</h3>
-                <p>Theo dõi Đào tạo liên tục (CME) và lịch sinh hoạt chuyên đề.</p>
+                <p>Cập nhật danh sách đề tài, điểm số và tiến độ khóa luận các hệ.</p>
                 <div class="smart-card-overlay" style="background: linear-gradient(to top, #d97706, #f59e0b);">
-                    <strong><i class="fas fa-clock"></i> Sắp diễn ra</strong>
-                    <span>- 2 hội thảo trong tháng<br>- Cập nhật điểm CME</span>
+                    <strong><i class="fas fa-book"></i> Kho dữ liệu đề tài</strong>
+                    <span>- Thêm/Sửa Luận văn<br>- Phân công GVHD<br>- Quản lý Thùng rác</span>
                 </div>
             </div>
+
         </section>
-
-        <!-- KHU VỰC LÀM VIỆC CỦA TRƯỞNG BỘ MÔN (ẨN MẶC ĐỊNH) -->
-        <div id="workspaceHod" class="management-workspace hidden">
-            <div class="workspace-header">
-                <h3><i class="fas fa-cogs"></i> Bảng Điều Hành Bộ Môn</h3>
-                <button class="btn btn-outline" onclick="toggleWorkspace('workspaceHod')"><i class="fas fa-times"></i> Đóng</button>
-            </div>
-            
-            <div class="ws-tabs">
-                <button class="ws-tab-btn active" onclick="switchWsTab('tabPhanCong', this)">Phân công công tác</button>
-                <button class="ws-tab-btn" onclick="switchWsTab('tabSinhVien', this)">Quản lý SV Đại học</button>
-                <button class="ws-tab-btn" onclick="switchWsTab('tabHocVien', this)">Quản lý HV Sau đại học</button>
-            </div>
-
-            <!-- NỘI DUNG TAB: Phân công -->
-            <div id="tabPhanCong" class="ws-content">
-                <h4 style="margin-top: 0;">Giao việc cho Giảng viên</h4>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label>Chọn Môn học</label>
-                        <select class="form-control">
-                            <option>Vật lý trị liệu cơ xương khớp</option>
-                            <option>Phục hồi chức năng Thần kinh</option>
-                            <option>Hoạt động trị liệu Nhi khoa</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Buổi học (Ngày)</label>
-                        <input type="date" class="form-control">
-                    </div>
-                    <div class="form-group">
-                        <label>Chọn Giảng viên phụ trách</label>
-                        <select class="form-control">
-                            <option>TS. Nguyễn Thanh Duy</option>
-                            <option>ThS. Cao Minh Hạnh</option>
-                            <option>ThS. Nguyễn Đức Sinh</option>
-                        </select>
-                    </div>
-                    <div class="form-group" style="justify-content: flex-end;">
-                        <button class="btn btn-primary"><i class="fas fa-plus"></i> Giao việc</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- NỘI DUNG TAB: Đại học / Sau đại học -->
-            <div id="tabSinhVien" class="ws-content hidden">
-                <h4 style="margin-top: 0; display: flex; justify-content: space-between;">
-                    Danh sách Sinh viên Đại học
-                    <button class="btn btn-success" onclick="downloadTemplate()"><i class="fas fa-file-excel"></i> Tải File Mẫu</button>
-                </h4>
-                
-                <div class="upload-zone">
-                    <i class="fas fa-cloud-upload-alt"></i>
-                    <h3>Tải lên danh sách lớp</h3>
-                    <p>Hỗ trợ định dạng .xlsx, .xls. Cấu trúc gồm: Họ tên, Ngày sinh, SĐT, Email, Lớp.</p>
-                    <input type="file" id="fileUploadSV" accept=".xlsx, .xls" style="display: none;">
-                    <button class="btn btn-primary" onclick="document.getElementById('fileUploadSV').click()"><i class="fas fa-folder-open"></i> Chọn file từ máy tính</button>
-                </div>
-            </div>
-            
-            <div id="tabHocVien" class="ws-content hidden">
-                <h4 style="margin-top: 0;">Danh sách Học viên Sau Đại học</h4>
-                <p style="color: var(--text-body);">Tính năng quản lý tiến độ, điểm số chuyên đề đang được cập nhật...</p>
-            </div>
-        </div>
-
-        <!-- KHU VỰC LÀM VIỆC CỦA GIẢNG VIÊN (ẨN MẶC ĐỊNH) -->
-        <div id="workspaceLecturer" class="management-workspace hidden">
-            <div class="workspace-header">
-                <h3 style="color: var(--primary);"><i class="fas fa-tasks"></i> Công việc được phân công</h3>
-                <button class="btn btn-outline" onclick="toggleWorkspace('workspaceLecturer')"><i class="fas fa-times"></i> Đóng</button>
-            </div>
-            <div class="ws-content">
-                <p>Hiện tại bạn không có lịch giảng dạy hoặc hướng dẫn lâm sàng nào trong tuần này.</p>
-            </div>
-        </div>
-
     </main>
 
     <div id="footer-placeholder"></div>
@@ -253,48 +155,7 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // --- CÁC HÀM UI ---
-        window.toggleWorkspace = function(workspaceId) {
-            const ws = document.getElementById(workspaceId);
-            if (ws.classList.contains('hidden')) {
-                ws.classList.remove('hidden');
-                ws.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            } else {
-                ws.classList.add('hidden');
-            }
-        };
-
-        window.switchWsTab = function(tabId, btn) {
-            // Xóa active các nút
-            const btns = btn.parentElement.querySelectorAll('.ws-tab-btn');
-            btns.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-
-            // Ẩn tất cả nội dung tab
-            const contents = btn.parentElement.parentElement.querySelectorAll('.ws-content');
-            contents.forEach(c => c.classList.add('hidden'));
-
-            // Hiện tab được chọn
-            document.getElementById(tabId).classList.remove('hidden');
-        };
-
-        window.downloadTemplate = function() {
-            const templateData = [
-                ["Họ và Tên", "Ngày sinh", "Số điện thoại", "Email", "Lớp"],
-                ["Nguyễn Văn A", "01/01/2004", "0901234567", "nguyenvana@gmail.com", "PHCN2022"],
-                ["Trần Thị B", "15/05/2004", "0987654321", "tranthib@gmail.com", "PHCN2022"]
-            ];
-            const wb = XLSX.utils.book_new();
-            const ws = XLSX.utils.aoa_to_sheet(templateData);
-            
-            // Chỉnh độ rộng cột cho đẹp
-            ws['!cols'] = [ {wpx: 150}, {wpx: 100}, {wpx: 120}, {wpx: 200}, {wpx: 100} ];
-            
-            XLSX.utils.book_append_sheet(wb, ws, "DanhSach_SV");
-            XLSX.writeFile(wb, "FileMau_DanhSachLop.xlsx");
-        };
-
-        // --- KIỂM TRA ĐĂNG NHẬP & PHÂN QUYỀN ---
+        // --- KIỂM TRA ĐĂNG NHẬP & PHÂN QUYỀN TRÊN DASHBOARD ---
         setTimeout(() => {
             const dashboardAvatarContainer = document.getElementById('dashboardAvatarContainer');
             const welcomeTitle = document.getElementById('welcomeTitle');
@@ -334,7 +195,7 @@
                         if (userDoc.exists()) {
                             const data = userDoc.data();
                             
-                            // Xử lý Tên và Avatar trên Header
+                            // Xử lý Tên và Avatar
                             let titleName = data.fullName || "Giảng viên";
                             if (data.degree) {
                                 let degreePrefix = data.degree === 'ThS' ? 'ThS. ' : (data.degree === 'TS' ? 'TS. ' : '');
@@ -351,21 +212,37 @@
 
                             // ==========================================
                             // LOGIC PHÂN QUYỀN (ROLE-BASED ACCESS)
-                            // Định danh Trưởng bộ môn qua email: lethanhvan@ump.edu.vn
                             // ==========================================
                             const email = user.email.toLowerCase();
                             const isHOD = (email === 'lethanhvan@ump.edu.vn'); 
-                            
+                            const isGiaoVu = (email === 'phanthenguyenpt@ump.edu.vn');
+                            const isQuanLyLich = (email === 'thduypt@ump.edu.vn');
+
+                            // Xử lý huy hiệu (Badge)
                             if (isHOD) {
-                                // Giao diện Trưởng Bộ Môn
                                 roleBadge.innerText = "Trưởng Bộ Môn";
-                                roleBadge.classList.add("badge-hod");
-                                document.getElementById('cardHod').classList.remove('hidden');
-                            } else {
-                                // Giao diện Giảng viên bình thường
+                                roleBadge.className = "badge-role badge-hod";
+                                // Mở thẻ Phân Công Công Tác cho HOD
+                                document.getElementById('cardPhanCongHOD').classList.remove('hidden');
+                            } 
+                            else if (isGiaoVu) {
+                                roleBadge.innerText = "Giáo vụ Sau Đại học";
+                                roleBadge.className = "badge-role badge-manager";
+                            } 
+                            else if (isQuanLyLich) {
+                                roleBadge.innerText = "Quản lý Lịch công tác";
+                                roleBadge.className = "badge-role badge-manager";
+                            } 
+                            else {
                                 roleBadge.innerText = "Giảng viên";
-                                document.getElementById('cardLecturer').classList.remove('hidden');
+                                roleBadge.className = "badge-role";
                             }
+
+                            // Mở các thẻ hiển thị chung cho tất cả Giảng viên đã đăng nhập
+                            document.getElementById('cardXepLich').classList.remove('hidden');
+                            document.getElementById('cardXemPhanCong').classList.remove('hidden');
+                            document.getElementById('cardGioGiang').classList.remove('hidden');
+                            document.getElementById('cardLuanVan').classList.remove('hidden');
 
                         }
                     } catch (error) {
