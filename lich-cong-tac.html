@@ -63,7 +63,7 @@
         .event-on-calendar .evt-gv { font-size: 1.05rem; font-weight: 700; line-height: 1.2; text-shadow: 1px 1px 2px rgba(0,0,0,0.2); white-space: normal; }
         .event-on-calendar .evt-sub { font-size: 0.85rem; font-weight: 400; opacity: 0.95; line-height: 1.3; white-space: normal; }
 
-        /* Style Cục BV trên cùng (All-day) */
+        /* Chấm đỏ Bệnh viện trên cùng (All-day) */
         .evt-clinical-dot { background-color: #ef4444; color: white; border-radius: 4px; padding: 2px 0; text-align: center; font-weight: 700; font-size: 0.85rem; cursor: pointer; display: block; box-shadow: 0 2px 5px rgba(239, 68, 68, 0.4); transition: 0.2s; }
         .evt-clinical-dot:hover { background-color: #dc2626; transform: scale(1.02); }
 
@@ -81,7 +81,7 @@
         .toast.danger { border-left-color: #ef4444; }
 
         /* Modal Chi tiết chung */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 2000; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 2000; padding: 10px; }
         .modal-content { background: white; width: 450px; border-radius: 8px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); overflow: hidden; display: flex; flex-direction: column; }
         .modal-header { padding: 15px 20px; background: var(--primary); color: white; display: flex; justify-content: space-between; align-items: center; }
         .modal-header h3 { margin: 0; font-size: 1.1rem; }
@@ -92,10 +92,10 @@
         .btn-secondary { background: white; color: var(--text-dark); border: 1px solid var(--border); padding: 8px 15px; border-radius: 4px; cursor: pointer; transition: 0.2s; font-weight: 600; }
         .btn-secondary:hover { background: #e2e8f0; }
 
-        /* Modal Bệnh viện (Rộng hơn & Scroll) */
-        #clinicalModal .modal-content { max-width: 600px; max-height: 85vh; }
-        .clin-card { margin-bottom: 12px; padding: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; }
-        .clin-card-title { font-weight: 700; color: #b45309; font-size: 1.05rem; margin-bottom: 5px; }
+        /* Mở rộng Kích thước Modal Bệnh viện */
+        #clinicalModal .modal-content { width: 95%; max-width: 750px; max-height: 85vh; }
+        .clin-card { margin-bottom: 15px; padding: 15px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; border-left: 4px solid var(--primary); }
+        .clin-card-title { font-weight: 700; color: var(--text-dark); font-size: 1.15rem; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; }
 
         @media (max-width: 900px) {
             main { flex-direction: column; }
@@ -110,7 +110,6 @@
     <div id="toastContainer" class="toast-container"></div>
     <div id="eventTooltip"></div>
 
-    <!-- THANH CÔNG CỤ COMPACT TRÊN CÙNG -->
     <div class="top-toolbar">
         <div>
             <h2>LỊCH CÔNG TÁC GIẢNG VIÊN</h2>
@@ -121,7 +120,7 @@
                 <i class="fas fa-bars"></i> Kho Sự Kiện
             </button>
             <div class="tabs-header">
-                <!-- Đã ẩn Khóa CN2023 vì lịch BV sẽ được hiển thị nền tảng -->
+                <!-- KHÔNG CẦN HIỂN THỊ TAB CN2023 -->
                 <button class="tab-btn active" onclick="switchClass('THS2025', this)">Khóa ThS 25-27</button>
                 <button class="tab-btn" onclick="switchClass('THS2026', this)">Khóa ThS 26-28</button>
             </div>
@@ -140,7 +139,7 @@
         <div id="external-events">
             <h4>Chưa lên lịch</h4>
             <div style="font-size: 0.85rem; color: #64748b; margin-bottom: 15px; font-style: italic; line-height: 1.4;">
-                Kéo thẻ thả vào khung giờ bên phải.
+                Kéo thẻ thả vào khung giờ bên phải. Tự động chia 4 tiếng/buổi.
             </div>
             <div id="event-pool">
                 <div style="text-align:center; padding: 20px;">Đang tải...</div>
@@ -153,7 +152,7 @@
         </div>
     </main>
 
-    <!-- MODAL CHI TIẾT LỊCH DẠY -->
+    <!-- MODAL CHI TIẾT LỊCH DẠY LÝ THUYẾT -->
     <div id="eventModal" class="modal-overlay hidden">
         <div class="modal-content">
             <div class="modal-header">
@@ -180,7 +179,7 @@
     <div id="clinicalModal" class="modal-overlay hidden">
         <div class="modal-content">
             <div class="modal-header" style="background: #ef4444;">
-                <h3><i class="fas fa-hospital-user"></i> Lịch Sinh viên đi Bệnh viện</h3>
+                <h3>Chi tiết Lịch Bệnh viện (Sinh viên Cử nhân)</h3>
                 <span style="cursor: pointer; font-weight: bold; font-size: 1.2rem;" onclick="document.getElementById('clinicalModal').classList.add('hidden')">X</span>
             </div>
             <div class="modal-body" id="clinicalModalBody">
@@ -225,6 +224,7 @@
         let assignmentsData = {};
         let scheduledEvents = [];
         let clinicalSchedules = []; 
+        let globalGroupedClinicals = {}; // LƯU TOÀN BỘ LỊCH BỆNH VIỆN THEO NGÀY ĐỂ CHECK AI
         let currentClickedEventId = null;
 
         function showToast(message, type = 'success') {
@@ -262,7 +262,7 @@
             return days.length > 0 ? days : [1,2,3,4,5];
         }
 
-        // GOM NHÓM TẤT CẢ LỊCH BỆNH VIỆN THEO NGÀY (CỤC BV DUY NHẤT)
+        // GOM NHÓM TẤT CẢ LỊCH BỆNH VIỆN THEO NGÀY
         function getClinicalEventsMap(schedules) {
             let map = {};
             schedules.forEach(c => {
@@ -274,7 +274,7 @@
                 let end = endStr ? new Date(endStr) : new Date(startStr);
                 let days = parseDays(c.days); 
 
-                let maxDays = 365; // Chống loop vô hạn
+                let maxDays = 365; 
                 for (let d = new Date(start); d <= end && maxDays > 0; d.setDate(d.getDate() + 1), maxDays--) {
                     if (days.includes(d.getDay())) {
                         let y = d.getFullYear();
@@ -290,6 +290,62 @@
             return map;
         }
 
+        // KIỂM TRA TÍNH HỢP LỆ CỦA LỊCH THỰC HÀNH LÂM SÀNG DỰA THEO BỆNH VIỆN
+        function validateClinicalSchedule(eventObj, gv, subject) {
+            if (!subject.toLowerCase().includes('thực hành lâm sàng')) return true; // Hợp lệ nếu không phải môn lâm sàng
+            
+            const droppedDate = eventObj.start;
+            const y = droppedDate.getFullYear();
+            const m = String(droppedDate.getMonth() + 1).padStart(2, '0');
+            const d = String(droppedDate.getDate()).padStart(2, '0');
+            const dateStr = `${y}-${m}-${d}`;
+
+            const dailyClinicals = globalGroupedClinicals[dateStr] || [];
+            // Lọc ra lịch bệnh viện của ngày đó MÀ CÓ TÊN giảng viên này
+            const teacherClinicals = dailyClinicals.filter(c => c.instructors && c.instructors.includes(gv));
+
+            if (teacherClinicals.length === 0) {
+                showToast(`Lỗi: Giảng viên ${gv} không có lịch trực Bệnh viện vào ngày này!`, "danger");
+                return false;
+            }
+
+            const startHour = droppedDate.getHours();
+            const isMorningDrop = startHour < 12; // Nhỏ hơn 12h là sáng
+            
+            const hasMorningShift = teacherClinicals.some(c => c.shift.toLowerCase().includes('sáng') || c.shift.toLowerCase().includes('cả ngày'));
+            const hasAfternoonShift = teacherClinicals.some(c => c.shift.toLowerCase().includes('chiều') || c.shift.toLowerCase().includes('cả ngày'));
+
+            if (isMorningDrop && !hasMorningShift) {
+                showToast(`Lỗi: Lịch Bệnh viện của GV ngày này chỉ có ca Chiều!`, "danger");
+                return false;
+            }
+            if (!isMorningDrop && !hasAfternoonShift) {
+                showToast(`Lỗi: Lịch Bệnh viện của GV ngày này chỉ có ca Sáng!`, "danger");
+                return false;
+            }
+
+            return true;
+        }
+
+        // HÀM KIỂM TRA TRÙNG LỊCH (CHỈ KIỂM TRA LÝ THUYẾT, KHÔNG CHẶN BỆNH VIỆN NỮA)
+        function hasOverlap(targetStart, targetEnd, gv, ignoreEventId) {
+            if (!targetEnd) targetEnd = new Date(targetStart.getTime() + 4 * 60 * 60 * 1000);
+            let allEvents = calendar.getEvents();
+            
+            for (let e of allEvents) {
+                if (e.id === ignoreEventId) continue; 
+                
+                const props = e.extendedProps;
+                if (props.type === 'clinical_summary') continue; 
+                
+                if (props.gv !== gv) continue; 
+                let eStart = e.start;
+                let eEnd = e.end || new Date(eStart.getTime() + 4 * 60 * 60 * 1000);
+                if (targetStart < eEnd && targetEnd > eStart) return true;
+            }
+            return false;
+        }
+
         window.toggleSidebar = () => {
             const panel = document.getElementById('external-events');
             if (panel.style.display === 'none') {
@@ -301,26 +357,6 @@
             }
             setTimeout(() => { if(calendar) calendar.updateSize(); }, 100);
         };
-
-        // HÀM KIỂM TRA TRÙNG LỊCH (CHỈ QUÉT LỊCH LÝ THUYẾT, KHÔNG QUÉT LỊCH BỆNH VIỆN NỮA)
-        function hasOverlap(targetStart, targetEnd, gv, ignoreEventId) {
-            if (!targetEnd) targetEnd = new Date(targetStart.getTime() + 4 * 60 * 60 * 1000);
-            let allEvents = calendar.getEvents();
-            
-            for (let e of allEvents) {
-                if (e.id === ignoreEventId) continue; 
-                
-                const props = e.extendedProps;
-                // BỎ QUA KIỂM TRA LỊCH BỆNH VIỆN - GV CÓ TÊN BỆNH VIỆN VẪN ĐƯỢC XẾP LỊCH BÌNH THƯỜNG
-                if (props.type === 'clinical_summary') continue; 
-                
-                if (props.gv !== gv) continue; 
-                let eStart = e.start;
-                let eEnd = e.end || new Date(eStart.getTime() + 4 * 60 * 60 * 1000);
-                if (targetStart < eEnd && targetEnd > eStart) return true;
-            }
-            return false;
-        }
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
@@ -389,8 +425,8 @@
                 },
                 slotMinTime: '07:00:00',
                 slotMaxTime: '21:00:00',
-                allDaySlot: true, // MỞ KHAY ALL-DAY ĐỂ HIỆN CHẤM ĐỎ BỆNH VIỆN
-                allDayText: 'Bệnh viện', // Đổi tên khay
+                allDaySlot: true, 
+                allDayText: 'Bệnh viện', 
                 defaultTimedEventDuration: '04:00:00', 
                 editable: isCalendarAdmin, 
                 droppable: isCalendarAdmin, 
@@ -399,18 +435,16 @@
                 eventContent: function(arg) {
                     const props = arg.event.extendedProps;
                     
-                    // NẾU LÀ CỤC CHẤM ĐỎ BỆNH VIỆN
                     if (props.type === 'clinical_summary') {
                         return {
                             html: `
                             <div class="evt-clinical-dot" title="Click xem chi tiết Bệnh viện">
-                                <i class="fas fa-hospital"></i> BV
+                                BV
                             </div>
                             `
                         };
                     }
 
-                    // NẾU LÀ LỊCH DẠY THÔNG THƯỜNG
                     let sTime = arg.event.start ? arg.event.start.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'}) : '';
                     let eTime = '';
                     if (arg.event.end) {
@@ -438,13 +472,18 @@
                     if (!isCalendarAdmin) { info.revert(); return; }
                     
                     const props = info.event.extendedProps;
+                    
+                    // KIỂM TRA ĐIỀU KIỆN LỊCH LÂM SÀNG BỆNH VIỆN
+                    if (!validateClinicalSchedule(info.event, props.gv, props.subject)) {
+                        info.revert(); return;
+                    }
+
                     const newUniqueId = props.originalId + '_' + Date.now();
                     info.event.setProp('id', newUniqueId); 
                     
                     if (hasOverlap(info.event.start, info.event.end, props.gv, newUniqueId)) {
-                        showToast(`Lỗi: Giảng viên ${props.gv} bị trùng với Lịch Lý thuyết khác!`, "danger");
-                        info.revert();
-                        return;
+                        showToast(`Lỗi: Giảng viên ${props.gv} bị trùng lịch Lý thuyết khác!`, "danger");
+                        info.revert(); return;
                     }
 
                     const eventData = {
@@ -474,14 +513,18 @@
                 eventDrop: async function(info) {
                     if (!isCalendarAdmin) { info.revert(); return; }
                     if (info.event.extendedProps.type === 'clinical_summary') {
-                        info.revert(); return; // Không dời lịch bệnh viện
+                        info.revert(); return; 
                     }
                     
                     const props = info.event.extendedProps;
+                    
+                    if (!validateClinicalSchedule(info.event, props.gv, props.subject)) {
+                        info.revert(); return;
+                    }
+
                     if (hasOverlap(info.event.start, info.event.end, props.gv, info.event.id)) {
                         showToast(`Lỗi: Khung giờ mới bị trùng với lịch Lý thuyết khác!`, "danger");
-                        info.revert();
-                        return;
+                        info.revert(); return;
                     }
 
                     try {
@@ -504,10 +547,14 @@
                     }
                     
                     const props = info.event.extendedProps;
+                    
+                    if (!validateClinicalSchedule(info.event, props.gv, props.subject)) {
+                        info.revert(); return;
+                    }
+
                     if (hasOverlap(info.event.start, info.event.end, props.gv, info.event.id)) {
                         showToast(`Lỗi: Khung giờ kéo giãn bị trùng lịch Lý thuyết khác!`, "danger");
-                        info.revert();
-                        return;
+                        info.revert(); return;
                     }
 
                     try {
@@ -522,7 +569,6 @@
                     }
                 },
 
-                // TOOLTIP RÀ CHUỘT
                 eventMouseEnter: function(info) {
                     const props = info.event.extendedProps;
                     const tooltip = document.getElementById('eventTooltip');
@@ -531,8 +577,8 @@
                         const count = props.details ? props.details.length : 0;
                         tooltip.innerHTML = `
                             <strong><i class="fas fa-hospital-user"></i> Lịch Đi Bệnh Viện</strong><br>
-                            Có <b>${count}</b> nhóm thực tập trong ngày hôm nay.<br>
-                            <span class="tooltip-scheduler" style="color: #bae6fd; font-weight: normal; font-size: 0.8rem;"><i class="fas fa-hand-pointer"></i> Click để xem danh sách chi tiết</span>
+                            Có <b>${count}</b> nhóm sinh viên đi thực tập trong ngày hôm nay.<br>
+                            <span class="tooltip-scheduler" style="color: #bae6fd; font-weight: normal; font-size: 0.8rem;"><i class="fas fa-hand-pointer"></i> Click để xem chi tiết từng Bệnh viện</span>
                         `;
                     } else {
                         let sTime = info.event.start ? info.event.start.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'}) : '';
@@ -577,37 +623,48 @@
                     }
                 },
 
-                // BẤM VÀO SỰ KIỆN: HIỆN POPUP CHUNG HOẶC POPUP BỆNH VIỆN
                 eventClick: function(info) {
                     const props = info.event.extendedProps;
                     
-                    // NẾU CLICK VÀO CHẤM ĐỎ BỆNH VIỆN -> MỞ MODAL BỆNH VIỆN
                     if (props.type === 'clinical_summary') {
                         let dateObj = new Date(props.dateStr);
                         let dateVN = dateObj.toLocaleDateString('vi-VN', {weekday: 'long', day:'2-digit', month:'2-digit', year:'numeric'});
                         
+                        // Gom nhóm theo từng bệnh viện
+                        let hospitalGroups = {};
+                        props.details.forEach(c => {
+                            if(!hospitalGroups[c.hospital]) hospitalGroups[c.hospital] = [];
+                            hospitalGroups[c.hospital].push(c);
+                        });
+
                         let html = `<div style="color: var(--primary); font-weight:bold; font-size:1.1rem; margin-bottom:15px; border-bottom: 2px solid var(--border); padding-bottom:10px;">
-                                        <i class="fas fa-calendar-day"></i> Ngày ${dateVN}
+                                        Ngày ${dateVN}
                                     </div>`;
                         
-                        props.details.forEach(c => {
+                        for (let hosp in hospitalGroups) {
                             html += `
                             <div class="clin-card">
-                                <div class="clin-card-title"><i class="fas fa-hospital"></i> ${c.hospital}</div>
-                                <div style="font-size: 0.9rem; color: var(--text-dark); line-height: 1.5;">
-                                    • <b>Ngành:</b> ${c.specialty} (${c.number_students || '?'} SV)<br>
-                                    • <b>Ca đi:</b> ${c.shift}<br>
-                                    • <b>Giảng viên nhận việc:</b> <span style="color: var(--primary); font-weight: 600;">${c.instructors}</span>
-                                </div>
-                            </div>`;
-                        });
+                                <div class="clin-card-title">${hosp}</div>
+                            `;
+                            
+                            hospitalGroups[hosp].forEach((c, index) => {
+                                const borderStyle = index < hospitalGroups[hosp].length - 1 ? 'border-bottom: 1px dashed #cbd5e1; margin-bottom: 10px; padding-bottom: 10px;' : '';
+                                html += `
+                                <div style="font-size: 0.95rem; color: var(--text-dark); line-height: 1.6; ${borderStyle}">
+                                    <b>Chuyên ngành:</b> <span style="color: var(--primary); font-weight: 600;">${c.specialty}</span> (${c.number_students || '?'} SV)<br>
+                                    <b>Ca trực:</b> ${c.shift}<br>
+                                    <b>Giảng viên:</b> <span>${c.instructors}</span>
+                                </div>`;
+                            });
+                            
+                            html += `</div>`;
+                        }
                         
                         document.getElementById('clinicalModalBody').innerHTML = html;
                         document.getElementById('clinicalModal').classList.remove('hidden');
                         return;
                     }
 
-                    // NẾU CLICK VÀO LỊCH LÝ THUYẾT THÔNG THƯỜNG
                     currentClickedEventId = info.event.id;
                     document.getElementById('mdlSubject').innerText = props.subject || '';
                     document.getElementById('mdlGv').innerText = props.gv || '';
@@ -636,7 +693,6 @@
             calendar.render();
         }
 
-        // TẢI DỮ LIỆU
         function listenToDatabase() {
             onSnapshot(collection(db, "assignments"), (snapshot) => {
                 assignmentsData = {};
@@ -661,7 +717,6 @@
             });
         }
 
-        // ĐỔ DỮ LIỆU VÀO LỊCH
         window.processAndRenderEvents = () => {
             if (!calendar) return;
             const selectedSemester = document.getElementById('semesterSelect').value;
@@ -670,7 +725,6 @@
             poolDiv.innerHTML = '';
             let unscheduledCount = 0;
 
-            // 1. Đổ LỊCH DẠY lên Lịch
             let currentClassEvents = scheduledEvents.filter(e => e.class === currentClass).map(e => {
                 const isMyEvent = e.gv && currentUserName && e.gv.includes(currentUserName);
                 return {
@@ -682,29 +736,27 @@
             });
             calendar.addEventSource(currentClassEvents);
 
-            // 2. GOM NHÓM & ĐỔ LỊCH BỆNH VIỆN VÀO KHAY ALL-DAY (Chấm Đỏ BV)
-            // Lấy TẤT CẢ lịch bệnh viện làm nền tảng tham chiếu, không cần lọc theo currentClass
-            let groupedClinicals = getClinicalEventsMap(clinicalSchedules); 
+            // GOM NHÓM & TẠO CHẤM ĐỎ BỆNH VIỆN CHO ALL-DAY
+            globalGroupedClinicals = getClinicalEventsMap(clinicalSchedules); 
             let clinicalEvents = [];
-            for (let dateStr in groupedClinicals) {
+            for (let dateStr in globalGroupedClinicals) {
                 clinicalEvents.push({
-                    id: 'clin_' + dateStr,
+                    id: 'clin_sum_' + dateStr,
                     title: 'BV',
-                    start: dateStr, // Định dạng All-Day
+                    start: dateStr, 
                     allDay: true,
                     backgroundColor: 'transparent',
                     borderColor: 'transparent',
                     editable: false, 
                     extendedProps: {
                         type: 'clinical_summary',
-                        details: groupedClinicals[dateStr],
+                        details: globalGroupedClinicals[dateStr],
                         dateStr: dateStr
                     }
                 });
             }
             calendar.addEventSource(clinicalEvents);
 
-            // Đếm số buổi đã xếp của Lịch Dạy
             let scheduledCounts = {};
             currentClassEvents.forEach(e => {
                 const subObj = subjectsData.find(s => s.name === e.subject);
@@ -715,7 +767,6 @@
                 }
             });
 
-            // Tái tạo Kho Sự Kiện chưa xếp
             for (let subId in assignmentsData) {
                 const subAsg = assignmentsData[subId];
                 if (subAsg[currentClass] && subAsg[currentClass].allocations) {
@@ -751,7 +802,6 @@
                 }
             }
 
-            // XỬ LÝ ẨN/HIỆN KHO
             const extEventsPanel = document.getElementById('external-events');
             const btnToggle = document.getElementById('btnToggleSidebar');
 
