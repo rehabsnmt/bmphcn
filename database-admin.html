@@ -7,8 +7,6 @@
     <link rel="icon" href="images/logo_Bộ môn.png" type="image/png">
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Thư viện vẽ sơ đồ động MermaidJS -->
     <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
 
     <style>
@@ -25,6 +23,7 @@
 
         body, html { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; height: 100vh; background-color: var(--bg-page); overflow: hidden; }
 
+        /* Bố cục MS Access */
         .app-container { display: flex; height: 100vh; width: 100vw; }
 
         /* Sidebar - Danh sách Table */
@@ -69,8 +68,8 @@
         tr:hover .action-cell { background-color: #e0f2fe; }
 
         /* ER Diagram View */
-        .erd-container { flex: 1; overflow: auto; background-color: white; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .erd-note { font-size: 0.9rem; color: #64748b; margin-bottom: 20px; text-align: center; max-width: 800px; line-height: 1.5; background: #f1f5f9; padding: 15px; border-radius: 8px; border: 1px dashed #cbd5e1; }
+        .erd-container { flex: 1; overflow: auto; background-color: white; display: flex; flex-direction: column; align-items: center; padding: 30px 20px; }
+        .erd-note { font-size: 0.9rem; color: #64748b; margin-bottom: 20px; text-align: center; max-width: 800px; line-height: 1.5; background: #f8fafc; padding: 20px; border-radius: 8px; border: 1px dashed #cbd5e1; }
         #mermaid-render-area { width: 100%; display: flex; justify-content: center; margin-top: 20px; }
 
         /* Màn hình khóa */
@@ -83,7 +82,6 @@
         .modal-header { padding: 15px 20px; background: #0f172a; color: white; display: flex; justify-content: space-between; align-items: center; }
         .modal-header h3 { margin: 0; font-size: 1.1rem; }
         
-        /* Tabs trong Modal */
         .modal-tabs { display: flex; border-bottom: 1px solid var(--border); background: #f8fafc; padding: 0 20px; }
         .tab-modal-btn { background: none; border: none; padding: 12px 20px; font-weight: 600; color: var(--text-body); cursor: pointer; border-bottom: 3px solid transparent; transition: 0.2s; border-radius: 0; }
         .tab-modal-btn.active { color: var(--primary); border-bottom-color: var(--primary); background: white; }
@@ -101,7 +99,6 @@
 
         .hidden { display: none !important; }
 
-        /* Toast */
         .toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
         .toast { min-width: 250px; background-color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: 0.4s; font-weight: 600; border-left: 5px solid #22c55e; opacity: 0; }
         .toast.show { transform: translateX(0); opacity: 1; }
@@ -177,16 +174,14 @@
                 </table>
             </div>
 
-            <!-- CHẾ ĐỘ XEM SƠ ĐỒ LIÊN KẾT ĐỘNG (DYNAMIC ERD) -->
+            <!-- CHẾ ĐỘ XEM SƠ ĐỒ LIÊN KẾT ĐỘNG (DYNAMIC ERD BY VALUES) -->
             <div id="erdContainer" class="erd-container hidden">
                 <div class="erd-note">
-                    <i class="fas fa-magic" style="color: var(--primary);"></i> <b>Trí tuệ nhân tạo dò tìm liên kết:</b><br>
-                    Hệ thống đang tự động quét toàn bộ cấu trúc của các bảng hiện có, phân tích các từ khóa (Keys) và vẽ đường nối đối với những bảng chứa thông tin giống nhau (Ví dụ: <i>email</i>, <i>họ tên</i>, <i>giảng viên</i>).
+                    <i class="fas fa-magic" style="color: var(--primary); font-size: 1.2rem; margin-bottom: 5px;"></i><br>
+                    <b>AI Auto-Discovery (Trí tuệ nhân tạo dò tìm cấu trúc):</b><br>
+                    Hệ thống đang tự động quét nội dung dữ liệu (Values) của tất cả các bảng. Nếu 2 bảng có bất kỳ dữ liệu nào trùng khớp hoàn toàn với nhau (VD: Chung tên Giảng viên, Email, hoặc Mã ID), hệ thống sẽ tự động vẽ đường liên kết logic giữa chúng.
                 </div>
-                <!-- Vùng render Mermaid -->
-                <div id="mermaid-render-area">
-                    <!-- JS sẽ inject sơ đồ SVG vào đây -->
-                </div>
+                <div id="mermaid-render-area"></div>
             </div>
         </div>
     </div>
@@ -210,18 +205,14 @@
                     <input type="text" id="docIdInput" disabled style="width: 100%; padding: 10px; font-family: monospace; border: 1px solid var(--border); border-radius: 4px; background: #f1f5f9; outline: none; margin-top: 5px;">
                 </div>
                 
-                <!-- VÙNG FORM -->
                 <div id="formEditorArea">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px; border-bottom: 1px dashed var(--border); padding-bottom: 10px;">
                         <span style="font-size: 0.9rem; font-weight: bold; color: var(--primary);">Trường dữ liệu (Fields & Values):</span>
                         <button class="btn-outline" style="padding: 4px 10px; font-size: 0.8rem;" onclick="addFieldToForm()"><i class="fas fa-plus"></i> Thêm trường mới</button>
                     </div>
-                    <div id="dynamicFormFields">
-                        <!-- JS gen fields -->
-                    </div>
+                    <div id="dynamicFormFields"></div>
                 </div>
 
-                <!-- VÙNG JSON -->
                 <div id="jsonEditorArea" class="hidden">
                     <label style="font-size: 0.85rem; font-weight: bold; color: var(--text-body); display: block; margin-bottom: 5px;">Dữ liệu JSON thô:</label>
                     <textarea id="jsonEditor" spellcheck="false"></textarea>
@@ -245,7 +236,7 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Khởi tạo thư viện sơ đồ (tắt tự động chạy để mình tự control)
+        // Khởi tạo Mermaid nhưng tắt Auto Load để vẽ thủ công
         mermaid.initialize({ startOnLoad: false, theme: 'default' });
 
         let currentTable = 'users';
@@ -254,7 +245,7 @@
         let isEditing = false;
         let currentMode = 'form'; 
 
-        // Tải danh sách Bảng tùy chỉnh (Custom Tables) từ Local Storage
+        // Khôi phục Danh sách Bảng tự tạo từ Local Storage
         let customTables = JSON.parse(localStorage.getItem('bmphcn_custom_tables') || '[]');
 
         function showToast(message, type = 'success') {
@@ -267,14 +258,15 @@
             setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
         }
 
-        // Render các bảng tự tạo vào Sidebar
+        // Render Bảng Custom vào Sidebar
         function renderCustomTables() {
             const container = document.getElementById('customTablesContainer');
             container.innerHTML = '';
             customTables.forEach(tName => {
                 const li = document.createElement('li');
                 li.className = 'table-item custom-table-item';
-                li.innerHTML = `<i class="fas fa-table"></i> ${tName} <span style="font-size:0.7rem; color:#10b981; margin-left:auto; font-weight:bold;">Custom</span>`;
+                // Xóa nhãn Custom theo yêu cầu
+                li.innerHTML = `<i class="fas fa-table"></i> ${tName}`;
                 li.onclick = function() { loadTable(tName, this); };
                 container.appendChild(li);
             });
@@ -284,7 +276,7 @@
             if (user && user.email.toLowerCase() === 'hoangtran1483@gmail.com') {
                 document.getElementById('accessDenied').classList.add('hidden');
                 document.getElementById('appMain').classList.remove('hidden');
-                renderCustomTables(); // Gọi render custom tables
+                renderCustomTables(); 
                 refreshTable();
             } else {
                 document.getElementById('accessDenied').classList.remove('hidden');
@@ -292,7 +284,7 @@
             }
         });
 
-        // 1. TẠO BẢNG (COLLECTION) MỚI
+        // 1. TẠO BẢNG MỚI (Lưu vào LocalStorage để không bị mất)
         window.createNewTable = () => {
             const tName = prompt("Nhập tên Bảng (Collection) mới:\nLưu ý: Chỉ dùng chữ cái không dấu, số và dấu gạch dưới (_).");
             if (tName && tName.trim()) {
@@ -303,7 +295,6 @@
                         localStorage.setItem('bmphcn_custom_tables', JSON.stringify(customTables));
                         renderCustomTables();
                     }
-                    // Tự động focus vào bảng mới
                     const allItems = document.querySelectorAll('.table-item');
                     allItems[allItems.length - 1].click();
                 } else {
@@ -312,7 +303,7 @@
             }
         };
 
-        // 2. TÍNH NĂNG VẼ SƠ ĐỒ ĐỘNG BẰNG AI (DYNAMIC ERD)
+        // 2. VẼ SƠ ĐỒ ĐỘNG DỰA TRÊN "VALUES" TRÙNG LẶP
         window.showErdView = async (el) => {
             document.querySelectorAll('.table-item').forEach(li => li.classList.remove('active'));
             el.classList.add('active');
@@ -323,95 +314,97 @@
             document.getElementById('mainTitle').innerHTML = '<i class="fas fa-project-diagram"></i> Sơ đồ liên kết Database';
 
             const erdDiv = document.getElementById('mermaid-render-area');
-            erdDiv.innerHTML = '<i class="fas fa-spinner fa-spin" style="font-size:2rem; color:var(--primary);"></i><br><br>Đang tự động dò tìm cấu trúc và phân tích từ khóa liên kết...';
+            erdDiv.innerHTML = '<div style="text-align:center;"><i class="fas fa-spinner fa-spin" style="font-size:2.5rem; color:var(--primary); margin-bottom:15px;"></i><br><strong style="color:var(--text-dark);">Đang phân tích cấu trúc dữ liệu...</strong></div>';
 
             try {
-                // Liệt kê toàn bộ bảng
                 let allTables = ['users', 'theses', 'assignments', 'visiting_lecturers', 'announcements', 'logs', 'recycle', 'settings', ...customTables];
-                let schemas = {};
+                let schemas = {}; // Lưu Keys
+                let tableValues = {}; // Lưu Values để so khớp
 
-                // Quét 1 document đầu tiên của mỗi bảng để lấy từ khóa (keys)
+                // Các từ khóa rác quá phổ biến, nếu khớp sẽ tạo liên kết giả, cần loại bỏ
+                const ignoreVals = ['Lý thuyết', 'Thực hành', 'Thực tế', 'Ra đề thi', 'Coi thi', 'Chấm thi', 'Soạn mới, sửa BG/GT', 'Công việc khác', 'Hướng dẫn LV, LATS', 'Học kỳ 1', 'Học kỳ 2', 'Học kỳ 3', 'Học kỳ 4', 'THÊM', 'SỬA', 'XÓA', 'Khác'];
+
                 for (let t of allTables) {
-                    const snap = await getDocs(query(collection(db, t), limit(1)));
-                    schemas[t] = [];
-                    if (!snap.empty) {
-                        let data = snap.docs[0].data();
+                    // Quét 50 document của mỗi bảng
+                    const snap = await getDocs(query(collection(db, t), limit(50)));
+                    schemas[t] = new Set();
+                    tableValues[t] = new Set();
+                    
+                    snap.forEach(docSnap => {
+                        let data = docSnap.data();
                         
-                        // Nếu bảng assignments có mảng allocations, ta moi data trong allocations ra
-                        if (t === 'assignments' && data.allocations && data.allocations.length > 0) {
-                            schemas[t] = [...Object.keys(data), ...Object.keys(data.allocations[0])];
-                        } 
-                        // Các bảng khác
-                        else {
-                            schemas[t] = Object.keys(data);
-                        }
-                    }
+                        // Lấy Keys
+                        Object.keys(data).forEach(k => schemas[t].add(k));
+                        
+                        // Lấy Values (quét đệ quy nếu có Array/Object lồng nhau)
+                        const extractVals = (obj) => {
+                            if (Array.isArray(obj)) {
+                                obj.forEach(item => extractVals(item));
+                            } else if (obj && typeof obj === 'object' && !obj.seconds) {
+                                for (let k in obj) extractVals(obj[k]);
+                            } else if (typeof obj === 'string') {
+                                let str = obj.trim();
+                                // Chỉ lấy chuỗi đủ dài, không phải url và không nằm trong danh sách ignore
+                                if (str.length > 3 && str.length < 80 && !str.startsWith('http') && !ignoreVals.includes(str)) {
+                                    tableValues[t].add(str);
+                                }
+                            }
+                        };
+                        
+                        extractVals(data);
+                        tableValues[t].add(docSnap.id); // Khóa ngoại ID
+                    });
                 }
 
-                // Viết mã Mermaid ERD
                 let mCode = 'erDiagram\n';
                 
-                // Khai báo thực thể (bảng)
+                // 1. Tạo Khối thực thể (Tables & Keys)
                 for (let t in schemas) {
                     mCode += `  ${t} {\n`;
-                    if(schemas[t].length === 0) {
-                        mCode += `    string chua_co_du_lieu\n`;
+                    if (schemas[t].size === 0) {
+                        mCode += `    string empty_table\n`;
                     } else {
-                        let uniqueKeys = [...new Set(schemas[t])];
-                        uniqueKeys.forEach(k => {
+                        schemas[t].forEach(k => {
                             mCode += `    string ${k.replace(/[^a-zA-Z0-9_]/g, '')}\n`;
                         });
                     }
                     mCode += `  }\n`;
                 }
 
-                // Phân tích liên kết: Gom các từ khóa đồng nghĩa
+                // 2. So khớp Values để tạo Đường liên kết (Links)
                 let links = [];
-                const keySynonyms = [
-                    ['fullName', 'advisor', 'gv', 'gv1', 'gv2', 'name', 'user'], // Từ khóa liên quan đến Tên người
-                    ['email', 'user'], // Từ khóa liên quan đến Tài khoản
-                    ['title', 'name', 'subject_id'] // Từ khóa liên quan đến Tên đối tượng
-                ];
-                
-                const ignoredWords = ['id', '_id', 'timestamp', 'createdAt', 'updatedAt', 'deletedAt', 'expireAt', 'action', 'details', 'status', 'note'];
-
                 let tNames = Object.keys(schemas);
                 for(let i=0; i<tNames.length; i++) {
                     for(let j=i+1; j<tNames.length; j++) {
                         let t1 = tNames[i];
                         let t2 = tNames[j];
-                        let k1 = schemas[t1];
-                        let k2 = schemas[t2];
-                        let common = [];
-
-                        // Tìm từ khóa giống nhau hoàn toàn
-                        k1.forEach(f => {
-                            if (k2.includes(f) && !ignoredWords.includes(f)) common.push(f);
-                        });
-
-                        // Tìm từ khóa đồng nghĩa (Synonyms)
-                        keySynonyms.forEach(synGroup => {
-                            let hasIn1 = k1.find(f => synGroup.includes(f));
-                            let hasIn2 = k2.find(f => synGroup.includes(f));
-                            if(hasIn1 && hasIn2 && hasIn1 !== hasIn2 && !ignoredWords.includes(hasIn1) && !ignoredWords.includes(hasIn2)) {
-                                common.push(`(${hasIn1} ~ ${hasIn2})`);
-                            }
-                        });
-
-                        let uniqueCommon = [...new Set(common)];
-                        if(uniqueCommon.length > 0) {
-                            links.push(`  ${t1} ||--o{ ${t2} : "Khớp: ${uniqueCommon.join(', ')}"`);
+                        
+                        let v1 = Array.from(tableValues[t1]);
+                        let v2 = tableValues[t2];
+                        
+                        // Tìm điểm giao nhau (Intersection)
+                        let common = v1.filter(v => v2.has(v));
+                        
+                        if (common.length > 0) {
+                            // Lấy 2 giá trị tượng trưng in lên label
+                            let displayVals = common.slice(0, 2).join(', ');
+                            if (common.length > 2) displayVals += '...';
+                            
+                            // Xóa các ký tự gây gãy code Mermaid
+                            displayVals = displayVals.replace(/["\\[\\]{}()]/g, '');
+                            
+                            links.push(`  ${t1} ||--o{ ${t2} : "Khớp Value: ${displayVals}"`);
                         }
                     }
                 }
 
                 if(links.length === 0) {
-                    mCode += `  Luu_y { string note }\n  Luu_y ||--o{ Luu_y : "Không tìm thấy từ khóa chung nào"\n`;
+                    mCode += `  NO_LINKS { string note }\n  NO_LINKS ||--o{ NO_LINKS : "Không tìm thấy Value chung"\n`;
                 } else {
                     mCode += links.join('\n');
                 }
 
-                // Gọi thư viện Mermaid vẽ hình
+                // Vẽ sơ đồ bằng Mermaid
                 const graphId = 'erdGraph_' + Date.now();
                 const { svg } = await mermaid.render(graphId, mCode);
                 erdDiv.innerHTML = svg;
@@ -460,7 +453,7 @@
                 thead.innerHTML += '<th class="action-cell" style="width: 120px; text-align:center;">Thao tác</th>';
 
                 if (tableData.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="${tableColumns.length + 2}" style="text-align:center; padding:30px; color:#94a3b8;">Không có dữ liệu trong Collection này. Bấm "Thêm Document" để tạo bản ghi đầu tiên.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="${tableColumns.length + 2}" style="text-align:center; padding:30px; color:#94a3b8;">Không có dữ liệu. Bấm "Thêm Document" để tạo bản ghi.</td></tr>`;
                     return;
                 }
 
