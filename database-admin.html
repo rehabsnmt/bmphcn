@@ -7,7 +7,8 @@
     <link rel="icon" href="images/logo_Bộ môn.png" type="image/png">
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+
     <style>
         :root {
             --primary: #0284c7;
@@ -26,22 +27,23 @@
         .app-container { display: flex; height: 100vh; width: 100vw; }
 
         /* Sidebar - Danh sách Table */
-        .sidebar { width: 250px; background-color: #1e293b; color: #f8fafc; display: flex; flex-direction: column; flex-shrink: 0; }
+        .sidebar { width: 260px; background-color: #1e293b; color: #f8fafc; display: flex; flex-direction: column; flex-shrink: 0; }
         .sidebar-header { padding: 20px; background-color: #0f172a; font-weight: bold; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #334155; }
         .table-list { list-style: none; padding: 0; margin: 0; overflow-y: auto; flex: 1; }
         .table-item { padding: 12px 20px; cursor: pointer; border-bottom: 1px solid #334155; display: flex; align-items: center; gap: 10px; transition: 0.2s; font-size: 0.95rem; }
         .table-item:hover { background-color: #334155; }
         .table-item.active { background-color: var(--primary); border-left: 4px solid #38bdf8; }
+        
         .sidebar-footer { padding: 15px 20px; background-color: #0f172a; font-size: 0.8rem; color: #94a3b8; text-align: center; }
 
         /* Main Content */
         .main-content { flex: 1; display: flex; flex-direction: column; background-color: var(--surface); overflow: hidden; }
         
-        .toolbar { padding: 12px 20px; background-color: #f1f5f9; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .toolbar { padding: 12px 20px; background-color: #f1f5f9; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; height: 60px; box-sizing: border-box;}
         .toolbar-title { font-weight: bold; font-size: 1.2rem; color: var(--primary); display: flex; align-items: center; gap: 10px; }
         .toolbar-actions { display: flex; gap: 10px; }
         
-        button { padding: 8px 15px; border-radius: 4px; border: none; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: 0.2s; display: flex; align-items: center; gap: 6px; }
+        button { padding: 8px 15px; border-radius: 4px; border: none; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
         .btn-primary { background-color: var(--primary); color: white; }
         .btn-primary:hover { background-color: var(--primary-hover); }
         .btn-danger { background-color: var(--accent); color: white; }
@@ -65,20 +67,36 @@
         tr:nth-child(even) .action-cell { background-color: #f8fafc; }
         tr:hover .action-cell { background-color: #e0f2fe; }
 
+        /* ER Diagram View */
+        .erd-container { flex: 1; overflow: auto; background-color: white; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .erd-note { font-size: 0.9rem; color: #64748b; margin-bottom: 20px; text-align: center; max-width: 800px; line-height: 1.5; }
+
         /* Màn hình khóa */
         #accessDenied { position: fixed; top:0; left:0; width:100%; height:100%; background:var(--surface); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
         #accessDenied i { font-size: 5rem; color: var(--accent); margin-bottom: 20px; }
 
-        /* Modal JSON Editor */
+        /* Modal Đa năng */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 2000; }
-        .modal-content { background: white; width: 800px; max-width: 95%; border-radius: 8px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); display: flex; flex-direction: column; overflow: hidden; }
+        .modal-content { background: white; width: 850px; max-width: 95%; border-radius: 8px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); display: flex; flex-direction: column; overflow: hidden; max-height: 95vh; }
         .modal-header { padding: 15px 20px; background: #0f172a; color: white; display: flex; justify-content: space-between; align-items: center; }
         .modal-header h3 { margin: 0; font-size: 1.1rem; }
-        .modal-body { padding: 20px; flex: 1; }
+        
+        /* Tabs trong Modal */
+        .modal-tabs { display: flex; border-bottom: 1px solid var(--border); background: #f8fafc; padding: 0 20px; }
+        .tab-modal-btn { background: none; border: none; padding: 12px 20px; font-weight: 600; color: var(--text-body); cursor: pointer; border-bottom: 3px solid transparent; transition: 0.2s; border-radius: 0; }
+        .tab-modal-btn.active { color: var(--primary); border-bottom-color: var(--primary); background: white; }
+
+        .modal-body { padding: 20px; overflow-y: auto; flex: 1; }
         .modal-footer { padding: 15px 20px; background: #f1f5f9; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border); }
         
-        textarea#jsonEditor { width: 100%; height: 400px; font-family: monospace; font-size: 0.95rem; padding: 10px; border: 1px solid var(--border); border-radius: 4px; resize: vertical; outline: none; box-sizing: border-box; background-color: #f8fafc; }
+        textarea#jsonEditor { width: 100%; height: 350px; font-family: monospace; font-size: 0.95rem; padding: 15px; border: 1px solid var(--border); border-radius: 6px; resize: vertical; outline: none; box-sizing: border-box; background-color: #f8fafc; line-height: 1.5; }
         textarea#jsonEditor:focus { border-color: var(--primary); background-color: white; }
+
+        /* Form Editor Fields */
+        .dynamic-field-row { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; background: #f8fafc; padding: 8px; border-radius: 6px; border: 1px solid #e2e8f0; }
+        .field-key { flex: 1; padding: 10px; border: 1px solid var(--border); border-radius: 4px; font-weight: bold; color: var(--text-dark); background: white; outline: none; }
+        .field-val { flex: 2; padding: 10px; border: 1px solid var(--border); border-radius: 4px; color: var(--text-dark); background: white; outline: none; font-family: inherit; }
+        .field-key:focus, .field-val:focus { border-color: var(--primary); }
 
         .hidden { display: none !important; }
 
@@ -108,6 +126,13 @@
                 <i class="fas fa-database" style="color: #38bdf8;"></i> DB Explorer
             </div>
             <ul class="table-list" id="tableList">
+                <li class="table-item" style="background-color: #334155; border-bottom: 2px solid #0f172a; color: #38bdf8; font-weight: bold;" onclick="showErdView(this)">
+                    <i class="fas fa-project-diagram"></i> Xem liên kết (ERD)
+                </li>
+                <!-- NÚT TẠO BẢNG MỚI -->
+                <li class="table-item" id="btnCreateTable" style="background-color: #e0f2fe; color: #0284c7; font-weight: bold;" onclick="createNewTable()">
+                    <i class="fas fa-plus-circle"></i> + Tạo bảng mới
+                </li>
                 <li class="table-item active" onclick="loadTable('users', this)"><i class="fas fa-table"></i> users</li>
                 <li class="table-item" onclick="loadTable('theses', this)"><i class="fas fa-table"></i> theses</li>
                 <li class="table-item" onclick="loadTable('assignments', this)"><i class="fas fa-table"></i> assignments</li>
@@ -125,48 +150,90 @@
         <!-- MAIN CONTENT -->
         <div class="main-content">
             <div class="toolbar">
-                <div class="toolbar-title">
+                <div class="toolbar-title" id="mainTitle">
                     <i class="fas fa-table"></i> <span id="currentTableName">users</span>
                     <span style="font-size: 0.85rem; color: #94a3b8; font-weight: normal; margin-left: 10px;" id="recordCount">0 records</span>
                 </div>
-                <div class="toolbar-actions">
+                <div class="toolbar-actions" id="tableActions">
                     <button class="btn-secondary" onclick="refreshTable()"><i class="fas fa-sync-alt"></i> Làm mới</button>
                     <button class="btn-primary" onclick="openAddModal()"><i class="fas fa-plus"></i> Thêm Document</button>
                 </div>
             </div>
 
-            <div class="data-container">
+            <!-- CHẾ ĐỘ XEM DATA BẢNG -->
+            <div id="dataContainer" class="data-container">
                 <table>
                     <thead>
-                        <tr id="tableHeaderRow">
-                            <!-- JS gen headers -->
-                        </tr>
+                        <tr id="tableHeaderRow"></tr>
                     </thead>
                     <tbody id="tableBody">
                         <tr><td colspan="100%" style="text-align: center; padding: 50px;">Đang tải dữ liệu...</td></tr>
                     </tbody>
                 </table>
             </div>
+
+            <!-- CHẾ ĐỘ XEM SƠ ĐỒ LIÊN KẾT (ERD) -->
+            <div id="erdContainer" class="erd-container hidden">
+                <p class="erd-note">
+                    <i class="fas fa-info-circle"></i> <b>Lưu ý NoSQL:</b> Trong Firebase Firestore, các liên kết (Relationships) mang tính chất logic (References) do ứng dụng tự hiểu chứ không phải là khóa ngoại vật lý cứng. Sơ đồ dưới đây mô phỏng luồng ánh xạ dữ liệu giữa các bảng hiện tại.
+                </p>
+                <div class="mermaid">
+                    erDiagram
+                        USERS ||--o{ THESES : "Hướng dẫn (Cột advisor)"
+                        USERS ||--o{ ASSIGNMENTS : "Được phân công (Cột allocations.gv)"
+                        USERS ||--o{ LOGS : "Thực hiện thao tác (Cột user)"
+                        VISITING_LECTURERS ||--o{ THESES : "Hướng dẫn ngoài (Cột advisor)"
+                        VISITING_LECTURERS ||--o{ ASSIGNMENTS : "Phân công ngoài (Cột allocations.gv)"
+                        THESES ||--|{ RECYCLE : "Khi xóa sẽ chuyển vào"
+                        
+                        ASSIGNMENTS { string subject_id PK "Mã môn học" }
+                        THESES { string id PK "Mã tự sinh" }
+                        USERS { string uid PK }
+                        VISITING_LECTURERS { string id PK }
+                        LOGS { string id PK }
+                        RECYCLE { string id PK "Giữ nguyên ID cũ" }
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- MODAL JSON EDITOR -->
-    <div id="jsonModal" class="modal-overlay hidden">
+    <!-- MODAL NHẬP LIỆU (FORM & JSON) -->
+    <div id="editorModal" class="modal-overlay hidden">
         <div class="modal-content">
             <div class="modal-header">
                 <h3 id="modalTitle">Chỉnh sửa Document</h3>
                 <i class="fas fa-times" style="cursor: pointer;" onclick="closeModal()"></i>
             </div>
+            
+            <div class="modal-tabs">
+                <button id="tabFormBtn" class="tab-modal-btn active" onclick="switchEditorMode('form')"><i class="fas fa-list-ul"></i> Chế độ Form</button>
+                <button id="tabJsonBtn" class="tab-modal-btn" onclick="switchEditorMode('json')"><i class="fas fa-code"></i> Chế độ Code (JSON)</button>
+            </div>
+
             <div class="modal-body">
-                <div style="margin-bottom: 10px;">
-                    <label style="font-size: 0.85rem; font-weight: bold; color: var(--text-body);">Document ID:</label>
-                    <input type="text" id="docIdInput" disabled style="width: 100%; padding: 8px; font-family: monospace; border: 1px solid var(--border); border-radius: 4px; background: #f1f5f9; outline: none; margin-top: 5px;">
+                <div style="margin-bottom: 15px;">
+                    <label style="font-size: 0.85rem; font-weight: bold; color: var(--text-body);">Document ID (Tự động tạo nếu để trống):</label>
+                    <input type="text" id="docIdInput" disabled style="width: 100%; padding: 10px; font-family: monospace; border: 1px solid var(--border); border-radius: 4px; background: #f1f5f9; outline: none; margin-top: 5px;">
                 </div>
-                <div>
-                    <label style="font-size: 0.85rem; font-weight: bold; color: var(--text-body); display: block; margin-bottom: 5px;">JSON Data:</label>
+                
+                <!-- VÙNG FORM -->
+                <div id="formEditorArea">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px; border-bottom: 1px dashed var(--border); padding-bottom: 10px;">
+                        <span style="font-size: 0.9rem; font-weight: bold; color: var(--primary);">Trường dữ liệu (Fields & Values):</span>
+                        <button class="btn-outline" style="padding: 4px 10px; font-size: 0.8rem;" onclick="addFieldToForm()"><i class="fas fa-plus"></i> Thêm trường mới</button>
+                    </div>
+                    <div id="dynamicFormFields">
+                        <!-- JS gen fields -->
+                    </div>
+                </div>
+
+                <!-- VÙNG JSON -->
+                <div id="jsonEditorArea" class="hidden">
+                    <label style="font-size: 0.85rem; font-weight: bold; color: var(--text-body); display: block; margin-bottom: 5px;">Dữ liệu JSON thô:</label>
                     <textarea id="jsonEditor" spellcheck="false"></textarea>
                 </div>
             </div>
+
             <div class="modal-footer">
                 <button class="btn-secondary" onclick="closeModal()">Hủy</button>
                 <button class="btn-primary" onclick="saveDocument()"><i class="fas fa-save"></i> Lưu dữ liệu</button>
@@ -179,23 +246,18 @@
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
         import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
         
-        const firebaseConfig = {
-            apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY",
-            authDomain: "bmphcn-aa9c6.firebaseapp.com",
-            projectId: "bmphcn-aa9c6",
-            storageBucket: "bmphcn-aa9c6.firebasestorage.app",
-            messagingSenderId: "749494392719",
-            appId: "1:749494392719:web:f220c751ff541620045dfa"
-        };
-        
+        const firebaseConfig = { apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY", authDomain: "bmphcn-aa9c6.firebaseapp.com", projectId: "bmphcn-aa9c6", storageBucket: "bmphcn-aa9c6.firebasestorage.app", messagingSenderId: "749494392719", appId: "1:749494392719:web:f220c751ff541620045dfa" };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
 
         let currentTable = 'users';
         let tableData = [];
         let tableColumns = [];
         let isEditing = false;
+        let currentMode = 'form'; // 'form' hoặc 'json'
 
         function showToast(message, type = 'success') {
             const container = document.getElementById('toastContainer');
@@ -207,7 +269,6 @@
             setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
         }
 
-        // BẢO MẬT: Kiểm tra email Super Admin
         onAuthStateChanged(auth, (user) => {
             if (user && user.email.toLowerCase() === 'hoangtran1483@gmail.com') {
                 document.getElementById('accessDenied').classList.add('hidden');
@@ -219,18 +280,51 @@
             }
         });
 
+        // TẠO BẢNG MỚI
+        window.createNewTable = () => {
+            const tName = prompt("Nhập tên Bảng (Collection) mới:\nLưu ý: Chỉ dùng chữ cái không dấu, số và dấu gạch dưới (_).");
+            if (tName && tName.trim()) {
+                const safeName = tName.trim().replace(/[^a-zA-Z0-9_]/g, '');
+                if (safeName) {
+                    const li = document.createElement('li');
+                    li.className = 'table-item';
+                    li.innerHTML = `<i class="fas fa-table"></i> ${safeName} <span style="font-size:0.7rem; color:#10b981; margin-left:auto; font-weight:bold;">Mới</span>`;
+                    li.onclick = function() { loadTable(safeName, this); };
+                    
+                    const tableList = document.getElementById('tableList');
+                    tableList.insertBefore(li, document.getElementById('btnCreateTable').nextSibling);
+                    loadTable(safeName, li);
+                } else {
+                    alert("Tên bảng không hợp lệ!");
+                }
+            }
+        };
+
+        window.showErdView = (el) => {
+            document.querySelectorAll('.table-item').forEach(li => li.classList.remove('active'));
+            el.classList.add('active');
+            document.getElementById('dataContainer').classList.add('hidden');
+            document.getElementById('tableActions').classList.add('hidden');
+            document.getElementById('erdContainer').classList.remove('hidden');
+            document.getElementById('mainTitle').innerHTML = '<i class="fas fa-project-diagram"></i> Sơ đồ liên kết Database';
+        };
+
         window.loadTable = (tableName, el) => {
             document.querySelectorAll('.table-item').forEach(li => li.classList.remove('active'));
             el.classList.add('active');
+            document.getElementById('erdContainer').classList.add('hidden');
+            document.getElementById('dataContainer').classList.remove('hidden');
+            document.getElementById('tableActions').classList.remove('hidden');
+
             currentTable = tableName;
-            document.getElementById('currentTableName').innerText = tableName;
+            document.getElementById('mainTitle').innerHTML = `<i class="fas fa-table"></i> <span id="currentTableName">${tableName}</span> <span style="font-size: 0.85rem; color: #94a3b8; font-weight: normal; margin-left: 10px;" id="recordCount">0 records</span>`;
             refreshTable();
         };
 
         window.refreshTable = async () => {
             const tbody = document.getElementById('tableBody');
             const thead = document.getElementById('tableHeaderRow');
-            tbody.innerHTML = '<tr><td colspan="100%" style="text-align: center; padding: 50px;"><i class="fas fa-spinner fa-spin"></i> Fetching data...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="100%" style="text-align: center; padding: 50px;"><i class="fas fa-spinner fa-spin"></i> Đang tải dữ liệu...</td></tr>';
             thead.innerHTML = '';
             document.getElementById('recordCount').innerText = 'Loading...';
 
@@ -249,33 +343,28 @@
                 tableColumns = Array.from(keySet).sort();
                 document.getElementById('recordCount').innerText = `${tableData.length} records`;
 
-                // Render Header
                 thead.innerHTML = '<th style="width: 200px;">_id (Document ID)</th>';
-                tableColumns.forEach(col => {
-                    thead.innerHTML += `<th>${col}</th>`;
-                });
-                thead.innerHTML += '<th class="action-cell" style="width: 120px;">Actions</th>';
+                tableColumns.forEach(col => { thead.innerHTML += `<th>${col}</th>`; });
+                thead.innerHTML += '<th class="action-cell" style="width: 120px; text-align:center;">Thao tác</th>';
 
-                // Render Body
                 if (tableData.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="${tableColumns.length + 2}" style="text-align:center; padding:30px; color:#94a3b8;">Không có dữ liệu trong Collection này.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="${tableColumns.length + 2}" style="text-align:center; padding:30px; color:#94a3b8;">Không có dữ liệu trong Collection này. Bấm "Thêm Document" để tạo bản ghi đầu tiên.</td></tr>`;
                     return;
                 }
 
                 tbody.innerHTML = '';
                 tableData.forEach(row => {
                     let tr = `<tr><td class="td-id">${row['_id']}</td>`;
-                    
                     tableColumns.forEach(col => {
                         let val = row[col];
                         let displayVal = '';
                         if (val === undefined || val === null) {
                             displayVal = '<span style="color:#cbd5e1;">null</span>';
                         } else if (typeof val === 'object') {
-                            if (val.seconds) { // Xử lý Firebase Timestamp
+                            if (val.seconds) { 
                                 displayVal = new Date(val.seconds * 1000).toLocaleString('vi-VN');
                             } else {
-                                displayVal = `<span class="td-object">${Array.isArray(val) ? '[Array]' : '[Object]'}</span>`;
+                                displayVal = `<span class="td-object">${Array.isArray(val) ? '[Array]' : '[Object JSON]'}</span>`;
                             }
                         } else if (typeof val === 'boolean') {
                             displayVal = `<span style="color:${val?'#16a34a':'#dc2626'}">${val}</span>`;
@@ -285,9 +374,7 @@
                         tr += `<td>${displayVal}</td>`;
                     });
 
-                    // Xử lý mã hóa Data an toàn để ném vào hàm sửa
                     const encodedData = encodeURIComponent(JSON.stringify(row)).replace(/'/g, "%27");
-                    
                     tr += `
                         <td class="action-cell">
                             <button class="btn-secondary" style="display:inline-block; padding: 4px 8px; font-size:0.8rem; margin-right:5px;" onclick="openEditModal('${encodedData}')"><i class="fas fa-edit"></i></button>
@@ -296,85 +383,162 @@
                     </tr>`;
                     tbody.innerHTML += tr;
                 });
-
             } catch (error) {
-                console.error(error);
                 tbody.innerHTML = `<tr><td colspan="100%" style="text-align: center; color:red; padding: 20px;">Lỗi tải dữ liệu: ${error.message}</td></tr>`;
             }
+        };
+
+        // ==========================================
+        // KHỐI CHỨC NĂNG EDITOR (FORM VÀ JSON)
+        // ==========================================
+        window.switchEditorMode = (mode) => {
+            currentMode = mode;
+            if (mode === 'form') {
+                document.getElementById('tabFormBtn').classList.add('active');
+                document.getElementById('tabJsonBtn').classList.remove('active');
+                document.getElementById('formEditorArea').classList.remove('hidden');
+                document.getElementById('jsonEditorArea').classList.add('hidden');
+                syncJsonToForm();
+            } else {
+                document.getElementById('tabFormBtn').classList.remove('active');
+                document.getElementById('tabJsonBtn').classList.add('active');
+                document.getElementById('formEditorArea').classList.add('hidden');
+                document.getElementById('jsonEditorArea').classList.remove('hidden');
+                syncFormToJson();
+            }
+        };
+
+        window.syncFormToJson = () => {
+            const keys = document.querySelectorAll('.field-key');
+            const vals = document.querySelectorAll('.field-val');
+            let obj = {};
+            for(let i=0; i<keys.length; i++) {
+                let k = keys[i].value.trim();
+                let v = vals[i].value.trim();
+                if(k) {
+                    if(v === 'true') v = true;
+                    else if(v === 'false') v = false;
+                    else if(v === 'null') v = null;
+                    else if(v !== '' && !isNaN(v)) v = Number(v);
+                    else {
+                        try { 
+                            const parsed = JSON.parse(v); 
+                            if(typeof parsed === 'object') v = parsed;
+                        } catch(e) {}
+                    }
+                    obj[k] = v;
+                }
+            }
+            document.getElementById('jsonEditor').value = JSON.stringify(obj, null, 4);
+            return obj;
+        };
+
+        window.syncJsonToForm = () => {
+            try {
+                let obj = JSON.parse(document.getElementById('jsonEditor').value);
+                renderFormEditor(obj);
+            } catch(e) { } // Bỏ qua nếu JSON lỗi
+        };
+
+        window.renderFormEditor = (dataObj) => {
+            const container = document.getElementById('dynamicFormFields');
+            container.innerHTML = '';
+            for (let key in dataObj) {
+                const val = dataObj[key];
+                let valStr = '';
+                if (val !== null && typeof val === 'object') {
+                    if (val.seconds) { valStr = new Date(val.seconds * 1000).toISOString(); } 
+                    else { valStr = JSON.stringify(val); }
+                } else {
+                    valStr = String(val);
+                }
+                
+                container.innerHTML += `
+                    <div class="dynamic-field-row">
+                        <input type="text" class="field-key" value="${key}" placeholder="Tên trường (Key)">
+                        <i class="fas fa-arrow-right" style="color:var(--border);"></i>
+                        <input type="text" class="field-val" value='${valStr.replace(/'/g, "&#39;")}' placeholder="Giá trị (Value)">
+                        <button class="btn-danger" style="padding: 10px;" onclick="this.parentElement.remove()"><i class="fas fa-trash"></i></button>
+                    </div>
+                `;
+            }
+        };
+
+        window.addFieldToForm = () => {
+            const container = document.getElementById('dynamicFormFields');
+            container.innerHTML += `
+                <div class="dynamic-field-row">
+                    <input type="text" class="field-key" placeholder="Tên trường (Ví dụ: title)">
+                    <i class="fas fa-arrow-right" style="color:var(--border);"></i>
+                    <input type="text" class="field-val" placeholder="Giá trị...">
+                    <button class="btn-danger" style="padding: 10px;" onclick="this.parentElement.remove()"><i class="fas fa-trash"></i></button>
+                </div>
+            `;
         };
 
         window.openAddModal = () => {
             isEditing = false;
             document.getElementById('modalTitle').innerHTML = '<i class="fas fa-plus"></i> Tạo Document mới';
-            document.getElementById('docIdInput').value = '(Auto-generated ID)';
+            document.getElementById('docIdInput').value = '(Tự động sinh mã ID)';
             document.getElementById('docIdInput').disabled = true;
             
-            // Tạo template JSON rỗng dựa trên các cột hiện tại
             let template = {};
             tableColumns.forEach(c => template[c] = "");
-            
             document.getElementById('jsonEditor').value = JSON.stringify(template, null, 4);
-            document.getElementById('jsonModal').classList.remove('hidden');
+            
+            document.getElementById('editorModal').classList.remove('hidden');
+            switchEditorMode('form'); // Luôn ưu tiên Form mode
         };
 
         window.openEditModal = (encodedData) => {
             isEditing = true;
             const data = JSON.parse(decodeURIComponent(encodedData));
             const docId = data['_id'];
-            delete data['_id']; // Bỏ ID ra khỏi phần edit JSON
+            delete data['_id']; 
 
             document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit"></i> Chỉnh sửa Document';
             document.getElementById('docIdInput').value = docId;
             document.getElementById('docIdInput').disabled = true;
             document.getElementById('jsonEditor').value = JSON.stringify(data, null, 4);
-            document.getElementById('jsonModal').classList.remove('hidden');
+            
+            document.getElementById('editorModal').classList.remove('hidden');
+            switchEditorMode('form');
         };
 
-        window.closeModal = () => {
-            document.getElementById('jsonModal').classList.add('hidden');
-        };
+        window.closeModal = () => { document.getElementById('editorModal').classList.add('hidden'); };
 
         window.saveDocument = async () => {
+            if (currentMode === 'form') syncFormToJson();
             const rawJson = document.getElementById('jsonEditor').value;
             let docData;
             
-            try {
-                docData = JSON.parse(rawJson);
-            } catch (e) {
-                showToast("Lỗi định dạng JSON! Vui lòng kiểm tra lại dấu phẩy, ngoặc kép.", "danger");
-                return;
-            }
+            try { docData = JSON.parse(rawJson); } 
+            catch (e) { showToast("Lỗi định dạng JSON! Vui lòng kiểm tra lại cấu trúc.", "danger"); return; }
 
             try {
                 if (isEditing) {
                     const docId = document.getElementById('docIdInput').value;
                     await setDoc(doc(db, currentTable, docId), docData);
-                    showToast("Cập nhật thành công!");
+                    showToast("Cập nhật bản ghi thành công!");
                 } else {
-                    // Tạo mới Document với ID tự sinh
                     const colRef = collection(db, currentTable);
                     await setDoc(doc(colRef), docData);
-                    showToast("Tạo Document thành công!");
+                    showToast("Tạo bản ghi thành công!");
                 }
                 closeModal();
                 refreshTable();
-            } catch (e) {
-                showToast("Lỗi lưu DB: " + e.message, "danger");
-            }
+            } catch (e) { showToast("Lỗi lưu DB: " + e.message, "danger"); }
         };
 
         window.deleteRecord = async (docId) => {
-            if (confirm(`⚠️ NGUY HIỂM: Bạn có chắc chắn muốn xóa vĩnh viễn Document [ ${docId} ] khỏi bảng [ ${currentTable} ] không? Hành động này không thể hoàn tác.`)) {
+            if (confirm(`⚠️ NGUY HIỂM: Bọn có chắc chắn xóa vĩnh viễn Document [ ${docId} ] khỏi bảng [ ${currentTable} ] không? Hành động này không thể hoàn tác.`)) {
                 try {
                     await deleteDoc(doc(db, currentTable, docId));
-                    showToast("Đã xóa vĩnh viễn!", "danger");
+                    showToast("Đã xóa bản ghi thành công!", "danger");
                     refreshTable();
-                } catch (e) {
-                    showToast("Lỗi xóa: " + e.message, "danger");
-                }
+                } catch (e) { showToast("Lỗi xóa: " + e.message, "danger"); }
             }
         };
-
     </script>
 </body>
 </html>
