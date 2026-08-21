@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
-    // 1. MÃ HTML CỦA HEADER (Đã thêm CSS cố định Header khi cuộn)
+    // 1. MÃ HTML CỦA HEADER (Đã xóa phần chữ cạnh logo)
     const headerHTML = `
         <style>
             /* Cố định phần chứa Header */
@@ -25,21 +25,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
                 background: rgba(255, 255, 255, 0.98);
             }
-
-            /* CSS Ẩn chữ bên cạnh logo khi màn hình <= 1024px (Điện thoại và iPad) */
-            @media (max-width: 1024px) {
-                .logo-text { display: none !important; }
-            }
         </style>
         <header id="site-header">
             <a href="index.html" class="logo-link">
                 <div class="logo" style="margin: 0; border: none; padding: 0;">
                     <img src="images/logo_Bộ môn.png" alt="Logo Bộ môn Phục hồi chức năng">
-                </div>
-                <div class="logo-text">
-                    <div id="logo-line-1">Bộ môn Phục hồi chức năng</div>
-                    <div id="logo-line-2">Trường Điều dưỡng - Kỹ thuật Y học</div>
-                    <div id="logo-line-3">Đại học Y Dược Thành phố Hồ Chí Minh</div>
                 </div>
             </a>
             
@@ -105,53 +95,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // 7. CĂN CHỈNH KÍCH THƯỚC CHỮ LOGO TỰ ĐỘNG
-    function perfectAlignLogo() {
-        const l1 = document.getElementById('logo-line-1');
-        const l2 = document.getElementById('logo-line-2');
-        const l3 = document.getElementById('logo-line-3');
-        const logoImg = document.querySelector('.logo-link img');
-        const logoText = document.querySelector('.logo-text');
-        
-        if (!l1 || !l2 || !l3 || !logoImg || !logoText) return;
-
-        // Dừng việc tính toán chữ trên màn hình điện thoại & iPad (vì chữ đã bị CSS ẩn đi)
-        if (window.innerWidth <= 1024) return;
-
-        if (logoImg.complete === false || logoImg.naturalHeight === 0) {
-            logoImg.onload = perfectAlignLogo; return;
-        }
-
-        const baseFontSize = 22.4; 
-        l1.style.fontSize = '20px'; l2.style.fontSize = '20px'; l3.style.fontSize = '20px';
-        
-        const w1 = l1.getBoundingClientRect().width;
-        const w2 = l2.getBoundingClientRect().width;
-        const w3 = l3.getBoundingClientRect().width;
-        
-        let targetWidth = (w1 / 20) * baseFontSize;
-        const applySizes = (width) => {
-            l1.style.fontSize = (20 * width / w1) + 'px';
-            l2.style.fontSize = (20 * width / w2) + 'px';
-            l3.style.fontSize = (20 * width / w3) + 'px';
-        };
-        applySizes(targetWidth);
-        
-        const imgHeight = logoImg.getBoundingClientRect().height || 48; 
-        const textHeight = logoText.getBoundingClientRect().height; 
-        if (textHeight > imgHeight && imgHeight > 0) {
-            targetWidth = targetWidth * (imgHeight / textHeight);
-            applySizes(targetWidth); 
-        }
-    }
-    
-    // Đợi một chút để ảnh render xong rồi mới căn chỉnh
-    setTimeout(perfectAlignLogo, 50); 
-    window.addEventListener('resize', perfectAlignLogo);
-
-    // =========================================================================
-    // 8. ĐIỀU HƯỚNG THÔNG MINH CHO NÚT "TÀI KHOẢN / ĐĂNG NHẬP" (VỪA THÊM VÀO)
-    // =========================================================================
+    // 7. ĐIỀU HƯỚNG THÔNG MINH CHO NÚT "TÀI KHOẢN / ĐĂNG NHẬP"
     const btnAuthNav = document.getElementById('btnAuthNav');
     if (btnAuthNav) {
         btnAuthNav.addEventListener('click', function(e) {
