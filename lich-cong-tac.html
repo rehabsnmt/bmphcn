@@ -17,19 +17,16 @@
 
     <style>
         /* 
-         * APP LAYOUT: Tối ưu 100% diện tích màn hình, khóa scroll dọc 
+         * APP LAYOUT: Tối ưu 100% diện tích màn hình, khóa scroll dọc trang web 
          */
-        html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; display: flex; flex-direction: column; background: var(--bg-page); }
+        html, body { height: 100vh; width: 100vw; margin: 0; padding: 0; overflow: hidden; display: flex; flex-direction: column; background: var(--bg-page); }
         #header-placeholder { flex-shrink: 0; }
-        #footer-placeholder { display: none; } /* Ẩn footer để lấy diện tích cho Lịch */
+        #footer-placeholder { display: none; } /* Ẩn footer để khung lịch rộng nhất */
 
         /* Thanh công cụ gọn nhẹ trên cùng */
-        .top-toolbar {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 10px 2%; background: var(--surface); border-bottom: 1px solid var(--border);
-            flex-shrink: 0; margin-bottom: 15px; box-shadow: var(--shadow-sm);
-        }
-        .top-toolbar h2 { margin: 0; font-size: 1.3rem; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+        .top-toolbar { display: flex; justify-content: space-between; align-items: center; padding: 10px 2%; background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0; margin-bottom: 15px; box-shadow: var(--shadow-sm); }
+        .top-toolbar h2 { margin: 0; font-size: 1.3rem; color: var(--text-dark); display: flex; align-items: center; gap: 8px; font-weight: 700; }
+        .top-toolbar .subtitle { font-size: 0.9rem; color: var(--text-body); font-weight: 600; margin-top: 2px; }
         
         .controls-wrapper { display: flex; gap: 15px; align-items: center; }
         .tabs-header { display: flex; gap: 10px; }
@@ -38,40 +35,34 @@
         .tab-btn.active { color: white; background: var(--primary); border-color: var(--primary); }
         .filter-select { padding: 6px 10px; font-size: 0.95rem; font-weight: 600; border-radius: 6px; border: 1px solid var(--border); outline: none; cursor: pointer; color: var(--text-dark); }
 
-        /* Khu vực Lịch & Kho */
-        main { 
-            flex: 1; max-width: 100%; padding: 0 1%; display: flex; gap: 15px; 
-            overflow: hidden; margin-bottom: 15px; 
-        }
+        /* Khu vực Lịch & Kho (Chia Flex lấy toàn bộ chiều cao còn lại) */
+        main { flex: 1; max-width: 100%; padding: 0 1% 15px 1%; display: flex; gap: 15px; min-height: 0; /* Quan trọng để flex child không bị tràn */ }
 
-        /* Khung bên trái (Kho Sự Kiện chưa xếp) */
-        #external-events { 
-            width: 250px; background: var(--surface); border: 1px solid var(--border); 
-            border-radius: 8px; padding: 15px; box-shadow: var(--shadow-sm); 
-            flex-shrink: 0; display: none; overflow-y: auto; height: 100%; box-sizing: border-box; 
-        }
-        #external-events h4 { margin: 0 0 10px 0; color: var(--primary); border-bottom: 1px dashed var(--border); padding-bottom: 10px; font-size: 1rem; }
+        /* Khung bên trái (Kho Sự Kiện) */
+        #external-events { width: 280px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 15px; box-shadow: var(--shadow-sm); flex-shrink: 0; display: none; flex-direction: column; }
+        #external-events h4 { margin: 0 0 10px 0; color: var(--primary); border-bottom: 1px dashed var(--border); padding-bottom: 10px; font-size: 1.05rem; flex-shrink: 0; }
         
-        #event-pool .fc-event { cursor: move; margin: 8px 0; padding: 10px; background-color: #f1f5f9; color: var(--text-dark); border: 1px solid var(--border); border-radius: 6px; text-align: left; transition: 0.2s; }
+        #event-pool { flex: 1; overflow-y: auto; padding-right: 5px; } /* Cho phép cuộn riêng kho sự kiện */
+        #event-pool .fc-event { cursor: move; margin: 0 0 12px 0; padding: 10px; background-color: #f1f5f9; color: var(--text-dark); border: 1px solid var(--border); border-radius: 6px; text-align: left; transition: 0.2s; }
         #event-pool .fc-event:hover { background-color: #e2e8f0; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-color: #94a3b8; }
-        #event-pool .event-gv { font-weight: 700; font-size: 0.9rem; margin-bottom: 4px; color: var(--primary); }
-        #event-pool .event-info { display: block; font-size: 0.75rem; color: var(--text-body); line-height: 1.3; }
+        #event-pool .event-gv { font-weight: 700; font-size: 0.95rem; margin-bottom: 4px; color: var(--primary); }
+        #event-pool .event-info { display: block; font-size: 0.8rem; color: var(--text-body); line-height: 1.3; }
 
         /* Khung Lịch */
-        #calendar-container { 
-            flex: 1; min-width: 0; background: var(--surface); border: 1px solid var(--border); 
-            border-radius: 8px; padding: 15px; box-shadow: var(--shadow-sm); 
-            height: 100%; box-sizing: border-box; 
-        }
+        #calendar-container { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 15px; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; min-width: 0; }
+        #calendar { flex: 1; min-height: 0; } /* Cho phép lịch co giãn theo container */
         
-        .fc-toolbar-title { font-size: 1.2rem !important; color: var(--primary); font-weight: bold; text-transform: capitalize; }
-        .fc-button-primary { background-color: var(--primary) !important; border-color: var(--primary) !important; text-transform: capitalize; font-weight: 600 !important; padding: 4px 10px !important; }
+        .fc-toolbar-title { font-size: 1.3rem !important; color: var(--primary); font-weight: bold; text-transform: capitalize; }
+        .fc-button-primary { background-color: var(--primary) !important; border-color: var(--primary) !important; text-transform: capitalize; font-weight: 600 !important; padding: 4px 12px !important; }
         .fc-button-primary:hover { background-color: var(--primary-hover) !important; }
         .fc-button-active { background-color: var(--primary-hover) !important; }
 
         /* Style cho Sự kiện TRÊN LỊCH */
-        .fc-event-main { display: flex; flex-direction: column; justify-content: flex-start; height: 100%; }
-        .event-on-calendar { padding: 4px; overflow: hidden; color: white; height: 100%; display: flex; flex-direction: column; box-sizing: border-box; }
+        .fc-event-main { display: flex; flex-direction: column; height: 100%; padding: 4px 6px; box-sizing: border-box; }
+        .event-on-calendar { overflow: hidden; color: white; display: flex; flex-direction: column; gap: 3px; height: 100%; }
+        .event-on-calendar .evt-time { font-size: 0.8rem; font-weight: 600; background: rgba(0,0,0,0.2); padding: 2px 6px; border-radius: 4px; width: fit-content; margin-bottom: 2px; }
+        .event-on-calendar .evt-gv { font-size: 0.95rem; font-weight: 700; line-height: 1.2; text-shadow: 1px 1px 2px rgba(0,0,0,0.2); white-space: normal; }
+        .event-on-calendar .evt-sub { font-size: 0.75rem; font-weight: 400; opacity: 0.95; line-height: 1.2; white-space: normal; }
 
         .hidden { display: none !important; }
 
@@ -99,9 +90,9 @@
 
         @media (max-width: 900px) {
             body { overflow-y: auto; }
-            main { flex-direction: column; height: auto; }
-            #external-events { width: 100%; max-height: 300px; }
-            #calendar-container { height: 700px; }
+            main { flex-direction: column; height: auto; padding-bottom: 30px; }
+            #external-events { width: 100%; height: 300px; flex-shrink: 0; }
+            #calendar-container { height: 700px; flex-shrink: 0; }
         }
     </style>
 </head>
@@ -113,7 +104,10 @@
 
     <!-- THANH CÔNG CỤ COMPACT TRÊN CÙNG -->
     <div class="top-toolbar">
-        <h2><i class="fas fa-calendar-alt"></i> Lịch Công Tác</h2>
+        <div>
+            <h2>LỊCH CÔNG TÁC GIẢNG VIÊN</h2>
+            <div class="subtitle">BỘ MÔN PHỤC HỒI CHỨC NĂNG</div>
+        </div>
         <div class="controls-wrapper">
             <div class="tabs-header">
                 <button class="tab-btn active" onclick="switchClass('THS2025', this)">Khóa 25-27</button>
@@ -133,8 +127,8 @@
         <!-- KHO SỰ KIỆN (Chỉ hiện cho Admin) -->
         <div id="external-events">
             <h4>Chưa lên lịch</h4>
-            <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 10px; font-style: italic;">
-                Kéo thẻ thả vào khung giờ bên phải. Tự động chia 4 tiếng/buổi.
+            <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 10px; font-style: italic; line-height: 1.4;">
+                Kéo thẻ thả vào khung giờ bên phải. Mặc định tự chia 4 tiếng/buổi.
             </div>
             <div id="event-pool">
                 <div style="text-align:center; padding: 20px;">Đang tải...</div>
@@ -160,7 +154,7 @@
                 <p><strong>Giảng viên:</strong> <span id="mdlGv" style="color: var(--primary); font-weight: bold; font-size: 1.1rem;"></span></p>
                 <p><strong>Thời gian:</strong> <span id="mdlTime" style="font-weight: 600; color: #d97706;"></span></p>
                 <p style="margin-top: 15px; padding-top: 10px; border-top: 1px dashed var(--border);">
-                    <i class="fas fa-user-edit" style="color:#64748b;"></i> <strong>Người xếp lịch:</strong> <span id="mdlScheduler" style="color:#64748b; font-weight:bold;"></span>
+                    <strong>Người xếp lịch:</strong> <span id="mdlScheduler" style="color:#64748b; font-weight:bold;"></span>
                 </p>
             </div>
             <div class="modal-footer">
@@ -184,7 +178,7 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // DATA MÔN HỌC
+        // DATA MÔN HỌC (Dùng để tham chiếu ID sang Tên Môn)
         const subjectsData = [
             {"id": "sub_1", "name": "Triết học"}, {"id": "sub_2", "name": "Ngoại ngữ"}, {"id": "sub_3", "name": "Sinh học phân tử"}, {"id": "sub_4", "name": "Y đức - Xã hội học"}, {"id": "sub_5", "name": "Phương pháp nghiên cứu khoa học"}, {"id": "sub_6", "name": "Thống kê y học"},
             {"id": "sub_7", "name": "Phương pháp dạy và học trong phục hồi chức năng"}, {"id": "sub_8", "name": "Quản lý và lãnh đạo trong phục hồi chức năng"}, {"id": "sub_9", "name": "Kỹ năng hướng dẫn lâm sàng và lý luận lâm sàng trong PHCN"}, {"id": "sub_10", "name": "Thực hành kỹ năng hướng dẫn lâm sàng"}, {"id": "sub_11", "name": "Thực hành dựa trên chứng cứ"},
@@ -227,7 +221,6 @@
                 let eStart = e.start;
                 let eEnd = e.end || new Date(eStart.getTime() + 4 * 60 * 60 * 1000);
                 
-                // Công thức giao nhau
                 if (targetStart < eEnd && targetEnd > eStart) {
                     return true;
                 }
@@ -235,15 +228,16 @@
             return false;
         }
 
-        // KIỂM TRA ĐĂNG NHẬP VÀ ĐỔI TÊN HEADER
+        // KIỂM TRA ĐĂNG NHẬP VÀ CẤP QUYỀN (BAO GỒM HOANGTRAN)
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUserEmail = user.email.toLowerCase();
-                if (['lethanhvan@ump.edu.vn', 'phanthenguyenpt@ump.edu.vn', 'thduypt@ump.edu.vn'].includes(currentUserEmail)) {
+                const adminEmails = ['lethanhvan@ump.edu.vn', 'phanthenguyenpt@ump.edu.vn', 'thduypt@ump.edu.vn', 'hoangtran1483@gmail.com'];
+                
+                if (adminEmails.includes(currentUserEmail)) {
                     isCalendarAdmin = true;
                 }
 
-                // Lấy tên thật của người đăng nhập
                 const userDoc = await getDoc(doc(db, "users", user.uid));
                 if (userDoc.exists()) {
                     const data = userDoc.data();
@@ -253,7 +247,6 @@
                     setTimeout(() => {
                         const btnAuthNav = document.getElementById('btnAuthNav');
                         if (btnAuthNav) {
-                            // Giữ lại icon User Circle
                             btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right:5px;"></i> ${currentUserName}`;
                             btnAuthNav.href = "dashboard.html";
                         }
@@ -299,22 +292,22 @@
             const calendarEl = document.getElementById('calendar');
             calendar = new FullCalendar.Calendar(calendarEl, {
                 locale: 'vi',
-                height: '100%', // Full height của container
+                height: '100%', 
                 initialView: 'timeGridWeek', 
                 headerToolbar: {
                     left: 'prev,next today',
                     center: 'title',
                     right: 'timeGridWeek,timeGridDay,dayGridMonth'
                 },
-                slotMinTime: '07:00:00', // Giới hạn giờ hành chính
+                slotMinTime: '07:00:00', // Giới hạn giờ
                 slotMaxTime: '21:00:00',
                 allDaySlot: false, 
-                defaultTimedEventDuration: '04:00:00', // Kéo vào auto 4 tiếng
+                defaultTimedEventDuration: '04:00:00', // Auto 4 tiếng
                 editable: isCalendarAdmin, 
                 droppable: isCalendarAdmin, 
                 events: [],
                 
-                // HIỂN THỊ HTML ĐẸP MẮT TRÊN LỊCH: Hiện cả Start & End time
+                // HIỂN THỊ HTML ĐẸP MẮT TRÊN LỊCH: Hiện Full Tên GV, Thời gian Start-End
                 eventContent: function(arg) {
                     const props = arg.event.extendedProps;
                     
@@ -331,9 +324,7 @@
                     return {
                         html: `
                         <div class="event-on-calendar">
-                            <div style="margin-bottom: 2px;">
-                                <span class="evt-time">${timeStr}</span>
-                            </div>
+                            <div class="evt-time">${timeStr}</div>
                             <div class="evt-gv">${props.gv}</div>
                             <div class="evt-sub">${props.subject} (${props.task})</div>
                         </div>
@@ -351,7 +342,7 @@
                     
                     // Kiểm tra Trùng lịch GV
                     if (hasOverlap(info.event.start, info.event.end, props.gv, newUniqueId)) {
-                        showToast(`Lỗi: Giảng viên đã có lịch trong khung giờ này!`, "danger");
+                        showToast(`Lỗi: Giảng viên ${props.gv} đã có lịch trong khung giờ này!`, "danger");
                         info.revert();
                         return;
                     }
@@ -386,7 +377,7 @@
                     
                     const props = info.event.extendedProps;
                     if (hasOverlap(info.event.start, info.event.end, props.gv, info.event.id)) {
-                        showToast(`Lỗi: Khung giờ mới bị trùng lịch!`, "danger");
+                        showToast(`Lỗi: Khung giờ mới bị trùng với lịch khác của GV này!`, "danger");
                         info.revert();
                         return;
                     }
@@ -410,7 +401,7 @@
                     
                     const props = info.event.extendedProps;
                     if (hasOverlap(info.event.start, info.event.end, props.gv, info.event.id)) {
-                        showToast(`Lỗi: Khung giờ kéo giãn bị trùng lịch!`, "danger");
+                        showToast(`Lỗi: Khung giờ kéo giãn bị trùng lịch khác!`, "danger");
                         info.revert();
                         return;
                     }
@@ -448,7 +439,6 @@
                         Nhiệm vụ: ${props.task}<br>
                         Giảng viên: ${props.gv}<br>
                         Thời gian: ${timeString}<br>
-                        <span class="tooltip-scheduler">Xếp bởi: ${props.scheduledByName || 'Admin'}</span>
                     `;
                     tooltip.style.display = 'block';
                     
@@ -538,8 +528,8 @@
                 const isMyEvent = e.gv && currentUserName && e.gv.includes(currentUserName);
                 return {
                     ...e,
-                    backgroundColor: isMyEvent ? '#f97316' : '#3b82f6', // Cam đậm vs Xanh Blue
-                    borderColor: isMyEvent ? '#c2410c' : '#2563eb',
+                    backgroundColor: isMyEvent ? '#ea580c' : '#0284c7', // Cam đậm vs Xanh đậm cho dễ đọc
+                    borderColor: isMyEvent ? '#c2410c' : '#0369a1',
                     textColor: 'white'
                 };
             });
@@ -579,14 +569,14 @@
                                 const eventDiv = document.createElement('div');
                                 eventDiv.className = 'fc-event';
                                 eventDiv.setAttribute('data-id', key);
-                                eventDiv.setAttribute('data-title', a.gv); // Thẻ lịch chỉ hiện Tên
+                                eventDiv.setAttribute('data-title', a.gv); // Lưu tên Gv gốc để khi kéo hiện tên GV
                                 eventDiv.setAttribute('data-subject', subName);
                                 eventDiv.setAttribute('data-gv', a.gv);
                                 eventDiv.setAttribute('data-task', a.task);
                                 
                                 eventDiv.innerHTML = `
                                     <div class="event-gv">${a.gv}</div>
-                                    <span class="event-info">[${a.task}] - ${subName}</span>
+                                    <span class="event-info">[${a.task}]<br>${subName}</span>
                                 `;
                                 poolDiv.appendChild(eventDiv);
                             }
@@ -595,17 +585,15 @@
                 }
             }
 
-            // AUTO ẨN/HIỆN KHO SỰ KIỆN KHI XẾP XONG
+            // TỰ ĐỘNG ẨN KHO SỰ KIỆN NẾU ĐÃ XẾP XONG HẾT LỊCH
             const extEventsPanel = document.getElementById('external-events');
-            if (unscheduledCount === 0) {
+            if (unscheduledCount === 0 || !isCalendarAdmin) {
                 extEventsPanel.style.display = 'none';
             } else {
-                if (isCalendarAdmin) {
-                    extEventsPanel.style.display = 'block';
-                }
+                extEventsPanel.style.display = 'flex';
             }
             
-            // Cập nhật lại Grid Lịch để chiếm chỗ trống vừa sinh ra
+            // Ép lịch tính toán lại layout để lấp đầy chỗ trống
             setTimeout(() => { calendar.updateSize(); }, 50);
         };
 
