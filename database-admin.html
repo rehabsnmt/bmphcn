@@ -1,52 +1,380 @@
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Manager - BM PHCN</title>
+    <link rel="icon" href="images/logo_Bộ môn.png" type="image/png">
     
-    // 👑 QUYỀN TỐI CAO: Super Admin (hoangtran1483) có toàn quyền trên MỌI BẢNG
-    match /{document=**} {
-      allow read, write: if request.auth != null && request.auth.token.email == 'hoangtran1483@gmail.com';
-    }
-
-    // =================================================================
-    // CÁC QUYỀN BÊN DƯỚI DÀNH CHO GIẢNG VIÊN BÌNH THƯỜNG VÀ KHÁCH
-    // =================================================================
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    match /announcements/{document} {
-      allow read: if true;
-      allow write: if request.auth != null;
-    }
+    <style>
+        :root {
+            --primary: #0284c7;
+            --primary-hover: #0369a1;
+            --accent: #e11d48;
+            --bg-page: #f8fafc;
+            --surface: #ffffff;
+            --border: #cbd5e1;
+            --text-dark: #0f172a;
+            --text-body: #475569;
+        }
 
-    match /users/{userId} {
-      allow read: if true;
-      allow write: if request.auth != null; 
-    }
+        body, html { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; height: 100vh; background-color: var(--bg-page); overflow: hidden; }
 
-    match /theses/{document} {
-      allow read: if true;
-      allow write: if request.auth != null;
-    }
-    
-    match /settings/{document} {
-      allow read: if true;
-      allow write: if true; 
-    }
+        /* Bố cục MS Access */
+        .app-container { display: flex; height: 100vh; width: 100vw; }
 
-    match /logs/{document} {
-      allow read, write: if request.auth != null;
-    }
+        /* Sidebar - Danh sách Table */
+        .sidebar { width: 250px; background-color: #1e293b; color: #f8fafc; display: flex; flex-direction: column; flex-shrink: 0; }
+        .sidebar-header { padding: 20px; background-color: #0f172a; font-weight: bold; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #334155; }
+        .table-list { list-style: none; padding: 0; margin: 0; overflow-y: auto; flex: 1; }
+        .table-item { padding: 12px 20px; cursor: pointer; border-bottom: 1px solid #334155; display: flex; align-items: center; gap: 10px; transition: 0.2s; font-size: 0.95rem; }
+        .table-item:hover { background-color: #334155; }
+        .table-item.active { background-color: var(--primary); border-left: 4px solid #38bdf8; }
+        .sidebar-footer { padding: 15px 20px; background-color: #0f172a; font-size: 0.8rem; color: #94a3b8; text-align: center; }
 
-    match /recycle/{document} {
-      allow read, write: if request.auth != null;
-    }
+        /* Main Content */
+        .main-content { flex: 1; display: flex; flex-direction: column; background-color: var(--surface); overflow: hidden; }
+        
+        .toolbar { padding: 12px 20px; background-color: #f1f5f9; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .toolbar-title { font-weight: bold; font-size: 1.2rem; color: var(--primary); display: flex; align-items: center; gap: 10px; }
+        .toolbar-actions { display: flex; gap: 10px; }
+        
+        button { padding: 8px 15px; border-radius: 4px; border: none; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: 0.2s; display: flex; align-items: center; gap: 6px; }
+        .btn-primary { background-color: var(--primary); color: white; }
+        .btn-primary:hover { background-color: var(--primary-hover); }
+        .btn-danger { background-color: var(--accent); color: white; }
+        .btn-danger:hover { background-color: #be123c; }
+        .btn-secondary { background-color: white; color: var(--text-dark); border: 1px solid var(--border); }
+        .btn-secondary:hover { background-color: #e2e8f0; }
 
-    match /assignments/{document} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null && request.auth.token.email == 'lethanhvan@ump.edu.vn';
-    }
+        /* Data Table (SQL View) */
+        .data-container { flex: 1; overflow: auto; position: relative; }
+        table { width: 100%; border-collapse: collapse; white-space: nowrap; font-size: 0.9rem; }
+        th, td { padding: 8px 12px; border: 1px solid var(--border); text-align: left; max-width: 300px; overflow: hidden; text-overflow: ellipsis; }
+        th { background-color: #e2e8f0; color: var(--text-dark); position: sticky; top: 0; z-index: 10; box-shadow: 0 1px 0 var(--border); }
+        td { color: var(--text-body); }
+        tr:nth-child(even) { background-color: #f8fafc; }
+        tr:hover { background-color: #e0f2fe; }
+        
+        .td-id { font-family: monospace; color: #8b5cf6; font-weight: bold; }
+        .td-object { color: #10b981; font-style: italic; }
 
-    match /visiting_lecturers/{document} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null && request.auth.token.email == 'lethanhvan@ump.edu.vn';
-    }
-  }
-}
+        .action-cell { position: sticky; right: 0; background-color: white; border-left: 2px solid var(--border); text-align: center; z-index: 5; }
+        tr:nth-child(even) .action-cell { background-color: #f8fafc; }
+        tr:hover .action-cell { background-color: #e0f2fe; }
+
+        /* Màn hình khóa */
+        #accessDenied { position: fixed; top:0; left:0; width:100%; height:100%; background:var(--surface); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+        #accessDenied i { font-size: 5rem; color: var(--accent); margin-bottom: 20px; }
+
+        /* Modal JSON Editor */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 2000; }
+        .modal-content { background: white; width: 800px; max-width: 95%; border-radius: 8px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); display: flex; flex-direction: column; overflow: hidden; }
+        .modal-header { padding: 15px 20px; background: #0f172a; color: white; display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h3 { margin: 0; font-size: 1.1rem; }
+        .modal-body { padding: 20px; flex: 1; }
+        .modal-footer { padding: 15px 20px; background: #f1f5f9; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border); }
+        
+        textarea#jsonEditor { width: 100%; height: 400px; font-family: monospace; font-size: 0.95rem; padding: 10px; border: 1px solid var(--border); border-radius: 4px; resize: vertical; outline: none; box-sizing: border-box; background-color: #f8fafc; }
+        textarea#jsonEditor:focus { border-color: var(--primary); background-color: white; }
+
+        .hidden { display: none !important; }
+
+        /* Toast */
+        .toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .toast { min-width: 250px; background-color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: 0.4s; font-weight: 600; border-left: 5px solid #22c55e; opacity: 0; }
+        .toast.show { transform: translateX(0); opacity: 1; }
+        .toast.danger { border-left-color: #ef4444; }
+    </style>
+</head>
+<body>
+
+    <!-- MÀN HÌNH KHÓA TRUY CẬP -->
+    <div id="accessDenied">
+        <i class="fas fa-shield-alt"></i>
+        <h1 style="color: var(--text-dark); margin: 0;">Truy cập bị từ chối</h1>
+        <p style="color: var(--text-body); margin: 10px 0 30px 0; font-size: 1.1rem;">Chỉ có tài khoản Quản trị viên cấp cao (hoangtran1483@gmail.com) mới được phép truy cập System Database.</p>
+        <button class="btn-primary" onclick="window.location.href='dashboard.html'"><i class="fas fa-home"></i> Trở về Dashboard</button>
+    </div>
+
+    <div id="toastContainer" class="toast-container"></div>
+
+    <div class="app-container hidden" id="appMain">
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-database" style="color: #38bdf8;"></i> DB Explorer
+            </div>
+            <ul class="table-list" id="tableList">
+                <li class="table-item active" onclick="loadTable('users', this)"><i class="fas fa-table"></i> users</li>
+                <li class="table-item" onclick="loadTable('theses', this)"><i class="fas fa-table"></i> theses</li>
+                <li class="table-item" onclick="loadTable('assignments', this)"><i class="fas fa-table"></i> assignments</li>
+                <li class="table-item" onclick="loadTable('visiting_lecturers', this)"><i class="fas fa-table"></i> visiting_lecturers</li>
+                <li class="table-item" onclick="loadTable('announcements', this)"><i class="fas fa-table"></i> announcements</li>
+                <li class="table-item" onclick="loadTable('logs', this)"><i class="fas fa-table"></i> logs</li>
+                <li class="table-item" onclick="loadTable('recycle', this)"><i class="fas fa-trash-alt"></i> recycle (Thùng rác)</li>
+                <li class="table-item" onclick="loadTable('settings', this)"><i class="fas fa-cog"></i> settings</li>
+            </ul>
+            <div class="sidebar-footer">
+                Logged in as Super Admin
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
+            <div class="toolbar">
+                <div class="toolbar-title">
+                    <i class="fas fa-table"></i> <span id="currentTableName">users</span>
+                    <span style="font-size: 0.85rem; color: #94a3b8; font-weight: normal; margin-left: 10px;" id="recordCount">0 records</span>
+                </div>
+                <div class="toolbar-actions">
+                    <button class="btn-secondary" onclick="refreshTable()"><i class="fas fa-sync-alt"></i> Làm mới</button>
+                    <button class="btn-primary" onclick="openAddModal()"><i class="fas fa-plus"></i> Thêm Document</button>
+                </div>
+            </div>
+
+            <div class="data-container">
+                <table>
+                    <thead>
+                        <tr id="tableHeaderRow">
+                            <!-- JS gen headers -->
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr><td colspan="100%" style="text-align: center; padding: 50px;">Đang tải dữ liệu...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL JSON EDITOR -->
+    <div id="jsonModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Chỉnh sửa Document</h3>
+                <i class="fas fa-times" style="cursor: pointer;" onclick="closeModal()"></i>
+            </div>
+            <div class="modal-body">
+                <div style="margin-bottom: 10px;">
+                    <label style="font-size: 0.85rem; font-weight: bold; color: var(--text-body);">Document ID:</label>
+                    <input type="text" id="docIdInput" disabled style="width: 100%; padding: 8px; font-family: monospace; border: 1px solid var(--border); border-radius: 4px; background: #f1f5f9; outline: none; margin-top: 5px;">
+                </div>
+                <div>
+                    <label style="font-size: 0.85rem; font-weight: bold; color: var(--text-body); display: block; margin-bottom: 5px;">JSON Data:</label>
+                    <textarea id="jsonEditor" spellcheck="false"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal()">Hủy</button>
+                <button class="btn-primary" onclick="saveDocument()"><i class="fas fa-save"></i> Lưu dữ liệu</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
+        import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY",
+            authDomain: "bmphcn-aa9c6.firebaseapp.com",
+            projectId: "bmphcn-aa9c6",
+            storageBucket: "bmphcn-aa9c6.firebasestorage.app",
+            messagingSenderId: "749494392719",
+            appId: "1:749494392719:web:f220c751ff541620045dfa"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentTable = 'users';
+        let tableData = [];
+        let tableColumns = [];
+        let isEditing = false;
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<i class="fas ${type === 'danger' ? 'fa-times-circle' : 'fa-check-circle'}"></i><span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
+        }
+
+        // BẢO MẬT: Kiểm tra email Super Admin
+        onAuthStateChanged(auth, (user) => {
+            if (user && user.email.toLowerCase() === 'hoangtran1483@gmail.com') {
+                document.getElementById('accessDenied').classList.add('hidden');
+                document.getElementById('appMain').classList.remove('hidden');
+                refreshTable();
+            } else {
+                document.getElementById('accessDenied').classList.remove('hidden');
+                document.getElementById('appMain').classList.add('hidden');
+            }
+        });
+
+        window.loadTable = (tableName, el) => {
+            document.querySelectorAll('.table-item').forEach(li => li.classList.remove('active'));
+            el.classList.add('active');
+            currentTable = tableName;
+            document.getElementById('currentTableName').innerText = tableName;
+            refreshTable();
+        };
+
+        window.refreshTable = async () => {
+            const tbody = document.getElementById('tableBody');
+            const thead = document.getElementById('tableHeaderRow');
+            tbody.innerHTML = '<tr><td colspan="100%" style="text-align: center; padding: 50px;"><i class="fas fa-spinner fa-spin"></i> Fetching data...</td></tr>';
+            thead.innerHTML = '';
+            document.getElementById('recordCount').innerText = 'Loading...';
+
+            try {
+                const snapshot = await getDocs(collection(db, currentTable));
+                tableData = [];
+                let keySet = new Set();
+
+                snapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    data['_id'] = docSnap.id; 
+                    tableData.push(data);
+                    Object.keys(data).forEach(k => { if(k !== '_id') keySet.add(k); });
+                });
+
+                tableColumns = Array.from(keySet).sort();
+                document.getElementById('recordCount').innerText = `${tableData.length} records`;
+
+                // Render Header
+                thead.innerHTML = '<th style="width: 200px;">_id (Document ID)</th>';
+                tableColumns.forEach(col => {
+                    thead.innerHTML += `<th>${col}</th>`;
+                });
+                thead.innerHTML += '<th class="action-cell" style="width: 120px;">Actions</th>';
+
+                // Render Body
+                if (tableData.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="${tableColumns.length + 2}" style="text-align:center; padding:30px; color:#94a3b8;">Không có dữ liệu trong Collection này.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = '';
+                tableData.forEach(row => {
+                    let tr = `<tr><td class="td-id">${row['_id']}</td>`;
+                    
+                    tableColumns.forEach(col => {
+                        let val = row[col];
+                        let displayVal = '';
+                        if (val === undefined || val === null) {
+                            displayVal = '<span style="color:#cbd5e1;">null</span>';
+                        } else if (typeof val === 'object') {
+                            if (val.seconds) { // Xử lý Firebase Timestamp
+                                displayVal = new Date(val.seconds * 1000).toLocaleString('vi-VN');
+                            } else {
+                                displayVal = `<span class="td-object">${Array.isArray(val) ? '[Array]' : '[Object]'}</span>`;
+                            }
+                        } else if (typeof val === 'boolean') {
+                            displayVal = `<span style="color:${val?'#16a34a':'#dc2626'}">${val}</span>`;
+                        } else {
+                            displayVal = String(val);
+                        }
+                        tr += `<td>${displayVal}</td>`;
+                    });
+
+                    // Xử lý mã hóa Data an toàn để ném vào hàm sửa
+                    const encodedData = encodeURIComponent(JSON.stringify(row)).replace(/'/g, "%27");
+                    
+                    tr += `
+                        <td class="action-cell">
+                            <button class="btn-secondary" style="display:inline-block; padding: 4px 8px; font-size:0.8rem; margin-right:5px;" onclick="openEditModal('${encodedData}')"><i class="fas fa-edit"></i></button>
+                            <button class="btn-danger" style="display:inline-block; padding: 4px 8px; font-size:0.8rem;" onclick="deleteRecord('${row['_id']}')"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>`;
+                    tbody.innerHTML += tr;
+                });
+
+            } catch (error) {
+                console.error(error);
+                tbody.innerHTML = `<tr><td colspan="100%" style="text-align: center; color:red; padding: 20px;">Lỗi tải dữ liệu: ${error.message}</td></tr>`;
+            }
+        };
+
+        window.openAddModal = () => {
+            isEditing = false;
+            document.getElementById('modalTitle').innerHTML = '<i class="fas fa-plus"></i> Tạo Document mới';
+            document.getElementById('docIdInput').value = '(Auto-generated ID)';
+            document.getElementById('docIdInput').disabled = true;
+            
+            // Tạo template JSON rỗng dựa trên các cột hiện tại
+            let template = {};
+            tableColumns.forEach(c => template[c] = "");
+            
+            document.getElementById('jsonEditor').value = JSON.stringify(template, null, 4);
+            document.getElementById('jsonModal').classList.remove('hidden');
+        };
+
+        window.openEditModal = (encodedData) => {
+            isEditing = true;
+            const data = JSON.parse(decodeURIComponent(encodedData));
+            const docId = data['_id'];
+            delete data['_id']; // Bỏ ID ra khỏi phần edit JSON
+
+            document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit"></i> Chỉnh sửa Document';
+            document.getElementById('docIdInput').value = docId;
+            document.getElementById('docIdInput').disabled = true;
+            document.getElementById('jsonEditor').value = JSON.stringify(data, null, 4);
+            document.getElementById('jsonModal').classList.remove('hidden');
+        };
+
+        window.closeModal = () => {
+            document.getElementById('jsonModal').classList.add('hidden');
+        };
+
+        window.saveDocument = async () => {
+            const rawJson = document.getElementById('jsonEditor').value;
+            let docData;
+            
+            try {
+                docData = JSON.parse(rawJson);
+            } catch (e) {
+                showToast("Lỗi định dạng JSON! Vui lòng kiểm tra lại dấu phẩy, ngoặc kép.", "danger");
+                return;
+            }
+
+            try {
+                if (isEditing) {
+                    const docId = document.getElementById('docIdInput').value;
+                    await setDoc(doc(db, currentTable, docId), docData);
+                    showToast("Cập nhật thành công!");
+                } else {
+                    // Tạo mới Document với ID tự sinh
+                    const colRef = collection(db, currentTable);
+                    await setDoc(doc(colRef), docData);
+                    showToast("Tạo Document thành công!");
+                }
+                closeModal();
+                refreshTable();
+            } catch (e) {
+                showToast("Lỗi lưu DB: " + e.message, "danger");
+            }
+        };
+
+        window.deleteRecord = async (docId) => {
+            if (confirm(`⚠️ NGUY HIỂM: Bạn có chắc chắn muốn xóa vĩnh viễn Document [ ${docId} ] khỏi bảng [ ${currentTable} ] không? Hành động này không thể hoàn tác.`)) {
+                try {
+                    await deleteDoc(doc(db, currentTable, docId));
+                    showToast("Đã xóa vĩnh viễn!", "danger");
+                    refreshTable();
+                } catch (e) {
+                    showToast("Lỗi xóa: " + e.message, "danger");
+                }
+            }
+        };
+
+    </script>
+</body>
+</html>
