@@ -7,6 +7,8 @@
     <link rel="icon" href="images/logo_Bộ môn.png" type="image/png">
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Thư viện vẽ sơ đồ động MermaidJS -->
     <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
 
     <style>
@@ -23,7 +25,6 @@
 
         body, html { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; height: 100vh; background-color: var(--bg-page); overflow: hidden; }
 
-        /* Bố cục MS Access */
         .app-container { display: flex; height: 100vh; width: 100vw; }
 
         /* Sidebar - Danh sách Table */
@@ -69,7 +70,8 @@
 
         /* ER Diagram View */
         .erd-container { flex: 1; overflow: auto; background-color: white; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .erd-note { font-size: 0.9rem; color: #64748b; margin-bottom: 20px; text-align: center; max-width: 800px; line-height: 1.5; }
+        .erd-note { font-size: 0.9rem; color: #64748b; margin-bottom: 20px; text-align: center; max-width: 800px; line-height: 1.5; background: #f1f5f9; padding: 15px; border-radius: 8px; border: 1px dashed #cbd5e1; }
+        #mermaid-render-area { width: 100%; display: flex; justify-content: center; margin-top: 20px; }
 
         /* Màn hình khóa */
         #accessDenied { position: fixed; top:0; left:0; width:100%; height:100%; background:var(--surface); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
@@ -92,7 +94,6 @@
         textarea#jsonEditor { width: 100%; height: 350px; font-family: monospace; font-size: 0.95rem; padding: 15px; border: 1px solid var(--border); border-radius: 6px; resize: vertical; outline: none; box-sizing: border-box; background-color: #f8fafc; line-height: 1.5; }
         textarea#jsonEditor:focus { border-color: var(--primary); background-color: white; }
 
-        /* Form Editor Fields */
         .dynamic-field-row { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; background: #f8fafc; padding: 8px; border-radius: 6px; border: 1px solid #e2e8f0; }
         .field-key { flex: 1; padding: 10px; border: 1px solid var(--border); border-radius: 4px; font-weight: bold; color: var(--text-dark); background: white; outline: none; }
         .field-val { flex: 2; padding: 10px; border: 1px solid var(--border); border-radius: 4px; color: var(--text-dark); background: white; outline: none; font-family: inherit; }
@@ -133,6 +134,7 @@
                 <li class="table-item" id="btnCreateTable" style="background-color: #e0f2fe; color: #0284c7; font-weight: bold;" onclick="createNewTable()">
                     <i class="fas fa-plus-circle"></i> + Tạo bảng mới
                 </li>
+                
                 <li class="table-item active" onclick="loadTable('users', this)"><i class="fas fa-table"></i> users</li>
                 <li class="table-item" onclick="loadTable('theses', this)"><i class="fas fa-table"></i> theses</li>
                 <li class="table-item" onclick="loadTable('assignments', this)"><i class="fas fa-table"></i> assignments</li>
@@ -141,6 +143,9 @@
                 <li class="table-item" onclick="loadTable('logs', this)"><i class="fas fa-table"></i> logs</li>
                 <li class="table-item" onclick="loadTable('recycle', this)"><i class="fas fa-trash-alt"></i> recycle (Thùng rác)</li>
                 <li class="table-item" onclick="loadTable('settings', this)"><i class="fas fa-cog"></i> settings</li>
+                
+                <!-- Khu vực chứa các bảng tự tạo sẽ được JS đổ vào đây -->
+                <div id="customTablesContainer"></div>
             </ul>
             <div class="sidebar-footer">
                 Logged in as Super Admin
@@ -172,26 +177,15 @@
                 </table>
             </div>
 
-            <!-- CHẾ ĐỘ XEM SƠ ĐỒ LIÊN KẾT (ERD) -->
+            <!-- CHẾ ĐỘ XEM SƠ ĐỒ LIÊN KẾT ĐỘNG (DYNAMIC ERD) -->
             <div id="erdContainer" class="erd-container hidden">
-                <p class="erd-note">
-                    <i class="fas fa-info-circle"></i> <b>Lưu ý NoSQL:</b> Trong Firebase Firestore, các liên kết (Relationships) mang tính chất logic (References) do ứng dụng tự hiểu chứ không phải là khóa ngoại vật lý cứng. Sơ đồ dưới đây mô phỏng luồng ánh xạ dữ liệu giữa các bảng hiện tại.
-                </p>
-                <div class="mermaid">
-                    erDiagram
-                        USERS ||--o{ THESES : "Hướng dẫn (Cột advisor)"
-                        USERS ||--o{ ASSIGNMENTS : "Được phân công (Cột allocations.gv)"
-                        USERS ||--o{ LOGS : "Thực hiện thao tác (Cột user)"
-                        VISITING_LECTURERS ||--o{ THESES : "Hướng dẫn ngoài (Cột advisor)"
-                        VISITING_LECTURERS ||--o{ ASSIGNMENTS : "Phân công ngoài (Cột allocations.gv)"
-                        THESES ||--|{ RECYCLE : "Khi xóa sẽ chuyển vào"
-                        
-                        ASSIGNMENTS { string subject_id PK "Mã môn học" }
-                        THESES { string id PK "Mã tự sinh" }
-                        USERS { string uid PK }
-                        VISITING_LECTURERS { string id PK }
-                        LOGS { string id PK }
-                        RECYCLE { string id PK "Giữ nguyên ID cũ" }
+                <div class="erd-note">
+                    <i class="fas fa-magic" style="color: var(--primary);"></i> <b>Trí tuệ nhân tạo dò tìm liên kết:</b><br>
+                    Hệ thống đang tự động quét toàn bộ cấu trúc của các bảng hiện có, phân tích các từ khóa (Keys) và vẽ đường nối đối với những bảng chứa thông tin giống nhau (Ví dụ: <i>email</i>, <i>họ tên</i>, <i>giảng viên</i>).
+                </div>
+                <!-- Vùng render Mermaid -->
+                <div id="mermaid-render-area">
+                    <!-- JS sẽ inject sơ đồ SVG vào đây -->
                 </div>
             </div>
         </div>
@@ -244,20 +238,24 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
-        import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc, query, limit } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
         
         const firebaseConfig = { apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY", authDomain: "bmphcn-aa9c6.firebaseapp.com", projectId: "bmphcn-aa9c6", storageBucket: "bmphcn-aa9c6.firebasestorage.app", messagingSenderId: "749494392719", appId: "1:749494392719:web:f220c751ff541620045dfa" };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+        // Khởi tạo thư viện sơ đồ (tắt tự động chạy để mình tự control)
+        mermaid.initialize({ startOnLoad: false, theme: 'default' });
 
         let currentTable = 'users';
         let tableData = [];
         let tableColumns = [];
         let isEditing = false;
-        let currentMode = 'form'; // 'form' hoặc 'json'
+        let currentMode = 'form'; 
+
+        // Tải danh sách Bảng tùy chỉnh (Custom Tables) từ Local Storage
+        let customTables = JSON.parse(localStorage.getItem('bmphcn_custom_tables') || '[]');
 
         function showToast(message, type = 'success') {
             const container = document.getElementById('toastContainer');
@@ -269,10 +267,24 @@
             setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
         }
 
+        // Render các bảng tự tạo vào Sidebar
+        function renderCustomTables() {
+            const container = document.getElementById('customTablesContainer');
+            container.innerHTML = '';
+            customTables.forEach(tName => {
+                const li = document.createElement('li');
+                li.className = 'table-item custom-table-item';
+                li.innerHTML = `<i class="fas fa-table"></i> ${tName} <span style="font-size:0.7rem; color:#10b981; margin-left:auto; font-weight:bold;">Custom</span>`;
+                li.onclick = function() { loadTable(tName, this); };
+                container.appendChild(li);
+            });
+        }
+
         onAuthStateChanged(auth, (user) => {
             if (user && user.email.toLowerCase() === 'hoangtran1483@gmail.com') {
                 document.getElementById('accessDenied').classList.add('hidden');
                 document.getElementById('appMain').classList.remove('hidden');
+                renderCustomTables(); // Gọi render custom tables
                 refreshTable();
             } else {
                 document.getElementById('accessDenied').classList.remove('hidden');
@@ -280,33 +292,133 @@
             }
         });
 
-        // TẠO BẢNG MỚI
+        // 1. TẠO BẢNG (COLLECTION) MỚI
         window.createNewTable = () => {
             const tName = prompt("Nhập tên Bảng (Collection) mới:\nLưu ý: Chỉ dùng chữ cái không dấu, số và dấu gạch dưới (_).");
             if (tName && tName.trim()) {
                 const safeName = tName.trim().replace(/[^a-zA-Z0-9_]/g, '');
                 if (safeName) {
-                    const li = document.createElement('li');
-                    li.className = 'table-item';
-                    li.innerHTML = `<i class="fas fa-table"></i> ${safeName} <span style="font-size:0.7rem; color:#10b981; margin-left:auto; font-weight:bold;">Mới</span>`;
-                    li.onclick = function() { loadTable(safeName, this); };
-                    
-                    const tableList = document.getElementById('tableList');
-                    tableList.insertBefore(li, document.getElementById('btnCreateTable').nextSibling);
-                    loadTable(safeName, li);
+                    if(!customTables.includes(safeName)) {
+                        customTables.push(safeName);
+                        localStorage.setItem('bmphcn_custom_tables', JSON.stringify(customTables));
+                        renderCustomTables();
+                    }
+                    // Tự động focus vào bảng mới
+                    const allItems = document.querySelectorAll('.table-item');
+                    allItems[allItems.length - 1].click();
                 } else {
                     alert("Tên bảng không hợp lệ!");
                 }
             }
         };
 
-        window.showErdView = (el) => {
+        // 2. TÍNH NĂNG VẼ SƠ ĐỒ ĐỘNG BẰNG AI (DYNAMIC ERD)
+        window.showErdView = async (el) => {
             document.querySelectorAll('.table-item').forEach(li => li.classList.remove('active'));
             el.classList.add('active');
+            
             document.getElementById('dataContainer').classList.add('hidden');
             document.getElementById('tableActions').classList.add('hidden');
             document.getElementById('erdContainer').classList.remove('hidden');
             document.getElementById('mainTitle').innerHTML = '<i class="fas fa-project-diagram"></i> Sơ đồ liên kết Database';
+
+            const erdDiv = document.getElementById('mermaid-render-area');
+            erdDiv.innerHTML = '<i class="fas fa-spinner fa-spin" style="font-size:2rem; color:var(--primary);"></i><br><br>Đang tự động dò tìm cấu trúc và phân tích từ khóa liên kết...';
+
+            try {
+                // Liệt kê toàn bộ bảng
+                let allTables = ['users', 'theses', 'assignments', 'visiting_lecturers', 'announcements', 'logs', 'recycle', 'settings', ...customTables];
+                let schemas = {};
+
+                // Quét 1 document đầu tiên của mỗi bảng để lấy từ khóa (keys)
+                for (let t of allTables) {
+                    const snap = await getDocs(query(collection(db, t), limit(1)));
+                    schemas[t] = [];
+                    if (!snap.empty) {
+                        let data = snap.docs[0].data();
+                        
+                        // Nếu bảng assignments có mảng allocations, ta moi data trong allocations ra
+                        if (t === 'assignments' && data.allocations && data.allocations.length > 0) {
+                            schemas[t] = [...Object.keys(data), ...Object.keys(data.allocations[0])];
+                        } 
+                        // Các bảng khác
+                        else {
+                            schemas[t] = Object.keys(data);
+                        }
+                    }
+                }
+
+                // Viết mã Mermaid ERD
+                let mCode = 'erDiagram\n';
+                
+                // Khai báo thực thể (bảng)
+                for (let t in schemas) {
+                    mCode += `  ${t} {\n`;
+                    if(schemas[t].length === 0) {
+                        mCode += `    string chua_co_du_lieu\n`;
+                    } else {
+                        let uniqueKeys = [...new Set(schemas[t])];
+                        uniqueKeys.forEach(k => {
+                            mCode += `    string ${k.replace(/[^a-zA-Z0-9_]/g, '')}\n`;
+                        });
+                    }
+                    mCode += `  }\n`;
+                }
+
+                // Phân tích liên kết: Gom các từ khóa đồng nghĩa
+                let links = [];
+                const keySynonyms = [
+                    ['fullName', 'advisor', 'gv', 'gv1', 'gv2', 'name', 'user'], // Từ khóa liên quan đến Tên người
+                    ['email', 'user'], // Từ khóa liên quan đến Tài khoản
+                    ['title', 'name', 'subject_id'] // Từ khóa liên quan đến Tên đối tượng
+                ];
+                
+                const ignoredWords = ['id', '_id', 'timestamp', 'createdAt', 'updatedAt', 'deletedAt', 'expireAt', 'action', 'details', 'status', 'note'];
+
+                let tNames = Object.keys(schemas);
+                for(let i=0; i<tNames.length; i++) {
+                    for(let j=i+1; j<tNames.length; j++) {
+                        let t1 = tNames[i];
+                        let t2 = tNames[j];
+                        let k1 = schemas[t1];
+                        let k2 = schemas[t2];
+                        let common = [];
+
+                        // Tìm từ khóa giống nhau hoàn toàn
+                        k1.forEach(f => {
+                            if (k2.includes(f) && !ignoredWords.includes(f)) common.push(f);
+                        });
+
+                        // Tìm từ khóa đồng nghĩa (Synonyms)
+                        keySynonyms.forEach(synGroup => {
+                            let hasIn1 = k1.find(f => synGroup.includes(f));
+                            let hasIn2 = k2.find(f => synGroup.includes(f));
+                            if(hasIn1 && hasIn2 && hasIn1 !== hasIn2 && !ignoredWords.includes(hasIn1) && !ignoredWords.includes(hasIn2)) {
+                                common.push(`(${hasIn1} ~ ${hasIn2})`);
+                            }
+                        });
+
+                        let uniqueCommon = [...new Set(common)];
+                        if(uniqueCommon.length > 0) {
+                            links.push(`  ${t1} ||--o{ ${t2} : "Khớp: ${uniqueCommon.join(', ')}"`);
+                        }
+                    }
+                }
+
+                if(links.length === 0) {
+                    mCode += `  Luu_y { string note }\n  Luu_y ||--o{ Luu_y : "Không tìm thấy từ khóa chung nào"\n`;
+                } else {
+                    mCode += links.join('\n');
+                }
+
+                // Gọi thư viện Mermaid vẽ hình
+                const graphId = 'erdGraph_' + Date.now();
+                const { svg } = await mermaid.render(graphId, mCode);
+                erdDiv.innerHTML = svg;
+
+            } catch (err) {
+                erdDiv.innerHTML = '<span style="color:red; font-weight:bold;">Lỗi phân tích cơ sở dữ liệu: ' + err.message + '</span>';
+            }
         };
 
         window.loadTable = (tableName, el) => {
@@ -324,7 +436,7 @@
         window.refreshTable = async () => {
             const tbody = document.getElementById('tableBody');
             const thead = document.getElementById('tableHeaderRow');
-            tbody.innerHTML = '<tr><td colspan="100%" style="text-align: center; padding: 50px;"><i class="fas fa-spinner fa-spin"></i> Đang tải dữ liệu...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="100%" style="text-align: center; padding: 50px;"><i class="fas fa-spinner fa-spin"></i> Fetching data...</td></tr>';
             thead.innerHTML = '';
             document.getElementById('recordCount').innerText = 'Loading...';
 
@@ -437,7 +549,7 @@
             try {
                 let obj = JSON.parse(document.getElementById('jsonEditor').value);
                 renderFormEditor(obj);
-            } catch(e) { } // Bỏ qua nếu JSON lỗi
+            } catch(e) { } 
         };
 
         window.renderFormEditor = (dataObj) => {
@@ -487,7 +599,7 @@
             document.getElementById('jsonEditor').value = JSON.stringify(template, null, 4);
             
             document.getElementById('editorModal').classList.remove('hidden');
-            switchEditorMode('form'); // Luôn ưu tiên Form mode
+            switchEditorMode('form'); 
         };
 
         window.openEditModal = (encodedData) => {
@@ -531,7 +643,7 @@
         };
 
         window.deleteRecord = async (docId) => {
-            if (confirm(`⚠️ NGUY HIỂM: Bọn có chắc chắn xóa vĩnh viễn Document [ ${docId} ] khỏi bảng [ ${currentTable} ] không? Hành động này không thể hoàn tác.`)) {
+            if (confirm(`⚠️ NGUY HIỂM: Bạn có chắc chắn xóa vĩnh viễn Document [ ${docId} ] khỏi bảng [ ${currentTable} ] không? Hành động này không thể hoàn tác.`)) {
                 try {
                     await deleteDoc(doc(db, currentTable, docId));
                     showToast("Đã xóa bản ghi thành công!", "danger");
