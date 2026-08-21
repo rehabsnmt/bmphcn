@@ -224,7 +224,7 @@
         let assignmentsData = {};
         let scheduledEvents = [];
         let clinicalSchedules = []; 
-        let globalGroupedClinicals = {}; // LƯU TOÀN BỘ LỊCH BỆNH VIỆN THEO NGÀY ĐỂ CHECK AI
+        let globalGroupedClinicals = {}; 
         let currentClickedEventId = null;
 
         function showToast(message, type = 'success') {
@@ -237,7 +237,6 @@
             setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
         }
 
-        // PARSE THỜI GIAN LỊCH LÂM SÀNG
         function parseDate(dateStr) {
             if (!dateStr) return null;
             if (dateStr.includes('/')) {
@@ -262,7 +261,6 @@
             return days.length > 0 ? days : [1,2,3,4,5];
         }
 
-        // GOM NHÓM TẤT CẢ LỊCH BỆNH VIỆN THEO NGÀY
         function getClinicalEventsMap(schedules) {
             let map = {};
             schedules.forEach(c => {
@@ -290,7 +288,6 @@
             return map;
         }
 
-        // KIỂM TRA TÍNH HỢP LỆ CỦA LỊCH THỰC HÀNH LÂM SÀNG DỰA THEO BỆNH VIỆN
         function validateClinicalSchedule(eventObj, gv, subject) {
             if (!subject.toLowerCase().includes('thực hành lâm sàng')) return true; 
             
@@ -326,7 +323,6 @@
             return true;
         }
 
-        // HÀM KIỂM TRA TRÙNG LỊCH (CHỈ KIỂM TRA LÝ THUYẾT, KHÔNG CHẶN BỆNH VIỆN NỮA)
         function hasOverlap(targetStart, targetEnd, gv, ignoreEventId) {
             if (!targetEnd) targetEnd = new Date(targetStart.getTime() + 4 * 60 * 60 * 1000);
             let allEvents = calendar.getEvents();
@@ -476,14 +472,13 @@
                         info.revert(); return;
                     }
 
-                    const newUniqueId = props.originalId + '_' + Date.now();
-                    info.event.setProp('id', newUniqueId); 
-                    
-                    if (hasOverlap(info.event.start, info.event.end, props.gv, newUniqueId)) {
+                    if (hasOverlap(info.event.start, info.event.end, props.gv, info.event.id)) {
                         showToast(`Lỗi: Giảng viên ${props.gv} bị trùng lịch với Lịch Lý thuyết khác!`, "danger");
                         info.revert(); return;
                     }
 
+                    // Vượt qua kiểm tra -> Set lại ID duy nhất và lưu Database
+                    const newUniqueId = props.originalId + '_' + Date.now();
                     const eventData = {
                         id: newUniqueId, 
                         title: info.event.title,
@@ -650,7 +645,7 @@
                                 <div style="font-size: 0.95rem; color: var(--text-dark); line-height: 1.6; ${borderStyle}">
                                     <b>Chuyên ngành:</b> <span style="color: var(--primary); font-weight: 600;">${c.specialty}</span> (${c.number_students || '?'} SV)<br>
                                     <b>Ca trực:</b> ${c.shift}<br>
-                                    <b>Giảng viên:</b> <span>${c.instructors}</span>
+                                    <b>Giảng viên nhận việc:</b> <span>${c.instructors}</span>
                                 </div>`;
                             });
                             
@@ -764,13 +759,12 @@
                 }
             });
 
-            // KIỂM TRA ĐIỀU KIỆN: CHỈ HIỂN THỊ CÁC NHIỆM VỤ ĐÃ ĐƯỢC DUYỆT (status === 'approved')
             for (let subId in assignmentsData) {
                 const subAsg = assignmentsData[subId];
                 if (subAsg[currentClass] && subAsg[currentClass].allocations) {
                     
-                    // NẾU NHIỆM VỤ ĐANG CHỜ DUYỆT THÌ BỎ QUA KHÔNG ĐƯA VÀO KHO
-                    if (subAsg[currentClass].status === 'proposed') continue;
+                    // CHỈ LỌC NHỮNG PHÂN CÔNG ĐÃ ĐƯỢC DUYỆT BỞI HOD
+                    if (subAsg[currentClass].status !== 'approved') continue;
 
                     const semester = subAsg[currentClass].semester || 'Chưa xác định';
                     if (selectedSemester !== 'ALL' && semester !== selectedSemester) continue; 
