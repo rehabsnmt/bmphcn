@@ -1,0 +1,52 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // 👑 QUYỀN TỐI CAO: Super Admin (hoangtran1483) có toàn quyền trên MỌI BẢNG
+    match /{document=**} {
+      allow read, write: if request.auth != null && request.auth.token.email == 'hoangtran1483@gmail.com';
+    }
+
+    // =================================================================
+    // CÁC QUYỀN BÊN DƯỚI DÀNH CHO GIẢNG VIÊN BÌNH THƯỜNG VÀ KHÁCH
+    // =================================================================
+    
+    match /announcements/{document} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    match /users/{userId} {
+      allow read: if true;
+      allow write: if request.auth != null; 
+    }
+
+    match /theses/{document} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
+    match /settings/{document} {
+      allow read: if true;
+      allow write: if true; 
+    }
+
+    match /logs/{document} {
+      allow read, write: if request.auth != null;
+    }
+
+    match /recycle/{document} {
+      allow read, write: if request.auth != null;
+    }
+
+    match /assignments/{document} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.token.email == 'lethanhvan@ump.edu.vn';
+    }
+
+    match /visiting_lecturers/{document} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.token.email == 'lethanhvan@ump.edu.vn';
+    }
+  }
+}
