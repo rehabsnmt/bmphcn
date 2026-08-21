@@ -22,29 +22,38 @@
         .header-title-box h2 { font-size: 1.6rem; color: var(--text-dark); margin: 0; font-weight: 700; }
         .header-title-box .subtitle { font-size: 1rem; color: var(--text-body); font-weight: 600; margin-top: 5px; }
 
-        .controls-wrapper { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
+        .controls-wrapper { display: flex; justify-content: center; align-items: center; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; }
+        .tabs-header { display: flex; gap: 10px; }
         .tab-btn { padding: 8px 20px; font-size: 1rem; font-weight: 600; color: var(--text-body); background: var(--bg-page); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; transition: 0.3s; }
         .tab-btn:hover { background: #e2e8f0; color: var(--text-dark); }
         .tab-btn.active { color: white; background: var(--primary); border-color: var(--primary); }
 
+        .filter-select { padding: 8px 15px; font-size: 1rem; font-weight: 600; border-radius: 6px; border: 1px solid var(--border); outline: none; cursor: pointer; color: var(--text-dark); }
+        .filter-select:focus { border-color: var(--primary); }
+
         /* Khung bên trái (Kho Sự Kiện chưa xếp) */
-        #external-events { width: 280px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 15px; box-shadow: var(--shadow-sm); flex-shrink: 0; display: none; }
-        #external-events h4 { margin-top: 0; color: var(--primary); border-bottom: 1px dashed var(--border); padding-bottom: 10px; font-size: 1rem; }
-        .fc-event { cursor: move; margin: 8px 0; padding: 8px; background-color: var(--primary-light); color: var(--primary); border: 1px solid var(--primary); border-radius: 4px; font-size: 0.85rem; font-weight: 600; text-align: left; }
-        .fc-event:hover { background-color: #bae6fd; }
-        .event-info { display: block; font-size: 0.75rem; color: #475569; font-weight: normal; margin-top: 3px; }
+        #external-events { width: 300px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 15px; box-shadow: var(--shadow-sm); flex-shrink: 0; display: none; max-height: 800px; overflow-y: auto; }
+        #external-events h4 { margin-top: 0; color: var(--primary); border-bottom: 1px dashed var(--border); padding-bottom: 10px; font-size: 1.05rem; }
+        .fc-event { cursor: move; margin: 10px 0; padding: 10px; background-color: var(--primary-light); color: var(--primary); border: 1px solid var(--primary); border-radius: 6px; font-size: 0.9rem; font-weight: 600; text-align: left; transition: 0.2s; }
+        .fc-event:hover { background-color: #bae6fd; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .event-info { display: block; font-size: 0.8rem; color: #475569; font-weight: normal; margin-top: 4px; line-height: 1.4; }
 
         /* Khung Lịch */
         #calendar-container { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; box-shadow: var(--shadow-sm); min-height: 700px; }
         
         .fc-toolbar-title { font-size: 1.3rem !important; color: var(--primary); font-weight: bold; text-transform: capitalize; }
-        .fc-button-primary { background-color: var(--primary) !important; border-color: var(--primary) !important; }
+        .fc-button-primary { background-color: var(--primary) !important; border-color: var(--primary) !important; text-transform: capitalize; }
         .fc-button-primary:hover { background-color: var(--primary-hover) !important; }
         .fc-button-active { background-color: var(--primary-hover) !important; }
 
-        .fc-event-main { padding: 3px; font-size: 0.85rem; }
+        .fc-event-main { padding: 0; }
 
         .hidden { display: none !important; }
+
+        /* Tooltip Rà chuột */
+        #eventTooltip { position: fixed; z-index: 9999; background: rgba(15, 23, 42, 0.95); color: white; padding: 12px 15px; border-radius: 8px; font-size: 0.85rem; pointer-events: none; display: none; box-shadow: 0 10px 25px rgba(0,0,0,0.3); line-height: 1.6; max-width: 320px; border-left: 4px solid var(--primary); }
+        #eventTooltip strong { color: #38bdf8; font-size: 0.95rem; }
+        #eventTooltip .tooltip-scheduler { color: #fef08a; font-weight: bold; display: block; margin-top: 5px; border-top: 1px dashed rgba(255,255,255,0.2); padding-top: 5px; }
 
         /* Toast */
         .toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
@@ -57,14 +66,16 @@
         .modal-content { background: white; width: 450px; border-radius: 8px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); overflow: hidden; }
         .modal-header { padding: 15px 20px; background: var(--primary); color: white; display: flex; justify-content: space-between; align-items: center; }
         .modal-header h3 { margin: 0; font-size: 1.1rem; }
-        .modal-body { padding: 20px; line-height: 1.6; }
+        .modal-body { padding: 20px; line-height: 1.8; text-align: justify; }
         .modal-footer { padding: 15px 20px; background: #f1f5f9; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border); }
-        .btn-danger { background: var(--accent); color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        .btn-secondary { background: white; color: var(--text-dark); border: 1px solid var(--border); padding: 8px 15px; border-radius: 4px; cursor: pointer; }
+        .btn-danger { background: var(--accent); color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s;}
+        .btn-danger:hover { background: #be123c; }
+        .btn-secondary { background: white; color: var(--text-dark); border: 1px solid var(--border); padding: 8px 15px; border-radius: 4px; cursor: pointer; transition: 0.2s; }
+        .btn-secondary:hover { background: #e2e8f0; }
 
         @media (max-width: 900px) {
             main { flex-direction: column; }
-            #external-events { width: 100%; max-height: 200px; overflow-y: auto; }
+            #external-events { width: 100%; max-height: 300px; }
         }
     </style>
 </head>
@@ -72,6 +83,7 @@
 
     <div id="header-placeholder"></div>
     <div id="toastContainer" class="toast-container"></div>
+    <div id="eventTooltip"></div>
 
     <div class="header-title-box" style="margin-top: 2rem;">
         <h2><i class="fas fa-calendar-alt" style="color: var(--primary);"></i> LỊCH CÔNG TÁC GIẢNG VIÊN</h2>
@@ -79,19 +91,29 @@
     </div>
 
     <div class="controls-wrapper">
-        <button class="tab-btn active" onclick="switchClass('THS2025', this)">Khóa 2025-2027</button>
-        <button class="tab-btn" onclick="switchClass('THS2026', this)">Khóa 2026-2028</button>
+        <div class="tabs-header">
+            <button class="tab-btn active" onclick="switchClass('THS2025', this)">Khóa 2025-2027</button>
+            <button class="tab-btn" onclick="switchClass('THS2026', this)">Khóa 2026-2028</button>
+        </div>
+        <div>
+            <select id="semesterSelect" class="filter-select" onchange="processAndRenderEvents()">
+                <option value="ALL">Tất cả Học kỳ</option>
+                <option value="Học kỳ 1">Học kỳ 1</option>
+                <option value="Học kỳ 2">Học kỳ 2</option>
+                <option value="Học kỳ 3">Học kỳ 3</option>
+                <option value="Học kỳ 4">Học kỳ 4</option>
+            </select>
+        </div>
     </div>
 
     <main>
         <!-- KHO SỰ KIỆN (Chỉ hiện cho Admin) -->
         <div id="external-events">
-            <h4><i class="fas fa-tasks"></i> Công việc chưa xếp lịch</h4>
+            <h4><i class="fas fa-tasks"></i> Công việc chưa xếp</h4>
             <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 10px; font-style: italic;">
-                * Kéo thẻ và thả vào lịch để phân lịch.
+                * Cầm kéo thẻ và thả vào bảng lịch.
             </div>
             <div id="event-pool">
-                <!-- Data đổ từ DB -->
                 <div style="text-align:center; padding: 20px;"><i class="fas fa-spinner fa-spin"></i> Đang tải...</div>
             </div>
         </div>
@@ -111,9 +133,12 @@
             </div>
             <div class="modal-body">
                 <p><strong>Môn học:</strong> <span id="mdlSubject"></span></p>
-                <p><strong>Giảng viên:</strong> <span id="mdlGv" style="color: var(--primary); font-weight: bold;"></span></p>
                 <p><strong>Nhiệm vụ:</strong> <span id="mdlTask"></span></p>
+                <p><strong>Giảng viên:</strong> <span id="mdlGv" style="color: var(--primary); font-weight: bold;"></span></p>
                 <p><strong>Thời gian:</strong> <span id="mdlTime"></span></p>
+                <p style="margin-top: 15px; padding-top: 10px; border-top: 1px dashed var(--border);">
+                    <i class="fas fa-user-edit" style="color:#d97706;"></i> <strong>Người xếp lịch:</strong> <span id="mdlScheduler" style="color:#d97706; font-weight:bold;"></span>
+                </p>
             </div>
             <div class="modal-footer">
                 <button class="btn-secondary" onclick="closeModal()">Đóng</button>
@@ -129,13 +154,14 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
-        import { getFirestore, doc, collection, onSnapshot, setDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, collection, onSnapshot, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY", authDomain: "bmphcn-aa9c6.firebaseapp.com", projectId: "bmphcn-aa9c6", storageBucket: "bmphcn-aa9c6.firebasestorage.app", messagingSenderId: "749494392719", appId: "1:749494392719:web:f220c751ff541620045dfa" };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // DATA MÔN HỌC (RÚT GỌN)
         const subjectsData = [
             {"id": "sub_1", "name": "Triết học"}, {"id": "sub_2", "name": "Ngoại ngữ"}, {"id": "sub_3", "name": "Sinh học phân tử"}, {"id": "sub_4", "name": "Y đức - Xã hội học"}, {"id": "sub_5", "name": "Phương pháp nghiên cứu khoa học"}, {"id": "sub_6", "name": "Thống kê y học"},
             {"id": "sub_7", "name": "Phương pháp dạy và học trong phục hồi chức năng"}, {"id": "sub_8", "name": "Quản lý và lãnh đạo trong phục hồi chức năng"}, {"id": "sub_9", "name": "Kỹ năng hướng dẫn lâm sàng và lý luận lâm sàng trong PHCN"}, {"id": "sub_10", "name": "Thực hành kỹ năng hướng dẫn lâm sàng"}, {"id": "sub_11", "name": "Thực hành dựa trên chứng cứ"},
@@ -148,6 +174,9 @@
 
         let calendar;
         let isCalendarAdmin = false;
+        let currentUserEmail = '';
+        let currentUserName = '';
+        
         let currentClass = 'THS2025';
         let assignmentsData = {};
         let scheduledEvents = [];
@@ -163,13 +192,37 @@
             setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
         }
 
-        // KIỂM TRA QUYỀN
+        // HÀM LẤY TÊN RÚT GỌN CỦA GV (Lấy từ cuối cùng)
+        function getShortName(fullName) {
+            if (!fullName) return '';
+            const parts = fullName.trim().split(' ');
+            return parts[parts.length - 1];
+        }
+
+        // KIỂM TRA ĐĂNG NHẬP VÀ ĐỔI TÊN HEADER
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                const email = user.email.toLowerCase();
-                if (email === 'lethanhvan@ump.edu.vn' || email === 'phanthenguyenpt@ump.edu.vn' || email === 'thduypt@ump.edu.vn') {
+                currentUserEmail = user.email.toLowerCase();
+                if (['lethanhvan@ump.edu.vn', 'phanthenguyenpt@ump.edu.vn', 'thduypt@ump.edu.vn'].includes(currentUserEmail)) {
                     isCalendarAdmin = true;
-                    document.getElementById('external-events').style.display = 'block'; // Mở Kho Sự Kiện
+                    document.getElementById('external-events').style.display = 'block'; 
+                }
+
+                // Cập nhật Header với Tên Giảng viên
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists()) {
+                    const data = userDoc.data();
+                    let prefix = data.degree === 'ThS' ? 'ThS. ' : (data.degree === 'TS' ? 'TS. ' : '');
+                    currentUserName = `${prefix}${data.fullName}`;
+                    
+                    // Delay nhỏ để đảm bảo layout.js đã load xong header
+                    setTimeout(() => {
+                        const btnAuthNav = document.getElementById('btnAuthNav');
+                        if (btnAuthNav) {
+                            btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right:5px;"></i> ${currentUserName}`;
+                            btnAuthNav.href = "dashboard.html";
+                        }
+                    }, 300);
                 }
                 
                 initCalendar();
@@ -183,20 +236,20 @@
             currentClass = cls;
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             btnEl.classList.add('active');
-            processAndRenderEvents();
+            window.processAndRenderEvents();
         };
 
         // KHỞI TẠO LỊCH FULLCALENDAR
         function initCalendar() {
             const containerEl = document.getElementById('external-events');
             
-            // Khởi tạo Draggable cho các event chưa xếp (nếu là Admin)
+            // Cấu hình Kéo thẻ (Drag) cho Kho
             if (isCalendarAdmin) {
                 new FullCalendar.Draggable(containerEl, {
                     itemSelector: '.fc-event',
                     eventData: function(eventEl) {
                         return {
-                            title: eventEl.innerText,
+                            title: eventEl.getAttribute('data-title-short'), // Lấy tên viết tắt khi kéo vào lịch
                             id: eventEl.getAttribute('data-id'),
                             extendedProps: {
                                 subject: eventEl.getAttribute('data-subject'),
@@ -217,21 +270,39 @@
                     center: 'title',
                     right: 'dayGridMonth,timeGridWeek,timeGridDay'
                 },
-                editable: isCalendarAdmin, // Chỉ Admin mới được kéo thả event trên lịch
-                droppable: isCalendarAdmin, // Chỉ Admin mới được thả từ ngoài vào
+                editable: isCalendarAdmin, // Chỉ Admin mới được nắm dời trên lịch
+                droppable: isCalendarAdmin, // Chỉ Admin mới được thả thẻ vào
                 events: [],
                 
-                // Khi Event từ ngoài thả vào Lịch
+                // HIỂN THỊ HTML ĐỘNG TRÊN TỪNG Ô LỊCH
+                eventContent: function(arg) {
+                    const props = arg.event.extendedProps;
+                    const schedulerShort = props.scheduledByName ? getShortName(props.scheduledByName) : 'Admin';
+                    return {
+                        html: `
+                        <div style="padding: 3px 5px; overflow: hidden; white-space: normal; line-height: 1.3;">
+                            <div style="font-weight: 600;">${arg.event.title}</div>
+                            <div style="font-size: 0.7rem; margin-top: 4px; color: #fef08a; text-align: right; border-top: 1px dashed rgba(255,255,255,0.4); padding-top: 2px;">
+                                Xếp bởi: ${schedulerShort}
+                            </div>
+                        </div>
+                        `
+                    };
+                },
+
+                // KHI KÉO TỪ KHO THẢ VÀO LỊCH
                 drop: async function(info) {
                     if (!isCalendarAdmin) return;
                     const eventData = {
-                        id: info.draggedEl.getAttribute('data-id') + '_' + Date.now(), // Tạo ID duy nhất cho sự kiện trên lịch
-                        title: info.draggedEl.innerText,
+                        id: info.draggedEl.getAttribute('data-id') + '_' + Date.now(), 
+                        title: info.draggedEl.getAttribute('data-title-short'),
                         start: info.dateStr,
                         class: currentClass,
                         subject: info.draggedEl.getAttribute('data-subject'),
                         gv: info.draggedEl.getAttribute('data-gv'),
-                        task: info.draggedEl.getAttribute('data-task')
+                        task: info.draggedEl.getAttribute('data-task'),
+                        scheduledByEmail: currentUserEmail,
+                        scheduledByName: currentUserName
                     };
                     
                     try {
@@ -239,11 +310,11 @@
                         showToast("Đã xếp lịch thành công!");
                     } catch(e) {
                         showToast("Lỗi khi lưu lịch: " + e.message, "danger");
-                        info.draggedEl.style.display = 'block'; // Lỗi thì trả về
+                        info.draggedEl.style.display = 'block'; 
                     }
                 },
 
-                // Khi Kéo & Thả event di chuyển TRÊN LỊCH
+                // KHI KÉO VÀ DỜI NGÀY TRÊN LỊCH
                 eventDrop: async function(info) {
                     if (!isCalendarAdmin) { info.revert(); return; }
                     try {
@@ -255,7 +326,40 @@
                     }
                 },
 
-                // Khi bấm vào Event để xem chi tiết
+                // TÍNH NĂNG HOVER: TOOLTIP
+                eventMouseEnter: function(info) {
+                    const props = info.event.extendedProps;
+                    const tooltip = document.getElementById('eventTooltip');
+                    tooltip.innerHTML = `
+                        <strong><i class="fas fa-book"></i> ${props.subject}</strong><br>
+                        Nhiệm vụ: ${props.task}<br>
+                        Giảng viên: ${props.gv}<br>
+                        <span class="tooltip-scheduler"><i class="fas fa-user-edit"></i> Xếp bởi: ${props.scheduledByName || 'Admin'}</span>
+                    `;
+                    tooltip.style.display = 'block';
+                    
+                    // Hàm theo dõi chuột
+                    const moveTooltip = (e) => {
+                        tooltip.style.left = (e.pageX + 15) + 'px';
+                        tooltip.style.top = (e.pageY + 15) + 'px';
+                    };
+                    
+                    // Đặt vị trí khởi đầu
+                    tooltip.style.left = (info.jsEvent.pageX + 15) + 'px';
+                    tooltip.style.top = (info.jsEvent.pageY + 15) + 'px';
+                    
+                    info.el.addEventListener('mousemove', moveTooltip);
+                    info.el._moveTooltip = moveTooltip; // Lưu để gỡ
+                },
+                eventMouseLeave: function(info) {
+                    const tooltip = document.getElementById('eventTooltip');
+                    tooltip.style.display = 'none';
+                    if (info.el._moveTooltip) {
+                        info.el.removeEventListener('mousemove', info.el._moveTooltip);
+                    }
+                },
+
+                // KHI BẤM VÀO SỰ KIỆN (MỞ POPUP XÓA)
                 eventClick: function(info) {
                     currentClickedEventId = info.event.id;
                     const props = info.event.extendedProps;
@@ -263,13 +367,16 @@
                     document.getElementById('mdlSubject').innerText = props.subject || '';
                     document.getElementById('mdlGv').innerText = props.gv || '';
                     document.getElementById('mdlTask').innerText = props.task || '';
+                    document.getElementById('mdlScheduler').innerText = props.scheduledByName || 'Không xác định';
                     
-                    // Format thời gian
                     const startObj = info.event.start;
                     document.getElementById('mdlTime').innerText = startObj ? startObj.toLocaleString('vi-VN', {weekday: 'long', day:'2-digit', month:'2-digit', year:'numeric'}) : '';
 
-                    if (isCalendarAdmin) {
+                    // CƠ CHẾ ĐỘC QUYỀN: CHỈ NGƯỜI XẾP MỚI ĐƯỢC XÓA
+                    if (isCalendarAdmin && props.scheduledByEmail === currentUserEmail) {
                         document.getElementById('btnDeleteEvent').classList.remove('hidden');
+                    } else {
+                        document.getElementById('btnDeleteEvent').classList.add('hidden');
                     }
                     
                     document.getElementById('eventModal').classList.remove('hidden');
@@ -278,43 +385,40 @@
             calendar.render();
         }
 
-        // LẮNG NGHE DATA TỪ FIREBASE
+        // TẢI DỮ LIỆU TỪ FIREBASE
         function listenToDatabase() {
-            // 1. Tải toàn bộ Phân công
             onSnapshot(collection(db, "assignments"), (snapshot) => {
                 assignmentsData = {};
                 snapshot.forEach(doc => { assignmentsData[doc.id] = doc.data(); });
-                processAndRenderEvents();
+                window.processAndRenderEvents();
             });
 
-            // 2. Tải toàn bộ Sự kiện Đã Xếp trên Lịch
             onSnapshot(collection(db, "calendar_events"), (snapshot) => {
                 scheduledEvents = [];
                 snapshot.forEach(doc => { scheduledEvents.push(doc.data()); });
-                processAndRenderEvents();
+                window.processAndRenderEvents();
             });
         }
 
-        // XỬ LÝ VÀ ĐỔ DATA LÊN LỊCH / KHO
-        function processAndRenderEvents() {
+        // XỬ LÝ LỌC & RENDER DỮ LIỆU VÀO KHO / LỊCH
+        window.processAndRenderEvents = () => {
             if (!calendar) return;
 
-            // Xóa sạch lịch cũ và kho sự kiện cũ
+            const selectedSemester = document.getElementById('semesterSelect').value;
+
             calendar.removeAllEvents();
             const poolDiv = document.getElementById('event-pool');
             poolDiv.innerHTML = '';
 
             let unscheduledCount = 0;
 
-            // 1. Lọc sự kiện Đã lên lịch của Lớp hiện tại
+            // Đổ lên lịch
             let currentClassEvents = scheduledEvents.filter(e => e.class === currentClass);
             calendar.addEventSource(currentClassEvents);
 
-            // Đếm số lượng buổi ĐÃ ĐƯỢC XẾP cho mỗi nhiệm vụ (Để trừ bớt trong Kho)
+            // Đếm số buổi đã xếp
             let scheduledCounts = {};
             currentClassEvents.forEach(e => {
-                // Key định danh: subID_gv_task
-                // Vì ta không lưu subID trực tiếp trong event cũ, ta sẽ dò theo tên môn (subject)
                 const subObj = subjectsData.find(s => s.name === e.subject);
                 if(subObj) {
                     const key = `${subObj.id}_${e.gv}_${e.task}`;
@@ -323,14 +427,18 @@
                 }
             });
 
-            // 2. Phân tích Kho sự kiện Chưa Xếp Lịch
+            // Tái tạo Kho Sự Kiện
             for (let subId in assignmentsData) {
                 const subAsg = assignmentsData[subId];
                 if (subAsg[currentClass] && subAsg[currentClass].allocations) {
+                    
+                    // LỌC THEO HỌC KỲ
+                    const semester = subAsg[currentClass].semester || 'Chưa xác định';
+                    if (selectedSemester !== 'ALL' && semester !== selectedSemester) continue; 
+
                     const subName = subjectsData.find(s => s.id === subId)?.name || 'Môn không xác định';
                     
                     subAsg[currentClass].allocations.forEach(a => {
-                        // Tính toán số buổi: Số buổi phân công - Số buổi đã xếp lên lịch
                         const totalAssigned = parseInt(a.assigned) || 0;
                         const key = `${subId}_${a.gv}_${a.task}`;
                         const alreadyScheduled = scheduledCounts[key] || 0;
@@ -338,18 +446,22 @@
                         let remaining = totalAssigned - alreadyScheduled;
                         
                         if (remaining > 0) {
-                            // Tạo ra n thẻ Sự kiện tương ứng với n buổi còn thiếu
+                            const shortGv = getShortName(a.gv);
+                            // Tên thẻ viết tắt: Tên môn - Tên GV (Ngắn)
+                            const shortTitle = `${subName} - ${shortGv}`;
+
                             for(let i=0; i<remaining; i++) {
                                 unscheduledCount++;
                                 const eventDiv = document.createElement('div');
                                 eventDiv.className = 'fc-event';
                                 eventDiv.setAttribute('data-id', key);
+                                eventDiv.setAttribute('data-title-short', shortTitle);
                                 eventDiv.setAttribute('data-subject', subName);
                                 eventDiv.setAttribute('data-gv', a.gv);
                                 eventDiv.setAttribute('data-task', a.task);
                                 
                                 eventDiv.innerHTML = `
-                                    <div><i class="fas fa-grip-vertical" style="opacity: 0.5; margin-right:5px;"></i> ${a.gv}</div>
+                                    <div><i class="fas fa-grip-vertical" style="opacity: 0.5; margin-right:5px;"></i> <b>${shortGv}</b></div>
                                     <span class="event-info">[${a.task}] - ${subName}</span>
                                 `;
                                 poolDiv.appendChild(eventDiv);
@@ -360,9 +472,9 @@
             }
 
             if (unscheduledCount === 0) {
-                poolDiv.innerHTML = '<div style="text-align:center; padding: 20px; color:#10b981; font-weight:bold;"><i class="fas fa-check-circle"></i> Đã xếp hết lịch!</div>';
+                poolDiv.innerHTML = '<div style="text-align:center; padding: 20px; color:#10b981; font-weight:bold;"><i class="fas fa-check-circle"></i> Đã xếp hết lịch cho Học kỳ này!</div>';
             }
-        }
+        };
 
         window.closeModal = () => {
             document.getElementById('eventModal').classList.add('hidden');
@@ -370,7 +482,7 @@
 
         window.deleteEvent = async () => {
             if(!currentClickedEventId) return;
-            if(confirm("Xóa sự kiện này khỏi lịch? (Sự kiện sẽ được trả về kho)")) {
+            if(confirm("Bạn có chắc muốn xóa sự kiện này khỏi lịch? (Sự kiện sẽ được trả về kho)")) {
                 try {
                     await deleteDoc(doc(db, "calendar_events", currentClickedEventId));
                     showToast("Đã xóa khỏi lịch!");
