@@ -53,7 +53,7 @@ body {
    3. HEADER, LOGO & NAVIGATION 
 ========================================= */
 header {
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(0, 0, 0, 0.03);
@@ -65,61 +65,81 @@ header {
   justify-content: space-between;
   align-items: center;
   transition: var(--transition);
-  gap: 3rem; 
+  gap: 1.5rem; /* Thu nhỏ gap trên màn hình nhỏ */
 }
 
-/* Cấu hình hiển thị Logo */
+/* Cấu hình hiển thị Logo Tự động điều chỉnh kích thước */
 .logo-link { 
   display: flex; 
   align-items: center; 
-  gap: 15px; 
+  gap: 12px; 
   text-decoration: none; 
   cursor: pointer; 
+  flex-shrink: 1; /* Cho phép logo thu nhỏ lại nếu cần */
+  min-width: 0;   /* Khóa chống tràn */
 }
 
 .logo {
   display: flex;
   align-items: center;
-  gap: 12px;
 }
 
 .logo img {
-  height: 48px;
+  height: clamp(35px, 4vw, 48px); /* Hình thu nhỏ trên màn hình bé */
   width: auto;
   object-fit: contain;
+  flex-shrink: 0;
 }
 
 .logo-text { 
   display: flex; 
   flex-direction: column; 
   justify-content: center; 
+  min-width: 0; /* Khóa chống tràn */
 }
 
+/* SỬA LỖI RỚT DÒNG CỦA LOGO: Ép chữ nằm trên 1 dòng & tự thu nhỏ */
 .logo-text div { 
   white-space: nowrap; 
-  width: max-content; 
+  overflow: hidden;
+  text-overflow: ellipsis; /* Nếu nhỏ quá thì biến thành dấu ... */
   line-height: 1.2; 
-  transform-origin: left; 
 }
 
-#logo-line-1 { font-weight: 700; color: var(--text-dark); }
-#logo-line-2 { font-weight: 600; color: var(--text-body); margin-top: 0.25em; }
-#logo-line-3 { font-weight: 500; color: var(--text-body); margin-top: 0.15em; }
+#logo-line-1 { 
+    font-weight: 700; 
+    color: var(--text-dark); 
+    font-size: clamp(0.9rem, 1.2vw, 1rem); /* Tự động co giãn theo width */
+}
+#logo-line-2 { 
+    font-weight: 600; 
+    color: var(--text-body); 
+    margin-top: 0.2em; 
+    font-size: clamp(0.7rem, 0.9vw, 0.85rem); 
+}
+#logo-line-3 { 
+    font-weight: 500; 
+    color: var(--text-body); 
+    margin-top: 0.1em; 
+    font-size: clamp(0.6rem, 0.8vw, 0.75rem); 
+}
 
 .nav-links {
   display: flex;
   align-items: center;
-  gap: 2.5rem;
+  gap: clamp(1rem, 2vw, 2.5rem); /* Co giãn menu linh hoạt */
+  flex-shrink: 0;
 }
 
 .nav-item {
   text-decoration: none;
   color: var(--text-body);
   font-weight: 500;
-  font-size: 0.95rem;
+  font-size: clamp(0.85rem, 1vw, 0.95rem); /* Co giãn chữ trong menu */
   transition: var(--transition);
   position: relative;
   padding: 0.5rem 0;
+  white-space: nowrap; /* Chống rớt dòng chữ trên menu */
 }
 
 /* Hiệu ứng gạch chân mượt mà khi hover */
@@ -160,15 +180,16 @@ header {
   justify-content: center;
   background-color: var(--primary);
   color: var(--surface);
-  padding: 0.6rem 1.5rem;
+  padding: 0.6rem 1.2rem;
   border-radius: var(--radius-pill);
   font-weight: 500;
-  font-size: 0.9rem;
+  font-size: clamp(0.8rem, 1vw, 0.9rem);
   text-decoration: none;
   border: none;
   cursor: pointer;
   transition: var(--transition);
   box-shadow: var(--shadow-sm);
+  white-space: nowrap;
 }
 
 .btn-login:hover, .btn-primary:hover {
@@ -192,7 +213,7 @@ main {
 
 .quick-links {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 2rem;
 }
 
@@ -211,7 +232,6 @@ main {
   overflow: hidden;
 }
 
-/* Đường viền trang trí nhỏ trên cùng của thẻ khi hover */
 .quick-card::before {
   content: '';
   position: absolute;
@@ -268,7 +288,7 @@ main {
 }
 
 /* =========================================
-   6. BẢNG DỮ LIỆU & NHẬP ĐIỂM (DASHBOARD)
+   6. BẢNG DỮ LIỆU & NHẬP ĐIỂM
 ========================================= */
 .card {
   background-color: var(--surface);
@@ -309,7 +329,6 @@ tr:last-child td {
   border-bottom: none;
 }
 
-/* Ô nhập liệu tinh gọn */
 input[type="number"], input[type="text"], input[type="password"], input[type="email"] {
   width: 100%;
   padding: 0.6rem;
@@ -352,13 +371,9 @@ footer p {
 }
 
 /* =========================================
-   8. COMPONENT CHUNG (TỪ TRANG THÔNG BÁO)
+   8. COMPONENT CHUNG
 ========================================= */
-
-/* Trạng thái hiển thị người đăng bài (Dành cho trang Thông báo) */
-.author-info {
-    display: none !important;
-}
+.author-info { display: none !important; }
 
 body.is-logged-in .author-info {
     display: flex !important;
@@ -366,110 +381,27 @@ body.is-logged-in .author-info {
     gap: 6px;
 }
 
-/* Khung chức năng (Sửa/Xóa) - Chỉ hiện khi Đăng nhập */
-.action-buttons {
-    display: flex;
-    gap: 10px;
-    margin-top: 10px;
-    padding-top: 15px;
-    border-top: 1px dashed var(--border);
-}
+.action-buttons { display: flex; gap: 10px; margin-top: 10px; padding-top: 15px; border-top: 1px dashed var(--border); }
 
-.btn-warning {
-    background-color: #f59e0b;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: var(--radius-sm);
-    font-weight: 500;
-    cursor: pointer;
-    transition: var(--transition);
-    font-size: 0.85rem;
-}
+.btn-warning { background-color: #f59e0b; color: white; border: none; padding: 6px 12px; border-radius: var(--radius-sm); font-weight: 500; cursor: pointer; transition: var(--transition); font-size: 0.85rem; }
+.btn-warning:hover { background-color: #d97706; }
 
-.btn-warning:hover {
-    background-color: #d97706;
-}
+.btn-danger { background-color: var(--accent); color: white; border: none; padding: 6px 12px; border-radius: var(--radius-sm); font-weight: 500; cursor: pointer; transition: var(--transition); font-size: 0.85rem; }
+.btn-danger:hover { background-color: #be123c; }
+.btn-danger:disabled { opacity: 0.6; cursor: not-allowed; }
 
-.btn-danger {
-    background-color: var(--accent);
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: var(--radius-sm);
-    font-weight: 500;
-    cursor: pointer;
-    transition: var(--transition);
-    font-size: 0.85rem;
-}
+/* Modal Xác nhận bảo mật */
+.modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 2000; padding: 20px; }
+.modal-content { background: var(--surface); padding: 30px; border-radius: var(--radius-md); max-width: 400px; width: 100%; box-shadow: var(--shadow-hover); position: relative; text-align: center; }
+.modal-close { position: absolute; top: 15px; right: 15px; background: var(--bg-page); border: 1px solid var(--border); width: 35px; height: 35px; border-radius: 50%; cursor: pointer; color: var(--text-body); display: flex; align-items: center; justify-content: center; transition: var(--transition); }
+.modal-close:hover { background: var(--border); color: var(--text-dark); }
 
-.btn-danger:hover {
-    background-color: #be123c;
-}
-
-.btn-danger:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-/* Modal Xác nhận bảo mật (Xóa) */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(15, 23, 42, 0.6);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 2000;
-    padding: 20px;
-}
-
-.modal-content {
-    background: var(--surface);
-    padding: 30px;
-    border-radius: var(--radius-md);
-    max-width: 400px;
-    width: 100%;
-    box-shadow: var(--shadow-hover);
-    position: relative;
-    text-align: center;
-}
-
-.modal-close {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    background: var(--bg-page);
-    border: 1px solid var(--border);
-    width: 35px;
-    height: 35px;
-    border-radius: 50%;
-    cursor: pointer;
-    color: var(--text-body);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: var(--transition);
-}
-
-.modal-close:hover {
-    background: var(--border);
-    color: var(--text-dark);
-}
-
-.hidden {
-    display: none !important;
-}
+.hidden { display: none !important; }
 
 /* =========================================
    9. RESPONSIVE (DÀNH CHO ĐIỆN THOẠI/TABLET)
 ========================================= */
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   header { gap: 1rem; }
   
   .menu-toggle { 
