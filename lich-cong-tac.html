@@ -43,16 +43,10 @@
         #external-events h4 { margin: 0 0 10px 0; color: var(--primary); border-bottom: 1px dashed var(--border); padding-bottom: 10px; font-size: 1.05rem; flex-shrink: 0; }
         
         #event-pool { flex: 1; overflow-y: auto; padding-right: 5px; } 
-        #event-pool .fc-event { cursor: move; margin: 0 0 12px 0; padding: 12px; background-color: #f1f5f9; color: var(--text-dark); border: 1px solid var(--border); border-radius: 6px; text-align: left; transition: 0.2s; position: relative; }
+        #event-pool .fc-event { cursor: move; margin: 0 0 12px 0; padding: 12px; background-color: #f1f5f9; color: var(--text-dark); border: 1px solid var(--border); border-radius: 6px; text-align: left; transition: 0.2s; }
         #event-pool .fc-event:hover { background-color: #e2e8f0; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-color: #94a3b8; }
         #event-pool .event-gv { font-weight: 700; font-size: 1rem; margin-bottom: 4px; color: var(--primary); }
         #event-pool .event-info { display: block; font-size: 0.85rem; color: var(--text-body); line-height: 1.4; }
-        
-        /* Cảnh báo sự kiện bị GV từ chối trả về */
-        #event-pool .fc-event.rejected-task { border-left: 4px solid #ef4444; border-color: #ef4444; background-color: #fef2f2; }
-        #event-pool .fc-event.rejected-task .event-gv { color: #b91c1c; }
-        #event-pool .fc-event.rejected-task .reject-badge { display: block; font-size: 0.75rem; color: #ef4444; font-weight: bold; margin-top: 5px; animation: blink 1.5s infinite; }
-        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
         /* Khung Lịch */
         #calendar-container { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 15px; box-shadow: var(--shadow-sm); min-width: 0; transition: 0.3s; }
@@ -478,16 +472,13 @@
                         info.revert(); return;
                     }
 
-                    const newUniqueId = props.originalId + '_' + Date.now();
-                    
-                    if (hasOverlap(info.event.start, info.event.end, props.gv, newUniqueId)) {
+                    if (hasOverlap(info.event.start, info.event.end, props.gv, info.event.id)) {
                         showToast(`Lỗi: Giảng viên ${props.gv} bị trùng lịch với Lịch Lý thuyết khác!`, "danger");
                         info.revert(); return;
                     }
 
-                    // TẠO THẺ TẠM TRƯỚC, LƯU DATABASE, SAU ĐÓ XÓA TẠM (Để Database sync về thẻ chuẩn)
-                    info.event.setProp('id', newUniqueId); 
-
+                    // Vượt qua kiểm tra -> Set lại ID duy nhất và lưu Database
+                    const newUniqueId = props.originalId + '_' + Date.now();
                     const eventData = {
                         id: newUniqueId, 
                         title: info.event.title,
@@ -499,8 +490,7 @@
                         gv: props.gv,
                         task: props.task,
                         scheduledByEmail: currentUserEmail,
-                        scheduledByName: currentUserName,
-                        status: 'scheduled'
+                        scheduledByName: currentUserName
                     };
                     
                     try {
@@ -702,7 +692,6 @@
                 window.processAndRenderEvents();
             });
 
-            // LẮNG NGHE LỊCH (Bao gồm các lịch bị REJECTED)
             onSnapshot(collection(db, "calendar_events"), (snapshot) => {
                 scheduledEvents = [];
                 snapshot.forEach(doc => { scheduledEvents.push(doc.data()); });
@@ -728,8 +717,7 @@
             poolDiv.innerHTML = '';
             let unscheduledCount = 0;
 
-            // LỌC CÁC SỰ KIỆN ĐÃ ĐƯỢC XẾP (Không bị trả về)
-            let currentClassEvents = scheduledEvents.filter(e => e.class === currentClass && e.status !== 'returned').map(e => {
+            let currentClassEvents = scheduledEvents.filter(e => e.class === currentClass).map(e => {
                 const isMyEvent = e.gv && currentUserName && e.gv.includes(currentUserName);
                 return {
                     ...e,
@@ -761,7 +749,6 @@
             }
             calendar.addEventSource(clinicalEvents);
 
-            // ĐẾM SỐ BUỔI ĐÃ XẾP (Không tính những thẻ đã bị trả về - returned)
             let scheduledCounts = {};
             currentClassEvents.forEach(e => {
                 const subObj = subjectsData.find(s => s.name === e.subject);
@@ -772,7 +759,6 @@
                 }
             });
 
-            // TÁI TẠO KHO SỰ KIỆN CHƯA XẾP VÀ SỰ KIỆN BỊ TRẢ VỀ
             for (let subId in assignmentsData) {
                 const subAsg = assignmentsData[subId];
                 if (subAsg[currentClass] && subAsg[currentClass].allocations) {
@@ -788,17 +774,10 @@
                         const totalAssigned = parseInt(a.assigned) || 0;
                         const key = `${subId}_${a.gv}_${a.task}`;
                         const alreadyScheduled = scheduledCounts[key] || 0;
-                        
-                        // Lọc xem trong Database có thẻ nào của Nhiệm vụ này bị Trả về không
-                        let rejectedCardsOfThisTask = scheduledEvents.filter(e => e.class === currentClass && e.status === 'returned' && e.subject === subName && e.gv === a.gv && e.task === a.task);
-
                         let remaining = totalAssigned - alreadyScheduled;
                         
-                        // XUẤT RA CÁC THẺ THƯỜNG (Chưa xếp)
-                        let remainingNormal = remaining - rejectedCardsOfThisTask.length; 
-                        
-                        if (remainingNormal > 0) {
-                            for(let i=0; i<remainingNormal; i++) {
+                        if (remaining > 0) {
+                            for(let i=0; i<remaining; i++) {
                                 unscheduledCount++;
                                 const eventDiv = document.createElement('div');
                                 eventDiv.className = 'fc-event';
@@ -815,29 +794,6 @@
                                 poolDiv.appendChild(eventDiv);
                             }
                         }
-
-                        // XUẤT RA CÁC THẺ BỊ TỪ CHỐI (Viền đỏ)
-                        rejectedCardsOfThisTask.forEach(rTask => {
-                            unscheduledCount++;
-                            const eventDiv = document.createElement('div');
-                            eventDiv.className = 'fc-event rejected-task';
-                            eventDiv.setAttribute('data-id', key); // Vẫn dùng ID cũ để kéo thả bình thường
-                            eventDiv.setAttribute('data-title', a.gv); 
-                            eventDiv.setAttribute('data-subject', subName);
-                            eventDiv.setAttribute('data-gv', a.gv);
-                            eventDiv.setAttribute('data-task', a.task);
-                            // Lưu ID database gốc để khi Admin kéo xếp lại thì ghi đè lên thẻ bị từ chối thay vì sinh thẻ mới
-                            eventDiv.setAttribute('data-original-id', rTask.id); 
-                            
-                            const rejectTimes = rTask.rejected || 1;
-                            eventDiv.innerHTML = `
-                                <div class="event-gv">${a.gv}</div>
-                                <span class="event-info">[${a.task}]<br>${subName}</span>
-                                <span class="reject-badge"><i class="fas fa-exclamation-circle"></i> Bị từ chối (${rejectTimes} lần)</span>
-                            `;
-                            poolDiv.prepend(eventDiv); // Đẩy thẻ lỗi lên đầu Kho
-                        });
-
                     });
                 }
             }
