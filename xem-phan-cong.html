@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Xem phân công công tác cá nhân - Bộ môn Phục hồi chức năng.">
+    <title>Phân công của tôi - Bộ môn Phục hồi chức năng</title>
+    
+    <link rel="icon" href="images/logo_Bộ môn.png" type="image/png">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        main { max-width: 1200px; padding: 2rem 5% 4rem; margin: 0 auto; min-height: 70vh; }
+        
+        .page-header { text-align: center; margin-bottom: 2.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+        .page-header h2 { font-size: 1.8rem; color: var(--text-dark); margin-bottom: 5px; }
+        .page-header p { color: var(--text-body); font-size: 1rem; }
+
+        /* Bảng Danh sách Nhiệm vụ */
+        .task-section { margin-bottom: 3rem; }
+        .task-section h3 { font-size: 1.25rem; color: var(--primary); margin-bottom: 1rem; display: flex; align-items: center; gap: 10px; border-left: 4px solid var(--primary); padding-left: 10px; }
+        
+        .task-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; }
+        
+        /* Card Nhiệm vụ */
+        .task-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.5rem; box-shadow: var(--shadow-sm); transition: var(--transition); display: flex; flex-direction: column; position: relative; overflow: hidden; }
+        .task-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); border-color: var(--primary-light); }
+        
+        .task-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: var(--primary); }
+        .task-card.today::before { background: #f59e0b; } /* Màu cam cho nhiệm vụ hôm nay */
+        
+        .task-time { font-size: 0.9rem; font-weight: 700; color: #d97706; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        .task-card.today .task-time { color: #ef4444; }
+
+        .task-subject { font-size: 1.15rem; font-weight: 700; color: var(--text-dark); margin-bottom: 5px; line-height: 1.4; }
+        .task-role { font-size: 0.9rem; color: var(--text-body); margin-bottom: 15px; font-weight: 500; }
+        .task-class { background: var(--bg-page); border: 1px solid var(--border); padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; color: var(--text-body); display: inline-block; width: fit-content; margin-bottom: auto; }
+
+        /* Nút Tương tác */
+        .task-actions { display: flex; gap: 10px; margin-top: 20px; padding-top: 15px; border-top: 1px dashed var(--border); }
+        
+        .btn-accept { flex: 1; background-color: #10b981; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; }
+        .btn-accept:hover { background-color: #059669; }
+        .btn-accept:disabled { background-color: #10b981; opacity: 1; cursor: default; } /* Đã nhận thì xanh đậm đứng yên */
+
+        .btn-reject { flex: 1; background-color: white; color: #ef4444; border: 1px solid #ef4444; padding: 10px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; }
+        .btn-reject:hover { background-color: #fef2f2; }
+
+        /* Toast Thông báo */
+        .toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .toast { min-width: 250px; background-color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: 0.4s; font-weight: 600; border-left: 5px solid #22c55e; opacity: 0; }
+        .toast.show { transform: translateX(0); opacity: 1; }
+        .toast.danger { border-left-color: #ef4444; }
+
+        .empty-state { text-align: center; padding: 3rem; background: var(--bg-page); border-radius: var(--radius-md); color: var(--text-body); font-style: italic; border: 1px dashed var(--border); }
+        .empty-state i { font-size: 3rem; color: #cbd5e1; margin-bottom: 15px; display: block; }
+
+        #loadingScreen { text-align: center; padding: 5rem 0; color: var(--primary); font-weight: 600; font-size: 1.2rem; }
+    </style>
+</head>
+<body>
+
+    <!-- GỌI HEADER CHUNG -->
+    <div id="header-placeholder"></div>
+    <div id="toastContainer" class="toast-container"></div>
+
+    <main>
+        <div class="page-header">
+            <h2><i class="fas fa-clipboard-list" style="color: var(--primary);"></i> PHÂN CÔNG CỦA TÔI</h2>
+            <p>Theo dõi và phản hồi các nhiệm vụ giảng dạy được giao</p>
+        </div>
+
+        <div id="loadingScreen"><i class="fas fa-spinner fa-spin fa-2x"></i><br>Đang tải dữ liệu phân công...</div>
+
+        <div id="contentWrapper" class="hidden">
+            <!-- Khu vực Nhiệm vụ Hôm nay -->
+            <div class="task-section">
+                <h3><i class="fas fa-calendar-day"></i> Lịch dạy Hôm nay</h3>
+                <div id="todayGrid" class="task-grid">
+                    <!-- Dữ liệu JS -->
+                </div>
+            </div>
+
+            <!-- Khu vực Nhiệm vụ Sắp tới -->
+            <div class="task-section">
+                <h3><i class="fas fa-calendar-alt"></i> Lịch dạy Sắp tới (Tương lai)</h3>
+                <div id="upcomingGrid" class="task-grid">
+                    <!-- Dữ liệu JS -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- GỌI FOOTER CHUNG -->
+    <div id="footer-placeholder"></div>
+
+    <script src="js/layout.js"></script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, collection, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY", authDomain: "bmphcn-aa9c6.firebaseapp.com", projectId: "bmphcn-aa9c6", storageBucket: "bmphcn-aa9c6.firebasestorage.app", messagingSenderId: "749494392719", appId: "1:749494392719:web:f220c751ff541620045dfa" };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUserName = '';
+        let myEvents = [];
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<i class="fas ${type === 'danger' ? 'fa-times-circle' : 'fa-check-circle'}"></i><span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
+        }
+
+        // ĐỊNH DẠNG HIỂN THỊ THỜI GIAN
+        function formatTaskTime(startStr, endStr) {
+            if (!startStr) return 'Chưa xác định';
+            
+            const startDate = new Date(startStr);
+            const endDate = endStr ? new Date(endStr) : new Date(startDate.getTime() + 4 * 3600000); // Mặc định 4h nếu ko có end
+            
+            const timeOpts = { hour: '2-digit', minute: '2-digit', hour12: false };
+            const sTime = startDate.toLocaleTimeString('vi-VN', timeOpts);
+            const eTime = endDate.toLocaleTimeString('vi-VN', timeOpts);
+            const dString = startDate.toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
+            
+            return {
+                isToday: new Date().toDateString() === startDate.toDateString(),
+                isPast: endDate < new Date(),
+                timeText: `${sTime} - ${eTime} | ${dString}`,
+                rawDate: startDate
+            };
+        }
+
+        // BẮT ĐẦU QUY TRÌNH KIỂM TRA ĐĂNG NHẬP
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // Lấy tên thật của Giảng viên để dò lịch
+                try {
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    if (userDoc.exists()) {
+                        const data = userDoc.data();
+                        let prefix = data.degree === 'ThS' ? 'ThS. ' : (data.degree === 'TS' ? 'TS. ' : '');
+                        currentUserName = `${prefix}${data.fullName}`;
+                        
+                        // Cập nhật Header
+                        setTimeout(() => {
+                            const btnAuthNav = document.getElementById('btnAuthNav');
+                            if (btnAuthNav) {
+                                btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right:5px;"></i> ${currentUserName}`;
+                                btnAuthNav.href = "dashboard.html";
+                            }
+                        }, 300);
+
+                        // Bắt đầu Lắng nghe Database Lịch công tác
+                        listenToMySchedules();
+                    } else {
+                        window.location.href = "login.html"; // Không tìm thấy User
+                    }
+                } catch (e) {
+                    console.error("Lỗi lấy thông tin User", e);
+                }
+            } else {
+                window.location.href = "login.html"; // Chưa đăng nhập
+            }
+        });
+
+        // TẢI & LỌC DỮ LIỆU CỦA RIÊNG MÌNH
+        function listenToMySchedules() {
+            onSnapshot(collection(db, "calendar_events"), (snapshot) => {
+                myEvents = [];
+                snapshot.forEach(doc => { 
+                    const data = doc.data();
+                    // Nếu tên GV trong thẻ lịch có chứa tên của Current User
+                    if (data.gv && currentUserName && data.gv.includes(currentUserName)) {
+                        myEvents.push(data);
+                    }
+                });
+                renderTasks();
+            });
+        }
+
+        // HIỂN THỊ RA MÀN HÌNH
+        function renderTasks() {
+            document.getElementById('loadingScreen').classList.add('hidden');
+            document.getElementById('contentWrapper').classList.remove('hidden');
+
+            const todayGrid = document.getElementById('todayGrid');
+            const upcomingGrid = document.getElementById('upcomingGrid');
+            
+            todayGrid.innerHTML = '';
+            upcomingGrid.innerHTML = '';
+
+            let todayCount = 0;
+            let upcomingCount = 0;
+
+            // Sắp xếp sự kiện tăng dần theo thời gian
+            myEvents.sort((a, b) => new Date(a.start) - new Date(b.start));
+
+            myEvents.forEach(evt => {
+                const timeInfo = formatTaskTime(evt.start, evt.end);
+                
+                // BỎ QUA CÁC NHIỆM VỤ ĐÃ TRÔI QUA (KẾT THÚC RỒI THÌ KHÔNG HIỆN NỮA)
+                if (timeInfo.isPast) return; 
+
+                // TRẠNG THÁI: Tạm thời mặc định hiển thị Nút Xanh "Đã Nhận" (Do hệ thống Admin xếp là mặc định nhận)
+                // Chỉ xử lý nút Từ Chối (Trả về kho)
+                
+                const cardHtml = `
+                    <div class="task-card ${timeInfo.isToday ? 'today' : ''}">
+                        <div class="task-time">
+                            <i class="fas ${timeInfo.isToday ? 'fa-clock' : 'fa-calendar-alt'}"></i> ${timeInfo.timeText}
+                        </div>
+                        <div class="task-subject">${evt.subject}</div>
+                        <div class="task-role">Nhiệm vụ: ${evt.task}</div>
+                        <div class="task-class">Khóa: ${evt.class}</div>
+                        
+                        <div class="task-actions">
+                            <button class="btn-accept" disabled title="Nhiệm vụ đã được Admin phân công">
+                                <i class="fas fa-check-circle"></i> Đã nhận
+                            </button>
+                            <button class="btn-reject" onclick="rejectTask('${evt.id}')" title="Trả lại nhiệm vụ cho Bộ môn">
+                                <i class="fas fa-times-circle"></i> Không nhận
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                if (timeInfo.isToday) {
+                    todayGrid.innerHTML += cardHtml;
+                    todayCount++;
+                } else {
+                    upcomingGrid.innerHTML += cardHtml;
+                    upcomingCount++;
+                }
+            });
+
+            if (todayCount === 0) {
+                todayGrid.innerHTML = `<div class="empty-state" style="grid-column: 1/-1;"><i class="fas fa-mug-hot"></i>Hôm nay bạn không có lịch dạy nào.</div>`;
+            }
+            if (upcomingCount === 0) {
+                upcomingGrid.innerHTML = `<div class="empty-state" style="grid-column: 1/-1;"><i class="fas fa-check-double"></i>Bạn chưa có lịch phân công sắp tới.</div>`;
+            }
+        }
+
+        // TÍNH NĂNG TỪ CHỐI NHIỆM VỤ -> XÓA KHỎI LỊCH (TỰ ĐỘNG TRẢ VỀ KHO CỦA ADMIN)
+        window.rejectTask = async (eventId) => {
+            if (confirm("Bạn có chắc chắn KHÔNG NHẬN nhiệm vụ này?\nNhiệm vụ sẽ bị gỡ khỏi lịch và hoàn trả về kho Hệ thống để Trưởng BM phân công lại!")) {
+                try {
+                    // Xóa Document trong Collection calendar_events
+                    await deleteDoc(doc(db, "calendar_events", eventId));
+                    showToast("Đã hoàn trả nhiệm vụ thành công!");
+                    // Giao diện sẽ tự động cập nhật do đang lắng nghe onSnapshot
+                } catch(e) {
+                    showToast("Lỗi khi hoàn trả: " + e.message, "danger");
+                }
+            }
+        };
+
+    </script>
+</body>
+</html>
