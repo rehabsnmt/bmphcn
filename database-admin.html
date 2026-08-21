@@ -23,7 +23,6 @@
 
         body, html { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; height: 100vh; background-color: var(--bg-page); overflow: hidden; }
 
-        /* Bố cục MS Access */
         .app-container { display: flex; height: 100vh; width: 100vw; }
 
         /* Sidebar - Danh sách Table */
@@ -48,6 +47,8 @@
         .btn-primary:hover { background-color: var(--primary-hover); }
         .btn-danger { background-color: var(--accent); color: white; }
         .btn-danger:hover { background-color: #be123c; }
+        .btn-success { background-color: #10b981; color: white; }
+        .btn-success:hover { background-color: #059669; }
         .btn-secondary { background-color: white; color: var(--text-dark); border: 1px solid var(--border); }
         .btn-secondary:hover { background-color: #e2e8f0; }
 
@@ -89,8 +90,9 @@
         .modal-body { padding: 20px; overflow-y: auto; flex: 1; }
         .modal-footer { padding: 15px 20px; background: #f1f5f9; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border); }
         
-        textarea#jsonEditor { width: 100%; height: 350px; font-family: monospace; font-size: 0.95rem; padding: 15px; border: 1px solid var(--border); border-radius: 6px; resize: vertical; outline: none; box-sizing: border-box; background-color: #f8fafc; line-height: 1.5; }
-        textarea#jsonEditor:focus { border-color: var(--primary); background-color: white; }
+        textarea.editor-box { width: 100%; height: 350px; font-family: monospace; font-size: 0.95rem; padding: 15px; border: 1px solid var(--border); border-radius: 6px; resize: vertical; outline: none; box-sizing: border-box; background-color: #f8fafc; line-height: 1.5; }
+        textarea.editor-box:focus { border-color: var(--primary); background-color: white; }
+        textarea#excelPasteArea { white-space: pre; overflow-wrap: normal; overflow-x: auto; } /* Giữ format cột của Excel */
 
         .dynamic-field-row { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; background: #f8fafc; padding: 8px; border-radius: 6px; border: 1px solid #e2e8f0; }
         .field-key { flex: 1; padding: 10px; border: 1px solid var(--border); border-radius: 4px; font-weight: bold; color: var(--text-dark); background: white; outline: none; }
@@ -158,6 +160,8 @@
                 </div>
                 <div class="toolbar-actions" id="tableActions">
                     <button class="btn-secondary" onclick="refreshTable()"><i class="fas fa-sync-alt"></i> Làm mới</button>
+                    <!-- NÚT NHẬP TỪ EXCEL -->
+                    <button class="btn-success" onclick="openExcelImportModal()"><i class="fas fa-paste"></i> Nhập từ Excel</button>
                     <button class="btn-primary" onclick="openAddModal()"><i class="fas fa-plus"></i> Thêm Document</button>
                 </div>
             </div>
@@ -174,7 +178,7 @@
                 </table>
             </div>
 
-            <!-- CHẾ ĐỘ XEM SƠ ĐỒ LIÊN KẾT ĐỘNG (DYNAMIC ERD BY VALUES) -->
+            <!-- CHẾ ĐỘ XEM SƠ ĐỒ LIÊN KẾT ĐỘNG -->
             <div id="erdContainer" class="erd-container hidden">
                 <div class="erd-note">
                     <i class="fas fa-magic" style="color: var(--primary); font-size: 1.2rem; margin-bottom: 5px;"></i><br>
@@ -186,7 +190,28 @@
         </div>
     </div>
 
-    <!-- MODAL NHẬP LIỆU (FORM & JSON) -->
+    <!-- MODAL NHẬP TỪ EXCEL -->
+    <div id="excelImportModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-file-excel"></i> Nhập dữ liệu hàng loạt từ Excel</h3>
+                <i class="fas fa-times" style="cursor: pointer;" onclick="closeExcelImportModal()"></i>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 0.9rem; color: var(--text-body); margin-top: 0;">
+                    <b>Hướng dẫn:</b> Copy các ô từ Excel và dán (Ctrl+V) vào khung dưới đây.<br>
+                    <span style="color: var(--accent);">Lưu ý quan trọng: Dòng đầu tiên trong Excel bắt buộc phải là Tên trường (Keys). Nếu có cột tên là <b>_id</b>, hệ thống sẽ sử dụng nó làm Document ID thay vì tự sinh mã ngẫu nhiên.</span>
+                </p>
+                <textarea id="excelPasteArea" class="editor-box" placeholder="Cột 1 (Tab) Cột 2 (Tab) Cột 3&#10;Giá trị 1 (Tab) Giá trị 2 (Tab) Giá trị 3..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeExcelImportModal()">Hủy</button>
+                <button class="btn-success" onclick="processExcelImport()"><i class="fas fa-check"></i> Xác nhận Nhập</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL NHẬP LIỆU ĐƠN (FORM & JSON) -->
     <div id="editorModal" class="modal-overlay hidden">
         <div class="modal-content">
             <div class="modal-header">
@@ -215,7 +240,7 @@
 
                 <div id="jsonEditorArea" class="hidden">
                     <label style="font-size: 0.85rem; font-weight: bold; color: var(--text-body); display: block; margin-bottom: 5px;">Dữ liệu JSON thô:</label>
-                    <textarea id="jsonEditor" spellcheck="false"></textarea>
+                    <textarea id="jsonEditor" class="editor-box" spellcheck="false"></textarea>
                 </div>
             </div>
 
@@ -236,7 +261,6 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Khởi tạo Mermaid nhưng tắt Auto Load để vẽ thủ công
         mermaid.initialize({ startOnLoad: false, theme: 'default' });
 
         let currentTable = 'users';
@@ -245,7 +269,6 @@
         let isEditing = false;
         let currentMode = 'form'; 
 
-        // Khôi phục Danh sách Bảng tự tạo từ Local Storage
         let customTables = JSON.parse(localStorage.getItem('bmphcn_custom_tables') || '[]');
 
         function showToast(message, type = 'success') {
@@ -258,14 +281,12 @@
             setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
         }
 
-        // Render Bảng Custom vào Sidebar
         function renderCustomTables() {
             const container = document.getElementById('customTablesContainer');
             container.innerHTML = '';
             customTables.forEach(tName => {
                 const li = document.createElement('li');
                 li.className = 'table-item custom-table-item';
-                // Xóa nhãn Custom theo yêu cầu
                 li.innerHTML = `<i class="fas fa-table"></i> ${tName}`;
                 li.onclick = function() { loadTable(tName, this); };
                 container.appendChild(li);
@@ -284,7 +305,6 @@
             }
         });
 
-        // 1. TẠO BẢNG MỚI (Lưu vào LocalStorage để không bị mất)
         window.createNewTable = () => {
             const tName = prompt("Nhập tên Bảng (Collection) mới:\nLưu ý: Chỉ dùng chữ cái không dấu, số và dấu gạch dưới (_).");
             if (tName && tName.trim()) {
@@ -303,7 +323,6 @@
             }
         };
 
-        // 2. VẼ SƠ ĐỒ ĐỘNG DỰA TRÊN "VALUES" TRÙNG LẶP
         window.showErdView = async (el) => {
             document.querySelectorAll('.table-item').forEach(li => li.classList.remove('active'));
             el.classList.add('active');
@@ -318,25 +337,20 @@
 
             try {
                 let allTables = ['users', 'theses', 'assignments', 'visiting_lecturers', 'announcements', 'logs', 'recycle', 'settings', ...customTables];
-                let schemas = {}; // Lưu Keys
-                let tableValues = {}; // Lưu Values để so khớp
+                let schemas = {}; 
+                let tableValues = {}; 
 
-                // Các từ khóa rác quá phổ biến, nếu khớp sẽ tạo liên kết giả, cần loại bỏ
                 const ignoreVals = ['Lý thuyết', 'Thực hành', 'Thực tế', 'Ra đề thi', 'Coi thi', 'Chấm thi', 'Soạn mới, sửa BG/GT', 'Công việc khác', 'Hướng dẫn LV, LATS', 'Học kỳ 1', 'Học kỳ 2', 'Học kỳ 3', 'Học kỳ 4', 'THÊM', 'SỬA', 'XÓA', 'Khác'];
 
                 for (let t of allTables) {
-                    // Quét 50 document của mỗi bảng
                     const snap = await getDocs(query(collection(db, t), limit(50)));
                     schemas[t] = new Set();
                     tableValues[t] = new Set();
                     
                     snap.forEach(docSnap => {
                         let data = docSnap.data();
-                        
-                        // Lấy Keys
                         Object.keys(data).forEach(k => schemas[t].add(k));
                         
-                        // Lấy Values (quét đệ quy nếu có Array/Object lồng nhau)
                         const extractVals = (obj) => {
                             if (Array.isArray(obj)) {
                                 obj.forEach(item => extractVals(item));
@@ -344,7 +358,6 @@
                                 for (let k in obj) extractVals(obj[k]);
                             } else if (typeof obj === 'string') {
                                 let str = obj.trim();
-                                // Chỉ lấy chuỗi đủ dài, không phải url và không nằm trong danh sách ignore
                                 if (str.length > 3 && str.length < 80 && !str.startsWith('http') && !ignoreVals.includes(str)) {
                                     tableValues[t].add(str);
                                 }
@@ -352,13 +365,12 @@
                         };
                         
                         extractVals(data);
-                        tableValues[t].add(docSnap.id); // Khóa ngoại ID
+                        tableValues[t].add(docSnap.id); 
                     });
                 }
 
                 let mCode = 'erDiagram\n';
                 
-                // 1. Tạo Khối thực thể (Tables & Keys)
                 for (let t in schemas) {
                     mCode += `  ${t} {\n`;
                     if (schemas[t].size === 0) {
@@ -371,7 +383,6 @@
                     mCode += `  }\n`;
                 }
 
-                // 2. So khớp Values để tạo Đường liên kết (Links)
                 let links = [];
                 let tNames = Object.keys(schemas);
                 for(let i=0; i<tNames.length; i++) {
@@ -382,17 +393,12 @@
                         let v1 = Array.from(tableValues[t1]);
                         let v2 = tableValues[t2];
                         
-                        // Tìm điểm giao nhau (Intersection)
                         let common = v1.filter(v => v2.has(v));
                         
                         if (common.length > 0) {
-                            // Lấy 2 giá trị tượng trưng in lên label
                             let displayVals = common.slice(0, 2).join(', ');
                             if (common.length > 2) displayVals += '...';
-                            
-                            // Xóa các ký tự gây gãy code Mermaid
                             displayVals = displayVals.replace(/["\\[\\]{}()]/g, '');
-                            
                             links.push(`  ${t1} ||--o{ ${t2} : "Khớp Value: ${displayVals}"`);
                         }
                     }
@@ -404,7 +410,6 @@
                     mCode += links.join('\n');
                 }
 
-                // Vẽ sơ đồ bằng Mermaid
                 const graphId = 'erdGraph_' + Date.now();
                 const { svg } = await mermaid.render(graphId, mCode);
                 erdDiv.innerHTML = svg;
@@ -494,7 +499,90 @@
         };
 
         // ==========================================
-        // KHỐI CHỨC NĂNG EDITOR (FORM VÀ JSON)
+        // KHỐI CHỨC NĂNG IMPORT EXCEL HÀNG LOẠT
+        // ==========================================
+        window.openExcelImportModal = () => {
+            document.getElementById('excelPasteArea').value = '';
+            document.getElementById('excelImportModal').classList.remove('hidden');
+        };
+
+        window.closeExcelImportModal = () => {
+            document.getElementById('excelImportModal').classList.add('hidden');
+        };
+
+        window.processExcelImport = async () => {
+            const text = document.getElementById('excelPasteArea').value;
+            if (!text.trim()) {
+                showToast("Vui lòng dán dữ liệu vào ô trống!", "danger");
+                return;
+            }
+
+            const lines = text.split(/\r?\n/);
+            if (lines.length < 2) {
+                showToast("Dữ liệu phải có ít nhất 2 dòng (1 dòng tên cột, 1 dòng dữ liệu).", "danger");
+                return;
+            }
+
+            // Tách các cột dựa trên dấu Tab của Excel
+            const headers = lines[0].split('\t').map(h => h.trim());
+            let successCount = 0;
+            let errorCount = 0;
+
+            document.getElementById('excelImportModal').classList.add('hidden');
+            showToast("Đang xử lý nhập dữ liệu...", "success");
+
+            for (let i = 1; i < lines.length; i++) {
+                const rowStr = lines[i];
+                if (!rowStr.trim()) continue; // Bỏ qua dòng trống
+                
+                const values = rowStr.split('\t');
+                let docData = {};
+                let customId = null;
+
+                for (let j = 0; j < headers.length; j++) {
+                    const key = headers[j];
+                    if (!key) continue;
+
+                    let val = values[j] !== undefined ? values[j].trim() : '';
+                    
+                    if (key === '_id') {
+                        if (val) customId = val;
+                        continue;
+                    }
+
+                    // Tự động nhận diện và ép kiểu dữ liệu
+                    if (val.toLowerCase() === 'true') val = true;
+                    else if (val.toLowerCase() === 'false') val = false;
+                    else if (val.toLowerCase() === 'null') val = null;
+                    else if (val !== '' && !isNaN(val)) val = Number(val);
+                    
+                    // Nếu là mảng JSON hợp lệ
+                    if (typeof val === 'string' && (val.startsWith('[') || val.startsWith('{'))) {
+                        try { val = JSON.parse(val); } catch(e) {}
+                    }
+
+                    if (val !== '') docData[key] = val; 
+                }
+
+                try {
+                    if (customId) {
+                        await setDoc(doc(db, currentTable, customId), docData, {merge: true});
+                    } else {
+                        await setDoc(doc(collection(db, currentTable)), docData);
+                    }
+                    successCount++;
+                } catch (e) {
+                    errorCount++;
+                    console.error("Lỗi dòng " + i, e);
+                }
+            }
+
+            showToast(`Nhập Excel hoàn tất! Thành công: ${successCount} dòng. Lỗi: ${errorCount} dòng.`);
+            refreshTable();
+        };
+
+        // ==========================================
+        // KHỐI CHỨC NĂNG EDITOR ĐƠN LẺ (FORM VÀ JSON)
         // ==========================================
         window.switchEditorMode = (mode) => {
             currentMode = mode;
