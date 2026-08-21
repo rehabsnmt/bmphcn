@@ -110,6 +110,7 @@
     <div id="toastContainer" class="toast-container"></div>
     <div id="eventTooltip"></div>
 
+    <!-- THANH CÔNG CỤ COMPACT TRÊN CÙNG -->
     <div class="top-toolbar">
         <div>
             <h2>LỊCH CÔNG TÁC GIẢNG VIÊN</h2>
@@ -120,7 +121,6 @@
                 <i class="fas fa-bars"></i> Kho Sự Kiện
             </button>
             <div class="tabs-header">
-                <!-- KHÔNG CẦN HIỂN THỊ TAB CN2023 -->
                 <button class="tab-btn active" onclick="switchClass('THS2025', this)">Khóa ThS 25-27</button>
                 <button class="tab-btn" onclick="switchClass('THS2026', this)">Khóa ThS 26-28</button>
             </div>
@@ -292,7 +292,7 @@
 
         // KIỂM TRA TÍNH HỢP LỆ CỦA LỊCH THỰC HÀNH LÂM SÀNG DỰA THEO BỆNH VIỆN
         function validateClinicalSchedule(eventObj, gv, subject) {
-            if (!subject.toLowerCase().includes('thực hành lâm sàng')) return true; // Hợp lệ nếu không phải môn lâm sàng
+            if (!subject.toLowerCase().includes('thực hành lâm sàng')) return true; 
             
             const droppedDate = eventObj.start;
             const y = droppedDate.getFullYear();
@@ -301,7 +301,6 @@
             const dateStr = `${y}-${m}-${d}`;
 
             const dailyClinicals = globalGroupedClinicals[dateStr] || [];
-            // Lọc ra lịch bệnh viện của ngày đó MÀ CÓ TÊN giảng viên này
             const teacherClinicals = dailyClinicals.filter(c => c.instructors && c.instructors.includes(gv));
 
             if (teacherClinicals.length === 0) {
@@ -310,7 +309,7 @@
             }
 
             const startHour = droppedDate.getHours();
-            const isMorningDrop = startHour < 12; // Nhỏ hơn 12h là sáng
+            const isMorningDrop = startHour < 12; 
             
             const hasMorningShift = teacherClinicals.some(c => c.shift.toLowerCase().includes('sáng') || c.shift.toLowerCase().includes('cả ngày'));
             const hasAfternoonShift = teacherClinicals.some(c => c.shift.toLowerCase().includes('chiều') || c.shift.toLowerCase().includes('cả ngày'));
@@ -473,7 +472,6 @@
                     
                     const props = info.event.extendedProps;
                     
-                    // KIỂM TRA ĐIỀU KIỆN LỊCH LÂM SÀNG BỆNH VIỆN
                     if (!validateClinicalSchedule(info.event, props.gv, props.subject)) {
                         info.revert(); return;
                     }
@@ -482,7 +480,7 @@
                     info.event.setProp('id', newUniqueId); 
                     
                     if (hasOverlap(info.event.start, info.event.end, props.gv, newUniqueId)) {
-                        showToast(`Lỗi: Giảng viên ${props.gv} bị trùng lịch Lý thuyết khác!`, "danger");
+                        showToast(`Lỗi: Giảng viên ${props.gv} bị trùng lịch với Lịch Lý thuyết khác!`, "danger");
                         info.revert(); return;
                     }
 
@@ -630,7 +628,6 @@
                         let dateObj = new Date(props.dateStr);
                         let dateVN = dateObj.toLocaleDateString('vi-VN', {weekday: 'long', day:'2-digit', month:'2-digit', year:'numeric'});
                         
-                        // Gom nhóm theo từng bệnh viện
                         let hospitalGroups = {};
                         props.details.forEach(c => {
                             if(!hospitalGroups[c.hospital]) hospitalGroups[c.hospital] = [];
@@ -767,9 +764,14 @@
                 }
             });
 
+            // KIỂM TRA ĐIỀU KIỆN: CHỈ HIỂN THỊ CÁC NHIỆM VỤ ĐÃ ĐƯỢC DUYỆT (status === 'approved')
             for (let subId in assignmentsData) {
                 const subAsg = assignmentsData[subId];
                 if (subAsg[currentClass] && subAsg[currentClass].allocations) {
+                    
+                    // NẾU NHIỆM VỤ ĐANG CHỜ DUYỆT THÌ BỎ QUA KHÔNG ĐƯA VÀO KHO
+                    if (subAsg[currentClass].status === 'proposed') continue;
+
                     const semester = subAsg[currentClass].semester || 'Chưa xác định';
                     if (selectedSemester !== 'ALL' && semester !== selectedSemester) continue; 
                     const subName = subjectsData.find(s => s.id === subId)?.name || 'Môn không xác định';
