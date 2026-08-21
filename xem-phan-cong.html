@@ -42,7 +42,7 @@
         
         .btn-accept { flex: 1; background-color: #10b981; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; }
         .btn-accept:hover { background-color: #059669; }
-        .btn-accept:disabled { background-color: #10b981; opacity: 1; cursor: default; } /* Đã nhận thì xanh đậm đứng yên */
+        .btn-accept:disabled { background-color: #10b981; opacity: 1; cursor: default; } 
 
         .btn-reject { flex: 1; background-color: white; color: #ef4444; border: 1px solid #ef4444; padding: 10px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; }
         .btn-reject:hover { background-color: #fef2f2; }
@@ -100,7 +100,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, collection, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, collection, onSnapshot, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY", authDomain: "bmphcn-aa9c6.firebaseapp.com", projectId: "bmphcn-aa9c6", storageBucket: "bmphcn-aa9c6.firebasestorage.app", messagingSenderId: "749494392719", appId: "1:749494392719:web:f220c751ff541620045dfa" };
         const app = initializeApp(firebaseConfig);
@@ -125,7 +125,7 @@
             if (!startStr) return 'Chưa xác định';
             
             const startDate = new Date(startStr);
-            const endDate = endStr ? new Date(endStr) : new Date(startDate.getTime() + 4 * 3600000); // Mặc định 4h nếu ko có end
+            const endDate = endStr ? new Date(endStr) : new Date(startDate.getTime() + 4 * 3600000); 
             
             const timeOpts = { hour: '2-digit', minute: '2-digit', hour12: false };
             const sTime = startDate.toLocaleTimeString('vi-VN', timeOpts);
@@ -140,10 +140,8 @@
             };
         }
 
-        // BẮT ĐẦU QUY TRÌNH KIỂM TRA ĐĂNG NHẬP
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                // Lấy tên thật của Giảng viên để dò lịch
                 try {
                     const userDoc = await getDoc(doc(db, "users", user.uid));
                     if (userDoc.exists()) {
@@ -151,7 +149,6 @@
                         let prefix = data.degree === 'ThS' ? 'ThS. ' : (data.degree === 'TS' ? 'TS. ' : '');
                         currentUserName = `${prefix}${data.fullName}`;
                         
-                        // Cập nhật Header
                         setTimeout(() => {
                             const btnAuthNav = document.getElementById('btnAuthNav');
                             if (btnAuthNav) {
@@ -160,28 +157,26 @@
                             }
                         }, 300);
 
-                        // Bắt đầu Lắng nghe Database Lịch công tác
                         listenToMySchedules();
                     } else {
-                        window.location.href = "login.html"; // Không tìm thấy User
+                        window.location.href = "login.html"; 
                     }
                 } catch (e) {
                     console.error("Lỗi lấy thông tin User", e);
                 }
             } else {
-                window.location.href = "login.html"; // Chưa đăng nhập
+                window.location.href = "login.html"; 
             }
         });
 
-        // TẢI & LỌC DỮ LIỆU CỦA RIÊNG MÌNH
+        // TẢI & LỌC DỮ LIỆU (CHỈ LẤY CÁC SỰ KIỆN CHƯA BỊ TRẢ VỀ: status !== 'returned')
         function listenToMySchedules() {
             onSnapshot(collection(db, "calendar_events"), (snapshot) => {
                 myEvents = [];
-                snapshot.forEach(doc => { 
-                    const data = doc.data();
-                    // Nếu tên GV trong thẻ lịch có chứa tên của Current User
-                    if (data.gv && currentUserName && data.gv.includes(currentUserName)) {
-                        myEvents.push(data);
+                snapshot.forEach(docSnap => { 
+                    const data = docSnap.data();
+                    if (data.gv && currentUserName && data.gv.includes(currentUserName) && data.status !== 'returned') {
+                        myEvents.push({ ...data, id: docSnap.id });
                     }
                 });
                 renderTasks();
@@ -202,18 +197,12 @@
             let todayCount = 0;
             let upcomingCount = 0;
 
-            // Sắp xếp sự kiện tăng dần theo thời gian
             myEvents.sort((a, b) => new Date(a.start) - new Date(b.start));
 
             myEvents.forEach(evt => {
                 const timeInfo = formatTaskTime(evt.start, evt.end);
-                
-                // BỎ QUA CÁC NHIỆM VỤ ĐÃ TRÔI QUA (KẾT THÚC RỒI THÌ KHÔNG HIỆN NỮA)
                 if (timeInfo.isPast) return; 
 
-                // TRẠNG THÁI: Tạm thời mặc định hiển thị Nút Xanh "Đã Nhận" (Do hệ thống Admin xếp là mặc định nhận)
-                // Chỉ xử lý nút Từ Chối (Trả về kho)
-                
                 const cardHtml = `
                     <div class="task-card ${timeInfo.isToday ? 'today' : ''}">
                         <div class="task-time">
@@ -251,14 +240,16 @@
             }
         }
 
-        // TÍNH NĂNG TỪ CHỐI NHIỆM VỤ -> XÓA KHỎI LỊCH (TỰ ĐỘNG TRẢ VỀ KHO CỦA ADMIN)
+        // TÍNH NĂNG TỪ CHỐI NHIỆM VỤ -> CẬP NHẬT TRẠNG THÁI 'returned' & TĂNG BIẾN ĐẾM 'rejected'
         window.rejectTask = async (eventId) => {
             if (confirm("Bạn có chắc chắn KHÔNG NHẬN nhiệm vụ này?\nNhiệm vụ sẽ bị gỡ khỏi lịch và hoàn trả về kho Hệ thống để Trưởng BM phân công lại!")) {
                 try {
-                    // Xóa Document trong Collection calendar_events
-                    await deleteDoc(doc(db, "calendar_events", eventId));
+                    const eventRef = doc(db, "calendar_events", eventId);
+                    await updateDoc(eventRef, {
+                        status: 'returned',
+                        rejected: increment(1)
+                    });
                     showToast("Đã hoàn trả nhiệm vụ thành công!");
-                    // Giao diện sẽ tự động cập nhật do đang lắng nghe onSnapshot
                 } catch(e) {
                     showToast("Lỗi khi hoàn trả: " + e.message, "danger");
                 }
