@@ -8,6 +8,8 @@
     
     <link rel="icon" href="images/logo_Bộ môn.png" type="image/png">
     <link rel="stylesheet" href="css/style.css">
+    
+    <!-- Giữ lại thư viện FontAwesome cho layout header/footer, nhưng không dùng trong giao diện lịch -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- FullCalendar CSS & JS -->
@@ -16,15 +18,16 @@
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/vi.js'></script>
 
     <style>
-        main { max-width: 1400px; padding: 2rem 3%; margin: 0 auto; display: flex; gap: 20px; align-items: flex-start; }
+        /* Mở rộng tối đa diện tích màn hình */
+        main { max-width: 100%; padding: 1rem 2%; margin: 0 auto; display: flex; gap: 20px; align-items: flex-start; }
         
-        .header-title-box { width: 100%; text-align: center; margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+        .header-title-box { width: 100%; text-align: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--border); }
         .header-title-box h2 { font-size: 1.6rem; color: var(--text-dark); margin: 0; font-weight: 700; }
         .header-title-box .subtitle { font-size: 1rem; color: var(--text-body); font-weight: 600; margin-top: 5px; }
 
-        .controls-wrapper { display: flex; justify-content: center; align-items: center; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; }
+        .controls-wrapper { display: flex; justify-content: center; align-items: center; gap: 20px; margin-bottom: 15px; flex-wrap: wrap; }
         .tabs-header { display: flex; gap: 10px; }
-        .tab-btn { padding: 8px 20px; font-size: 1rem; font-weight: 600; color: var(--text-body); background: var(--bg-page); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; transition: 0.3s; }
+        .tab-btn { padding: 8px 25px; font-size: 1rem; font-weight: 600; color: var(--text-body); background: var(--bg-page); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; transition: 0.3s; }
         .tab-btn:hover { background: #e2e8f0; color: var(--text-dark); }
         .tab-btn.active { color: white; background: var(--primary); border-color: var(--primary); }
 
@@ -32,35 +35,33 @@
         .filter-select:focus { border-color: var(--primary); }
 
         /* Khung bên trái (Kho Sự Kiện chưa xếp) */
-        #external-events { width: 300px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 15px; box-shadow: var(--shadow-sm); flex-shrink: 0; display: none; max-height: 800px; overflow-y: auto; }
-        #external-events h4 { margin-top: 0; color: var(--primary); border-bottom: 1px dashed var(--border); padding-bottom: 10px; font-size: 1.05rem; }
+        #external-events { width: 280px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 15px; box-shadow: var(--shadow-sm); flex-shrink: 0; display: none; max-height: calc(100vh - 200px); overflow-y: auto; }
+        #external-events h4 { margin: 0 0 10px 0; color: var(--primary); border-bottom: 1px dashed var(--border); padding-bottom: 10px; font-size: 1.1rem; }
         
-        #event-pool .fc-event { cursor: move; margin: 10px 0; padding: 10px; background-color: var(--primary-light); color: var(--primary); border: 1px solid var(--primary); border-radius: 6px; font-size: 0.9rem; font-weight: 600; text-align: left; transition: 0.2s; }
-        #event-pool .fc-event:hover { background-color: #bae6fd; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        #event-pool .event-info { display: block; font-size: 0.8rem; color: #475569; font-weight: normal; margin-top: 4px; line-height: 1.4; }
+        #event-pool .fc-event { cursor: move; margin: 10px 0; padding: 12px; background-color: #f1f5f9; color: var(--text-dark); border: 1px solid var(--border); border-radius: 6px; text-align: left; transition: 0.2s; }
+        #event-pool .fc-event:hover { background-color: #e2e8f0; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-color: #94a3b8; }
+        #event-pool .event-gv { font-weight: 700; font-size: 0.95rem; margin-bottom: 4px; color: var(--primary); }
+        #event-pool .event-info { display: block; font-size: 0.8rem; color: var(--text-body); line-height: 1.4; }
 
         /* Khung Lịch */
-        #calendar-container { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; box-shadow: var(--shadow-sm); min-height: 700px; }
+        #calendar-container { flex: 1; min-width: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; box-shadow: var(--shadow-sm); min-height: 80vh; }
         
-        .fc-toolbar-title { font-size: 1.3rem !important; color: var(--primary); font-weight: bold; text-transform: capitalize; }
-        .fc-button-primary { background-color: var(--primary) !important; border-color: var(--primary) !important; text-transform: capitalize; }
+        .fc-toolbar-title { font-size: 1.4rem !important; color: var(--primary); font-weight: bold; text-transform: capitalize; }
+        .fc-button-primary { background-color: var(--primary) !important; border-color: var(--primary) !important; text-transform: capitalize; font-weight: 600 !important; }
         .fc-button-primary:hover { background-color: var(--primary-hover) !important; }
         .fc-button-active { background-color: var(--primary-hover) !important; }
 
         /* Style cho Sự kiện TRÊN LỊCH */
-        .fc-event-main { padding: 0; }
-        .event-on-calendar { padding: 4px 6px; overflow: hidden; white-space: normal; line-height: 1.3; color: white; border-radius: 3px; height: 100%; display: flex; flex-direction: column; justify-content: space-between; }
-        .event-on-calendar .evt-title { font-weight: 600; font-size: 0.85rem; }
-        .event-on-calendar .evt-footer { font-size: 0.7rem; margin-top: 4px; color: #fef08a; text-align: right; border-top: 1px dashed rgba(255,255,255,0.4); padding-top: 3px; }
+        .fc-event-main { padding: 0; height: 100%; }
+        .event-on-calendar { padding: 6px; overflow: hidden; color: white; height: 100%; display: flex; flex-direction: column; box-sizing: border-box; }
+        .event-on-calendar .evt-time { font-size: 0.85rem; font-weight: 600; margin-bottom: 4px; background: rgba(0,0,0,0.2); display: inline-block; padding: 2px 6px; border-radius: 4px; width: fit-content; }
+        .event-on-calendar .evt-gv { font-size: 1.05rem; font-weight: 700; margin-bottom: 4px; line-height: 1.2; text-shadow: 1px 1px 2px rgba(0,0,0,0.2); }
+        .event-on-calendar .evt-sub { font-size: 0.8rem; font-weight: 400; opacity: 0.95; line-height: 1.3; }
+        .event-on-calendar .evt-footer { font-size: 0.75rem; margin-top: auto; text-align: right; border-top: 1px solid rgba(255,255,255,0.3); padding-top: 4px; font-style: italic; }
 
         .hidden { display: none !important; }
 
-        /* Tooltip Rà chuột */
-        #eventTooltip { position: fixed; z-index: 9999; background: rgba(15, 23, 42, 0.95); color: white; padding: 12px 15px; border-radius: 8px; font-size: 0.85rem; pointer-events: none; display: none; box-shadow: 0 10px 25px rgba(0,0,0,0.3); line-height: 1.6; max-width: 320px; border-left: 4px solid var(--primary); }
-        #eventTooltip strong { color: #38bdf8; font-size: 0.95rem; }
-        #eventTooltip .tooltip-scheduler { color: #fef08a; font-weight: bold; display: block; margin-top: 5px; border-top: 1px dashed rgba(255,255,255,0.2); padding-top: 5px; }
-
-        /* Toast */
+        /* Toast Thông báo */
         .toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
         .toast { min-width: 250px; background-color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: 0.4s; font-weight: 600; border-left: 5px solid #22c55e; opacity: 0; }
         .toast.show { transform: translateX(0); opacity: 1; }
@@ -73,9 +74,10 @@
         .modal-header h3 { margin: 0; font-size: 1.1rem; }
         .modal-body { padding: 20px; line-height: 1.8; text-align: justify; }
         .modal-footer { padding: 15px 20px; background: #f1f5f9; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border); }
+        
         .btn-danger { background: var(--accent); color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s;}
         .btn-danger:hover { background: #be123c; }
-        .btn-secondary { background: white; color: var(--text-dark); border: 1px solid var(--border); padding: 8px 15px; border-radius: 4px; cursor: pointer; transition: 0.2s; }
+        .btn-secondary { background: white; color: var(--text-dark); border: 1px solid var(--border); padding: 8px 15px; border-radius: 4px; cursor: pointer; transition: 0.2s; font-weight: 600; }
         .btn-secondary:hover { background: #e2e8f0; }
 
         @media (max-width: 900px) {
@@ -88,10 +90,9 @@
 
     <div id="header-placeholder"></div>
     <div id="toastContainer" class="toast-container"></div>
-    <div id="eventTooltip"></div>
 
-    <div class="header-title-box" style="margin-top: 2rem;">
-        <h2><i class="fas fa-calendar-alt" style="color: var(--primary);"></i> LỊCH CÔNG TÁC GIẢNG VIÊN</h2>
+    <div class="header-title-box" style="margin-top: 1rem;">
+        <h2>LỊCH CÔNG TÁC GIẢNG VIÊN</h2>
         <div class="subtitle">BỘ MÔN PHỤC HỒI CHỨC NĂNG</div>
     </div>
 
@@ -114,12 +115,12 @@
     <main>
         <!-- KHO SỰ KIỆN (Chỉ hiện cho Admin) -->
         <div id="external-events">
-            <h4><i class="fas fa-tasks"></i> Công việc chưa xếp</h4>
-            <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 10px; font-style: italic;">
-                * Cầm kéo thẻ và thả trực tiếp vào bảng lịch để chọn khung giờ.
+            <h4>Công việc chưa xếp</h4>
+            <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 15px; font-style: italic;">
+                * Cầm thẻ và thả trực tiếp vào lưới giờ. Mặc định 4 tiếng/buổi.
             </div>
             <div id="event-pool">
-                <div style="text-align:center; padding: 20px;"><i class="fas fa-spinner fa-spin"></i> Đang tải...</div>
+                <div style="text-align:center; padding: 20px;">Đang tải dữ liệu...</div>
             </div>
         </div>
 
@@ -134,20 +135,20 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Chi tiết Lịch dạy</h3>
-                <i class="fas fa-times" style="cursor: pointer;" onclick="closeModal()"></i>
+                <span style="cursor: pointer; font-weight: bold; font-size: 1.2rem;" onclick="closeModal()">X</span>
             </div>
             <div class="modal-body">
                 <p><strong>Môn học:</strong> <span id="mdlSubject"></span></p>
                 <p><strong>Nhiệm vụ:</strong> <span id="mdlTask"></span></p>
-                <p><strong>Giảng viên:</strong> <span id="mdlGv" style="color: var(--primary); font-weight: bold;"></span></p>
-                <p><strong>Khung giờ:</strong> <span id="mdlTime" style="font-weight: 600; color: #d97706;"></span></p>
+                <p><strong>Giảng viên:</strong> <span id="mdlGv" style="color: var(--primary); font-weight: bold; font-size: 1.1rem;"></span></p>
+                <p><strong>Thời gian:</strong> <span id="mdlTime" style="font-weight: 600; color: #d97706;"></span></p>
                 <p style="margin-top: 15px; padding-top: 10px; border-top: 1px dashed var(--border);">
-                    <i class="fas fa-user-edit" style="color:#64748b;"></i> <strong>Người xếp lịch:</strong> <span id="mdlScheduler" style="color:#64748b; font-weight:bold;"></span>
+                    <strong>Người xếp lịch:</strong> <span id="mdlScheduler" style="color:#64748b; font-weight:bold;"></span>
                 </p>
             </div>
             <div class="modal-footer">
                 <button class="btn-secondary" onclick="closeModal()">Đóng</button>
-                <button class="btn-danger hidden" id="btnDeleteEvent" onclick="deleteEvent()"><i class="fas fa-trash"></i> Xóa khỏi lịch</button>
+                <button class="btn-danger hidden" id="btnDeleteEvent" onclick="deleteEvent()">Xóa khỏi lịch</button>
             </div>
         </div>
     </div>
@@ -166,7 +167,7 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // DATA MÔN HỌC (RÚT GỌN)
+        // DATA MÔN HỌC (Dùng để tham chiếu ID sang Tên Môn)
         const subjectsData = [
             {"id": "sub_1", "name": "Triết học"}, {"id": "sub_2", "name": "Ngoại ngữ"}, {"id": "sub_3", "name": "Sinh học phân tử"}, {"id": "sub_4", "name": "Y đức - Xã hội học"}, {"id": "sub_5", "name": "Phương pháp nghiên cứu khoa học"}, {"id": "sub_6", "name": "Thống kê y học"},
             {"id": "sub_7", "name": "Phương pháp dạy và học trong phục hồi chức năng"}, {"id": "sub_8", "name": "Quản lý và lãnh đạo trong phục hồi chức năng"}, {"id": "sub_9", "name": "Kỹ năng hướng dẫn lâm sàng và lý luận lâm sàng trong PHCN"}, {"id": "sub_10", "name": "Thực hành kỹ năng hướng dẫn lâm sàng"}, {"id": "sub_11", "name": "Thực hành dựa trên chứng cứ"},
@@ -191,32 +192,44 @@
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
-            toast.innerHTML = `<i class="fas ${type === 'danger' ? 'fa-times-circle' : 'fa-check-circle'}"></i><span>${message}</span>`;
+            toast.innerText = message;
             container.appendChild(toast);
             setTimeout(() => toast.classList.add('show'), 10);
             setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
         }
 
-        function getShortName(fullName) {
-            if (!fullName) return '';
-            const parts = fullName.trim().split(' ');
-            return parts[parts.length - 1];
-        }
-
         // Hàm format thời gian để hiển thị Popup
         function formatEventTime(eventObj) {
             if (!eventObj.start) return '';
-            if (eventObj.allDay) {
-                return eventObj.start.toLocaleDateString('vi-VN', {weekday: 'long', day:'2-digit', month:'2-digit', year:'numeric'});
-            }
-            const timeOpts = { hour: '2-digit', minute: '2-digit' };
+            const timeOpts = { hour: '2-digit', minute: '2-digit', hour12: false };
             const startTime = eventObj.start.toLocaleTimeString('vi-VN', timeOpts);
             const endTime = eventObj.end ? eventObj.end.toLocaleTimeString('vi-VN', timeOpts) : '...';
             const startDate = eventObj.start.toLocaleDateString('vi-VN', {day:'2-digit', month:'2-digit', year:'numeric'});
-            return `${startTime} - ${endTime} (${startDate})`;
+            return `${startTime} - ${endTime} (Ngày ${startDate})`;
         }
 
-        // KIỂM TRA ĐĂNG NHẬP VÀ ĐỔI TÊN HEADER
+        // HÀM KIỂM TRA TRÙNG LỊCH (Double-Booking Check)
+        function hasOverlap(targetStart, targetEnd, gv, ignoreEventId) {
+            // Mặc định nếu không có giờ kết thúc thì tính là 4 tiếng
+            if (!targetEnd) targetEnd = new Date(targetStart.getTime() + 4 * 60 * 60 * 1000);
+            
+            let allEvents = calendar.getEvents();
+            for (let e of allEvents) {
+                if (e.id === ignoreEventId) continue; // Bỏ qua chính nó
+                if (e.extendedProps.gv !== gv) continue; // Chỉ so sánh với lịch của cùng GV
+                
+                let eStart = e.start;
+                let eEnd = e.end || new Date(eStart.getTime() + 4 * 60 * 60 * 1000);
+                
+                // Công thức giao nhau: Bắt đầu A < Kết thúc B VÀ Kết thúc A > Bắt đầu B
+                if (targetStart < eEnd && targetEnd > eStart) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // KIỂM TRA ĐĂNG NHẬP VÀ LẤY TÊN GV
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUserEmail = user.email.toLowerCase();
@@ -225,6 +238,7 @@
                     document.getElementById('external-events').style.display = 'block'; 
                 }
 
+                // Lấy tên thật của người đăng nhập
                 const userDoc = await getDoc(doc(db, "users", user.uid));
                 if (userDoc.exists()) {
                     const data = userDoc.data();
@@ -234,7 +248,7 @@
                     setTimeout(() => {
                         const btnAuthNav = document.getElementById('btnAuthNav');
                         if (btnAuthNav) {
-                            btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right:5px;"></i> ${currentUserName}`;
+                            btnAuthNav.innerText = currentUserName;
                             btnAuthNav.href = "dashboard.html";
                         }
                     }, 300);
@@ -254,17 +268,16 @@
             window.processAndRenderEvents();
         };
 
-        // KHỞI TẠO LỊCH FULLCALENDAR (CHUYỂN SANG DẠNG GRID GIỜ)
+        // KHỞI TẠO LỊCH FULLCALENDAR (DẠNG TIME GRID HÀNH CHÍNH)
         function initCalendar() {
             const containerEl = document.getElementById('external-events');
             
-            // Cấu hình Kéo thẻ (Drag) cho Kho
             if (isCalendarAdmin) {
                 new FullCalendar.Draggable(containerEl, {
                     itemSelector: '.fc-event',
                     eventData: function(eventEl) {
                         return {
-                            title: eventEl.getAttribute('data-title-short'),
+                            title: eventEl.getAttribute('data-title'), // Không dùng rút gọn
                             id: eventEl.getAttribute('data-id'),
                             extendedProps: {
                                 subject: eventEl.getAttribute('data-subject'),
@@ -286,10 +299,11 @@
                     center: 'title',
                     right: 'dayGridMonth,timeGridWeek,timeGridDay'
                 },
-                slotMinTime: '07:00:00', // Giới hạn giờ hiển thị cho gọn
+                slotMinTime: '07:00:00', // Giới hạn giờ hành chính
                 slotMaxTime: '21:00:00',
-                allDaySlot: true,
-                defaultTimedEventDuration: '04:00:00', // Kéo vào lưới giờ tự auto 4 tiếng
+                allDaySlot: false, // Bỏ ô Cả Ngày để ép xếp vào giờ
+                defaultTimedEventDuration: '04:00:00', // Mặc định Kéo vào lưới tự auto 4 tiếng
+                eventTimeFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
                 editable: isCalendarAdmin, 
                 droppable: isCalendarAdmin, 
                 events: [],
@@ -297,25 +311,38 @@
                 // TÙY BIẾN GIAO DIỆN SỰ KIỆN TRÊN LỊCH
                 eventContent: function(arg) {
                     const props = arg.event.extendedProps;
-                    const schedulerShort = props.scheduledByName ? getShortName(props.scheduledByName) : 'Admin';
+                    const schedulerName = props.scheduledByName || 'Admin';
+                    const timeStr = arg.timeText; 
                     
                     return {
                         html: `
                         <div class="event-on-calendar">
-                            <div class="evt-title">${arg.event.title}</div>
-                            <div class="evt-footer">Xếp bởi: ${schedulerShort}</div>
+                            <div class="evt-time">${timeStr}</div>
+                            <div class="evt-gv">${props.gv}</div>
+                            <div class="evt-sub">${props.subject} (${props.task})</div>
+                            <div class="evt-footer">Xếp bởi: ${schedulerName}</div>
                         </div>
                         `
                     };
                 },
 
-                // BẮT SỰ KIỆN THẢ TỪ KHO VÀO LỊCH -> LƯU DATABASE NGAY LẬP TỨC
+                // BẮT SỰ KIỆN THẢ TỪ KHO VÀO LỊCH -> KIỂM TRA TRÙNG LỊCH & LƯU
                 eventReceive: async function(info) {
                     if (!isCalendarAdmin) { info.revert(); return; }
                     
                     const props = info.event.extendedProps;
+                    const newUniqueId = props.originalId + '_' + Date.now();
+                    info.event.setProp('id', newUniqueId); // Set tạm ID để check overlap an toàn
+                    
+                    // Kiểm tra Trùng lịch GV
+                    if (hasOverlap(info.event.start, info.event.end, props.gv, newUniqueId)) {
+                        showToast(`Lỗi: Giảng viên ${props.gv} đã có lịch trong khung giờ này!`, "danger");
+                        info.revert();
+                        return;
+                    }
+
                     const eventData = {
-                        id: props.originalId + '_' + Date.now(), 
+                        id: newUniqueId, 
                         title: info.event.title,
                         start: info.event.startStr,
                         end: info.event.endStr || null,
@@ -330,8 +357,8 @@
                     
                     try {
                         await setDoc(doc(db, "calendar_events", eventData.id), eventData);
-                        info.event.setProp('id', eventData.id); // Cập nhật ID thật để các thao tác drop sau ko bị lỗi
                         showToast("Đã xếp lịch thành công!");
+                        info.event.remove(); // Xóa thẻ tạm, để listener Firebase tự đổ thẻ thật vào
                     } catch(e) {
                         showToast("Lỗi khi lưu lịch: " + e.message, "danger");
                         info.revert(); 
@@ -341,6 +368,14 @@
                 // KHI KÉO VÀ DỜI NGÀY/GIỜ TRÊN LỊCH
                 eventDrop: async function(info) {
                     if (!isCalendarAdmin) { info.revert(); return; }
+                    
+                    const props = info.event.extendedProps;
+                    if (hasOverlap(info.event.start, info.event.end, props.gv, info.event.id)) {
+                        showToast(`Lỗi: Giảng viên ${props.gv} bị trùng lịch khi dời!`, "danger");
+                        info.revert();
+                        return;
+                    }
+
                     try {
                         await setDoc(doc(db, "calendar_events", info.event.id), { 
                             start: info.event.startStr,
@@ -354,9 +389,17 @@
                     }
                 },
 
-                // KHI KÉO GIÃN THỜI GIAN (RESIZE EVENT)
+                // KHI KÉO GIÃN THỜI GIAN (RESIZE)
                 eventResize: async function(info) {
                     if (!isCalendarAdmin) { info.revert(); return; }
+                    
+                    const props = info.event.extendedProps;
+                    if (hasOverlap(info.event.start, info.event.end, props.gv, info.event.id)) {
+                        showToast(`Lỗi: Khung giờ kéo giãn bị trùng với lịch khác của GV này!`, "danger");
+                        info.revert();
+                        return;
+                    }
+
                     try {
                         await setDoc(doc(db, "calendar_events", info.event.id), { 
                             start: info.event.startStr,
@@ -366,40 +409,6 @@
                     } catch(e) {
                         showToast("Lỗi cập nhật thời lượng!", "danger");
                         info.revert();
-                    }
-                },
-
-                // TÍNH NĂNG HOVER: TOOLTIP
-                eventMouseEnter: function(info) {
-                    const props = info.event.extendedProps;
-                    const timeString = formatEventTime(info.event);
-                    
-                    const tooltip = document.getElementById('eventTooltip');
-                    tooltip.innerHTML = `
-                        <strong><i class="fas fa-book"></i> ${props.subject}</strong><br>
-                        Nhiệm vụ: ${props.task}<br>
-                        Giảng viên: ${props.gv}<br>
-                        Thời gian: ${timeString}<br>
-                        <span class="tooltip-scheduler"><i class="fas fa-user-edit"></i> Xếp bởi: ${props.scheduledByName || 'Admin'}</span>
-                    `;
-                    tooltip.style.display = 'block';
-                    
-                    const moveTooltip = (e) => {
-                        tooltip.style.left = (e.pageX + 15) + 'px';
-                        tooltip.style.top = (e.pageY + 15) + 'px';
-                    };
-                    
-                    tooltip.style.left = (info.jsEvent.pageX + 15) + 'px';
-                    tooltip.style.top = (info.jsEvent.pageY + 15) + 'px';
-                    
-                    info.el.addEventListener('mousemove', moveTooltip);
-                    info.el._moveTooltip = moveTooltip; 
-                },
-                eventMouseLeave: function(info) {
-                    const tooltip = document.getElementById('eventTooltip');
-                    tooltip.style.display = 'none';
-                    if (info.el._moveTooltip) {
-                        info.el.removeEventListener('mousemove', info.el._moveTooltip);
                     }
                 },
 
@@ -455,13 +464,13 @@
 
             let unscheduledCount = 0;
 
-            // Đổ lên lịch kèm Màu sắc phân biệt Cá nhân
+            // Đổ lên lịch kèm Màu sắc phân biệt Cá nhân (Hiện đại)
             let currentClassEvents = scheduledEvents.filter(e => e.class === currentClass).map(e => {
                 const isMyEvent = e.gv && currentUserName && e.gv.includes(currentUserName);
                 return {
                     ...e,
-                    backgroundColor: isMyEvent ? '#d97706' : '#0284c7', // Orange nếu là của mình, Blue nếu là người khác
-                    borderColor: isMyEvent ? '#b45309' : '#0369a1',
+                    backgroundColor: isMyEvent ? '#f97316' : '#3b82f6', // Cam đậm vs Xanh Blue
+                    borderColor: isMyEvent ? '#c2410c' : '#2563eb',
                     textColor: 'white'
                 };
             });
@@ -496,21 +505,21 @@
                         let remaining = totalAssigned - alreadyScheduled;
                         
                         if (remaining > 0) {
-                            const shortGv = getShortName(a.gv);
-                            const shortTitle = `${subName} - ${shortGv}`;
+                            // Tên thẻ đầy đủ Tên GV
+                            const fullTitle = `${subName} - ${a.gv}`;
 
                             for(let i=0; i<remaining; i++) {
                                 unscheduledCount++;
                                 const eventDiv = document.createElement('div');
                                 eventDiv.className = 'fc-event';
                                 eventDiv.setAttribute('data-id', key);
-                                eventDiv.setAttribute('data-title-short', shortTitle);
+                                eventDiv.setAttribute('data-title', fullTitle);
                                 eventDiv.setAttribute('data-subject', subName);
                                 eventDiv.setAttribute('data-gv', a.gv);
                                 eventDiv.setAttribute('data-task', a.task);
                                 
                                 eventDiv.innerHTML = `
-                                    <div><i class="fas fa-grip-vertical" style="opacity: 0.5; margin-right:5px;"></i> <b>${shortGv}</b></div>
+                                    <div class="event-gv">${a.gv}</div>
                                     <span class="event-info">[${a.task}] - ${subName}</span>
                                 `;
                                 poolDiv.appendChild(eventDiv);
@@ -521,7 +530,7 @@
             }
 
             if (unscheduledCount === 0) {
-                poolDiv.innerHTML = '<div style="text-align:center; padding: 20px; color:#10b981; font-weight:bold;"><i class="fas fa-check-circle"></i> Đã xếp hết lịch cho Học kỳ này!</div>';
+                poolDiv.innerHTML = '<div style="text-align:center; padding: 20px; color:#10b981; font-weight:bold;">Đã xếp hết lịch cho Học kỳ này!</div>';
             }
         };
 
