@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Lịch công tác Giảng viên - Bộ môn Phục hồi chức năng.">
+    <title>Lịch Công Tác - Bộ môn Phục hồi chức năng</title>
+    
+    <link rel="icon" href="images/logo_Bộ môn.png" type="image/png">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- FullCalendar CSS & JS -->
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/vi.js'></script>
+
+    <style>
+        main { max-width: 1300px; padding: 2rem 3%; margin: 0 auto; display: flex; gap: 20px; align-items: flex-start; }
+        
+        .header-title-box { width: 100%; text-align: center; margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+        .header-title-box h2 { font-size: 1.6rem; color: var(--text-dark); margin: 0; font-weight: 700; }
+        .header-title-box .subtitle { font-size: 1rem; color: var(--text-body); font-weight: 600; margin-top: 5px; }
+
+        .controls-wrapper { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
+        .tab-btn { padding: 8px 20px; font-size: 1rem; font-weight: 600; color: var(--text-body); background: var(--bg-page); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; transition: 0.3s; }
+        .tab-btn:hover { background: #e2e8f0; color: var(--text-dark); }
+        .tab-btn.active { color: white; background: var(--primary); border-color: var(--primary); }
+
+        /* Khung bên trái (Kho Sự Kiện chưa xếp) */
+        #external-events { width: 280px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 15px; box-shadow: var(--shadow-sm); flex-shrink: 0; display: none; }
+        #external-events h4 { margin-top: 0; color: var(--primary); border-bottom: 1px dashed var(--border); padding-bottom: 10px; font-size: 1rem; }
+        .fc-event { cursor: move; margin: 8px 0; padding: 8px; background-color: var(--primary-light); color: var(--primary); border: 1px solid var(--primary); border-radius: 4px; font-size: 0.85rem; font-weight: 600; text-align: left; }
+        .fc-event:hover { background-color: #bae6fd; }
+        .event-info { display: block; font-size: 0.75rem; color: #475569; font-weight: normal; margin-top: 3px; }
+
+        /* Khung Lịch */
+        #calendar-container { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; box-shadow: var(--shadow-sm); min-height: 700px; }
+        
+        .fc-toolbar-title { font-size: 1.3rem !important; color: var(--primary); font-weight: bold; text-transform: capitalize; }
+        .fc-button-primary { background-color: var(--primary) !important; border-color: var(--primary) !important; }
+        .fc-button-primary:hover { background-color: var(--primary-hover) !important; }
+        .fc-button-active { background-color: var(--primary-hover) !important; }
+
+        .fc-event-main { padding: 3px; font-size: 0.85rem; }
+
+        .hidden { display: none !important; }
+
+        /* Toast */
+        .toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .toast { min-width: 250px; background-color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: 0.4s; font-weight: 600; border-left: 5px solid #22c55e; opacity: 0; }
+        .toast.show { transform: translateX(0); opacity: 1; }
+        .toast.danger { border-left-color: #ef4444; }
+
+        /* Modal Chi tiết */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 2000; }
+        .modal-content { background: white; width: 450px; border-radius: 8px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); overflow: hidden; }
+        .modal-header { padding: 15px 20px; background: var(--primary); color: white; display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h3 { margin: 0; font-size: 1.1rem; }
+        .modal-body { padding: 20px; line-height: 1.6; }
+        .modal-footer { padding: 15px 20px; background: #f1f5f9; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border); }
+        .btn-danger { background: var(--accent); color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-secondary { background: white; color: var(--text-dark); border: 1px solid var(--border); padding: 8px 15px; border-radius: 4px; cursor: pointer; }
+
+        @media (max-width: 900px) {
+            main { flex-direction: column; }
+            #external-events { width: 100%; max-height: 200px; overflow-y: auto; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="header-placeholder"></div>
+    <div id="toastContainer" class="toast-container"></div>
+
+    <div class="header-title-box" style="margin-top: 2rem;">
+        <h2><i class="fas fa-calendar-alt" style="color: var(--primary);"></i> LỊCH CÔNG TÁC GIẢNG VIÊN</h2>
+        <div class="subtitle">BỘ MÔN PHỤC HỒI CHỨC NĂNG</div>
+    </div>
+
+    <div class="controls-wrapper">
+        <button class="tab-btn active" onclick="switchClass('THS2025', this)">Khóa 2025-2027</button>
+        <button class="tab-btn" onclick="switchClass('THS2026', this)">Khóa 2026-2028</button>
+    </div>
+
+    <main>
+        <!-- KHO SỰ KIỆN (Chỉ hiện cho Admin) -->
+        <div id="external-events">
+            <h4><i class="fas fa-tasks"></i> Công việc chưa xếp lịch</h4>
+            <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 10px; font-style: italic;">
+                * Kéo thẻ và thả vào lịch để phân lịch.
+            </div>
+            <div id="event-pool">
+                <!-- Data đổ từ DB -->
+                <div style="text-align:center; padding: 20px;"><i class="fas fa-spinner fa-spin"></i> Đang tải...</div>
+            </div>
+        </div>
+
+        <!-- KHUNG LỊCH CHÍNH -->
+        <div id="calendar-container">
+            <div id="calendar"></div>
+        </div>
+    </main>
+
+    <!-- MODAL CHI TIẾT SỰ KIỆN TRÊN LỊCH -->
+    <div id="eventModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Chi tiết Lịch dạy</h3>
+                <i class="fas fa-times" style="cursor: pointer;" onclick="closeModal()"></i>
+            </div>
+            <div class="modal-body">
+                <p><strong>Môn học:</strong> <span id="mdlSubject"></span></p>
+                <p><strong>Giảng viên:</strong> <span id="mdlGv" style="color: var(--primary); font-weight: bold;"></span></p>
+                <p><strong>Nhiệm vụ:</strong> <span id="mdlTask"></span></p>
+                <p><strong>Thời gian:</strong> <span id="mdlTime"></span></p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal()">Đóng</button>
+                <button class="btn-danger hidden" id="btnDeleteEvent" onclick="deleteEvent()"><i class="fas fa-trash"></i> Xóa khỏi lịch</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="footer-placeholder"></div>
+
+    <script src="js/layout.js"></script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
+        import { getFirestore, doc, collection, onSnapshot, setDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY", authDomain: "bmphcn-aa9c6.firebaseapp.com", projectId: "bmphcn-aa9c6", storageBucket: "bmphcn-aa9c6.firebasestorage.app", messagingSenderId: "749494392719", appId: "1:749494392719:web:f220c751ff541620045dfa" };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const subjectsData = [
+            {"id": "sub_1", "name": "Triết học"}, {"id": "sub_2", "name": "Ngoại ngữ"}, {"id": "sub_3", "name": "Sinh học phân tử"}, {"id": "sub_4", "name": "Y đức - Xã hội học"}, {"id": "sub_5", "name": "Phương pháp nghiên cứu khoa học"}, {"id": "sub_6", "name": "Thống kê y học"},
+            {"id": "sub_7", "name": "Phương pháp dạy và học trong phục hồi chức năng"}, {"id": "sub_8", "name": "Quản lý và lãnh đạo trong phục hồi chức năng"}, {"id": "sub_9", "name": "Kỹ năng hướng dẫn lâm sàng và lý luận lâm sàng trong PHCN"}, {"id": "sub_10", "name": "Thực hành kỹ năng hướng dẫn lâm sàng"}, {"id": "sub_11", "name": "Thực hành dựa trên chứng cứ"},
+            {"id": "sub_12", "name": "Rối loạn nuốt"}, {"id": "sub_13", "name": "Rối loạn vận động tạo lời nói và nói lắp"}, {"id": "sub_14", "name": "Những rối loạn giao tiếp & nhận thức có nguồn gốc thần kinh"}, {"id": "sub_15", "name": "Những rối loạn phát sinh từ khiếm khuyết/Phẫu thuật vùng đầu và cổ"}, {"id": "sub_16", "name": "Khuyết tật giao tiếp suốt đời và giao tiếp tăng cường và thay thế"}, {"id": "sub_17", "name": "Thính lực học và PHCN thính giác"}, {"id": "sub_18", "name": "Quản lý ca bệnh phức tạp"}, {"id": "sub_19", "name": "Thực hành lâm sàng cho rối loạn giọng"}, {"id": "sub_20", "name": "Thực hành lâm sàng cho vấn đề rối loạn ngôn ngữ có nguồn gốc thần kinh"}, {"id": "sub_21", "name": "Thực hành lâm sàng cho người khuyết tật suốt đời"}, {"id": "sub_22", "name": "Thực hành lâm sàng cho trẻ em có rối loạn giao tiếp và nuốt"}, {"id": "sub_23", "name": "Thực hành lâm sàng ca bệnh phức tạp ở người lớn và trẻ em"},
+            {"id": "sub_24", "name": "Vật lý trị liệu Nhi nâng cao"}, {"id": "sub_25", "name": "Vật lý trị liệu Thần kinh cơ nâng cao"}, {"id": "sub_26", "name": "Vật lý trị liệu Cơ xương nâng cao"}, {"id": "sub_27", "name": "Vật lý trị liệu Tim mạch – Hô hấp nâng cao"}, {"id": "sub_28", "name": "Vật lý trị liệu trong thể thao"}, {"id": "sub_29", "name": "Ứng dụng công thái học trong can thiệp Vật lý trị liệu"}, {"id": "sub_30", "name": "Thực hành lâm sàng Vật lý trị liệu nâng cao 1"}, {"id": "sub_31", "name": "Thực hành lâm sàng Vật lý trị liệu nâng cao 2"},
+            {"id": "sub_32", "name": "Những vấn đề chuyên môn trong Hoạt động trị liệu"}, {"id": "sub_33", "name": "Lãnh đạo và quản lý trong Hoạt động trị liệu"}, {"id": "sub_34", "name": "Thiết kế và đánh giá chương trình Hoạt động trị liệu"}, {"id": "sub_35", "name": "Hoạt động trị liệu và quản lý chấn thương"}, {"id": "sub_36", "name": "Hoạt động trị liệu trong thực hành sức khỏe tâm thần trong suốt quá trình phát triển"}, {"id": "sub_37", "name": "Hoạt động trị liệu trong lão khoa"}, {"id": "sub_38", "name": "Thực hành hoạt động trị liệu 1"}, {"id": "sub_39", "name": "Thực hành hoạt động trị liệu 2"}, {"id": "sub_40", "name": "Thực hành hoạt động trị liệu 3"},
+            {"id": "sub_41", "name": "Thực hành lâm sàng Kỹ thuật Phục hồi chức năng 1"}, {"id": "sub_42", "name": "Thực hành lâm sàng Kỹ thuật Phục hồi chức năng 2"}, {"id": "sub_43", "name": "Thực hành lâm sàng Kỹ thuật Phục hồi chức năng 3"},
+            {"id": "sub_44", "name": "Đề án tốt nghiệp"}, {"id": "sub_45", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 1"}, {"id": "sub_46", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 2"}, {"id": "sub_47", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 3"}, {"id": "sub_48", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 4"}, {"id": "sub_49", "name": "Luận văn"}
+        ];
+
+        let calendar;
+        let isCalendarAdmin = false;
+        let currentClass = 'THS2025';
+        let assignmentsData = {};
+        let scheduledEvents = [];
+        let currentClickedEventId = null;
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<i class="fas ${type === 'danger' ? 'fa-times-circle' : 'fa-check-circle'}"></i><span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
+        }
+
+        // KIỂM TRA QUYỀN
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                const email = user.email.toLowerCase();
+                if (email === 'lethanhvan@ump.edu.vn' || email === 'phanthenguyenpt@ump.edu.vn' || email === 'thduypt@ump.edu.vn') {
+                    isCalendarAdmin = true;
+                    document.getElementById('external-events').style.display = 'block'; // Mở Kho Sự Kiện
+                }
+                
+                initCalendar();
+                listenToDatabase();
+            } else {
+                window.location.href = "login.html";
+            }
+        });
+
+        window.switchClass = (cls, btnEl) => {
+            currentClass = cls;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btnEl.classList.add('active');
+            processAndRenderEvents();
+        };
+
+        // KHỞI TẠO LỊCH FULLCALENDAR
+        function initCalendar() {
+            const containerEl = document.getElementById('external-events');
+            
+            // Khởi tạo Draggable cho các event chưa xếp (nếu là Admin)
+            if (isCalendarAdmin) {
+                new FullCalendar.Draggable(containerEl, {
+                    itemSelector: '.fc-event',
+                    eventData: function(eventEl) {
+                        return {
+                            title: eventEl.innerText,
+                            id: eventEl.getAttribute('data-id'),
+                            extendedProps: {
+                                subject: eventEl.getAttribute('data-subject'),
+                                gv: eventEl.getAttribute('data-gv'),
+                                task: eventEl.getAttribute('data-task')
+                            }
+                        };
+                    }
+                });
+            }
+
+            const calendarEl = document.getElementById('calendar');
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                locale: 'vi',
+                initialView: 'dayGridMonth',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                editable: isCalendarAdmin, // Chỉ Admin mới được kéo thả event trên lịch
+                droppable: isCalendarAdmin, // Chỉ Admin mới được thả từ ngoài vào
+                events: [],
+                
+                // Khi Event từ ngoài thả vào Lịch
+                drop: async function(info) {
+                    if (!isCalendarAdmin) return;
+                    const eventData = {
+                        id: info.draggedEl.getAttribute('data-id') + '_' + Date.now(), // Tạo ID duy nhất cho sự kiện trên lịch
+                        title: info.draggedEl.innerText,
+                        start: info.dateStr,
+                        class: currentClass,
+                        subject: info.draggedEl.getAttribute('data-subject'),
+                        gv: info.draggedEl.getAttribute('data-gv'),
+                        task: info.draggedEl.getAttribute('data-task')
+                    };
+                    
+                    try {
+                        await setDoc(doc(db, "calendar_events", eventData.id), eventData);
+                        showToast("Đã xếp lịch thành công!");
+                    } catch(e) {
+                        showToast("Lỗi khi lưu lịch: " + e.message, "danger");
+                        info.draggedEl.style.display = 'block'; // Lỗi thì trả về
+                    }
+                },
+
+                // Khi Kéo & Thả event di chuyển TRÊN LỊCH
+                eventDrop: async function(info) {
+                    if (!isCalendarAdmin) { info.revert(); return; }
+                    try {
+                        await setDoc(doc(db, "calendar_events", info.event.id), { start: info.event.startStr }, { merge: true });
+                        showToast("Đã dời lịch!");
+                    } catch(e) {
+                        showToast("Lỗi dời lịch!", "danger");
+                        info.revert();
+                    }
+                },
+
+                // Khi bấm vào Event để xem chi tiết
+                eventClick: function(info) {
+                    currentClickedEventId = info.event.id;
+                    const props = info.event.extendedProps;
+                    
+                    document.getElementById('mdlSubject').innerText = props.subject || '';
+                    document.getElementById('mdlGv').innerText = props.gv || '';
+                    document.getElementById('mdlTask').innerText = props.task || '';
+                    
+                    // Format thời gian
+                    const startObj = info.event.start;
+                    document.getElementById('mdlTime').innerText = startObj ? startObj.toLocaleString('vi-VN', {weekday: 'long', day:'2-digit', month:'2-digit', year:'numeric'}) : '';
+
+                    if (isCalendarAdmin) {
+                        document.getElementById('btnDeleteEvent').classList.remove('hidden');
+                    }
+                    
+                    document.getElementById('eventModal').classList.remove('hidden');
+                }
+            });
+            calendar.render();
+        }
+
+        // LẮNG NGHE DATA TỪ FIREBASE
+        function listenToDatabase() {
+            // 1. Tải toàn bộ Phân công
+            onSnapshot(collection(db, "assignments"), (snapshot) => {
+                assignmentsData = {};
+                snapshot.forEach(doc => { assignmentsData[doc.id] = doc.data(); });
+                processAndRenderEvents();
+            });
+
+            // 2. Tải toàn bộ Sự kiện Đã Xếp trên Lịch
+            onSnapshot(collection(db, "calendar_events"), (snapshot) => {
+                scheduledEvents = [];
+                snapshot.forEach(doc => { scheduledEvents.push(doc.data()); });
+                processAndRenderEvents();
+            });
+        }
+
+        // XỬ LÝ VÀ ĐỔ DATA LÊN LỊCH / KHO
+        function processAndRenderEvents() {
+            if (!calendar) return;
+
+            // Xóa sạch lịch cũ và kho sự kiện cũ
+            calendar.removeAllEvents();
+            const poolDiv = document.getElementById('event-pool');
+            poolDiv.innerHTML = '';
+
+            let unscheduledCount = 0;
+
+            // 1. Lọc sự kiện Đã lên lịch của Lớp hiện tại
+            let currentClassEvents = scheduledEvents.filter(e => e.class === currentClass);
+            calendar.addEventSource(currentClassEvents);
+
+            // Đếm số lượng buổi ĐÃ ĐƯỢC XẾP cho mỗi nhiệm vụ (Để trừ bớt trong Kho)
+            let scheduledCounts = {};
+            currentClassEvents.forEach(e => {
+                // Key định danh: subID_gv_task
+                // Vì ta không lưu subID trực tiếp trong event cũ, ta sẽ dò theo tên môn (subject)
+                const subObj = subjectsData.find(s => s.name === e.subject);
+                if(subObj) {
+                    const key = `${subObj.id}_${e.gv}_${e.task}`;
+                    if(!scheduledCounts[key]) scheduledCounts[key] = 0;
+                    scheduledCounts[key]++;
+                }
+            });
+
+            // 2. Phân tích Kho sự kiện Chưa Xếp Lịch
+            for (let subId in assignmentsData) {
+                const subAsg = assignmentsData[subId];
+                if (subAsg[currentClass] && subAsg[currentClass].allocations) {
+                    const subName = subjectsData.find(s => s.id === subId)?.name || 'Môn không xác định';
+                    
+                    subAsg[currentClass].allocations.forEach(a => {
+                        // Tính toán số buổi: Số buổi phân công - Số buổi đã xếp lên lịch
+                        const totalAssigned = parseInt(a.assigned) || 0;
+                        const key = `${subId}_${a.gv}_${a.task}`;
+                        const alreadyScheduled = scheduledCounts[key] || 0;
+                        
+                        let remaining = totalAssigned - alreadyScheduled;
+                        
+                        if (remaining > 0) {
+                            // Tạo ra n thẻ Sự kiện tương ứng với n buổi còn thiếu
+                            for(let i=0; i<remaining; i++) {
+                                unscheduledCount++;
+                                const eventDiv = document.createElement('div');
+                                eventDiv.className = 'fc-event';
+                                eventDiv.setAttribute('data-id', key);
+                                eventDiv.setAttribute('data-subject', subName);
+                                eventDiv.setAttribute('data-gv', a.gv);
+                                eventDiv.setAttribute('data-task', a.task);
+                                
+                                eventDiv.innerHTML = `
+                                    <div><i class="fas fa-grip-vertical" style="opacity: 0.5; margin-right:5px;"></i> ${a.gv}</div>
+                                    <span class="event-info">[${a.task}] - ${subName}</span>
+                                `;
+                                poolDiv.appendChild(eventDiv);
+                            }
+                        }
+                    });
+                }
+            }
+
+            if (unscheduledCount === 0) {
+                poolDiv.innerHTML = '<div style="text-align:center; padding: 20px; color:#10b981; font-weight:bold;"><i class="fas fa-check-circle"></i> Đã xếp hết lịch!</div>';
+            }
+        }
+
+        window.closeModal = () => {
+            document.getElementById('eventModal').classList.add('hidden');
+        };
+
+        window.deleteEvent = async () => {
+            if(!currentClickedEventId) return;
+            if(confirm("Xóa sự kiện này khỏi lịch? (Sự kiện sẽ được trả về kho)")) {
+                try {
+                    await deleteDoc(doc(db, "calendar_events", currentClickedEventId));
+                    showToast("Đã xóa khỏi lịch!");
+                    closeModal();
+                } catch(e) {
+                    showToast("Lỗi xóa: " + e.message, "danger");
+                }
+            }
+        };
+
+    </script>
+</body>
+</html>
