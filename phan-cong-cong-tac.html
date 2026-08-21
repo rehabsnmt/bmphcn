@@ -17,7 +17,7 @@
 
         .hidden { display: none !important; }
         
-        /* Tabs & Controls Đầu Trang */
+        /* Tabs & Controls */
         .controls-wrapper { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; background: var(--surface); padding: 15px 20px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 20px; gap: 15px; box-shadow: var(--shadow-sm); }
         .tabs-header { display: flex; gap: 10px; border-bottom: 2px solid transparent; }
         .tab-btn { padding: 8px 15px; text-align: center; font-size: 0.95rem; font-weight: 600; color: var(--text-body); background: var(--bg-page); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; transition: 0.3s; }
@@ -35,8 +35,6 @@
         
         .group-header { background-color: #f1f5f9 !important; cursor: pointer; transition: 0.2s; border-top: 2px solid #cbd5e1; }
         .group-header:hover { background-color: #e2e8f0 !important; }
-        
-        /* CHỐNG XUỐNG DÒNG ĐỀ MỤC */
         .group-title { font-weight: 700; color: var(--primary); font-size: 1.05rem; white-space: nowrap; }
         .group-title i { display: inline-block; width: 20px; text-align: center; transition: transform 0.3s; }
         .group-collapsed .group-icon { transform: rotate(-90deg); }
@@ -49,10 +47,15 @@
         .badge-orient { font-size: 0.75rem; padding: 3px 8px; border-radius: 4px; margin-left: 8px; white-space: nowrap; font-weight: bold; }
         .badge-ud { background-color: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; }
         .badge-nc { background-color: #fef08a; color: #b45309; border: 1px solid #fde047; }
+        .badge-pending { background-color: #fef08a; color: #b45309; border: 1px solid #fde047; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; margin-left: 5px; animation: pulse 2s infinite; }
+
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
 
         /* Buttons */
         .btn-primary { background-color: var(--primary); color: white; padding: 0.6rem 1.2rem; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; transition: 0.2s; }
         .btn-primary:hover { background-color: var(--primary-hover); }
+        .btn-success { background-color: #10b981; color: white; padding: 0.6rem 1.2rem; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-success:hover { background-color: #059669; }
         .btn-outline { background-color: white; color: var(--primary); border: 1px solid var(--primary); padding: 0.4rem 0.8rem; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 0.85rem;}
         .btn-outline:hover { background-color: var(--primary-light); }
         .btn-danger { background-color: var(--accent); color: white; padding: 0.4rem 0.8rem; border-radius: 6px; border: none; cursor: pointer; transition: 0.2s; }
@@ -77,30 +80,11 @@
         .task-row input:focus, .task-row select:focus { border-color: var(--primary); }
         .alloc-label { font-size: 0.8rem; font-weight: 600; color: var(--text-body); white-space: nowrap; }
         
-        /* Modal Chi tiết Môn học - Mở rộng 2 cột */
+        .inp-completed { background: #f1f5f9; cursor: not-allowed; color: #16a34a; font-weight: bold; }
+
         #subjectModal .modal-content { max-width: 750px; text-align: justify; line-height: 1.6; }
         .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 15px; }
-        .modal-grid p { margin-bottom: 10px; }
 
-        /* CỤM BONG BÓNG ĐIỀU KHIỂN & POPUP NỔI GÓC DƯỚI */
-        .floating-controls { position: fixed; bottom: 20px; right: 20px; display: flex; gap: 10px; z-index: 1000; }
-        .floating-bubble { background: var(--primary); color: white; padding: 12px 20px; border-radius: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; transition: 0.3s; }
-        .floating-bubble:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.25); filter: brightness(1.1); }
-        .bubble-orange { background: #f59e0b; }
-
-        .floating-menu { position: fixed; bottom: 75px; right: 20px; background: var(--surface); padding: 20px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); z-index: 1000; border: 1px solid var(--border); width: 280px; transform-origin: bottom right; transition: 0.3s; }
-        .floating-menu.hidden { opacity: 0; transform: scale(0.8); pointer-events: none; }
-        .floating-menu label { font-size: 0.85rem; font-weight: 600; color: var(--text-body); display: block; margin-bottom: 5px; }
-        .floating-menu select { width: 100%; padding: 8px; margin-bottom: 15px; border-radius: 6px; border: 1px solid var(--border); font-family: inherit; font-size: 0.9rem; outline: none; }
-        .floating-menu select:focus { border-color: var(--primary); }
-
-        .hours-panel { position: fixed; bottom: 75px; right: 20px; background: var(--surface); padding: 20px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); z-index: 1000; border: 1px solid var(--border); width: 300px; max-height: calc(100vh - 120px); overflow-y: auto; transform-origin: bottom right; transition: 0.3s; }
-        .hours-panel.hidden { opacity: 0; transform: scale(0.8); pointer-events: none; }
-        .hours-panel h4 { margin-top: 0; color: #b45309; font-size: 1.05rem; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 15px; }
-        .hours-item { display: flex; justify-content: space-between; font-size: 0.9rem; padding: 8px 0; border-bottom: 1px dashed #e2e8f0; color: var(--text-dark); }
-        .hours-item span:last-child { font-weight: bold; color: var(--accent); }
-
-        /* Toast Dời Lên Góc Trên Phải */
         .toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
         .toast { min-width: 250px; background-color: var(--surface); padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: 0.4s; font-weight: 600; border-left: 5px solid #22c55e; opacity: 0; }
         .toast.show { transform: translateX(0); opacity: 1; }
@@ -111,7 +95,6 @@
             .table-container th:nth-child(5), .table-container td:nth-child(5) { display: none; }
             .task-row { flex-wrap: wrap; }
             .task-row > div { flex: 1 1 100%; width: 100%; }
-            .modal-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -121,48 +104,6 @@
     <div id="toastContainer" class="toast-container"></div>
 
     <datalist id="gv-list"></datalist>
-
-    <!-- CỤM BONG BÓNG ĐIỀU KHIỂN & POPUPS (GÓC DƯỚI PHẢI) -->
-    <div class="floating-controls">
-        <div class="floating-bubble bubble-orange" onclick="toggleHoursMenu()" title="Xem Giờ giảng dự kiến">
-            <i class="fas fa-clock"></i> <span>Giờ giảng</span>
-        </div>
-        <div class="floating-bubble" onclick="toggleFloatMenu()" title="Tùy chỉnh hiển thị">
-            <i class="fas fa-sliders-h"></i> <span id="bubbleText">Lớp 25 • Khung CT</span>
-        </div>
-    </div>
-    
-    <!-- Popup: Tùy chỉnh -->
-    <div id="floatingMenu" class="floating-menu hidden">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid var(--border); padding-bottom:10px;">
-            <h4 style="margin:0; color:var(--primary);">Tùy chỉnh hiển thị</h4>
-            <span style="cursor:pointer; color:var(--text-body); font-weight: bold; font-size:1.1rem; padding: 0 5px;" onclick="toggleFloatMenu()">X</span>
-        </div>
-        <label>Khóa học:</label>
-        <select id="floatClassSelect" onchange="syncControls('float')">
-            <option value="THS2025">Khóa 2025-2027</option>
-            <option value="THS2026">Khóa 2026-2028</option>
-        </select>
-        <label>Chế độ xem:</label>
-        <select id="floatViewSelect" onchange="syncControls('float')">
-            <option value="STRUCT">Xem theo Cấu trúc Khung CT</option>
-            <option value="SEM">Xem theo Thứ tự Học kỳ</option>
-        </select>
-    </div>
-
-    <!-- Popup: Giờ giảng dự kiến -->
-    <div id="estHoursPanel" class="hours-panel hidden">
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:10px; margin-bottom:15px;">
-            <h4 style="margin:0; color:#b45309; border:none; padding:0;">Giờ giảng dự kiến</h4>
-            <span style="cursor:pointer; color:var(--text-body); font-weight: bold; font-size:1.1rem; padding: 0 5px;" onclick="toggleHoursMenu()">X</span>
-        </div>
-        <div style="font-size: 0.8rem; color: var(--text-body); margin-bottom: 10px; font-style: italic;">
-            * Công thức tạm tính: 1 buổi = 5 giờ.
-        </div>
-        <div id="estHoursList">
-            <!-- Dữ liệu JS sẽ đổ vào đây -->
-        </div>
-    </div>
 
     <main id="mainContent" class="hidden">
         <div class="header-title-box">
@@ -177,7 +118,7 @@
                 <button class="tab-btn" data-class="THS2026" onclick="switchClass('THS2026')">Khóa 2026-2028</button>
             </div>
             <div class="filter-controls">
-                <select id="viewModeSelect" onchange="syncControls('top')">
+                <select id="viewModeSelect" onchange="window.renderTable()">
                     <option value="STRUCT">Xem theo Cấu trúc Khung CT</option>
                     <option value="SEM">Xem theo Thứ tự Học kỳ</option>
                 </select>
@@ -192,7 +133,7 @@
                         <th style="min-width: 320px;">Tên Học phần</th>
                         <th style="width: 120px;">Học kỳ</th>
                         <th style="min-width: 320px;">Phân công Giảng viên</th>
-                        <th style="width: 180px;">Tiến độ (LT/TH)</th>
+                        <th style="width: 180px;">Tiến độ tự động</th>
                         <th class="col-action hidden" style="width: 100px; text-align: center;">Thao tác</th>
                     </tr>
                 </thead>
@@ -205,11 +146,11 @@
 
     <div id="accessDenied" class="hidden">
         <h2 style="color: var(--text-dark);">Khu vực giới hạn</h2>
-        <p style="color: var(--text-body); margin-bottom: 20px;">Tính năng này chỉ dành cho Trưởng Bộ Môn để điều hành phân công công tác.</p>
+        <p style="color: var(--text-body); margin-bottom: 20px;">Tính năng này chỉ dành cho Ban Quản lý Bộ môn.</p>
         <button class="btn-primary" onclick="window.location.href='dashboard.html'">Quay lại Dashboard</button>
     </div>
 
-    <!-- MODAL CHI TIẾT MÔN HỌC (ĐÃ MỞ RỘNG) -->
+    <!-- MODAL CHI TIẾT MÔN HỌC -->
     <div id="subjectModal" class="modal-overlay hidden">
         <div class="modal-content">
             <button class="modal-close" onclick="document.getElementById('subjectModal').classList.add('hidden')">X</button>
@@ -258,12 +199,17 @@
         </div>
     </div>
 
-    <!-- MODAL PHÂN CÔNG (MÔN THƯỜNG - GOM NHÓM GV) -->
+    <!-- MODAL PHÂN CÔNG (MÔN THƯỜNG) -->
     <div id="assignModal" class="modal-overlay hidden">
         <div class="modal-content" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
             <button class="modal-close" onclick="document.getElementById('assignModal').classList.add('hidden')">X</button>
             <h3 style="color: var(--primary); margin-top: 0;">Phân công giảng dạy</h3>
             <p style="font-weight: bold; color: var(--text-dark); margin-bottom: 5px; text-align: justify;" id="asgName">Tên môn học</p>
+            
+            <div id="proposalBanner" class="hidden" style="background: #fef08a; color: #b45309; padding: 10px; border-radius: 6px; font-weight: bold; margin-bottom: 15px; font-size: 0.9rem;">
+                <i class="fas fa-info-circle"></i> Đang có Đề xuất phân công chờ duyệt. Trưởng BM có thể điều chỉnh và bấm Duyệt.
+            </div>
+
             <div style="font-size: 0.95rem; color: var(--text-body); margin-bottom: 20px; display: flex; gap: 20px;">
                 <span>Lý thuyết tối đa: <strong id="asgLT" style="color: var(--primary);">0</strong> buổi</span>
                 <span>Thực hành tối đa: <strong id="asgTH" style="color: var(--primary);">0</strong> buổi</span>
@@ -284,7 +230,10 @@
                 <div id="allocContainer"></div>
                 <button class="btn-outline" style="margin-top: 10px;" onclick="addGvBlock()">+ Thêm Giảng viên</button>
             </div>
-            <button class="btn-primary" style="width: 100%; padding: 12px; font-size: 1rem;" onclick="saveAssignment()">Lưu phân công</button>
+            
+            <div style="display: flex; gap: 10px;">
+                <button id="btnSubmitAssign" class="btn-primary" style="flex: 1; padding: 12px; font-size: 1rem;" onclick="saveAssignment()">Lưu phân công</button>
+            </div>
         </div>
     </div>
 
@@ -294,6 +243,10 @@
             <button class="modal-close" onclick="document.getElementById('thesisAssignModal').classList.add('hidden')">X</button>
             <h3 style="color: var(--primary); margin-top: 0;">Phân công Hướng dẫn</h3>
             <p style="font-weight: bold; color: var(--text-dark); margin-bottom: 20px; text-align: justify;" id="tasgName">Tên môn học</p>
+
+            <div id="thesisProposalBanner" class="hidden" style="background: #fef08a; color: #b45309; padding: 10px; border-radius: 6px; font-weight: bold; margin-bottom: 15px; font-size: 0.9rem;">
+                <i class="fas fa-info-circle"></i> Đang có Đề xuất chờ duyệt.
+            </div>
 
             <div style="margin-bottom: 20px; max-width: 300px;">
                 <label style="font-weight: 600; display: block; margin-bottom: 5px;">Học kỳ:</label>
@@ -310,7 +263,7 @@
                 </div>
                 <div id="thesisAllocContainer"></div>
             </div>
-            <button class="btn-primary" style="width: 100%; padding: 12px; font-size: 1rem;" onclick="saveThesisAssignment()">Lưu phân công HD</button>
+            <button id="btnSubmitThesis" class="btn-primary" style="width: 100%; padding: 12px; font-size: 1rem;" onclick="saveThesisAssignment()">Lưu phân công HD</button>
         </div>
     </div>
 
@@ -322,7 +275,7 @@
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, collection, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
 
-        const firebaseConfig = { apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY", authDomain: "bmphcn-aa9c6.firebaseapp.com", projectId: "bmphcn-aa9c6", storageBucket: "bmphcn-aa9c6.firebasestorage.app", messagingSenderId: "749494392719", appId: "1:749494392719:web:f220c751ff541620045dfa", measurementId: "G-LBLG62PTDK" };
+        const firebaseConfig = { apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY", authDomain: "bmphcn-aa9c6.firebaseapp.com", projectId: "bmphcn-aa9c6", storageBucket: "bmphcn-aa9c6.firebasestorage.app", messagingSenderId: "749494392719", appId: "1:749494392719:web:f220c751ff541620045dfa" };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
@@ -331,18 +284,22 @@
         let visitingLecturers = []; 
         let currentClass = 'THS2025'; 
         let assignmentsDB = {}; 
+        let calendarEventsDB = []; // Lưu trữ lịch công tác để tính "Đã hoàn thành" tự động
         let currentEditingSubId = null;
-        let isHOD = false;
+        
+        // PHÂN QUYỀN
+        let isHOD = false; // Trưởng BM (Cô Vân, SuperAdmin) - Quyền Duyệt
+        let isManager = false; // Giáo vụ (Thầy Nguyên, Thầy Duy) - Quyền Đề xuất
 
         const taskOptions = ["Lý thuyết", "Thực hành", "Thực tế", "Ra đề thi", "Coi thi", "Chấm thi", "Soạn mới, sửa BG/GT", "Công việc khác"];
 
         const subjectsData = [
             {"id": "sub_1", "name": "Triết học", "credits": 3, "theory": 3, "practice": 0, "department": "BM KHXH-NV", "isPHCN": false, "orientations": ["UD", "NC"], "group": "1. PHẦN KIẾN THỨC CHUNG", "schedule": "Thứ 3 (Chiều)<br>Tuần 1 - Tuần 9 (07/9 - 06/11)<br><i>Địa điểm: Giảng đường 7A, Đại giảng đường Trường Dược, Giảng đường 7B.</i>"},
-            {"id": "sub_2", "name": "Ngoại ngữ", "credits": 2, "theory": 2, "practice": 0, "department": "BM ngoại ngữ", "isPHCN": false, "orientations": ["UD", "NC"], "group": "1. PHẦN KIẾN THỨC CHUNG", "schedule": "Thứ 5 (Chiều)<br>Tuần 1 - Tuần 6 (30/11 - 08/01)<br><i>Địa điểm: Đại Giảng đường Y, GĐ 7A, GĐ 2 (Trường Dược), PH1 (Điều Dưỡng - 201 NCT), GĐ 5B2, GĐ 5B1.</i>"},
-            {"id": "sub_3", "name": "Sinh học phân tử", "credits": 2, "theory": 0, "practice": 2, "department": "TT Y sinh học phân tử", "isPHCN": false, "orientations": ["UD", "NC"], "group": "2. PHẦN KIẾN THỨC CƠ SỞ", "schedule": "Thứ 3 (Chiều)<br>Tuần 1 - Tuần 6 (30/11 - 08/01)<br><i>Địa điểm: Đại Giảng đường Y, Giảng đường 6A, Giảng đường 6B.</i>"},
-            {"id": "sub_4", "name": "Y đức - Xã hội học", "credits": 2, "theory": 0, "practice": 2, "department": "BM Y đức", "isPHCN": false, "orientations": ["UD", "NC"], "group": "2. PHẦN KIẾN THỨC CƠ SỞ", "schedule": "Thứ 5 (Chiều)<br>Tuần 1 - Tuần 8 (07/9 - 30/10)<br><i>Địa điểm: Đại giảng đường Điều Dưỡng, Đại giảng đường Trường Dược, Giảng đường 7B.</i>"},
-            {"id": "sub_5", "name": "Phương pháp nghiên cứu khoa học", "credits": 2, "theory": 1, "practice": 1, "department": "TT Giáo dục y học", "isPHCN": false, "orientations": ["UD", "NC"], "group": "2. PHẦN KIẾN THỨC CƠ SỞ", "schedule": "Thứ 5 (Chiều)<br>Tuần 1 - Tuần 10 (01/3 - 07/5)<br><i>Địa điểm: Đại Giảng đường Y, Giảng đường 7B, Giảng đường 6B.</i>"},
-            {"id": "sub_6", "name": "Thống kê y học", "credits": 2, "theory": 1, "practice": 1, "department": "BM Thống kê Y học", "isPHCN": false, "orientations": ["UD", "NC"], "group": "2. PHẦN KIẾN THỨC CƠ SỞ", "schedule": "Thứ 3 (Chiều)<br>Tuần 1 - Tuần 9 (01/3 - 30/4)<br><i>Địa điểm: Đại giảng đường Trường Dược, Giảng đường 7B, Giảng đường 7A.</i>"},
+            {"id": "sub_2", "name": "Ngoại ngữ", "credits": 2, "theory": 2, "practice": 0, "department": "BM ngoại ngữ", "isPHCN": false, "orientations": ["UD", "NC"], "group": "1. PHẦN KIẾN THỨC CHUNG"},
+            {"id": "sub_3", "name": "Sinh học phân tử", "credits": 2, "theory": 0, "practice": 2, "department": "TT Y sinh học phân tử", "isPHCN": false, "orientations": ["UD", "NC"], "group": "2. PHẦN KIẾN THỨC CƠ SỞ"},
+            {"id": "sub_4", "name": "Y đức - Xã hội học", "credits": 2, "theory": 0, "practice": 2, "department": "BM Y đức", "isPHCN": false, "orientations": ["UD", "NC"], "group": "2. PHẦN KIẾN THỨC CƠ SỞ"},
+            {"id": "sub_5", "name": "Phương pháp nghiên cứu khoa học", "credits": 2, "theory": 1, "practice": 1, "department": "TT Giáo dục y học", "isPHCN": false, "orientations": ["UD", "NC"], "group": "2. PHẦN KIẾN THỨC CƠ SỞ"},
+            {"id": "sub_6", "name": "Thống kê y học", "credits": 2, "theory": 1, "practice": 1, "department": "BM Thống kê Y học", "isPHCN": false, "orientations": ["UD", "NC"], "group": "2. PHẦN KIẾN THỨC CƠ SỞ"},
             {"id": "sub_7", "name": "Phương pháp dạy và học trong phục hồi chức năng", "credits": 2, "theory": 1, "practice": 1, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD", "NC"], "group": "3. KIẾN THỨC NGÀNH - BẮT BUỘC"},
             {"id": "sub_8", "name": "Quản lý và lãnh đạo trong phục hồi chức năng", "credits": 2, "theory": 1, "practice": 1, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD", "NC"], "group": "3. KIẾN THỨC NGÀNH - BẮT BUỘC"},
             {"id": "sub_9", "name": "Kỹ năng hướng dẫn lâm sàng và lý luận lâm sàng trong PHCN", "credits": 2, "theory": 1, "practice": 1, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD", "NC"], "group": "3. KIẾN THỨC NGÀNH - BẮT BUỘC"},
@@ -408,45 +365,12 @@
             setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
         }
 
-        // BONG BÓNG VÀ MENU NỔI
-        window.toggleFloatMenu = () => {
-            document.getElementById('floatingMenu').classList.toggle('hidden');
-            document.getElementById('estHoursPanel').classList.add('hidden');
-        };
-        window.toggleHoursMenu = () => {
-            document.getElementById('estHoursPanel').classList.toggle('hidden');
-            document.getElementById('floatingMenu').classList.add('hidden');
-        };
-
-        // CHUYỂN LỚP CẬP NHẬT MÀU ĐỒNG BỘ
         window.switchClass = (cls) => {
             currentClass = cls;
             document.querySelectorAll('.tab-btn').forEach(b => {
                 if(b.getAttribute('data-class') === cls) b.classList.add('active');
                 else b.classList.remove('active');
             });
-            syncControls('top');
-        };
-
-        window.syncControls = (source) => {
-            if (source === 'top') {
-                document.getElementById('floatClassSelect').value = currentClass;
-                document.getElementById('floatViewSelect').value = document.getElementById('viewModeSelect').value;
-            } else if (source === 'float') {
-                currentClass = document.getElementById('floatClassSelect').value;
-                document.getElementById('viewModeSelect').value = document.getElementById('floatViewSelect').value;
-                
-                document.querySelectorAll('.tab-btn').forEach(b => {
-                    if (b.getAttribute('data-class') === currentClass) b.classList.add('active');
-                    else b.classList.remove('active');
-                });
-            }
-
-            const viewVal = document.getElementById('viewModeSelect').value;
-            const viewText = viewVal === 'STRUCT' ? 'Khung CT' : 'Học kỳ';
-            const classText = currentClass === 'THS2025' ? 'Lớp 25' : 'Lớp 26';
-            document.getElementById('bubbleText').innerText = `${classText} • ${viewText}`;
-            
             window.renderTable();
         };
 
@@ -489,48 +413,53 @@
             } catch (e) { console.error("Lỗi tải DS GV", e); }
         }
 
-        // CẬP NHẬT GIỜ GIẢNG DỰ KIẾN
-        window.updateEstimatedHours = () => {
-            let hoursMap = {};
-            internalLecturers.forEach(gv => hoursMap[gv] = 0);
-            
-            Object.values(assignmentsDB).forEach(subAsg => {
-                ['THS2025', 'THS2026'].forEach(cls => {
-                    if (subAsg[cls] && subAsg[cls].allocations) {
-                        subAsg[cls].allocations.forEach(a => {
-                            if (hoursMap[a.gv] !== undefined) {
-                                hoursMap[a.gv] += (parseInt(a.assigned) || 0) * 5; // Tạm tính 1 buổi = 5h
-                            }
-                        });
+        // HÀM TỰ ĐỘNG TÍNH SỐ BUỔI ĐÃ HOÀN THÀNH TỪ LỊCH
+        window.getCompletedSessions = (cls, subName, gv, task) => {
+            const now = new Date();
+            let count = 0;
+            calendarEventsDB.forEach(e => {
+                if (e.class === cls && e.subject === subName && e.gv === gv && e.task === task) {
+                    // Tính thời gian kết thúc của sự kiện (nếu ko có end thì lấy start + 4h)
+                    let eventEnd = e.end ? new Date(e.end) : new Date(new Date(e.start).getTime() + 4 * 3600000);
+                    // Nếu thời gian kết thúc đã qua -> Tính là hoàn thành
+                    if (eventEnd < now) {
+                        count++;
                     }
-                });
+                }
             });
-
-            const listDiv = document.getElementById('estHoursList');
-            if(!listDiv) return;
-            listDiv.innerHTML = '';
-            internalLecturers.forEach(gv => {
-                const hrs = hoursMap[gv] || 0;
-                let nameShort = gv.replace('PGS. TS. ', '').replace('TS. ', '').replace('ThS. ', '');
-                listDiv.innerHTML += `<div class="hours-item"><span>${nameShort}</span> <span>${hrs}h</span></div>`;
-            });
+            return count;
         };
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 const email = user.email.toLowerCase();
-                if (email !== 'lethanhvan@ump.edu.vn') {
+                const adminEmails = ['lethanhvan@ump.edu.vn', 'hoangtran1483@gmail.com'];
+                const managerEmails = ['phanthenguyenpt@ump.edu.vn', 'thduypt@ump.edu.vn'];
+                
+                if (adminEmails.includes(email)) isHOD = true;
+                if (managerEmails.includes(email)) isManager = true;
+
+                if (!isHOD && !isManager) {
                     document.getElementById('accessDenied').classList.remove('hidden');
                 } else {
-                    isHOD = true;
                     document.getElementById('mainContent').classList.remove('hidden');
+                    // Hiện Action column header
+                    document.querySelector('.col-action').classList.remove('hidden');
                     
                     await fetchGVList();
                     
+                    // Lắng nghe Phân công
                     onSnapshot(collection(db, "assignments"), (snapshot) => {
                         assignmentsDB = {};
                         snapshot.forEach(doc => { assignmentsDB[doc.id] = doc.data(); });
-                        syncControls('top'); 
+                        window.renderTable(); 
+                    });
+
+                    // Lắng nghe Lịch công tác để tính Tự động
+                    onSnapshot(collection(db, "calendar_events"), (snapshot) => {
+                        calendarEventsDB = [];
+                        snapshot.forEach(doc => { calendarEventsDB.push(doc.data()); });
+                        window.renderTable();
                     });
                 }
             } else {
@@ -556,7 +485,6 @@
             
             const viewMode = document.getElementById('viewModeSelect').value;
             
-            // ĐIỀU CHỈNH: Lớp 2025 CHỈ xem Định hướng Nghiên cứu (NC)
             let filteredSubs = subjectsData;
             if (currentClass === 'THS2025') {
                 filteredSubs = subjectsData.filter(s => s.orientations.includes("NC"));
@@ -573,7 +501,6 @@
                 Object.keys(groupedData).sort().forEach((groupName, gIdx) => {
                     const gClass = `grp-${gIdx}`;
                     tbody.innerHTML += `<tr class="group-header" onclick="toggleGroup('${gClass}', 'icon-${gIdx}')"><td colspan="6" class="group-title"><i id="icon-${gIdx}" class="fas fa-chevron-down group-icon"></i> ${groupName}</td></tr>`;
-
                     groupedData[groupName].forEach(sub => { appendSubjectRow(tbody, sub, gClass, stt++); });
                 });
             } else {
@@ -589,18 +516,19 @@
                 Object.keys(semData).sort().forEach((semName, gIdx) => {
                     const gClass = `sem-${gIdx}`;
                     tbody.innerHTML += `<tr class="group-header" onclick="toggleGroup('${gClass}', 'icon-sem-${gIdx}')"><td colspan="6" class="group-title"><i id="icon-sem-${gIdx}" class="fas fa-chevron-down group-icon"></i> ${semName}</td></tr>`;
-
                     semData[semName].forEach(sub => { appendSubjectRow(tbody, sub, gClass, stt++); });
                 });
             }
-
-            updateEstimatedHours();
         };
 
         function appendSubjectRow(tbody, sub, gClass, sttIndex) {
             const asgDoc = assignmentsDB[sub.id] || {};
             const asg = asgDoc[currentClass] || { semester: '', allocations: [] };
             const isThesis = sub.name.includes("Luận văn") || sub.name.includes("Đề án");
+            
+            // Xử lý Huy hiệu Chờ duyệt
+            let isProposed = asg.status === 'proposed';
+            let statusBadge = isProposed ? `<span class="badge-pending" title="Đang chờ Trưởng BM duyệt">Chờ duyệt</span>` : '';
             
             let badgeHtml = '';
             if (currentClass === 'THS2026' && sub.orientations.length === 1) {
@@ -612,14 +540,13 @@
             let progressHtml = '';
             
             if (isThesis) {
-                if (asg.allocations.length > 0) {
-                    gvHtml = asg.allocations.map(a => `<div class="gv-allocation-text"><b>HV:</b> ${a.student}<br><b>GVHD:</b> ${a.gv1} ${a.gv2 ? `& ${a.gv2}` : ''}</div><hr style="border-top:1px dashed #cbd5e1; border-bottom:none; margin: 8px 0;">`).join('');
+                if (asg.allocations && asg.allocations.length > 0) {
+                    gvHtml = asg.allocations.map(a => `<div class="gv-allocation-text" style="${isProposed ? 'opacity: 0.7;' : ''}"><b>HV:</b> ${a.student}<br><b>GVHD:</b> ${a.gv1} ${a.gv2 ? `& ${a.gv2}` : ''}</div><hr style="border-top:1px dashed #cbd5e1; border-bottom:none; margin: 8px 0;">`).join('');
                     progressHtml = `<span class="progress-text" style="color:var(--primary);">Đã gán ${asg.allocations.length} Học viên</span>`;
                 }
             } else {
                 let completedLT_TH = 0;
-                if (asg.allocations.length > 0) {
-                    // GOM NHÓM GV BÊN NGOÀI BẢNG (Chỉ lặp tên GV 1 lần)
+                if (asg.allocations && asg.allocations.length > 0) {
                     let gvMap = {};
                     asg.allocations.forEach(a => {
                         if(!gvMap[a.gv]) gvMap[a.gv] = [];
@@ -629,17 +556,19 @@
                     let gvListDisplay = [];
                     for (let gv in gvMap) {
                         let taskHtml = gvMap[gv].map(t => {
-                            let txt = `• [${t.task}] (${t.assigned} buổi)`;
+                            // TỰ ĐỘNG LẤY ĐÃ HOÀN THÀNH TỪ LỊCH
+                            let autoCompleted = window.getCompletedSessions(currentClass, sub.name, t.gv, t.task);
+                            
+                            let txt = `• [${t.task}] (${t.assigned} buổi) <span style="color:#16a34a; font-size:0.8rem; font-weight:bold;">[Đã dạy: ${autoCompleted}]</span>`;
                             if(t.note) txt += ` <br><i style="color:#64748b; font-size:0.85rem; padding-left:10px;">Ghi chú: ${t.note}</i>`;
                             
-                            // Tính tiến độ chung cho LT/TH
                             if (t.task === 'Lý thuyết' || t.task === 'Thực hành' || t.task === 'Thực tế') {
-                                completedLT_TH += (parseInt(t.completed) || 0);
+                                completedLT_TH += autoCompleted;
                             }
                             return txt;
                         }).join('<br>');
                         
-                        gvListDisplay.push(`<div class="gv-allocation-text"><b style="color:var(--primary);">${gv}</b><br><div style="padding-left:10px;">${taskHtml}</div></div>`);
+                        gvListDisplay.push(`<div class="gv-allocation-text" style="${isProposed ? 'opacity: 0.7;' : ''}"><b style="color:var(--primary);">${gv}</b><br><div style="padding-left:10px;">${taskHtml}</div></div>`);
                     }
                     gvHtml = gvListDisplay.join('<hr style="border-top:1px dashed #cbd5e1; border-bottom:none; margin: 8px 0;">');
                 }
@@ -650,27 +579,29 @@
                     progressHtml = `<div class="progress-container"><div class="progress-bar" style="width: ${pct}%; background-color: ${pColor};"></div></div><span class="progress-text">${completedLT_TH} / ${sub.totalSessions} buổi (${pct}%)</span>`;
                 } else {
                     gvHtml = `<span style="color:#64748b; font-weight: 600;">${sub.department}</span>`;
-                    progressHtml = `<span style="color:#94a3b8; font-size:0.85rem;">Không giới hạn</span>`;
+                    progressHtml = `<span style="color:#94a3b8; font-size:0.85rem;">Phụ thuộc Bộ môn khác</span>`;
                 }
             }
 
             let actionHtml = '';
-            if (isHOD) {
+            if (isHOD || isManager) {
                 if (sub.isPHCN) {
-                    actionHtml = `<button class="btn-outline" onclick="openAssignModal('${sub.id}')">Phân công</button>`;
+                    let btnText = isHOD && isProposed ? 'Duyệt' : 'Phân công';
+                    let btnClass = isHOD && isProposed ? 'btn-success' : 'btn-outline';
+                    actionHtml = `<button class="${btnClass}" onclick="openAssignModal('${sub.id}')">${btnText}</button>`;
                 } else {
-                    actionHtml = `<button class="btn-outline" style="border-color:#94a3b8; color:#64748b;" onclick="openSemesterModal('${sub.id}')">Học kỳ</button>`;
+                    if(isHOD) actionHtml = `<button class="btn-outline" style="border-color:#94a3b8; color:#64748b;" onclick="openSemesterModal('${sub.id}')">Học kỳ</button>`;
                 }
             }
 
             tbody.innerHTML += `
                 <tr class="subject-row ${gClass}">
                     <td align="center" style="font-weight:bold; color:#94a3b8;">${sttIndex}</td>
-                    <td><div class="subject-link" onclick="openSubjectModal('${sub.id}')">${sub.name} ${badgeHtml}</div></td>
+                    <td><div class="subject-link" onclick="openSubjectModal('${sub.id}')">${sub.name} ${badgeHtml} ${statusBadge}</div></td>
                     <td style="font-weight:600; color:var(--text-dark);">${asg.semester || '—'}</td>
                     <td>${gvHtml}</td>
                     <td>${progressHtml}</td>
-                    <td class="${isHOD ? '' : 'hidden'}" align="center">${actionHtml}</td>
+                    <td align="center">${actionHtml}</td>
                 </tr>
             `;
         }
@@ -721,7 +652,7 @@
             const semester = document.getElementById('semSemester').value;
             try {
                 await setDoc(doc(db, "assignments", currentEditingSubId), { 
-                    [currentClass]: { semester: semester, allocations: [] } 
+                    [currentClass]: { semester: semester, allocations: [], status: 'approved' } 
                 }, { merge: true });
                 document.getElementById('semesterModal').classList.add('hidden');
                 showToast("Cập nhật học kỳ thành công!");
@@ -731,14 +662,28 @@
         window.openAssignModal = (id) => {
             currentEditingSubId = id;
             const sub = subjectsData.find(s => s.id === id);
-            const asg = (assignmentsDB[id] && assignmentsDB[id][currentClass]) || { semester: '', allocations: [] };
+            const asg = (assignmentsDB[id] && assignmentsDB[id][currentClass]) || { semester: '', allocations: [], status: 'approved' };
+            const isProposed = asg.status === 'proposed';
 
             if(sub.name.includes("Luận văn") || sub.name.includes("Đề án")) {
                 document.getElementById('tasgName').innerText = `${sub.name} (Khóa: ${currentClass})`;
                 document.getElementById('tasgSemester').value = asg.semester || 'Học kỳ 4';
                 document.getElementById('thesisAllocContainer').innerHTML = '';
                 
-                if (asg.allocations.length === 0) { addThesisRow(); } 
+                // Banner & Nút duyệt
+                const banner = document.getElementById('thesisProposalBanner');
+                const btnSave = document.getElementById('btnSubmitThesis');
+                if (isHOD && isProposed) {
+                    banner.classList.remove('hidden');
+                    btnSave.innerText = "Duyệt & Lưu phân công";
+                    btnSave.classList.replace('btn-primary', 'btn-success');
+                } else {
+                    banner.classList.add('hidden');
+                    btnSave.innerText = isManager ? "Gửi đề xuất" : "Lưu phân công";
+                    btnSave.classList.replace('btn-success', 'btn-primary');
+                }
+
+                if (!asg.allocations || asg.allocations.length === 0) { addThesisRow(); } 
                 else { asg.allocations.forEach(a => addThesisRow(a.student, a.gv1, a.gv2)); }
                 document.getElementById('thesisAssignModal').classList.remove('hidden');
             } else {
@@ -749,10 +694,22 @@
                 
                 document.getElementById('allocContainer').innerHTML = '';
                 
-                if (asg.allocations.length === 0) { 
+                // Banner & Nút duyệt
+                const banner = document.getElementById('proposalBanner');
+                const btnSave = document.getElementById('btnSubmitAssign');
+                if (isHOD && isProposed) {
+                    banner.classList.remove('hidden');
+                    btnSave.innerText = "Duyệt & Lưu phân công";
+                    btnSave.classList.replace('btn-primary', 'btn-success');
+                } else {
+                    banner.classList.add('hidden');
+                    btnSave.innerText = isManager ? "Gửi đề xuất" : "Lưu phân công";
+                    btnSave.classList.replace('btn-success', 'btn-primary');
+                }
+
+                if (!asg.allocations || asg.allocations.length === 0) { 
                     addGvBlock(); 
                 } else {
-                    // GOM NHÓM LẠI ĐỂ ĐỔ VÀO BLOCK
                     let gvMap = {};
                     asg.allocations.forEach(a => {
                         if (!gvMap[a.gv]) gvMap[a.gv] = [];
@@ -762,7 +719,8 @@
                         const block = addGvBlock(gv);
                         const taskContainer = block.querySelector('.task-container');
                         gvMap[gv].forEach(t => {
-                            addTaskRow(taskContainer, t.task, t.assigned, t.completed, t.note);
+                            let autoCompleted = window.getCompletedSessions(currentClass, sub.name, t.gv, t.task);
+                            addTaskRow(taskContainer, t.task, t.assigned, autoCompleted, t.note);
                         });
                     }
                 }
@@ -770,7 +728,6 @@
             }
         };
 
-        // GOM NHÓM GV BÊN TRONG MODAL
         window.addGvBlock = (gv = '') => {
             const container = document.getElementById('allocContainer');
             const block = document.createElement('div');
@@ -791,7 +748,7 @@
                 <button class="btn-outline" style="margin-top: 10px;" onclick="addTaskRow(this.previousElementSibling)">+ Thêm Nhiệm vụ</button>
             `;
             container.appendChild(block);
-            if(!gv) addTaskRow(block.querySelector('.task-container')); // Tạo 1 dòng trống mặc định
+            if(!gv) addTaskRow(block.querySelector('.task-container')); 
             return block;
         };
 
@@ -811,9 +768,9 @@
                     <span class="alloc-label">Số buổi</span>
                     <input type="number" class="inp-assigned" value="${assigned}" min="1">
                 </div>
-                <div style="flex: 1; min-width: 90px;">
-                    <span class="alloc-label">Đã hoàn thành</span>
-                    <input type="number" class="inp-completed" value="${completed}" min="0">
+                <div style="flex: 1; min-width: 90px;" title="Tự động tính từ Lịch Công Tác">
+                    <span class="alloc-label">Hoàn thành</span>
+                    <input type="number" class="inp-completed" value="${completed}" readonly>
                 </div>
                 <div style="flex: 2; min-width: 150px;">
                     <span class="alloc-label">Ghi chú</span>
@@ -876,13 +833,16 @@
                 try { await setDoc(doc(collection(db, "visiting_lecturers")), { name: gv }); } catch(e){}
             }
 
+            // Gắn status: Nếu là HOD thì lưu thẳng (approved), nếu là Manager thì là (proposed)
+            const assignStatus = isHOD ? 'approved' : 'proposed';
+
             try {
                 await setDoc(doc(db, "assignments", currentEditingSubId), { 
-                    [currentClass]: { semester, allocations } 
+                    [currentClass]: { semester, allocations, status: assignStatus } 
                 }, { merge: true });
                 
                 document.getElementById('assignModal').classList.add('hidden');
-                showToast("Lưu phân công thành công!");
+                showToast(isHOD ? "Lưu phân công thành công!" : "Đã gửi đề xuất thành công!");
                 fetchGVList(); 
             } catch (e) { showToast("Lỗi khi lưu: " + e.message, "danger"); }
         };
@@ -891,7 +851,7 @@
         window.addThesisRow = (student = '', gv1 = '', gv2 = '') => {
             const container = document.getElementById('thesisAllocContainer');
             const row = document.createElement('div');
-            row.className = 'task-row'; // dùng lại class hàng ngang
+            row.className = 'task-row'; 
             
             const gv1Opts = window.getGvOptionsHtml(gv1);
             const gv2Opts = window.getGvOptionsHtml(gv2);
@@ -950,13 +910,15 @@
                 try { await setDoc(doc(collection(db, "visiting_lecturers")), { name: gv }); } catch(e){}
             }
 
+            const assignStatus = isHOD ? 'approved' : 'proposed';
+
             try {
                 await setDoc(doc(db, "assignments", currentEditingSubId), { 
-                    [currentClass]: { semester, allocations } 
+                    [currentClass]: { semester, allocations, status: assignStatus } 
                 }, { merge: true });
                 
                 document.getElementById('thesisAssignModal').classList.add('hidden');
-                showToast("Lưu phân công HD Luận văn thành công!");
+                showToast(isHOD ? "Lưu phân công HD Luận văn thành công!" : "Đã gửi đề xuất thành công!");
                 fetchGVList();
             } catch (e) { showToast("Lỗi khi lưu: " + e.message, "danger"); }
         };
