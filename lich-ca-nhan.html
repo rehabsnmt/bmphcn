@@ -100,12 +100,24 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, collection, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, collection, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY", authDomain: "bmphcn-aa9c6.firebaseapp.com", projectId: "bmphcn-aa9c6", storageBucket: "bmphcn-aa9c6.firebasestorage.app", messagingSenderId: "749494392719", appId: "1:749494392719:web:f220c751ff541620045dfa" };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+
+        // Map tên môn sang ID
+        const subjectsData = [
+            {"id": "sub_1", "name": "Triết học"}, {"id": "sub_2", "name": "Ngoại ngữ"}, {"id": "sub_3", "name": "Sinh học phân tử"}, {"id": "sub_4", "name": "Y đức - Xã hội học"}, {"id": "sub_5", "name": "Phương pháp nghiên cứu khoa học"}, {"id": "sub_6", "name": "Thống kê y học"},
+            {"id": "sub_7", "name": "Phương pháp dạy và học trong phục hồi chức năng"}, {"id": "sub_8", "name": "Quản lý và lãnh đạo trong phục hồi chức năng"}, {"id": "sub_9", "name": "Kỹ năng hướng dẫn lâm sàng và lý luận lâm sàng trong PHCN"}, {"id": "sub_10", "name": "Thực hành kỹ năng hướng dẫn lâm sàng"}, {"id": "sub_11", "name": "Thực hành dựa trên chứng cứ"},
+            {"id": "sub_12", "name": "Rối loạn nuốt"}, {"id": "sub_13", "name": "Rối loạn vận động tạo lời nói và nói lắp"}, {"id": "sub_14", "name": "Những rối loạn giao tiếp & nhận thức có nguồn gốc thần kinh"}, {"id": "sub_15", "name": "Những rối loạn phát sinh từ khiếm khuyết/Phẫu thuật vùng đầu và cổ"}, {"id": "sub_16", "name": "Khuyết tật giao tiếp suốt đời và giao tiếp tăng cường và thay thế"}, {"id": "sub_17", "name": "Thính lực học và PHCN thính giác"}, {"id": "sub_18", "name": "Quản lý ca bệnh phức tạp"}, {"id": "sub_19", "name": "Thực hành lâm sàng cho rối loạn giọng"}, {"id": "sub_20", "name": "Thực hành lâm sàng cho vấn đề rối loạn ngôn ngữ có nguồn gốc thần kinh"}, {"id": "sub_21", "name": "Thực hành lâm sàng cho người khuyết tật suốt đời"}, {"id": "sub_22", "name": "Thực hành lâm sàng cho trẻ em có rối loạn giao tiếp và nuốt"}, {"id": "sub_23", "name": "Thực hành lâm sàng ca bệnh phức tạp ở người lớn và trẻ em"},
+            {"id": "sub_24", "name": "Vật lý trị liệu Nhi nâng cao"}, {"id": "sub_25", "name": "Vật lý trị liệu Thần kinh cơ nâng cao"}, {"id": "sub_26", "name": "Vật lý trị liệu Cơ xương nâng cao"}, {"id": "sub_27", "name": "Vật lý trị liệu Tim mạch – Hô hấp nâng cao"}, {"id": "sub_28", "name": "Vật lý trị liệu trong thể thao"}, {"id": "sub_29", "name": "Ứng dụng công thái học trong can thiệp Vật lý trị liệu"}, {"id": "sub_30", "name": "Thực hành lâm sàng Vật lý trị liệu nâng cao 1"}, {"id": "sub_31", "name": "Thực hành lâm sàng Vật lý trị liệu nâng cao 2"},
+            {"id": "sub_32", "name": "Những vấn đề chuyên môn trong Hoạt động trị liệu"}, {"id": "sub_33", "name": "Lãnh đạo và quản lý trong Hoạt động trị liệu"}, {"id": "sub_34", "name": "Thiết kế và đánh giá chương trình Hoạt động trị liệu"}, {"id": "sub_35", "name": "Hoạt động trị liệu và quản lý chấn thương"}, {"id": "sub_36", "name": "Hoạt động trị liệu trong thực hành sức khỏe tâm thần trong suốt quá trình phát triển"}, {"id": "sub_37", "name": "Hoạt động trị liệu trong lão khoa"}, {"id": "sub_38", "name": "Thực hành hoạt động trị liệu 1"}, {"id": "sub_39", "name": "Thực hành hoạt động trị liệu 2"}, {"id": "sub_40", "name": "Thực hành hoạt động trị liệu 3"},
+            {"id": "sub_41", "name": "Thực hành lâm sàng Kỹ thuật Phục hồi chức năng 1"}, {"id": "sub_42", "name": "Thực hành lâm sàng Kỹ thuật Phục hồi chức năng 2"}, {"id": "sub_43", "name": "Thực hành lâm sàng Kỹ thuật Phục hồi chức năng 3"},
+            {"id": "sub_44", "name": "Đề án tốt nghiệp"}, {"id": "sub_45", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 1"}, {"id": "sub_46", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 2"}, {"id": "sub_47", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 3"}, {"id": "sub_48", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 4"}, {"id": "sub_49", "name": "Luận văn"},
+            {"id": "sub_99", "name": "Công việc chuyên môn khác"}
+        ];
 
         let currentUserName = '';
         let myEvents = [];
@@ -125,7 +137,7 @@
             if (!startStr) return 'Chưa xác định';
             
             const startDate = new Date(startStr);
-            const endDate = endStr ? new Date(endStr) : new Date(startDate.getTime() + 4 * 3600000); // Mặc định 4h nếu ko có end
+            const endDate = endStr ? new Date(endStr) : new Date(startDate.getTime() + 4 * 3600000);
             
             const timeOpts = { hour: '2-digit', minute: '2-digit', hour12: false };
             const sTime = startDate.toLocaleTimeString('vi-VN', timeOpts);
@@ -143,7 +155,6 @@
         // BẮT ĐẦU QUY TRÌNH KIỂM TRA ĐĂNG NHẬP
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                // Lấy tên thật của Giảng viên để dò lịch
                 try {
                     const userDoc = await getDoc(doc(db, "users", user.uid));
                     if (userDoc.exists()) {
@@ -151,7 +162,6 @@
                         let prefix = data.degree === 'ThS' ? 'ThS. ' : (data.degree === 'TS' ? 'TS. ' : '');
                         currentUserName = `${prefix}${data.fullName}`;
                         
-                        // Cập nhật Header
                         setTimeout(() => {
                             const btnAuthNav = document.getElementById('btnAuthNav');
                             if (btnAuthNav) {
@@ -160,16 +170,15 @@
                             }
                         }, 300);
 
-                        // Bắt đầu Lắng nghe Database Lịch công tác
                         listenToMySchedules();
                     } else {
-                        window.location.href = "login.html"; // Không tìm thấy User
+                        window.location.href = "login.html"; 
                     }
                 } catch (e) {
                     console.error("Lỗi lấy thông tin User", e);
                 }
             } else {
-                window.location.href = "login.html"; // Chưa đăng nhập
+                window.location.href = "login.html"; 
             }
         });
 
@@ -179,8 +188,8 @@
                 myEvents = [];
                 snapshot.forEach(doc => { 
                     const data = doc.data();
-                    // Nếu tên GV trong thẻ lịch có chứa tên của Current User
-                    if (data.gv && currentUserName && data.gv.includes(currentUserName)) {
+                    // CHỈ lấy các sự kiện của mình và CHƯA BỊ TRẢ VỀ
+                    if (data.gv && currentUserName && data.gv.includes(currentUserName) && data.status !== 'returned') {
                         myEvents.push(data);
                     }
                 });
@@ -202,18 +211,14 @@
             let todayCount = 0;
             let upcomingCount = 0;
 
-            // Sắp xếp sự kiện tăng dần theo thời gian
             myEvents.sort((a, b) => new Date(a.start) - new Date(b.start));
 
             myEvents.forEach(evt => {
                 const timeInfo = formatTaskTime(evt.start, evt.end);
                 
-                // BỎ QUA CÁC NHIỆM VỤ ĐÃ TRÔI QUA (KẾT THÚC RỒI THÌ KHÔNG HIỆN NỮA)
+                // BỎ QUA CÁC NHIỆM VỤ ĐÃ TRÔI QUA
                 if (timeInfo.isPast) return; 
 
-                // TRẠNG THÁI: Tạm thời mặc định hiển thị Nút Xanh "Đã Nhận" (Do hệ thống Admin xếp là mặc định nhận)
-                // Chỉ xử lý nút Từ Chối (Trả về kho)
-                
                 const cardHtml = `
                     <div class="task-card ${timeInfo.isToday ? 'today' : ''}">
                         <div class="task-time">
@@ -251,14 +256,61 @@
             }
         }
 
-        // TÍNH NĂNG TỪ CHỐI NHIỆM VỤ -> XÓA KHỎI LỊCH (TỰ ĐỘNG TRẢ VỀ KHO CỦA ADMIN)
+        // TÍNH NĂNG TỪ CHỐI NHIỆM VỤ
         window.rejectTask = async (eventId) => {
-            if (confirm("Bạn có chắc chắn KHÔNG NHẬN nhiệm vụ này?\nNhiệm vụ sẽ bị gỡ khỏi lịch và hoàn trả về kho Hệ thống để Trưởng BM phân công lại!")) {
+            const evt = myEvents.find(e => e.id === eventId);
+            if (!evt) return;
+
+            // BẮT BUỘC NHẬP LÝ DO
+            const reason = prompt(`Vui lòng nhập lý do không nhận nhiệm vụ:\n[${evt.task}] - ${evt.subject}`);
+            
+            if (!reason || reason.trim() === "") {
+                showToast("Thao tác bị hủy: Bạn bắt buộc phải nhập lý do từ chối!", "danger");
+                return;
+            }
+
+            if (confirm("Xác nhận TỪ CHỐI nhiệm vụ này?\nNhiệm vụ sẽ được hoàn trả về Bộ môn.")) {
                 try {
-                    // Xóa Document trong Collection calendar_events
-                    await deleteDoc(doc(db, "calendar_events", eventId));
-                    showToast("Đã hoàn trả nhiệm vụ thành công!");
-                    // Giao diện sẽ tự động cập nhật do đang lắng nghe onSnapshot
+                    // 1. Ghi lý do vào Ghi chú của Bảng Phân Công (assignments)
+                    const subObj = subjectsData.find(s => s.name === evt.subject);
+                    if (subObj) {
+                        const asgRef = doc(db, "assignments", subObj.id);
+                        const asgSnap = await getDoc(asgRef);
+                        
+                        if (asgSnap.exists()) {
+                            let asgData = asgSnap.data();
+                            if (asgData[evt.class] && asgData[evt.class].allocations) {
+                                let allocs = asgData[evt.class].allocations;
+                                // Tìm đúng Giảng viên và Nhiệm vụ
+                                let targetAlloc = allocs.find(a => a.gv === evt.gv && a.task === evt.task);
+                                
+                                if (targetAlloc) {
+                                    const today = new Date();
+                                    const dStr = String(today.getDate()).padStart(2, '0') + '/' + String(today.getMonth() + 1).padStart(2, '0') + '/' + today.getFullYear();
+                                    
+                                    targetAlloc.note = `[ĐÃ TỪ CHỐI] vào ${dStr}. Lý do: ${reason.trim()}`;
+                                    
+                                    // Cập nhật lại vào Database
+                                    await setDoc(asgRef, { 
+                                        [evt.class]: { allocations: allocs } 
+                                    }, { merge: true });
+                                }
+                            }
+                        }
+                    }
+
+                    // 2. Chuyển trạng thái Lịch thành 'returned' (Bị bôi đỏ bên kho Admin)
+                    const evtRef = doc(db, "calendar_events", eventId);
+                    const evtSnap = await getDoc(evtRef);
+                    if (evtSnap.exists()) {
+                        let rejCount = evtSnap.data().rejected || 0;
+                        await setDoc(evtRef, { status: 'returned', rejected: rejCount + 1 }, { merge: true });
+                    } else {
+                        // Fallback nếu không tồn tại document (rất hiếm)
+                        await deleteDoc(evtRef);
+                    }
+
+                    showToast("Đã từ chối nhiệm vụ và gửi lý do thành công!");
                 } catch(e) {
                     showToast("Lỗi khi hoàn trả: " + e.message, "danger");
                 }
