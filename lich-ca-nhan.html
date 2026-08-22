@@ -111,8 +111,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
-        // THÊM IMPORT updateDoc
-        import { getFirestore, doc, getDoc, updateDoc, collection, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, collection, onSnapshot, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY", authDomain: "bmphcn-aa9c6.firebaseapp.com", projectId: "bmphcn-aa9c6", storageBucket: "bmphcn-aa9c6.firebasestorage.app", messagingSenderId: "749494392719", appId: "1:749494392719:web:f220c751ff541620045dfa" };
         const app = initializeApp(firebaseConfig);
@@ -137,7 +136,7 @@
             if (!startStr) return { isToday: false, isPast: false, timeText: 'Chưa xác định' };
             
             const startDate = new Date(startStr);
-            const endDate = endStr ? new Date(endStr) : new Date(startDate.getTime() + 4 * 3600000); 
+            const endDate = endStr ? new Date(endStr) : new Date(startDate.getTime() + 4 * 3600000); // Mặc định 4h nếu ko có end
             
             const timeOpts = { hour: '2-digit', minute: '2-digit', hour12: false };
             const sTime = startDate.toLocaleTimeString('vi-VN', timeOpts);
@@ -189,8 +188,7 @@
                 myEvents = [];
                 snapshot.forEach(doc => { 
                     const data = doc.data();
-                    // LUÔN GẮN doc.id ĐỂ TRÁNH LỖI MẤT ID GÂY RA LỖI KHI XÓA/CẬP NHẬT
-                    data.id = doc.id; 
+                    data.id = doc.id; // Gắn ID để dùng xóa/cập nhật
                     
                     // Lọc các sự kiện có chứa tên mình và chưa bị trả về
                     if (data.gv && currentUserName && data.gv.includes(currentUserName) && data.status !== 'returned') {
@@ -255,6 +253,8 @@
                     `;
                 }
 
+                let clsName = evt.class === 'THS2025' ? 'Khóa 25-27' : (evt.class === 'THS2026' ? 'Khóa 26-28' : evt.class);
+
                 const cardHtml = `
                     <div class="task-card ${category}">
                         <div class="task-time">
@@ -262,7 +262,7 @@
                         </div>
                         <div class="task-subject">${evt.subject}</div>
                         <div class="task-role">Nhiệm vụ: ${evt.task}</div>
-                        <div class="task-class">Lớp: ${evt.class === 'THS2025' ? 'Khóa 25-27' : (evt.class === 'THS2026' ? 'Khóa 26-28' : evt.class)}</div>
+                        <div class="task-class">Lớp: ${clsName}</div>
                         ${badgeHtml}
                         ${actionHtml}
                     </div>
@@ -293,7 +293,7 @@
             }
         }
 
-        // TÍNH NĂNG TỪ CHỐI NHIỆM VỤ -> TRẢ VỀ KHO ADMIN
+        // TÍNH NĂNG TỪ CHỐI NHIỆM VỤ -> TRẢ VỀ KHO ADMIN (KHÔNG CẦN LÝ DO)
         window.rejectTask = async (eventId) => {
             if (confirm("Bạn có chắc chắn KHÔNG NHẬN nhiệm vụ này vào thời gian này?\nNhiệm vụ sẽ bị gỡ khỏi lịch của bạn và hoàn trả về kho của Bộ môn!")) {
                 try {
@@ -308,7 +308,9 @@
                         });
                         showToast("Đã hoàn trả nhiệm vụ thành công!");
                     } else {
-                        showToast("Lỗi: Không tìm thấy sự kiện trên hệ thống!", "danger");
+                        // Nếu không tìm thấy document, xóa luôn để dọn dẹp data rác
+                        await deleteDoc(evtRef);
+                        showToast("Đã hoàn trả nhiệm vụ thành công!");
                     }
                 } catch(e) {
                     console.error("Lỗi khi hoàn trả:", e);
