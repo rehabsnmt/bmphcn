@@ -47,13 +47,13 @@
         
         /* Nhãn phân loại trong Kho */
         .class-tag { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; margin-bottom: 5px; }
-        .class-tag.THS2025 { background: #bae6fd; color: #0369a1; border: 1px solid #7dd3fc; }
-        .class-tag.THS2026 { background: #fde047; color: #b45309; border: 1px solid #facc15; }
+        .class-tag.THS2025 { background: #bae6fd; color: #0369a1; }
+        .class-tag.THS2026 { background: #fde047; color: #b45309; }
 
         #event-pool .event-gv { font-weight: 700; font-size: 1rem; margin-bottom: 4px; color: var(--primary); }
         #event-pool .event-info { display: block; font-size: 0.85rem; color: var(--text-body); line-height: 1.4; }
         
-        /* Cảnh báo sự kiện bị GV từ chối */
+        /* Cảnh báo sự kiện bị GV từ chối trả về */
         #event-pool .fc-event.rejected-task { border-left: 4px solid #ef4444 !important; border-color: #ef4444 !important; background-color: #fef2f2 !important; }
         #event-pool .fc-event.rejected-task .event-gv { color: #b91c1c; }
         #event-pool .fc-event.rejected-task .reject-badge { display: block; font-size: 0.75rem; color: #ef4444; font-weight: bold; margin-top: 5px; animation: blink 1.5s infinite; }
@@ -352,30 +352,46 @@
             return valid;
         }
 
-        function hasOverlap(targetStart, targetEnd, gvStr, ignoreEventId) {
+        // HÀM KIỂM TRA TRÙNG LỊCH (ĐÃ SỬA LỖI & THÔNG MINH HƠN)
+        function hasOverlap(targetStart, targetEnd, gvStr, targetClass, targetTask, ignoreEventId) {
             let tStart = targetStart.getTime();
             let tEnd = targetEnd ? targetEnd.getTime() : tStart + 4 * 3600000;
             
             let allEvents = calendar.getEvents();
-            let targetGVs = gvStr ? gvStr.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
             
+            const blockingTasks = ['Lý thuyết', 'Thực hành', 'Thực tế', 'Coi thi'];
+
             for (let e of allEvents) {
+                // Bỏ qua chính thẻ đang xét
                 if (e.id === ignoreEventId) continue; 
                 
                 const props = e.extendedProps;
                 if (props.type === 'clinical_summary') continue; 
                 
-                let eGVs = props.gv ? props.gv.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
-                let hasCommonGV = targetGVs.some(gv => eGVs.includes(gv));
-                
-                if (!hasCommonGV) continue; 
-                
                 let eStart = e.start.getTime();
                 let eEnd = e.end ? e.end.getTime() : eStart + 4 * 3600000;
                 
-                if (tStart < eEnd && tEnd > eStart) return true;
+                // NẾU TRÙNG GIỜ (Thời gian giao nhau)
+                if (tStart < eEnd && tEnd > eStart) {
+                    
+                    // 1. Kiểm tra Trùng lịch Khóa học: 
+                    // Một lớp không thể học/coi thi 2 môn cùng lúc
+                    if (props.class === targetClass && blockingTasks.includes(targetTask) && blockingTasks.includes(props.task)) {
+                        return { hasOverlap: true, reason: `Lớp ${targetClass} đã có lịch học/thi vào khung giờ này!` };
+                    }
+                    
+                    // 2. Kiểm tra Trùng lịch Giảng viên:
+                    // Giảng viên không thể dạy 2 nơi cùng lúc
+                    let targetGVs = gvStr ? gvStr.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
+                    let eGVs = props.gv ? props.gv.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
+                    let hasCommonGV = targetGVs.some(gv => eGVs.includes(gv));
+                    
+                    if (hasCommonGV && blockingTasks.includes(targetTask) && blockingTasks.includes(props.task)) {
+                        return { hasOverlap: true, reason: `Giảng viên bị trùng lịch dạy/coi thi khác!` };
+                    }
+                }
             }
-            return false;
+            return { hasOverlap: false };
         }
 
         window.toggleSidebar = () => {
@@ -487,7 +503,7 @@
                     let gvShort = gvFull.split(/,|&/).map(n => n.trim().split(' ').pop()).join(', ');
                     
                     let clsRaw = props.class;
-                    let clsTag = clsRaw === 'THS2025' ? '<b style="color:#fde047">[K25]</b> ' : (clsRaw === 'THS2026' ? '<b style="color:#a7f3d0">[K26]</b> ' : '');
+                    let clsTag = clsRaw === 'THS2025' ? '<b style="color:#0369a1">[K25]</b> ' : (clsRaw === 'THS2026' ? '<b style="color:#b45309">[K26]</b> ' : '');
 
                     return {
                         html: `
@@ -512,11 +528,10 @@
                         info.revert(); return;
                     }
 
-                    // SỬA LỖI BẮT TRÙNG LỊCH:
-                    // Trong hàm eventReceive, info.event.id ĐANG LÀ giá trị copy từ Kho,
-                    // Nếu đẩy vào ignoreEventId, nó sẽ giúp hasOverlap bỏ qua đúng thẻ vừa thả.
-                    if (hasOverlap(info.event.start, info.event.end, props.gv, info.event.id)) {
-                        showToast(`Lỗi: Giảng viên bị trùng lịch với Lịch Lý thuyết khác!`, "danger");
+                    // KIỂM TRA TRÙNG LỊCH: Gửi info.event.id (Thẻ tạm lấy từ kho) để hàm bỏ qua chính nó
+                    const overlapCheck = hasOverlap(info.event.start, info.event.end, props.gv, props.eventClass, props.task, info.event.id);
+                    if (overlapCheck.hasOverlap) {
+                        showToast(overlapCheck.reason, "danger");
                         info.revert(); return;
                     }
 
@@ -566,8 +581,9 @@
                         info.revert(); return;
                     }
 
-                    if (hasOverlap(info.event.start, info.event.end, props.gv, info.event.id)) {
-                        showToast(`Lỗi: Khung giờ mới bị trùng với lịch Lý thuyết khác!`, "danger");
+                    const overlapCheck = hasOverlap(info.event.start, info.event.end, props.gv, props.class, props.task, info.event.id);
+                    if (overlapCheck.hasOverlap) {
+                        showToast(overlapCheck.reason, "danger");
                         info.revert(); return;
                     }
 
@@ -602,8 +618,9 @@
                         info.revert(); return;
                     }
 
-                    if (hasOverlap(info.event.start, info.event.end, props.gv, info.event.id)) {
-                        showToast(`Lỗi: Khung giờ kéo giãn bị trùng lịch Lý thuyết khác!`, "danger");
+                    const overlapCheck = hasOverlap(info.event.start, info.event.end, props.gv, props.class, props.task, info.event.id);
+                    if (overlapCheck.hasOverlap) {
+                        showToast(overlapCheck.reason, "danger");
                         info.revert(); return;
                     }
 
@@ -641,11 +658,9 @@
                         }
                         const dateStr = info.event.start ? info.event.start.toLocaleDateString('vi-VN', {day:'2-digit', month:'2-digit', year:'numeric'}) : '';
                         
-                        let clsName = props.class === 'THS2025' ? 'Khóa 25-27' : (props.class === 'THS2026' ? 'Khóa 26-28' : props.class);
-
                         tooltip.innerHTML = `
                             <strong><i class="fas fa-book"></i> ${props.subject}</strong><br>
-                            Lớp: ${clsName}<br>
+                            Lớp: ${props.class}<br>
                             Nhiệm vụ: ${props.task}<br>
                             Giảng viên: ${props.gv}<br>
                             Thời gian: ${sTime} - ${eTime} (${dateStr})<br>
@@ -719,8 +734,7 @@
                     }
 
                     currentClickedEventId = info.event.id;
-                    let clsName = props.class === 'THS2025' ? 'ThS 25-27' : (props.class === 'THS2026' ? 'ThS 26-28' : props.class);
-                    document.getElementById('mdlClass').innerText = clsName || 'N/A';
+                    document.getElementById('mdlClass').innerText = props.class || 'N/A';
                     document.getElementById('mdlSubject').innerText = props.subject || '';
                     document.getElementById('mdlGv').innerText = props.gv || '';
                     document.getElementById('mdlTask').innerText = props.task || '';
@@ -780,7 +794,6 @@
             poolDiv.innerHTML = '';
             let unscheduledCount = 0;
 
-            // ĐỔI THÀNH LUÔN HIỂN THỊ TẤT CẢ LỊCH
             let currentClassEvents = scheduledEvents.filter(e => e.status !== 'returned').map(e => {
                 const isMyEvent = e.gv && currentUserName && e.gv.includes(currentUserName);
                 
@@ -846,7 +859,7 @@
                 }
             });
 
-            // TÁI TẠO KHO SỰ KIỆN TỪ TẤT CẢ CÁC KHÓA (KHÔNG BỊ ẨN NỮA)
+            // TÁI TẠO KHO SỰ KIỆN TỪ TẤT CẢ CÁC KHÓA
             managedClasses.forEach(cls => {
                 for (let subId in assignmentsData) {
                     const subAsg = assignmentsData[subId];
