@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Lịch công tác Giảng viên - Bộ môn Phục hồi chức năng.">
+    <meta name="description" content="Lịch công tác - Bộ môn Phục hồi chức năng.">
     <title>Lịch Công Tác - Bộ môn Phục hồi chức năng</title>
     
     <link rel="icon" href="images/logo_Bộ môn.png" type="image/png">
@@ -23,8 +23,7 @@
 
         /* Thanh công cụ gọn nhẹ trên cùng */
         .top-toolbar { position: sticky; top: 0; z-index: 1000; display: flex; justify-content: space-between; align-items: center; padding: 10px 2%; background: var(--surface); border-bottom: 1px solid var(--border); margin-bottom: 15px; box-shadow: var(--shadow-sm); }
-        .top-toolbar h2 { margin: 0; font-size: 1.25rem; color: var(--text-dark); display: flex; align-items: center; gap: 8px; font-weight: 700; }
-        .top-toolbar .subtitle { font-size: 0.85rem; color: var(--text-body); font-weight: 600; margin-top: 2px; }
+        .top-toolbar h2 { margin: 0; font-size: 1.4rem; color: var(--text-dark); display: flex; align-items: center; gap: 8px; font-weight: 800; }
         
         .controls-wrapper { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
         .tabs-header { display: flex; gap: 6px; }
@@ -68,10 +67,11 @@
         .event-on-calendar .evt-time { font-size: 0.85rem; font-weight: 600; background: rgba(0,0,0,0.25); padding: 2px 8px; border-radius: 4px; width: fit-content; margin-bottom: 4px; }
         .event-on-calendar .evt-gv { font-size: 1.05rem; font-weight: 700; line-height: 1.2; text-shadow: 1px 1px 2px rgba(0,0,0,0.2); white-space: normal; }
         .event-on-calendar .evt-sub { font-size: 0.85rem; font-weight: 400; opacity: 0.95; line-height: 1.3; white-space: normal; }
+        .evt-gv-mobile { display: none; }
 
-        /* Chấm đỏ Bệnh viện trên cùng (All-day) */
-        .evt-clinical-dot { background-color: #ef4444; color: white; border-radius: 4px; padding: 2px 0; text-align: center; font-weight: 700; font-size: 0.85rem; cursor: pointer; display: block; box-shadow: 0 2px 5px rgba(239, 68, 68, 0.4); transition: 0.2s; }
-        .evt-clinical-dot:hover { background-color: #dc2626; transform: scale(1.02); }
+        /* Chấm Bệnh viện trên cùng (All-day) - Đổi sang Xanh Ngọc */
+        .evt-clinical-dot { background-color: #10b981; color: white; border-radius: 4px; padding: 2px 0; text-align: center; font-weight: 700; font-size: 0.85rem; cursor: pointer; display: block; box-shadow: 0 2px 5px rgba(16, 185, 129, 0.4); transition: 0.2s; }
+        .evt-clinical-dot:hover { background-color: #059669; transform: scale(1.02); }
 
         .hidden { display: none !important; }
 
@@ -88,7 +88,7 @@
 
         /* Modal Chi tiết chung */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 2000; padding: 10px; }
-        .modal-content { background: white; width: 450px; border-radius: 8px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); overflow: hidden; display: flex; flex-direction: column; }
+        .modal-content { background: white; width: 95%; max-width: 600px; border-radius: 8px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); overflow: hidden; display: flex; flex-direction: column; }
         .modal-header { padding: 15px 20px; background: var(--primary); color: white; display: flex; justify-content: space-between; align-items: center; }
         .modal-header h3 { margin: 0; font-size: 1.1rem; }
         .modal-body { padding: 20px; line-height: 1.8; text-align: justify; overflow-y: auto; }
@@ -100,13 +100,24 @@
 
         /* Mở rộng Kích thước Modal Bệnh viện */
         #clinicalModal .modal-content { width: 95%; max-width: 750px; max-height: 85vh; }
-        .clin-card { margin-bottom: 15px; padding: 15px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; border-left: 4px solid var(--primary); }
+        .clin-card { margin-bottom: 15px; padding: 15px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; border-left: 4px solid #10b981; }
         .clin-card-title { font-weight: 700; color: var(--text-dark); font-size: 1.15rem; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; }
 
+        /* Responsive Điện thoại - Thu gọn Giao diện Lịch */
         @media (max-width: 900px) {
             main { flex-direction: column; }
             #external-events { position: relative; width: 100%; top: 0; max-height: 350px; }
             .top-toolbar { flex-direction: column; gap: 10px; align-items: stretch; }
+            
+            .fc-toolbar-title { font-size: 1.1rem !important; }
+            .fc-button-primary { padding: 4px 10px !important; font-size: 0.8rem !important; }
+            
+            /* Rút gọn thẻ lịch */
+            .fc-event-main { padding: 2px !important; }
+            .evt-gv-desktop { display: none !important; }
+            .evt-gv-mobile { display: block !important; font-size: 0.8rem; font-weight: 700; white-space: normal; line-height: 1.1; }
+            .event-on-calendar .evt-sub { display: none; }
+            .event-on-calendar .evt-time { font-size: 0.7rem; padding: 1px 4px; margin-bottom: 2px; }
         }
     </style>
 </head>
@@ -119,14 +130,15 @@
     <!-- THANH CÔNG CỤ COMPACT TRÊN CÙNG -->
     <div class="top-toolbar">
         <div>
-            <h2>LỊCH CÔNG TÁC GIẢNG VIÊN</h2>
-            <div class="subtitle">BỘ MÔN PHỤC HỒI CHỨC NĂNG</div>
+            <h2>LỊCH CÔNG TÁC</h2>
         </div>
         <div class="controls-wrapper">
             <button id="btnToggleSidebar" class="btn-toggle hidden" onclick="toggleSidebar()" title="Thu gọn/Mở rộng Kho sự kiện">
                 <i class="fas fa-bars"></i> Kho Sự Kiện
             </button>
             <div class="tabs-header">
+                <!-- TÙY CHỌN TẤT CẢ -->
+                <button class="tab-btn" onclick="switchClass('ALL', this)">Tất cả</button>
                 <button class="tab-btn active" onclick="switchClass('THS2025', this)">Khóa ThS 25-27</button>
                 <button class="tab-btn" onclick="switchClass('THS2026', this)">Khóa ThS 26-28</button>
             </div>
@@ -166,6 +178,7 @@
                 <span style="cursor: pointer; font-weight: bold; font-size: 1.2rem;" onclick="document.getElementById('eventModal').classList.add('hidden')">X</span>
             </div>
             <div class="modal-body">
+                <p><strong>Khóa/Lớp:</strong> <span id="mdlClass"></span></p>
                 <p><strong>Môn học:</strong> <span id="mdlSubject"></span></p>
                 <p><strong>Nhiệm vụ:</strong> <span id="mdlTask"></span></p>
                 <p><strong>Giảng viên:</strong> <span id="mdlGv" style="color: var(--primary); font-weight: bold; font-size: 1.1rem;"></span></p>
@@ -184,8 +197,8 @@
     <!-- MODAL CHI TIẾT TỔ HỢP BỆNH VIỆN -->
     <div id="clinicalModal" class="modal-overlay hidden">
         <div class="modal-content">
-            <div class="modal-header" style="background: #ef4444;">
-                <h3>Chi tiết Lịch Bệnh viện (Sinh viên Cử nhân)</h3>
+            <div class="modal-header" style="background: #10b981;">
+                <h3>Chi tiết Lịch Bệnh viện</h3>
                 <span style="cursor: pointer; font-weight: bold; font-size: 1.2rem;" onclick="document.getElementById('clinicalModal').classList.add('hidden')">X</span>
             </div>
             <div class="modal-body" id="clinicalModalBody">
@@ -218,7 +231,8 @@
             {"id": "sub_24", "name": "Vật lý trị liệu Nhi nâng cao"}, {"id": "sub_25", "name": "Vật lý trị liệu Thần kinh cơ nâng cao"}, {"id": "sub_26", "name": "Vật lý trị liệu Cơ xương nâng cao"}, {"id": "sub_27", "name": "Vật lý trị liệu Tim mạch – Hô hấp nâng cao"}, {"id": "sub_28", "name": "Vật lý trị liệu trong thể thao"}, {"id": "sub_29", "name": "Ứng dụng công thái học trong can thiệp Vật lý trị liệu"}, {"id": "sub_30", "name": "Thực hành lâm sàng Vật lý trị liệu nâng cao 1"}, {"id": "sub_31", "name": "Thực hành lâm sàng Vật lý trị liệu nâng cao 2"},
             {"id": "sub_32", "name": "Những vấn đề chuyên môn trong Hoạt động trị liệu"}, {"id": "sub_33", "name": "Lãnh đạo và quản lý trong Hoạt động trị liệu"}, {"id": "sub_34", "name": "Thiết kế và đánh giá chương trình Hoạt động trị liệu"}, {"id": "sub_35", "name": "Hoạt động trị liệu và quản lý chấn thương"}, {"id": "sub_36", "name": "Hoạt động trị liệu trong thực hành sức khỏe tâm thần trong suốt quá trình phát triển"}, {"id": "sub_37", "name": "Hoạt động trị liệu trong lão khoa"}, {"id": "sub_38", "name": "Thực hành hoạt động trị liệu 1"}, {"id": "sub_39", "name": "Thực hành hoạt động trị liệu 2"}, {"id": "sub_40", "name": "Thực hành hoạt động trị liệu 3"},
             {"id": "sub_41", "name": "Thực hành lâm sàng Kỹ thuật Phục hồi chức năng 1"}, {"id": "sub_42", "name": "Thực hành lâm sàng Kỹ thuật Phục hồi chức năng 2"}, {"id": "sub_43", "name": "Thực hành lâm sàng Kỹ thuật Phục hồi chức năng 3"},
-            {"id": "sub_44", "name": "Đề án tốt nghiệp"}, {"id": "sub_45", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 1"}, {"id": "sub_46", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 2"}, {"id": "sub_47", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 3"}, {"id": "sub_48", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 4"}, {"id": "sub_49", "name": "Luận văn"}
+            {"id": "sub_44", "name": "Đề án tốt nghiệp"}, {"id": "sub_45", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 1"}, {"id": "sub_46", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 2"}, {"id": "sub_47", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 3"}, {"id": "sub_48", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 4"}, {"id": "sub_49", "name": "Luận văn"},
+            {"id": "sub_99", "name": "Công việc chuyên môn khác"}
         ];
 
         let calendar;
@@ -456,13 +470,18 @@
                     }
                     const timeStr = `${sTime} - ${eTime}`;
                     
+                    let gvFull = props.gv || '';
+                    // Tách tên Rút gọn cho Điện thoại (Vd: Nguyễn Ngọc Minh -> Minh)
+                    let gvShort = gvFull.split(',').map(n => n.trim().split(' ').pop()).join(', ');
+
                     return {
                         html: `
                         <div class="event-on-calendar">
                             <div style="margin-bottom: 2px;">
                                 <span class="evt-time">${timeStr}</span>
                             </div>
-                            <div class="evt-gv">${props.gv}</div>
+                            <div class="evt-gv evt-gv-desktop">${gvFull}</div>
+                            <div class="evt-gv evt-gv-mobile">${gvShort}</div>
                             <div class="evt-sub">${props.subject} (${props.task})</div>
                         </div>
                         `
@@ -478,19 +497,22 @@
                         info.revert(); return;
                     }
 
-                    if (hasOverlap(info.event.start, info.event.end, props.gv, info.event.id)) {
+                    const newUniqueId = props.originalId + '_' + Date.now();
+                    
+                    if (hasOverlap(info.event.start, info.event.end, props.gv, newUniqueId)) {
                         showToast(`Lỗi: Giảng viên ${props.gv} bị trùng lịch với Lịch Lý thuyết khác!`, "danger");
                         info.revert(); return;
                     }
 
-                    const newUniqueId = props.originalId + '_' + Date.now();
+                    info.event.setProp('id', newUniqueId); 
+
                     const eventData = {
                         id: newUniqueId, 
                         title: info.event.title,
                         start: info.event.startStr,
                         end: info.event.endStr || null,
                         allDay: info.event.allDay,
-                        class: currentClass,
+                        class: currentClass, // Vẫn lưu class hiện tại để dễ quản lý kho
                         subject: props.subject,
                         gv: props.gv,
                         task: props.task,
@@ -509,7 +531,6 @@
                     }
                 },
 
-                // KIỂM TRA QUYỀN SỞ HỮU KHI DỜI LỊCH (DRAG & DROP)
                 eventDrop: async function(info) {
                     if (!isCalendarAdmin) { info.revert(); return; }
                     if (info.event.extendedProps.type === 'clinical_summary') {
@@ -518,7 +539,6 @@
                     
                     const props = info.event.extendedProps;
 
-                    // KIỂM TRA KHÔNG ĐƯỢC SỬA LỊCH DO GIẢNG VIÊN KHÁC XẾP
                     if (props.scheduledByEmail && props.scheduledByEmail !== currentUserEmail && currentUserEmail !== 'hoangtran1483@gmail.com') {
                         showToast(`Lỗi: Bạn không thể dời lịch do giảng viên khác xếp!`, "danger");
                         info.revert();
@@ -547,7 +567,6 @@
                     }
                 },
 
-                // KIỂM TRA QUYỀN SỞ HỮU KHI KÉO GIÃN THỜI LƯỢNG (RESIZE)
                 eventResize: async function(info) {
                     if (!isCalendarAdmin) { info.revert(); return; }
                     if (info.event.extendedProps.type === 'clinical_summary') {
@@ -556,7 +575,6 @@
                     
                     const props = info.event.extendedProps;
 
-                    // KIỂM TRA KHÔNG ĐƯỢC SỬA LỊCH DO GIẢNG VIÊN KHÁC XẾP
                     if (props.scheduledByEmail && props.scheduledByEmail !== currentUserEmail && currentUserEmail !== 'hoangtran1483@gmail.com') {
                         showToast(`Lỗi: Bạn không thể thay đổi thời lượng lịch do giảng viên khác xếp!`, "danger");
                         info.revert();
@@ -665,6 +683,7 @@
                                 const borderStyle = index < hospitalGroups[hosp].length - 1 ? 'border-bottom: 1px dashed #cbd5e1; margin-bottom: 10px; padding-bottom: 10px;' : '';
                                 html += `
                                 <div style="font-size: 0.95rem; color: var(--text-dark); line-height: 1.6; ${borderStyle}">
+                                    <b>Khóa/Lớp:</b> <span style="color: #b45309; font-weight: 600;">${c.class_id || 'N/A'}</span><br>
                                     <b>Chuyên ngành:</b> <span style="color: var(--primary); font-weight: 600;">${c.specialty}</span> (${c.number_students || '?'} SV)<br>
                                     <b>Ca trực:</b> ${c.shift}<br>
                                     <b>Giảng viên nhận việc:</b> <span>${c.instructors}</span>
@@ -680,6 +699,7 @@
                     }
 
                     currentClickedEventId = info.event.id;
+                    document.getElementById('mdlClass').innerText = props.class || 'N/A';
                     document.getElementById('mdlSubject').innerText = props.subject || '';
                     document.getElementById('mdlGv').innerText = props.gv || '';
                     document.getElementById('mdlTask').innerText = props.task || '';
@@ -696,7 +716,6 @@
                     const dateStr = info.event.start ? info.event.start.toLocaleDateString('vi-VN', {weekday: 'long', day:'2-digit', month:'2-digit', year:'numeric'}) : '';
                     document.getElementById('mdlTime').innerText = `${sTime} - ${eTime} (${dateStr})`;
 
-                    // CHỈ CHO PHÉP XÓA NẾU LÀ CHÍNH CHỦ HOẶC SUPER ADMIN
                     if (isCalendarAdmin && (!props.scheduledByEmail || props.scheduledByEmail === currentUserEmail || currentUserEmail === 'hoangtran1483@gmail.com')) {
                         document.getElementById('btnDeleteEvent').classList.remove('hidden');
                     } else {
@@ -740,7 +759,10 @@
             poolDiv.innerHTML = '';
             let unscheduledCount = 0;
 
-            let currentClassEvents = scheduledEvents.filter(e => e.class === currentClass && e.status !== 'returned').map(e => {
+            // LỌC CÁC SỰ KIỆN TỪ DATABASE DỰA THEO CHẾ ĐỘ HIỂN THỊ
+            let currentClassEvents = scheduledEvents.filter(e => 
+                (currentClass === 'ALL' || e.class === currentClass) && e.status !== 'returned'
+            ).map(e => {
                 const isMyEvent = e.gv && currentUserName && e.gv.includes(currentUserName);
                 return {
                     ...e,
@@ -751,8 +773,10 @@
             });
             calendar.addEventSource(currentClassEvents);
 
-            // GOM NHÓM & TẠO CHẤM ĐỎ BỆNH VIỆN CHO ALL-DAY
-            globalGroupedClinicals = getClinicalEventsMap(clinicalSchedules); 
+            // GOM NHÓM LỊCH BỆNH VIỆN CHO ALL-DAY
+            let clinicalToMap = currentClass === 'ALL' ? clinicalSchedules : clinicalSchedules.filter(c => c.class_id === currentClass);
+            globalGroupedClinicals = getClinicalEventsMap(clinicalToMap); 
+            
             let clinicalEvents = [];
             for (let dateStr in globalGroupedClinicals) {
                 clinicalEvents.push({
@@ -772,83 +796,85 @@
             }
             calendar.addEventSource(clinicalEvents);
 
+            // ĐẾM SỐ BUỔI ĐÃ XẾP 
             let scheduledCounts = {};
             currentClassEvents.forEach(e => {
-                const subObj = subjectsData.find(s => s.name === e.subject);
-                if(subObj) {
-                    const key = `${subObj.id}_${e.gv}_${e.task}`;
-                    if(!scheduledCounts[key]) scheduledCounts[key] = 0;
-                    scheduledCounts[key]++;
-                }
+                // Khi xem 'ALL', vẫn đếm theo môn, GV, task và class để ẩn trong kho
+                const key = `${e.subject}_${e.gv}_${e.task}_${e.class}`;
+                if(!scheduledCounts[key]) scheduledCounts[key] = 0;
+                scheduledCounts[key]++;
             });
 
-            for (let subId in assignmentsData) {
-                const subAsg = assignmentsData[subId];
-                if (subAsg[currentClass] && subAsg[currentClass].allocations) {
-                    
-                    if (subAsg[currentClass].status === 'proposed') continue;
-
-                    const semester = subAsg[currentClass].semester || 'Chưa xác định';
-                    if (selectedSemester !== 'ALL' && semester !== selectedSemester) continue; 
-                    const subName = subjectsData.find(s => s.id === subId)?.name || 'Môn không xác định';
-                    
-                    subAsg[currentClass].allocations.forEach(a => {
-                        const totalAssigned = parseInt(a.assigned) || 0;
-                        const key = `${subId}_${a.gv}_${a.task}`;
-                        const alreadyScheduled = scheduledCounts[key] || 0;
+            // TÁI TẠO KHO SỰ KIỆN (CHỈ HIỂN THỊ KHI XEM 1 KHÓA CỤ THỂ, KHÔNG HIỆN KHI XEM 'ALL')
+            if (currentClass !== 'ALL') {
+                for (let subId in assignmentsData) {
+                    const subAsg = assignmentsData[subId];
+                    if (subAsg[currentClass] && subAsg[currentClass].allocations) {
                         
-                        let rejectedCardsOfThisTask = scheduledEvents.filter(e => e.class === currentClass && e.status === 'returned' && e.subject === subName && e.gv === a.gv && e.task === a.task);
+                        if (subAsg[currentClass].status === 'proposed') continue;
 
-                        let remaining = totalAssigned - alreadyScheduled;
-                        let remainingNormal = remaining - rejectedCardsOfThisTask.length; 
+                        const semester = subAsg[currentClass].semester || 'Chưa xác định';
+                        if (selectedSemester !== 'ALL' && semester !== selectedSemester) continue; 
+                        const subName = subjectsData.find(s => s.id === subId)?.name || 'Môn không xác định';
                         
-                        if (remainingNormal > 0) {
-                            for(let i=0; i<remainingNormal; i++) {
+                        subAsg[currentClass].allocations.forEach(a => {
+                            const totalAssigned = parseInt(a.assigned) || 0;
+                            const keyForCount = `${subName}_${a.gv}_${a.task}_${currentClass}`;
+                            const alreadyScheduled = scheduledCounts[keyForCount] || 0;
+                            
+                            let rejectedCardsOfThisTask = scheduledEvents.filter(e => e.class === currentClass && e.status === 'returned' && e.subject === subName && e.gv === a.gv && e.task === a.task);
+
+                            let remaining = totalAssigned - alreadyScheduled;
+                            let remainingNormal = remaining - rejectedCardsOfThisTask.length; 
+                            
+                            if (remainingNormal > 0) {
+                                for(let i=0; i<remainingNormal; i++) {
+                                    unscheduledCount++;
+                                    const eventDiv = document.createElement('div');
+                                    eventDiv.className = 'fc-event';
+                                    eventDiv.setAttribute('data-id', `${subId}_${a.gv}_${a.task}`);
+                                    eventDiv.setAttribute('data-title', a.gv); 
+                                    eventDiv.setAttribute('data-subject', subName);
+                                    eventDiv.setAttribute('data-gv', a.gv);
+                                    eventDiv.setAttribute('data-task', a.task);
+                                    
+                                    eventDiv.innerHTML = `
+                                        <div class="event-gv">${a.gv}</div>
+                                        <span class="event-info">[${a.task}]<br>${subName}</span>
+                                    `;
+                                    poolDiv.appendChild(eventDiv);
+                                }
+                            }
+
+                            rejectedCardsOfThisTask.forEach(rTask => {
                                 unscheduledCount++;
                                 const eventDiv = document.createElement('div');
-                                eventDiv.className = 'fc-event';
-                                eventDiv.setAttribute('data-id', key);
+                                eventDiv.className = 'fc-event rejected-task';
+                                eventDiv.setAttribute('data-id', `${subId}_${a.gv}_${a.task}`); 
                                 eventDiv.setAttribute('data-title', a.gv); 
                                 eventDiv.setAttribute('data-subject', subName);
                                 eventDiv.setAttribute('data-gv', a.gv);
                                 eventDiv.setAttribute('data-task', a.task);
+                                eventDiv.setAttribute('data-original-id', rTask.id); 
                                 
+                                const rejectTimes = rTask.rejected || 1;
                                 eventDiv.innerHTML = `
                                     <div class="event-gv">${a.gv}</div>
                                     <span class="event-info">[${a.task}]<br>${subName}</span>
+                                    <span class="reject-badge"><i class="fas fa-exclamation-circle"></i> Bị từ chối (${rejectTimes} lần)</span>
                                 `;
-                                poolDiv.appendChild(eventDiv);
-                            }
-                        }
+                                poolDiv.prepend(eventDiv); 
+                            });
 
-                        rejectedCardsOfThisTask.forEach(rTask => {
-                            unscheduledCount++;
-                            const eventDiv = document.createElement('div');
-                            eventDiv.className = 'fc-event rejected-task';
-                            eventDiv.setAttribute('data-id', key); 
-                            eventDiv.setAttribute('data-title', a.gv); 
-                            eventDiv.setAttribute('data-subject', subName);
-                            eventDiv.setAttribute('data-gv', a.gv);
-                            eventDiv.setAttribute('data-task', a.task);
-                            eventDiv.setAttribute('data-original-id', rTask.id); 
-                            
-                            const rejectTimes = rTask.rejected || 1;
-                            eventDiv.innerHTML = `
-                                <div class="event-gv">${a.gv}</div>
-                                <span class="event-info">[${a.task}]<br>${subName}</span>
-                                <span class="reject-badge"><i class="fas fa-exclamation-circle"></i> Bị từ chối (${rejectTimes} lần)</span>
-                            `;
-                            poolDiv.prepend(eventDiv); 
                         });
-
-                    });
+                    }
                 }
             }
 
             const extEventsPanel = document.getElementById('external-events');
             const btnToggle = document.getElementById('btnToggleSidebar');
 
-            if (isCalendarAdmin) {
+            if (isCalendarAdmin && currentClass !== 'ALL') {
                 btnToggle.classList.remove('hidden'); 
                 if (unscheduledCount === 0) {
                     extEventsPanel.style.display = 'none';
