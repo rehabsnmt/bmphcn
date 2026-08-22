@@ -33,11 +33,15 @@
         /* --- SMART HOVER CARDS --- */
         .smart-card { position: relative; overflow: hidden; cursor: pointer; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); padding: 30px 20px; transition: all 0.3s ease; display: flex; flex-direction: column; align-items: center; text-align: center; box-shadow: var(--shadow-sm); }
         .smart-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-color: var(--primary); }
-        .smart-card .icon-wrapper { width: 65px; height: 65px; border-radius: 50%; background-color: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.6rem; margin-bottom: 15px; transition: transform 0.3s ease; }
+        .smart-card .icon-wrapper { width: 65px; height: 65px; border-radius: 50%; background-color: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.6rem; margin-bottom: 15px; transition: transform 0.3s ease; position: relative; }
         .smart-card:hover .icon-wrapper { transform: scale(1.1); }
         .smart-card h3 { color: var(--text-dark); font-size: 1.15rem; margin-bottom: 10px; font-weight: 700; }
         .smart-card p { color: var(--text-body); font-size: 0.9rem; line-height: 1.5; margin: 0; }
         
+        /* Chấm đỏ thông báo Notification */
+        .notif-badge { position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; font-size: 0.75rem; font-weight: bold; padding: 4px 8px; border-radius: 20px; border: 2px solid white; animation: pulse-red 1.5s infinite; }
+        @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+
         /* Overlay thông tin trượt lên */
         .smart-card-overlay { position: absolute; bottom: 0; left: 0; width: 100%; height: 0; background: linear-gradient(to top, rgba(2, 132, 199, 0.95), rgba(2, 132, 199, 0.85)); color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 0 20px; box-sizing: border-box; }
         .smart-card:hover .smart-card-overlay { height: 100%; opacity: 1; }
@@ -71,61 +75,75 @@
             </div>
         </div>
 
-        <!-- LƯỚI CÁC PHÂN MỤC (SẼ ĐƯỢC ẨN/HIỆN DỰA THEO QUYỀN) -->
+        <!-- LƯỚI CÁC PHÂN MỤC (ĐÃ MỞ CHO TẤT CẢ GIẢNG VIÊN VÀ THÊM MỤC THÔNG BÁO) -->
         <section class="quick-links" style="margin-bottom: 2rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
             
-            <!-- 1. PHÂN CÔNG CÔNG TÁC (CHỈ TRƯỞNG BỘ MÔN) -->
-            <div id="cardPhanCongHOD" class="smart-card hidden" onclick="window.location.href='phan-cong-cong-tac.html'">
+            <!-- 0. THÔNG BÁO CÁ NHÂN MỚI -->
+            <div id="cardThongBao" class="smart-card" onclick="window.location.href='thong-bao-ca-nhan.html'">
+                <div class="icon-wrapper" style="color: #ef4444; background-color: #fee2e2;">
+                    <i class="fas fa-bell"></i>
+                    <span id="notifBadge" class="notif-badge hidden">0</span>
+                </div>
+                <h3>Thông báo của tôi</h3>
+                <p id="notifDesc">Cập nhật về các Phân công mới hoặc Lịch giảng dạy bị thay đổi.</p>
+                <div class="smart-card-overlay" style="background: linear-gradient(to top, #b91c1c, #ef4444);">
+                    <strong><i class="fas fa-exclamation-circle"></i> Tin tức khẩn</strong>
+                    <span>- Thông báo Nhận việc<br>- Cảnh báo Lịch dạy<br>- Lời nhắn từ Trưởng BM</span>
+                </div>
+            </div>
+
+            <!-- 1. PHÂN CÔNG CÔNG TÁC -->
+            <div id="cardPhanCong" class="smart-card" onclick="window.location.href='phan-cong-cong-tac.html'">
                 <div class="icon-wrapper" style="color: #be123c; background-color: #ffe4e6;"><i class="fas fa-sitemap"></i></div>
                 <h3>Phân công công tác</h3>
-                <p>Giao nhiệm vụ, lớp học và khối lượng công việc cho từng Giảng viên.</p>
+                <p>Xem danh sách giao nhiệm vụ, lớp học và khối lượng công việc toàn khóa.</p>
                 <div class="smart-card-overlay" style="background: linear-gradient(to top, #be123c, #e11d48);">
-                    <strong><i class="fas fa-lock"></i> Quyền Quản trị</strong>
-                    <span>- Chọn môn & Buổi học<br>- Gán Giảng viên phụ trách<br>- Quản lý chung</span>
+                    <strong><i class="fas fa-users-cog"></i> Bảng Phân công</strong>
+                    <span>- Xem phân bổ của bộ môn<br>- Thông tin GVHD<br>- Theo dõi tiến độ chung</span>
                 </div>
             </div>
 
-            <!-- 2. XẾP LỊCH CÔNG TÁC GIẢNG VIÊN (TẤT CẢ ĐỀU THẤY, NHƯNG CHỈ ADMIN ĐƯỢC SỬA BÊN TRONG) -->
-            <div id="cardXepLich" class="smart-card hidden" onclick="window.location.href='lich-cong-tac.html'">
+            <!-- 2. XẾP LỊCH CÔNG TÁC -->
+            <div id="cardXepLich" class="smart-card" onclick="window.location.href='lich-cong-tac.html'">
                 <div class="icon-wrapper" style="color: #0ea5e9; background-color: #e0f2fe;"><i class="fas fa-calendar-plus"></i></div>
-                <h3>Xếp lịch công tác</h3>
-                <p>Tra cứu và thiết lập lịch làm việc, giảng dạy và thực hành lâm sàng.</p>
+                <h3>Lịch công tác chung</h3>
+                <p>Tra cứu lịch làm việc, giảng dạy và thực hành lâm sàng của toàn bộ môn.</p>
                 <div class="smart-card-overlay">
-                    <strong><i class="fas fa-calendar-alt"></i> Lịch làm việc chung</strong>
-                    <span>- Lịch giảng dạy lý thuyết<br>- Lịch hướng dẫn lâm sàng<br>- Sự kiện bộ môn</span>
+                    <strong><i class="fas fa-calendar-alt"></i> Lịch Tổng hợp</strong>
+                    <span>- Lịch giảng dạy lý thuyết<br>- Lịch hướng dẫn lâm sàng<br>- Lịch học viên</span>
                 </div>
             </div>
 
-            <!-- 3. XEM PHÂN CÔNG CÁ NHÂN (TẤT CẢ) -->
-            <div id="cardXemPhanCong" class="smart-card hidden" onclick="window.location.href='xem-phan-cong.html'">
+            <!-- 3. XEM PHÂN CÔNG CÁ NHÂN -->
+            <div id="cardXemPhanCong" class="smart-card" onclick="window.location.href='xem-phan-cong.html'">
                 <div class="icon-wrapper" style="color: #10b981; background-color: #dcfce7;"><i class="fas fa-clipboard-check"></i></div>
                 <h3>Xem phân công cá nhân</h3>
-                <p>Xem danh sách các lớp, nhóm thực hành do chính bạn phụ trách.</p>
+                <p>Xem danh sách và xác nhận các nhiệm vụ do chính bạn phụ trách.</p>
                 <div class="smart-card-overlay" style="background: linear-gradient(to top, #15803d, #16a34a);">
                     <strong><i class="fas fa-user-check"></i> Công việc của tôi</strong>
-                    <span>- Xem nhiệm vụ được giao<br>- Trạng thái xác nhận<br>- Theo dõi tiến độ</span>
+                    <span>- Xem nhiệm vụ được giao<br>- Xác nhận / Trả lại việc<br>- Theo dõi ngày dạy</span>
                 </div>
             </div>
 
-            <!-- 4. TÍNH GIỜ GIẢNG (TẤT CẢ) -->
-            <div id="cardGioGiang" class="smart-card hidden" onclick="window.location.href='gio-giang.html'">
+            <!-- 4. TÍNH GIỜ GIẢNG -->
+            <div id="cardGioGiang" class="smart-card" onclick="window.location.href='gio-giang.html'">
                 <div class="icon-wrapper" style="color: #8b5cf6; background-color: #ede9fe;"><i class="fas fa-calculator"></i></div>
                 <h3>Tính giờ giảng</h3>
                 <p>Thống kê số tiết lý thuyết, lâm sàng và quy đổi khối lượng giờ chuẩn.</p>
                 <div class="smart-card-overlay" style="background: linear-gradient(to top, #7c3aed, #8b5cf6);">
                     <strong><i class="fas fa-chart-bar"></i> Báo cáo & Thống kê</strong>
-                    <span>- Tổng hợp giờ thực tế<br>- Quy đổi giờ chuẩn<br>- Xuất file báo cáo</span>
+                    <span>- Tổng hợp giờ thực tế<br>- Quy đổi giờ chuẩn<br>- Xuất file báo cáo excel</span>
                 </div>
             </div>
 
-            <!-- 5. QUẢN LÝ LUẬN VĂN (TẤT CẢ) -->
-            <div id="cardLuanVan" class="smart-card hidden" onclick="window.location.href='luan-van.html'">
+            <!-- 5. QUẢN LÝ LUẬN VĂN -->
+            <div id="cardLuanVan" class="smart-card" onclick="window.location.href='luan-van.html'">
                 <div class="icon-wrapper" style="color: #f59e0b; background-color: #fef3c7;"><i class="fas fa-graduation-cap"></i></div>
                 <h3>Quản lý Luận văn</h3>
                 <p>Cập nhật danh sách đề tài, điểm số và tiến độ khóa luận các hệ.</p>
                 <div class="smart-card-overlay" style="background: linear-gradient(to top, #d97706, #f59e0b);">
                     <strong><i class="fas fa-book"></i> Kho dữ liệu đề tài</strong>
-                    <span>- Thêm/Sửa Luận văn<br>- Phân công GVHD<br>- Quản lý Thùng rác</span>
+                    <span>- Xem Danh sách Luận văn<br>- Thêm/Sửa thông tin bảo vệ<br>- Quản lý lưu trữ</span>
                 </div>
             </div>
 
@@ -139,7 +157,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY",
@@ -155,7 +173,9 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // --- KIỂM TRA ĐĂNG NHẬP & PHÂN QUYỀN TRÊN DASHBOARD ---
+        let currentUserName = '';
+
+        // --- KIỂM TRA ĐĂNG NHẬP & TẠO HEADER ---
         setTimeout(() => {
             const dashboardAvatarContainer = document.getElementById('dashboardAvatarContainer');
             const welcomeTitle = document.getElementById('welcomeTitle');
@@ -200,6 +220,7 @@
                             if (data.degree) {
                                 let degreePrefix = data.degree === 'ThS' ? 'ThS. ' : (data.degree === 'TS' ? 'TS. ' : '');
                                 titleName = `${degreePrefix}${data.fullName}`;
+                                currentUserName = titleName; // Lưu tên có chức danh để dò data
                             }
                             
                             document.getElementById('headerNameDisplay').innerText = titleName;
@@ -210,27 +231,14 @@
                                 dashboardAvatarContainer.innerHTML = `<img src="${data.avatar}" alt="Avatar">`;
                             }
 
-                            // ==========================================
-                            // LOGIC PHÂN QUYỀN (ROLE-BASED ACCESS)
-                            // ==========================================
+                            // Xử lý chức danh (Badge)
                             const email = user.email.toLowerCase();
-                            const isHOD = (email === 'lethanhvan@ump.edu.vn'); 
-                            const isGiaoVu = (email === 'phanthenguyenpt@ump.edu.vn');
-                            const isQuanLyLich = (email === 'thduypt@ump.edu.vn');
-
-                            // Xử lý huy hiệu (Badge)
-                            if (isHOD) {
+                            if (email === 'lethanhvan@ump.edu.vn') {
                                 roleBadge.innerText = "Trưởng Bộ Môn";
                                 roleBadge.className = "badge-role badge-hod";
-                                // Mở thẻ Phân Công Công Tác cho HOD
-                                document.getElementById('cardPhanCongHOD').classList.remove('hidden');
                             } 
-                            else if (isGiaoVu) {
-                                roleBadge.innerText = "Giáo vụ";
-                                roleBadge.className = "badge-role badge-manager";
-                            } 
-                            else if (isQuanLyLich) {
-                                roleBadge.innerText = "Quản lý Lịch công tác";
+                            else if (email === 'phanthenguyenpt@ump.edu.vn' || email === 'thduypt@ump.edu.vn') {
+                                roleBadge.innerText = "Quản lý / Giáo vụ";
                                 roleBadge.className = "badge-role badge-manager";
                             } 
                             else {
@@ -238,11 +246,8 @@
                                 roleBadge.className = "badge-role";
                             }
 
-                            // Mở các thẻ hiển thị chung cho tất cả Giảng viên đã đăng nhập
-                            document.getElementById('cardXepLich').classList.remove('hidden');
-                            document.getElementById('cardXemPhanCong').classList.remove('hidden');
-                            document.getElementById('cardGioGiang').classList.remove('hidden');
-                            document.getElementById('cardLuanVan').classList.remove('hidden');
+                            // KÍCH HOẠT HỆ THỐNG QUÉT THÔNG BÁO THÔNG MINH
+                            scanForNotifications();
 
                         }
                     } catch (error) {
@@ -253,6 +258,64 @@
                 }
             });
         }, 150);
+
+        // --- HỆ THỐNG QUÉT THÔNG BÁO TỰ ĐỘNG ---
+        function scanForNotifications() {
+            let totalNotif = 0;
+            const notifBadge = document.getElementById('notifBadge');
+            const notifDesc = document.getElementById('notifDesc');
+            
+            // Quét bảng Phân công (Có việc mới được duyệt không?)
+            onSnapshot(collection(db, "assignments"), (snapshot) => {
+                let assignmentNotifs = 0;
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    ['THS2025', 'THS2026'].forEach(cls => {
+                        if (data[cls] && data[cls].status === 'approved' && data[cls].allocations) {
+                            data[cls].allocations.forEach(a => {
+                                // Nếu có tên CurrentUser thì là có 1 phân công
+                                if (a.gv && a.gv.includes(currentUserName)) assignmentNotifs++;
+                            });
+                        }
+                    });
+                });
+                updateNotifDisplay(assignmentNotifs, "phân công");
+            });
+
+            // Quét bảng Lịch (Có buổi dạy mới nào sắp tới không?)
+            onSnapshot(collection(db, "calendar_events"), (snapshot) => {
+                let calendarNotifs = 0;
+                const now = new Date();
+                snapshot.forEach(doc => {
+                    const evt = doc.data();
+                    if (evt.gv && evt.gv.includes(currentUserName) && evt.status !== 'returned') {
+                        let eventDate = new Date(evt.start);
+                        // Chỉ tính những lịch trong tương lai
+                        if (eventDate > now) {
+                            calendarNotifs++;
+                        }
+                    }
+                });
+                updateNotifDisplay(calendarNotifs, "lịch dạy sắp tới");
+            });
+            
+            // Hàm cập nhật giao diện
+            function updateNotifDisplay(countToAdd, type) {
+                totalNotif += countToAdd;
+                if (totalNotif > 0) {
+                    notifBadge.classList.remove('hidden');
+                    notifBadge.innerText = totalNotif;
+                    notifDesc.innerText = `Bạn có ${totalNotif} thông báo công việc đang cần được kiểm tra!`;
+                    notifDesc.style.color = '#ef4444';
+                    notifDesc.style.fontWeight = 'bold';
+                } else {
+                    notifBadge.classList.add('hidden');
+                    notifDesc.innerText = "Hiện tại bạn không có thông báo công việc mới nào.";
+                    notifDesc.style.color = 'var(--text-body)';
+                    notifDesc.style.fontWeight = 'normal';
+                }
+            }
+        }
     </script>
 </body>
 </html>
