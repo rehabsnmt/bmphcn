@@ -21,45 +21,55 @@
 
         /* Notification Layout */
         .notif-section { margin-bottom: 2.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; box-shadow: var(--shadow-sm); }
-        .notif-section h3 { font-size: 1.2rem; color: var(--primary); margin-bottom: 15px; display: flex; align-items: center; gap: 10px; border-bottom: 1px dashed var(--border); padding-bottom: 10px; }
+        .notif-section h3 { font-size: 1.2rem; color: var(--primary); margin-bottom: 15px; border-bottom: 1px dashed var(--border); padding-bottom: 10px; }
         
         .notif-list { display: flex; flex-direction: column; gap: 12px; }
 
         /* Notification Item */
-        .notif-item { display: flex; align-items: flex-start; gap: 15px; padding: 15px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-page); transition: 0.3s ease; position: relative; overflow: hidden; }
-        .notif-item:hover { transform: translateX(5px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-color: #cbd5e1; }
+        .notif-item { display: flex; align-items: flex-start; gap: 15px; padding: 15px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-page); transition: 0.3s ease; position: relative; overflow: hidden; border-left: 4px solid #be123c; }
+        .notif-item:hover { transform: translateX(3px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
         
-        /* Bar bên trái */
-        .notif-item::before { content: ''; position: absolute; left: 0; top: 0; width: 4px; height: 100%; background-color: #be123c; }
-
-        .notif-icon { width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; background-color: #ffe4e6; color: #be123c; }
+        /* Trạng thái Đã đọc */
+        .notif-item.read { border-left-color: #cbd5e1; opacity: 0.85; background: #f8fafc; }
+        .notif-item.read .btn-read { display: none; }
+        .notif-item.read .unread-dot { display: none; }
+        .notif-item.read .task-badge { display: none; } /* Ẩn thẻ MỚI/CẬP NHẬT khi đã đọc */
 
         .notif-content { flex: 1; }
-        .notif-title { font-size: 1.1rem; font-weight: 700; color: var(--text-dark); margin-bottom: 8px; line-height: 1.4; }
+        .notif-title { font-size: 1.1rem; font-weight: 700; color: var(--text-dark); margin-bottom: 8px; line-height: 1.4; display: flex; align-items: center; }
         
+        /* Dấu chấm nhấp nháy (Chưa đọc) */
+        .unread-dot { width: 10px; height: 10px; background-color: #ef4444; border-radius: 50%; margin-right: 8px; display: inline-block; animation: blink 1.5s infinite; flex-shrink: 0; }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+
         /* Danh sách chi tiết công việc */
         .notif-desc { font-size: 0.95rem; color: var(--text-dark); background: white; padding: 12px; border-radius: 6px; border: 1px solid #e2e8f0; }
         .task-detail-list { list-style: none; padding: 0; margin: 0; }
-        .task-detail-list li { margin-bottom: 6px; padding-left: 20px; position: relative; line-height: 1.5; }
+        .task-detail-list li { margin-bottom: 8px; padding-left: 15px; position: relative; line-height: 1.5; }
+        .task-detail-list li::before { content: "•"; position: absolute; left: 0; color: var(--text-body); font-weight: bold; }
         .task-detail-list li:last-child { margin-bottom: 0; }
-        .task-detail-list li i { position: absolute; left: 0; top: 5px; color: #10b981; font-size: 0.85rem; }
         
-        .notif-meta { display: flex; gap: 10px; flex-wrap: wrap; font-size: 0.8rem; font-weight: 600; color: #64748b; margin-bottom: 12px; }
+        .notif-meta { display: flex; gap: 10px; flex-wrap: wrap; font-size: 0.85rem; font-weight: 600; color: #64748b; margin-bottom: 12px; }
         .meta-tag { padding: 3px 10px; border-radius: 4px; border: 1px solid #cbd5e1; background: white; display: inline-flex; align-items: center; gap: 6px; }
 
+        /* Badges cho trạng thái nhiệm vụ */
+        .task-badge { font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 8px; vertical-align: middle; display: inline-block; }
+        .badge-new { background-color: #dcfce7; color: #16a34a; border: 1px solid #86efac; }
+        .badge-updated { background-color: #fef9c3; color: #d97706; border: 1px solid #fde047; }
+        .badge-deleted { background-color: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }
+
         .notif-action { flex-shrink: 0; align-self: center; }
-        .btn-view { background: white; color: var(--primary); border: 1px solid var(--primary); padding: 8px 15px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 0.85rem; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; }
-        .btn-view:hover { background: var(--primary-light); }
+        .btn-read { background: white; color: #10b981; border: 1px solid #10b981; padding: 8px 15px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 5px; }
+        .btn-read:hover { background: #d1fae5; }
 
         .empty-state { text-align: center; padding: 2rem; color: var(--text-body); font-style: italic; background: #f8fafc; border-radius: 8px; border: 1px dashed #cbd5e1; }
-        .empty-state i { font-size: 2.5rem; color: #cbd5e1; margin-bottom: 10px; display: block; }
-
+        
         #loadingScreen { text-align: center; padding: 4rem 0; color: var(--primary); font-weight: 600; font-size: 1.1rem; }
 
         @media (max-width: 600px) {
             .notif-item { flex-direction: column; gap: 10px; }
             .notif-action { width: 100%; }
-            .btn-view { width: 100%; justify-content: center; }
+            .btn-read { width: 100%; justify-content: center; }
         }
     </style>
 </head>
@@ -69,24 +79,21 @@
 
     <main>
         <div class="page-header">
-            <h2><i class="fas fa-bell" style="color: #ef4444;"></i> THÔNG BÁO CỦA TÔI</h2>
+            <h2>THÔNG BÁO CỦA TÔI</h2>
             <p>Cập nhật chi tiết các nhiệm vụ giảng dạy được phân công</p>
         </div>
 
         <div id="loadingScreen">
-            <i class="fas fa-spinner fa-spin fa-2x"></i><br><br>Đang tải thông báo phân công...
+            <i class="fas fa-spinner fa-spin fa-2x"></i><br><br>Đang tải dữ liệu phân công...
         </div>
 
         <div id="contentWrapper" class="hidden">
-            
-            <!-- Phân công công tác -->
             <div class="notif-section">
-                <h3 style="color: #be123c; border-color: #fecdd3;"><i class="fas fa-sitemap"></i> Danh Sách Nhiệm Vụ Được Giao</h3>
+                <h3>Danh Sách Nhiệm Vụ & Tiến Độ</h3>
                 <div id="assignmentNotifs" class="notif-list">
                     <!-- Dữ liệu JS -->
                 </div>
             </div>
-
         </div>
     </main>
 
@@ -116,9 +123,27 @@
         ];
 
         let currentUserName = '';
+        let currentUserUid = '';
+
+        // Hàm Đánh dấu Đã đọc vào Trình duyệt (LocalStorage)
+        window.markAsRead = (subId, cls) => {
+            let history = JSON.parse(localStorage.getItem('notif_history_' + currentUserUid)) || {};
+            for (let key in history) {
+                if (history[key].subId === subId && history[key].cls === cls) {
+                    history[key].read = true;
+                }
+            }
+            localStorage.setItem('notif_history_' + currentUserUid, JSON.stringify(history));
+            
+            const item = document.getElementById(`notif_${subId}_${cls}`);
+            if (item) {
+                item.classList.add('read');
+            }
+        };
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
+                currentUserUid = user.uid;
                 try {
                     const userDoc = await getDoc(doc(db, "users", user.uid));
                     if (userDoc.exists()) {
@@ -145,70 +170,165 @@
         });
 
         function fetchNotifications() {
-            document.getElementById('loadingScreen').classList.add('hidden');
-            document.getElementById('contentWrapper').classList.remove('hidden');
-
             const asgContainer = document.getElementById('assignmentNotifs');
 
-            // Quét Bảng Phân công
             onSnapshot(collection(db, "assignments"), (snapshot) => {
-                asgContainer.innerHTML = '';
-                let asgCount = 0;
+                let history = JSON.parse(localStorage.getItem('notif_history_' + currentUserUid)) || {};
+                let currentTasks = [];
                 
+                // 1. Trích xuất tất cả nhiệm vụ HIỆN TẠI của User
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     const subId = doc.id;
                     const subName = subjectsData.find(s => s.id === subId)?.name || 'Môn học';
 
                     ['THS2025', 'THS2026'].forEach(cls => {
-                        // CHỈ LẤY CÁC MÔN ĐÃ ĐƯỢC DUYỆT (APPROVED)
                         if (data[cls] && data[cls].status === 'approved' && data[cls].allocations) {
-                            
-                            // Lọc các nhiệm vụ có chứa tên GV đang đăng nhập
-                            let myTasks = data[cls].allocations.filter(a => a.gv && a.gv.includes(currentUserName));
-                            
-                            if (myTasks.length > 0) {
-                                asgCount++;
-                                let clsName = cls === 'THS2025' ? 'Khóa 25-27' : 'Khóa 26-28';
-                                
-                                // Build danh sách chi tiết các công việc trong môn đó
-                                let taskListHtml = '<ul class="task-detail-list">';
-                                myTasks.forEach(a => {
-                                    if (a.task === 'Hướng dẫn LV, LATS') {
-                                        taskListHtml += `<li><i class="fas fa-check"></i> Hướng dẫn HV: <b>${a.student}</b> <span style="color:#64748b">(${a.role})</span></li>`;
-                                    } else {
-                                        let noteStr = a.note ? ` <span style="color:#64748b; font-style: italic;">(${a.note})</span>` : '';
-                                        taskListHtml += `<li><i class="fas fa-check"></i> Nhiệm vụ: <b>${a.task}</b> - Khối lượng: <b>${a.assigned} buổi</b>${noteStr}</li>`;
-                                    }
-                                });
-                                taskListHtml += '</ul>';
-
-                                asgContainer.innerHTML += `
-                                    <div class="notif-item asg-type">
-                                        <div class="notif-icon"><i class="fas fa-clipboard-list"></i></div>
-                                        <div class="notif-content">
-                                            <div class="notif-title">${subName}</div>
-                                            <div class="notif-meta">
-                                                <span class="meta-tag"><i class="fas fa-graduation-cap"></i> Lớp: ${clsName}</span>
-                                                <span class="meta-tag"><i class="fas fa-calendar-alt"></i> Học kỳ: ${data[cls].semester || 'Chưa XĐ'}</span>
-                                            </div>
-                                            <div class="notif-desc">
-                                                <div style="font-weight: 600; color: var(--primary); margin-bottom: 6px;">Chi tiết nhiệm vụ:</div>
-                                                ${taskListHtml}
-                                            </div>
-                                        </div>
-                                        <div class="notif-action">
-                                            <a href="xem-phan-cong.html" class="btn-view">Xác nhận <i class="fas fa-arrow-right"></i></a>
-                                        </div>
-                                    </div>
-                                `;
-                            }
+                            data[cls].allocations.forEach(a => {
+                                if (a.gv && a.gv.includes(currentUserName)) {
+                                    currentTasks.push({
+                                        key: `${subId}_${cls}_${a.task}_${a.student || ''}`,
+                                        subId: subId,
+                                        subName: subName,
+                                        cls: cls,
+                                        semester: data[cls].semester || 'Chưa XĐ',
+                                        ...a
+                                    });
+                                }
+                            });
                         }
                     });
                 });
 
-                if (asgCount === 0) {
-                    asgContainer.innerHTML = `<div class="empty-state"><i class="fas fa-check-circle"></i>Bạn chưa có nhiệm vụ phân công nào mới.</div>`;
+                let currentKeys = new Set(currentTasks.map(t => t.key));
+                let displayList = [];
+
+                // 2. So sánh Nhiệm vụ HIỆN TẠI với LỊCH SỬ (Đế phát hiện MỚI / CẬP NHẬT)
+                currentTasks.forEach(task => {
+                    let h = history[task.key];
+                    if (!h) {
+                        // Nhiệm vụ hoàn toàn mới
+                        h = { ...task, read: false, changeType: 'NEW' };
+                    } else if (h.isDeleted) {
+                        // Nhiệm vụ từng bị xóa nay được phục hồi
+                        h = { ...task, read: false, changeType: 'NEW', isDeleted: false };
+                    } else {
+                        // Kiểm tra xem số lượng phân công hoặc ghi chú có thay đổi không
+                        let isSignificantChange = (h.assigned !== task.assigned || h.note !== task.note || h.role !== task.role);
+                        if (isSignificantChange) {
+                            h = { ...task, read: false, changeType: 'UPDATED', oldData: { assigned: h.assigned, note: h.note, role: h.role } };
+                        } else {
+                            // Cập nhật ngầm tiến độ, không đánh dấu là có thay đổi quan trọng
+                            h.completed = task.completed;
+                        }
+                    }
+                    history[task.key] = h;
+                    displayList.push(h);
+                });
+
+                // 3. Quét ngược lại Lịch sử để tìm Nhiệm vụ BỊ XÓA
+                for (let key in history) {
+                    if (!currentKeys.has(key)) {
+                        let h = history[key];
+                        if (!h.isDeleted) {
+                            // Mới phát hiện bị xóa
+                            h.isDeleted = true;
+                            h.read = false;
+                            h.changeType = 'DELETED';
+                        }
+                        // Chỉ hiển thị nhiệm vụ bị xóa nếu User CHƯA ĐỌC. Nếu đã đọc thì ẩn luôn.
+                        if (!h.read) {
+                            displayList.push(h);
+                        }
+                    }
+                }
+
+                // Lưu lại Lịch sử
+                localStorage.setItem('notif_history_' + currentUserUid, JSON.stringify(history));
+
+                // 4. GOM NHÓM lại theo Môn Học & Lớp để hiển thị
+                let groups = {};
+                displayList.forEach(item => {
+                    let groupKey = `${item.subId}_${item.cls}`;
+                    if (!groups[groupKey]) {
+                        groups[groupKey] = { 
+                            subId: item.subId, 
+                            subName: item.subName, 
+                            cls: item.cls, 
+                            semester: item.semester,
+                            items: [], 
+                            hasUnread: false 
+                        };
+                    }
+                    groups[groupKey].items.push(item);
+                    if (!item.read) groups[groupKey].hasUnread = true;
+                });
+
+                // 5. RENDER RA MÀN HÌNH
+                document.getElementById('loadingScreen').classList.add('hidden');
+                document.getElementById('contentWrapper').classList.remove('hidden');
+                asgContainer.innerHTML = '';
+                
+                let groupCount = Object.keys(groups).length;
+
+                if (groupCount === 0) {
+                    asgContainer.innerHTML = `<div class="empty-state">Bạn chưa có nhiệm vụ phân công nào.</div>`;
+                    return;
+                }
+
+                for (let gKey in groups) {
+                    let g = groups[gKey];
+                    let clsName = g.cls === 'THS2025' ? 'Khóa 25-27' : 'Khóa 26-28';
+                    let notifId = `notif_${g.subId}_${g.cls}`;
+                    
+                    let taskListHtml = '<ul class="task-detail-list">';
+                    
+                    g.items.forEach(a => {
+                        let badgeHtml = '';
+                        if (!a.read) {
+                            if (a.changeType === 'NEW') badgeHtml = '<span class="task-badge badge-new">MỚI</span>';
+                            if (a.changeType === 'UPDATED') badgeHtml = '<span class="task-badge badge-updated">CẬP NHẬT</span>';
+                            if (a.changeType === 'DELETED') badgeHtml = '<span class="task-badge badge-deleted">ĐÃ HỦY/XÓA</span>';
+                        }
+
+                        if (a.changeType === 'DELETED') {
+                            let text = a.task === 'Hướng dẫn LV, LATS' ? `Hướng dẫn HV: <b>${a.student}</b>` : `Nhiệm vụ: <b>${a.task}</b>`;
+                            taskListHtml += `<li style="opacity: 0.5; text-decoration: line-through;">${text} ${badgeHtml}</li>`;
+                        } 
+                        else if (a.task === 'Hướng dẫn LV, LATS') {
+                            taskListHtml += `<li>Hướng dẫn HV: <b>${a.student}</b> <span style="color:#64748b">(${a.role})</span> ${badgeHtml}</li>`;
+                        } 
+                        else {
+                            let noteStr = a.note ? ` <span style="color:#64748b; font-style: italic;">(${a.note})</span>` : '';
+                            
+                            // Nếu cập nhật số buổi, hiển thị số cũ bị gạch ngang
+                            let oldAssignedStr = (a.changeType === 'UPDATED' && a.oldData && a.oldData.assigned !== a.assigned) ? `<span style="text-decoration:line-through; color:#94a3b8; margin-right:4px;">${a.oldData.assigned}</span>` : '';
+                            
+                            taskListHtml += `<li>Nhiệm vụ: <b>${a.task}</b> - Được giao: <b>${oldAssignedStr}${a.assigned} buổi</b> - Đã hoàn thành: <b style="color: #16a34a;">${a.completed || 0} buổi</b>${noteStr} ${badgeHtml}</li>`;
+                        }
+                    });
+                    taskListHtml += '</ul>';
+
+                    asgContainer.innerHTML += `
+                        <div class="notif-item ${!g.hasUnread ? 'read' : ''}" id="${notifId}">
+                            <div class="notif-content">
+                                <div class="notif-title">
+                                    <span class="unread-dot"></span>
+                                    ${g.subName}
+                                </div>
+                                <div class="notif-meta">
+                                    <span class="meta-tag">Lớp: ${clsName}</span>
+                                    <span class="meta-tag">Học kỳ: ${g.semester}</span>
+                                </div>
+                                <div class="notif-desc">
+                                    ${taskListHtml}
+                                </div>
+                            </div>
+                            <div class="notif-action">
+                                <button class="btn-read" onclick="markAsRead('${g.subId}', '${g.cls}')">Đã đọc</button>
+                            </div>
+                        </div>
+                    `;
                 }
             });
         }
