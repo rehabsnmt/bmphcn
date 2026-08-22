@@ -70,14 +70,16 @@
         /* Style cho Sự kiện TRÊN LỊCH */
         .fc-event-main { display: flex; flex-direction: column; height: 100%; padding: 4px 6px; box-sizing: border-box; }
         .event-on-calendar { overflow: hidden; color: white; display: flex; flex-direction: column; gap: 3px; height: 100%; }
-        .event-on-calendar .evt-time { font-size: 0.85rem; font-weight: 600; background: rgba(0,0,0,0.25); padding: 2px 6px; border-radius: 4px; width: fit-content; margin-bottom: 2px; }
         
-        /* --- ĐÃ SỬA CHỮA LỖI HIỂN THỊ NHÂN ĐÔI CSS TẠI ĐÂY --- */
+        /* Chỉnh sửa lại CSS Nhóm Thời gian và Phòng */
+        .event-on-calendar .evt-time { font-size: 0.85rem; font-weight: 600; background: rgba(0,0,0,0.25); padding: 2px 6px; border-radius: 4px; width: fit-content; margin-bottom: 0; }
+        .event-on-calendar .evt-room { font-size: 0.8rem; background: #fbbf24; color: #78350f; padding: 2px 6px; border-radius: 4px; font-weight: 800; text-shadow: none; white-space: nowrap; width: fit-content; }
+
+        /* Chỉnh sửa lại CSS Giảng viên để ko bị đè 2 dòng */
         .event-on-calendar .evt-gv { font-size: 1rem; font-weight: 700; line-height: 1.2; text-shadow: 1px 1px 2px rgba(0,0,0,0.2); white-space: normal; }
-        .event-on-calendar .evt-gv-desktop { display: flex; justify-content: space-between; align-items: flex-start; }
+        .event-on-calendar .evt-gv-desktop { display: block; }
         .event-on-calendar .evt-gv-mobile { display: none; }
         
-        .event-on-calendar .evt-room { font-size: 0.8rem; background: #fbbf24; color: #78350f; padding: 2px 5px; border-radius: 4px; font-weight: 800; text-shadow: none; white-space: nowrap; }
         .event-on-calendar .evt-sub { font-size: 0.8rem; font-weight: 400; opacity: 0.95; line-height: 1.3; white-space: normal; }
 
         /* Chấm Bệnh viện trên cùng (All-day) */
@@ -136,12 +138,12 @@
             .fc .fc-timegrid-axis, .fc .fc-timegrid-slot-label { width: 0 !important; padding: 0 !important; border: none !important; }
             .fc .fc-timegrid-slot-label-cushion, .fc .fc-timegrid-axis-cushion { display: none !important; }
 
-            /* Rút gọn thẻ lịch */
+            /* Rút gọn thẻ lịch trên điện thoại */
             .fc-event-main { padding: 4px !important; }
             .event-on-calendar .evt-gv-desktop { display: none !important; }
-            .event-on-calendar .evt-gv-mobile { display: flex !important; justify-content: space-between; align-items: flex-start; font-size: 0.85rem; }
+            .event-on-calendar .evt-gv-mobile { display: block !important; font-size: 0.85rem; font-weight: 700; white-space: normal; line-height: 1.2; text-shadow: 1px 1px 2px rgba(0,0,0,0.2); }
             .event-on-calendar .evt-sub { display: none; }
-            .event-on-calendar .evt-time { display: none; } /* Ẩn cả giờ trong thẻ bài trên điện thoại */
+            .event-on-calendar .evt-time { display: none; } /* Ẩn thời gian nhưng vẫn giữ khung dọc để hiện tên Phòng */
         }
     </style>
 </head>
@@ -567,22 +569,23 @@
                     let clsRaw = props.class;
                     let clsTag = clsRaw === 'THS2025' ? '<b style="color:#0369a1">[K25]</b> ' : (clsRaw === 'THS2026' ? '<b style="color:#b45309">[K26]</b> ' : '');
                     
-                    let roomTag = props.room ? `<span class="evt-room">${props.room}</span>` : '';
+                    // Rút gọn tên Phòng
+                    let shortRoom = '';
+                    if (props.room && props.room !== 'Khác...') {
+                        shortRoom = props.room.replace('Phòng ', 'P');
+                        if (shortRoom === 'Hội trường') shortRoom = 'HT';
+                    }
+                    let roomTag = shortRoom ? `<div class="evt-room" style="margin-top: 3px;">${shortRoom}</div>` : '';
 
                     return {
                         html: `
                         <div class="event-on-calendar">
-                            <div style="margin-bottom: 2px;">
+                            <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 3px; margin-bottom: 4px;">
                                 <span class="evt-time">${timeStr}</span>
-                            </div>
-                            <div class="evt-gv evt-gv-desktop">
-                                <span>${clsTag}${gvFull}</span>
                                 ${roomTag}
                             </div>
-                            <div class="evt-gv evt-gv-mobile">
-                                <span>${clsTag}${gvShort}</span>
-                                ${roomTag}
-                            </div>
+                            <div class="evt-gv evt-gv-desktop">${clsTag}${gvFull}</div>
+                            <div class="evt-gv evt-gv-mobile">${clsTag}${gvShort}</div>
                             <div class="evt-sub">${props.subject} (${props.task})</div>
                         </div>
                         `
