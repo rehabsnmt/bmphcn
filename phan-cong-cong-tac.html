@@ -11,9 +11,11 @@
     
     <style>
         main { max-width: 1200px; padding: 2rem 3%; margin: 0 auto; min-height: 75vh; }
-        .header-title-box { text-align: center; margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
-        .header-title-box h2 { font-size: 1.6rem; color: var(--text-dark); margin: 0; font-weight: 700; }
-        .header-title-box .subtitle { font-size: 1rem; color: var(--text-body); font-weight: 600; margin-top: 5px; }
+        
+        /* ĐIỀU CHỈNH TIÊU ĐỀ: KHÔNG XUỐNG DÒNG */
+        .header-title-box { text-align: center; margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid var(--border); overflow: hidden; }
+        .header-title-box h2 { font-size: clamp(1rem, 3.5vw, 1.6rem); color: var(--text-dark); margin: 0; font-weight: 700; white-space: nowrap; text-overflow: ellipsis; }
+        .header-title-box .subtitle { font-size: clamp(0.65rem, 2.2vw, 1rem); color: var(--text-body); font-weight: 600; margin-top: 5px; white-space: nowrap; text-overflow: ellipsis; }
 
         .hidden { display: none !important; }
         
@@ -282,7 +284,7 @@
         </div>
     </div>
 
-    <!-- MODAL PHÂN CÔNG (LUẬN VĂN / ĐỀ ÁN) -->
+    <!-- MODAL PHÂN CÔNG QUẢN LÝ THEO GIẢNG VIÊN (LUẬN VĂN / ĐỀ ÁN) -->
     <div id="thesisAssignModal" class="modal-overlay hidden">
         <div class="modal-content" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
             <button class="modal-close" onclick="document.getElementById('thesisAssignModal').classList.add('hidden')">X</button>
@@ -446,7 +448,6 @@
             }
         };
 
-        // LIÊN KẾT TỰ ĐỘNG THEO GV CƠ HỮU
         window.onGvThesisChange = (selectEl) => {
             const gvName = selectEl.value;
             const container = selectEl.closest('.gv-block').querySelector('.thesis-student-container');
@@ -510,7 +511,6 @@
             return count;
         };
 
-        // GIAO DIỆN HIỂN THỊ ĐỀ XUẤT VÀ DUYỆT
         function buildAllocationHTML(allocs, isProposed, subName, isThesis) {
             if (!allocs || allocs.length === 0) return '';
             
@@ -932,6 +932,32 @@
                         });
                     }
                 }
+                
+                // KHÓA SELECT NẾU ĐÃ CÓ GIỜ HOÀN THÀNH
+                const blocks = document.querySelectorAll('#allocContainer .gv-block');
+                blocks.forEach(block => {
+                    const completedInputs = block.querySelectorAll('.inp-completed');
+                    let hasCompleted = false;
+                    completedInputs.forEach(inp => {
+                        if (parseInt(inp.value) > 0) hasCompleted = true;
+                    });
+                    if (hasCompleted) {
+                        const selGv = block.querySelector('.sel-gv');
+                        selGv.disabled = true;
+                        selGv.insertAdjacentHTML('afterend', `<input type="hidden" class="hidden-gv-val" value="${selGv.value}">`);
+                        
+                        const otherInput = block.querySelector('.inp-gv-other');
+                        if (otherInput) otherInput.disabled = true;
+                        
+                        const btnDeleteGv = block.querySelector('.btn-delete-gv');
+                        if(btnDeleteGv) {
+                            btnDeleteGv.style.opacity = '0.5';
+                            btnDeleteGv.style.cursor = 'not-allowed';
+                            btnDeleteGv.onclick = () => showToast('Không thể xóa giảng viên đã có nhiệm vụ hoàn thành!', 'danger');
+                        }
+                    }
+                });
+
                 document.getElementById('assignModal').classList.remove('hidden');
             }
         };
@@ -950,7 +976,7 @@
                         <select class="sel-gv" style="width: 100%;" onchange="checkOtherGV(this)">${gvOptions.html}</select>
                         <input type="text" class="inp-gv-other ${gvOptions.isCustom ? '' : 'hidden'}" placeholder="Nhập tên GV..." value="${gvOptions.isCustom ? gv : ''}" style="width: 100%; margin-top: 5px;">
                     </div>
-                    <button class="btn-danger" style="margin-top: 15px;" onclick="this.closest('.gv-block').remove()">Xóa GV</button>
+                    <button class="btn-danger btn-delete-gv" style="margin-top: 15px;" onclick="this.closest('.gv-block').remove()">Xóa GV</button>
                 </div>
                 <div class="task-container"></div>
                 <button class="btn-outline" style="margin-top: 10px;" onclick="addTaskRow(this.previousElementSibling)">+ Thêm Nhiệm vụ</button>
@@ -964,17 +990,26 @@
             const row = document.createElement('div');
             row.className = 'task-row';
             
+            const isCompleted = parseInt(completed) > 0;
+            const minAssigned = isCompleted ? parseInt(completed) : 1;
+            const taskSelectAttr = isCompleted ? 'disabled' : '';
+
             let taskOpts = '<option value="">-- Chọn --</option>';
             taskOptions.forEach(t => { taskOpts += `<option value="${t}" ${task === t ? 'selected' : ''}>${t}</option>`; });
+
+            const deleteBtnHtml = isCompleted 
+                ? `<button class="btn-danger" style="padding: 6px 12px; opacity: 0.5; cursor: not-allowed;" onclick="showToast('Nhiệm vụ này đã có buổi dạy, không thể xóa!', 'danger')" title="Đã có buổi dạy, không thể xóa">Xóa</button>`
+                : `<button class="btn-danger" style="padding: 6px 12px;" onclick="this.parentElement.parentElement.remove()" title="Xóa nhiệm vụ">Xóa</button>`;
 
             row.innerHTML = `
                 <div style="flex: 1.5; min-width: 130px;">
                     <span class="alloc-label">Loại công việc</span>
-                    <select class="sel-task">${taskOpts}</select>
+                    <select class="sel-task" ${taskSelectAttr}>${taskOpts}</select>
+                    ${isCompleted ? `<input type="hidden" class="hidden-task-val" value="${task}">` : ''}
                 </div>
                 <div style="flex: 1; min-width: 90px;">
                     <span class="alloc-label">Số buổi</span>
-                    <input type="number" class="inp-assigned" value="${assigned}" min="1">
+                    <input type="number" class="inp-assigned" value="${assigned}" min="${minAssigned}" onchange="if(this.value < ${minAssigned}) { this.value = ${minAssigned}; showToast('Số buổi phân công không thể nhỏ hơn số buổi đã dạy (${minAssigned})', 'danger'); }">
                 </div>
                 <div style="flex: 1; min-width: 90px;" title="Tự động tính từ Lịch Công Tác">
                     <span class="alloc-label">Hoàn thành</span>
@@ -985,7 +1020,7 @@
                     <input type="text" class="inp-note" placeholder="Tùy chọn..." value="${note}">
                 </div>
                 <div style="flex: 0; padding-bottom: 2px;">
-                    <button class="btn-danger" style="padding: 6px 12px;" onclick="this.parentElement.parentElement.remove()" title="Xóa nhiệm vụ">Xóa</button>
+                    ${deleteBtnHtml}
                 </div>
             `;
             taskContainer.appendChild(row);
@@ -1004,17 +1039,28 @@
             
             for (let block of blocks) {
                 const sel = block.querySelector('.sel-gv');
-                let gv = sel.value === 'OTHER' ? block.querySelector('.inp-gv-other').value.trim() : sel.value;
+                
+                let gv = '';
+                if (sel.disabled) {
+                    gv = block.querySelector('.hidden-gv-val') ? block.querySelector('.hidden-gv-val').value : sel.value;
+                } else {
+                    gv = sel.value === 'OTHER' ? block.querySelector('.inp-gv-other').value.trim() : sel.value;
+                }
+                
                 if (!gv) continue;
 
                 const taskRows = block.querySelectorAll('.task-row');
                 for (let row of taskRows) {
-                    const task = row.querySelector('.sel-task').value;
+                    let task = row.querySelector('.sel-task').value;
+                    if (!task && row.querySelector('.hidden-task-val')) {
+                        task = row.querySelector('.hidden-task-val').value;
+                    }
+
                     const assigned = parseInt(row.querySelector('.inp-assigned').value);
                     const completed = parseInt(row.querySelector('.inp-completed').value) || 0;
                     const note = row.querySelector('.inp-note').value.trim();
                     
-                    if (!task || isNaN(assigned) || assigned <= 0) {
+                    if (!task || isNaN(assigned) || assigned < completed) {
                         hasError = true; break;
                     }
 
@@ -1027,7 +1073,7 @@
             }
 
             if (hasError) {
-                showToast("Vui lòng điền đủ Tên Giảng viên, Nhiệm vụ và Số buổi phân công!", "danger"); return;
+                showToast("Dữ liệu nhập không hợp lệ hoặc số buổi phân công nhỏ hơn số buổi đã dạy!", "danger"); return;
             }
 
             if (currentSub.id !== 'sub_99') {
