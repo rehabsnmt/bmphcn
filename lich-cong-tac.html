@@ -47,8 +47,8 @@
         
         /* Nhãn phân loại trong Kho */
         .class-tag { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; margin-bottom: 5px; }
-        .class-tag.THS2025 { background: #bae6fd; color: #0369a1; }
-        .class-tag.THS2026 { background: #fde047; color: #b45309; }
+        .class-tag.THS2025 { background: #bae6fd; color: #0369a1; border: 1px solid #7dd3fc; }
+        .class-tag.THS2026 { background: #fde047; color: #b45309; border: 1px solid #facc15; }
 
         #event-pool .event-gv { font-weight: 700; font-size: 1rem; margin-bottom: 4px; color: var(--primary); }
         #event-pool .event-info { display: block; font-size: 0.85rem; color: var(--text-body); line-height: 1.4; }
@@ -244,7 +244,6 @@
         let currentUserEmail = '';
         let currentUserName = '';
         
-        // Mặc định luôn gom tất cả các lớp
         const managedClasses = ['THS2025', 'THS2026'];
         
         let assignmentsData = {};
@@ -513,13 +512,15 @@
                         info.revert(); return;
                     }
 
-                    const newUniqueId = props.originalId + '_' + Date.now();
-                    
-                    if (hasOverlap(info.event.start, info.event.end, props.gv, newUniqueId)) {
+                    // SỬA LỖI BẮT TRÙNG LỊCH:
+                    // Trong hàm eventReceive, info.event.id ĐANG LÀ giá trị copy từ Kho,
+                    // Nếu đẩy vào ignoreEventId, nó sẽ giúp hasOverlap bỏ qua đúng thẻ vừa thả.
+                    if (hasOverlap(info.event.start, info.event.end, props.gv, info.event.id)) {
                         showToast(`Lỗi: Giảng viên bị trùng lịch với Lịch Lý thuyết khác!`, "danger");
                         info.revert(); return;
                     }
 
+                    const newUniqueId = props.originalId + '_' + Date.now();
                     info.event.setProp('id', newUniqueId); 
 
                     const eventData = {
@@ -779,8 +780,8 @@
             poolDiv.innerHTML = '';
             let unscheduledCount = 0;
 
-            // HIỂN THỊ TẤT CẢ LỊCH ĐÃ XẾP TRÊN CALENDAR (Không lọc theo khóa)
-            let allScheduledEvents = scheduledEvents.filter(e => e.status !== 'returned').map(e => {
+            // ĐỔI THÀNH LUÔN HIỂN THỊ TẤT CẢ LỊCH
+            let currentClassEvents = scheduledEvents.filter(e => e.status !== 'returned').map(e => {
                 const isMyEvent = e.gv && currentUserName && e.gv.includes(currentUserName);
                 
                 let bgColor = e.class === 'THS2026' ? '#0d9488' : '#0284c7'; 
@@ -812,9 +813,9 @@
                     }
                 };
             });
-            calendar.addEventSource(allScheduledEvents);
+            calendar.addEventSource(currentClassEvents);
 
-            // GOM NHÓM & TẠO CHẤM BỆNH VIỆN CHO ALL-DAY
+            // GOM NHÓM & TẠO CHẤM BỆNH VIỆN
             globalGroupedClinicals = getClinicalEventsMap(clinicalSchedules); 
             let clinicalEvents = [];
             for (let dateStr in globalGroupedClinicals) {
@@ -845,7 +846,7 @@
                 }
             });
 
-            // TÁI TẠO KHO SỰ KIỆN TỪ TẤT CẢ CÁC KHÓA ĐƯỢC QUẢN LÝ
+            // TÁI TẠO KHO SỰ KIỆN TỪ TẤT CẢ CÁC KHÓA (KHÔNG BỊ ẨN NỮA)
             managedClasses.forEach(cls => {
                 for (let subId in assignmentsData) {
                     const subAsg = assignmentsData[subId];
