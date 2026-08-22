@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Thông báo cá nhân - Bộ môn Phục hồi chức năng.">
+    <title>Thông báo của tôi - Bộ môn Phục hồi chức năng</title>
+    
+    <link rel="icon" href="images/logo_Bộ môn.png" type="image/png">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        main { max-width: 900px; padding: 2rem 3%; margin: 0 auto; min-height: 75vh; }
+        
+        .page-header { text-align: center; margin-bottom: 2.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+        .page-header h2 { font-size: 1.8rem; color: var(--text-dark); margin-bottom: 5px; font-weight: 700; text-transform: uppercase; }
+        .page-header p { color: var(--text-body); font-size: 1rem; }
+
+        .hidden { display: none !important; }
+
+        /* Notification Layout */
+        .notif-section { margin-bottom: 2.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; box-shadow: var(--shadow-sm); }
+        .notif-section h3 { font-size: 1.2rem; color: var(--primary); margin-bottom: 15px; display: flex; align-items: center; gap: 10px; border-bottom: 1px dashed var(--border); padding-bottom: 10px; }
+        
+        .notif-list { display: flex; flex-direction: column; gap: 12px; }
+
+        /* Notification Item */
+        .notif-item { display: flex; align-items: flex-start; gap: 15px; padding: 15px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-page); transition: 0.3s ease; position: relative; overflow: hidden; }
+        .notif-item:hover { transform: translateX(5px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-color: #cbd5e1; }
+        
+        /* Bar bên trái */
+        .notif-item::before { content: ''; position: absolute; left: 0; top: 0; width: 4px; height: 100%; }
+        .notif-item.asg-type::before { background-color: #be123c; } /* Đỏ hồng cho Phân công */
+        .notif-item.cal-type::before { background-color: #0ea5e9; } /* Xanh biển cho Lịch dạy */
+
+        .notif-icon { width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
+        .notif-item.asg-type .notif-icon { background-color: #ffe4e6; color: #be123c; }
+        .notif-item.cal-type .notif-icon { background-color: #e0f2fe; color: #0ea5e9; }
+
+        .notif-content { flex: 1; }
+        .notif-title { font-size: 1.05rem; font-weight: 700; color: var(--text-dark); margin-bottom: 4px; line-height: 1.4; }
+        .notif-desc { font-size: 0.9rem; color: var(--text-body); line-height: 1.5; margin-bottom: 8px; }
+        
+        .notif-meta { display: flex; gap: 10px; flex-wrap: wrap; font-size: 0.8rem; font-weight: 600; color: #64748b; }
+        .meta-tag { padding: 2px 8px; border-radius: 4px; border: 1px solid #cbd5e1; background: white; display: inline-flex; align-items: center; gap: 4px; }
+        .meta-highlight { color: #d97706; border-color: #fde68a; background: #fefce8; }
+
+        .notif-action { flex-shrink: 0; align-self: center; }
+        .btn-view { background: white; color: var(--primary); border: 1px solid var(--primary); padding: 8px 15px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 0.85rem; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; }
+        .btn-view:hover { background: var(--primary-light); }
+
+        .empty-state { text-align: center; padding: 2rem; color: var(--text-body); font-style: italic; background: #f8fafc; border-radius: 8px; border: 1px dashed #cbd5e1; }
+        .empty-state i { font-size: 2.5rem; color: #cbd5e1; margin-bottom: 10px; display: block; }
+
+        #loadingScreen { text-align: center; padding: 4rem 0; color: var(--primary); font-weight: 600; font-size: 1.1rem; }
+
+        @media (max-width: 600px) {
+            .notif-item { flex-direction: column; gap: 10px; }
+            .notif-action { width: 100%; }
+            .btn-view { width: 100%; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="header-placeholder"></div>
+
+    <main>
+        <div class="page-header">
+            <h2><i class="fas fa-bell" style="color: #ef4444;"></i> THÔNG BÁO CỦA TÔI</h2>
+            <p>Cập nhật tự động các nhiệm vụ và lịch công tác dành riêng cho bạn</p>
+        </div>
+
+        <div id="loadingScreen">
+            <i class="fas fa-spinner fa-spin fa-2x"></i><br><br>Đang tải thông báo...
+        </div>
+
+        <div id="contentWrapper" class="hidden">
+            
+            <!-- Phần 1: Lịch dạy sắp tới -->
+            <div class="notif-section">
+                <h3 style="color: #0ea5e9; border-color: #bae6fd;"><i class="fas fa-calendar-alt"></i> Lịch Công Tác Sắp Tới</h3>
+                <div id="scheduleNotifs" class="notif-list">
+                    <!-- Dữ liệu JS -->
+                </div>
+            </div>
+
+            <!-- Phần 2: Phân công công tác (Khối lượng) -->
+            <div class="notif-section">
+                <h3 style="color: #be123c; border-color: #fecdd3;"><i class="fas fa-sitemap"></i> Nhiệm Vụ Được Phân Công</h3>
+                <div id="assignmentNotifs" class="notif-list">
+                    <!-- Dữ liệu JS -->
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <script src="js/layout.js"></script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY", authDomain: "bmphcn-aa9c6.firebaseapp.com", projectId: "bmphcn-aa9c6", storageBucket: "bmphcn-aa9c6.firebasestorage.app", messagingSenderId: "749494392719", appId: "1:749494392719:web:f220c751ff541620045dfa" };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const subjectsData = [
+            {"id": "sub_1", "name": "Triết học"}, {"id": "sub_2", "name": "Ngoại ngữ"}, {"id": "sub_3", "name": "Sinh học phân tử"}, {"id": "sub_4", "name": "Y đức - Xã hội học"}, {"id": "sub_5", "name": "Phương pháp nghiên cứu khoa học"}, {"id": "sub_6", "name": "Thống kê y học"},
+            {"id": "sub_7", "name": "Phương pháp dạy và học trong phục hồi chức năng"}, {"id": "sub_8", "name": "Quản lý và lãnh đạo trong phục hồi chức năng"}, {"id": "sub_9", "name": "Kỹ năng hướng dẫn lâm sàng và lý luận lâm sàng trong PHCN"}, {"id": "sub_10", "name": "Thực hành kỹ năng hướng dẫn lâm sàng"}, {"id": "sub_11", "name": "Thực hành dựa trên chứng cứ"},
+            {"id": "sub_12", "name": "Rối loạn nuốt"}, {"id": "sub_13", "name": "Rối loạn vận động tạo lời nói và nói lắp"}, {"id": "sub_14", "name": "Những rối loạn giao tiếp & nhận thức có nguồn gốc thần kinh"}, {"id": "sub_15", "name": "Những rối loạn phát sinh từ khiếm khuyết/Phẫu thuật vùng đầu và cổ"}, {"id": "sub_16", "name": "Khuyết tật giao tiếp suốt đời và giao tiếp tăng cường và thay thế"}, {"id": "sub_17", "name": "Thính lực học và PHCN thính giác"}, {"id": "sub_18", "name": "Quản lý ca bệnh phức tạp"}, {"id": "sub_19", "name": "Thực hành lâm sàng cho rối loạn giọng"}, {"id": "sub_20", "name": "Thực hành lâm sàng cho vấn đề rối loạn ngôn ngữ có nguồn gốc thần kinh"}, {"id": "sub_21", "name": "Thực hành lâm sàng cho người khuyết tật suốt đời"}, {"id": "sub_22", "name": "Thực hành lâm sàng cho trẻ em có rối loạn giao tiếp và nuốt"}, {"id": "sub_23", "name": "Thực hành lâm sàng ca bệnh phức tạp ở người lớn và trẻ em"},
+            {"id": "sub_24", "name": "Vật lý trị liệu Nhi nâng cao"}, {"id": "sub_25", "name": "Vật lý trị liệu Thần kinh cơ nâng cao"}, {"id": "sub_26", "name": "Vật lý trị liệu Cơ xương nâng cao"}, {"id": "sub_27", "name": "Vật lý trị liệu Tim mạch – Hô hấp nâng cao"}, {"id": "sub_28", "name": "Vật lý trị liệu trong thể thao"}, {"id": "sub_29", "name": "Ứng dụng công thái học trong can thiệp Vật lý trị liệu"}, {"id": "sub_30", "name": "Thực hành lâm sàng Vật lý trị liệu nâng cao 1"}, {"id": "sub_31", "name": "Thực hành lâm sàng Vật lý trị liệu nâng cao 2"},
+            {"id": "sub_32", "name": "Những vấn đề chuyên môn trong Hoạt động trị liệu"}, {"id": "sub_33", "name": "Lãnh đạo và quản lý trong Hoạt động trị liệu"}, {"id": "sub_34", "name": "Thiết kế và đánh giá chương trình Hoạt động trị liệu"}, {"id": "sub_35", "name": "Hoạt động trị liệu và quản lý chấn thương"}, {"id": "sub_36", "name": "Hoạt động trị liệu trong thực hành sức khỏe tâm thần trong suốt quá trình phát triển"}, {"id": "sub_37", "name": "Hoạt động trị liệu trong lão khoa"}, {"id": "sub_38", "name": "Thực hành hoạt động trị liệu 1"}, {"id": "sub_39", "name": "Thực hành hoạt động trị liệu 2"}, {"id": "sub_40", "name": "Thực hành hoạt động trị liệu 3"},
+            {"id": "sub_41", "name": "Thực hành lâm sàng Kỹ thuật Phục hồi chức năng 1"}, {"id": "sub_42", "name": "Thực hành lâm sàng Kỹ thuật Phục hồi chức năng 2"}, {"id": "sub_43", "name": "Thực hành lâm sàng Kỹ thuật Phục hồi chức năng 3"},
+            {"id": "sub_44", "name": "Đề án tốt nghiệp"}, {"id": "sub_45", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 1"}, {"id": "sub_46", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 2"}, {"id": "sub_47", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 3"}, {"id": "sub_48", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 4"}, {"id": "sub_49", "name": "Luận văn"},
+            {"id": "sub_99", "name": "Công việc chuyên môn khác"}
+        ];
+
+        let currentUserName = '';
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                try {
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    if (userDoc.exists()) {
+                        const data = userDoc.data();
+                        let prefix = data.degree === 'ThS' ? 'ThS. ' : (data.degree === 'TS' ? 'TS. ' : '');
+                        currentUserName = `${prefix}${data.fullName}`;
+                        
+                        setTimeout(() => {
+                            const btnAuthNav = document.getElementById('btnAuthNav');
+                            if (btnAuthNav) {
+                                btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right:5px;"></i> ${currentUserName}`;
+                                btnAuthNav.href = "dashboard.html";
+                            }
+                        }, 300);
+
+                        fetchNotifications();
+                    } else {
+                        window.location.href = "login.html";
+                    }
+                } catch (e) { console.error("Lỗi lấy thông tin User", e); }
+            } else {
+                window.location.href = "login.html";
+            }
+        });
+
+        function fetchNotifications() {
+            document.getElementById('loadingScreen').classList.add('hidden');
+            document.getElementById('contentWrapper').classList.remove('hidden');
+
+            const asgContainer = document.getElementById('assignmentNotifs');
+            const calContainer = document.getElementById('scheduleNotifs');
+
+            // 1. Quét Bảng Phân công
+            onSnapshot(collection(db, "assignments"), (snapshot) => {
+                asgContainer.innerHTML = '';
+                let asgCount = 0;
+                
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const subId = doc.id;
+                    const subName = subjectsData.find(s => s.id === subId)?.name || 'Môn học';
+
+                    ['THS2025', 'THS2026'].forEach(cls => {
+                        if (data[cls] && data[cls].status === 'approved' && data[cls].allocations) {
+                            data[cls].allocations.forEach(a => {
+                                if (a.gv && a.gv.includes(currentUserName)) {
+                                    asgCount++;
+                                    let clsName = cls === 'THS2025' ? 'Khóa 25-27' : 'Khóa 26-28';
+                                    
+                                    let contentDesc = '';
+                                    if (a.task === 'Hướng dẫn LV, LATS') {
+                                        contentDesc = `Bạn được phân công làm <b>${a.role}</b> cho học viên <b>${a.student}</b>.`;
+                                    } else {
+                                        contentDesc = `Bạn được giao nhiệm vụ <b>${a.task}</b> với số lượng <b>${a.assigned} buổi</b>.`;
+                                    }
+
+                                    asgContainer.innerHTML += `
+                                        <div class="notif-item asg-type">
+                                            <div class="notif-icon"><i class="fas fa-clipboard-list"></i></div>
+                                            <div class="notif-content">
+                                                <div class="notif-title">${subName}</div>
+                                                <div class="notif-desc">${contentDesc}</div>
+                                                <div class="notif-meta">
+                                                    <span class="meta-tag"><i class="fas fa-graduation-cap"></i> ${clsName}</span>
+                                                    <span class="meta-tag"><i class="fas fa-calendar-alt"></i> ${data[cls].semester || 'Chưa XĐ'}</span>
+                                                </div>
+                                            </div>
+                                            <div class="notif-action">
+                                                <a href="xem-phan-cong.html" class="btn-view">Chi tiết <i class="fas fa-arrow-right"></i></a>
+                                            </div>
+                                        </div>
+                                    `;
+                                }
+                            });
+                        }
+                    });
+                });
+
+                if (asgCount === 0) {
+                    asgContainer.innerHTML = `<div class="empty-state"><i class="fas fa-check-circle"></i>Bạn chưa có nhiệm vụ phân công nào mới.</div>`;
+                }
+            });
+
+            // 2. Quét Bảng Lịch Công Tác (Tương lai)
+            onSnapshot(collection(db, "calendar_events"), (snapshot) => {
+                calContainer.innerHTML = '';
+                let calCount = 0;
+                let eventsList = [];
+                const now = new Date();
+
+                snapshot.forEach(doc => {
+                    const evt = doc.data();
+                    if (evt.gv && evt.gv.includes(currentUserName) && evt.status !== 'returned') {
+                        let eventDate = new Date(evt.start);
+                        if (eventDate >= now) {
+                            eventsList.push(evt);
+                        }
+                    }
+                });
+
+                // Sắp xếp lịch theo thời gian gần nhất
+                eventsList.sort((a, b) => new Date(a.start) - new Date(b.start));
+
+                eventsList.forEach(evt => {
+                    calCount++;
+                    let startDate = new Date(evt.start);
+                    let endDate = evt.end ? new Date(evt.end) : new Date(startDate.getTime() + 4 * 3600000);
+                    
+                    const timeOpts = { hour: 'numeric', minute: '2-digit', hour12: false };
+                    let sTime = startDate.toLocaleTimeString('vi-VN', timeOpts);
+                    let eTime = endDate.toLocaleTimeString('vi-VN', timeOpts);
+                    let dateStr = startDate.toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
+                    
+                    let clsName = evt.class === 'THS2025' ? 'Khóa 25-27' : (evt.class === 'THS2026' ? 'Khóa 26-28' : evt.class);
+
+                    calContainer.innerHTML += `
+                        <div class="notif-item cal-type">
+                            <div class="notif-icon"><i class="fas fa-calendar-day"></i></div>
+                            <div class="notif-content">
+                                <div class="notif-title">${evt.subject}</div>
+                                <div class="notif-desc">Nhiệm vụ: <b>${evt.task}</b></div>
+                                <div class="notif-meta">
+                                    <span class="meta-tag meta-highlight"><i class="fas fa-clock"></i> ${sTime} - ${eTime} | ${dateStr}</span>
+                                    <span class="meta-tag"><i class="fas fa-users"></i> Lớp: ${clsName}</span>
+                                </div>
+                            </div>
+                            <div class="notif-action">
+                                <a href="xem-phan-cong.html" class="btn-view">Xác nhận <i class="fas fa-arrow-right"></i></a>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                if (calCount === 0) {
+                    calContainer.innerHTML = `<div class="empty-state"><i class="fas fa-mug-hot"></i>Hiện tại không có lịch giảng dạy nào sắp diễn ra.</div>`;
+                }
+            });
+        }
+    </script>
+</body>
+</html>
