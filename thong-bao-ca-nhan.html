@@ -30,21 +30,22 @@
         .notif-item:hover { transform: translateX(5px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-color: #cbd5e1; }
         
         /* Bar bên trái */
-        .notif-item::before { content: ''; position: absolute; left: 0; top: 0; width: 4px; height: 100%; }
-        .notif-item.asg-type::before { background-color: #be123c; } /* Đỏ hồng cho Phân công */
-        .notif-item.cal-type::before { background-color: #0ea5e9; } /* Xanh biển cho Lịch dạy */
+        .notif-item::before { content: ''; position: absolute; left: 0; top: 0; width: 4px; height: 100%; background-color: #be123c; }
 
-        .notif-icon { width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
-        .notif-item.asg-type .notif-icon { background-color: #ffe4e6; color: #be123c; }
-        .notif-item.cal-type .notif-icon { background-color: #e0f2fe; color: #0ea5e9; }
+        .notif-icon { width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; background-color: #ffe4e6; color: #be123c; }
 
         .notif-content { flex: 1; }
-        .notif-title { font-size: 1.05rem; font-weight: 700; color: var(--text-dark); margin-bottom: 4px; line-height: 1.4; }
-        .notif-desc { font-size: 0.9rem; color: var(--text-body); line-height: 1.5; margin-bottom: 8px; }
+        .notif-title { font-size: 1.1rem; font-weight: 700; color: var(--text-dark); margin-bottom: 8px; line-height: 1.4; }
         
-        .notif-meta { display: flex; gap: 10px; flex-wrap: wrap; font-size: 0.8rem; font-weight: 600; color: #64748b; }
-        .meta-tag { padding: 2px 8px; border-radius: 4px; border: 1px solid #cbd5e1; background: white; display: inline-flex; align-items: center; gap: 4px; }
-        .meta-highlight { color: #d97706; border-color: #fde68a; background: #fefce8; }
+        /* Danh sách chi tiết công việc */
+        .notif-desc { font-size: 0.95rem; color: var(--text-dark); background: white; padding: 12px; border-radius: 6px; border: 1px solid #e2e8f0; }
+        .task-detail-list { list-style: none; padding: 0; margin: 0; }
+        .task-detail-list li { margin-bottom: 6px; padding-left: 20px; position: relative; line-height: 1.5; }
+        .task-detail-list li:last-child { margin-bottom: 0; }
+        .task-detail-list li i { position: absolute; left: 0; top: 5px; color: #10b981; font-size: 0.85rem; }
+        
+        .notif-meta { display: flex; gap: 10px; flex-wrap: wrap; font-size: 0.8rem; font-weight: 600; color: #64748b; margin-bottom: 12px; }
+        .meta-tag { padding: 3px 10px; border-radius: 4px; border: 1px solid #cbd5e1; background: white; display: inline-flex; align-items: center; gap: 6px; }
 
         .notif-action { flex-shrink: 0; align-self: center; }
         .btn-view { background: white; color: var(--primary); border: 1px solid var(--primary); padding: 8px 15px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 0.85rem; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; }
@@ -69,26 +70,18 @@
     <main>
         <div class="page-header">
             <h2><i class="fas fa-bell" style="color: #ef4444;"></i> THÔNG BÁO CỦA TÔI</h2>
-            <p>Cập nhật tự động các nhiệm vụ và lịch công tác dành riêng cho bạn</p>
+            <p>Cập nhật chi tiết các nhiệm vụ giảng dạy được phân công</p>
         </div>
 
         <div id="loadingScreen">
-            <i class="fas fa-spinner fa-spin fa-2x"></i><br><br>Đang tải thông báo...
+            <i class="fas fa-spinner fa-spin fa-2x"></i><br><br>Đang tải thông báo phân công...
         </div>
 
         <div id="contentWrapper" class="hidden">
             
-            <!-- Phần 1: Lịch dạy sắp tới -->
+            <!-- Phân công công tác -->
             <div class="notif-section">
-                <h3 style="color: #0ea5e9; border-color: #bae6fd;"><i class="fas fa-calendar-alt"></i> Lịch Công Tác Sắp Tới</h3>
-                <div id="scheduleNotifs" class="notif-list">
-                    <!-- Dữ liệu JS -->
-                </div>
-            </div>
-
-            <!-- Phần 2: Phân công công tác (Khối lượng) -->
-            <div class="notif-section">
-                <h3 style="color: #be123c; border-color: #fecdd3;"><i class="fas fa-sitemap"></i> Nhiệm Vụ Được Phân Công</h3>
+                <h3 style="color: #be123c; border-color: #fecdd3;"><i class="fas fa-sitemap"></i> Danh Sách Nhiệm Vụ Được Giao</h3>
                 <div id="assignmentNotifs" class="notif-list">
                     <!-- Dữ liệu JS -->
                 </div>
@@ -156,9 +149,8 @@
             document.getElementById('contentWrapper').classList.remove('hidden');
 
             const asgContainer = document.getElementById('assignmentNotifs');
-            const calContainer = document.getElementById('scheduleNotifs');
 
-            // 1. Quét Bảng Phân công
+            // Quét Bảng Phân công
             onSnapshot(collection(db, "assignments"), (snapshot) => {
                 asgContainer.innerHTML = '';
                 let asgCount = 0;
@@ -169,98 +161,54 @@
                     const subName = subjectsData.find(s => s.id === subId)?.name || 'Môn học';
 
                     ['THS2025', 'THS2026'].forEach(cls => {
+                        // CHỈ LẤY CÁC MÔN ĐÃ ĐƯỢC DUYỆT (APPROVED)
                         if (data[cls] && data[cls].status === 'approved' && data[cls].allocations) {
-                            data[cls].allocations.forEach(a => {
-                                if (a.gv && a.gv.includes(currentUserName)) {
-                                    asgCount++;
-                                    let clsName = cls === 'THS2025' ? 'Khóa 25-27' : 'Khóa 26-28';
-                                    
-                                    let contentDesc = '';
+                            
+                            // Lọc các nhiệm vụ có chứa tên GV đang đăng nhập
+                            let myTasks = data[cls].allocations.filter(a => a.gv && a.gv.includes(currentUserName));
+                            
+                            if (myTasks.length > 0) {
+                                asgCount++;
+                                let clsName = cls === 'THS2025' ? 'Khóa 25-27' : 'Khóa 26-28';
+                                
+                                // Build danh sách chi tiết các công việc trong môn đó
+                                let taskListHtml = '<ul class="task-detail-list">';
+                                myTasks.forEach(a => {
                                     if (a.task === 'Hướng dẫn LV, LATS') {
-                                        contentDesc = `Bạn được phân công làm <b>${a.role}</b> cho học viên <b>${a.student}</b>.`;
+                                        taskListHtml += `<li><i class="fas fa-check"></i> Hướng dẫn HV: <b>${a.student}</b> <span style="color:#64748b">(${a.role})</span></li>`;
                                     } else {
-                                        contentDesc = `Bạn được giao nhiệm vụ <b>${a.task}</b> với số lượng <b>${a.assigned} buổi</b>.`;
+                                        let noteStr = a.note ? ` <span style="color:#64748b; font-style: italic;">(${a.note})</span>` : '';
+                                        taskListHtml += `<li><i class="fas fa-check"></i> Nhiệm vụ: <b>${a.task}</b> - Khối lượng: <b>${a.assigned} buổi</b>${noteStr}</li>`;
                                     }
+                                });
+                                taskListHtml += '</ul>';
 
-                                    asgContainer.innerHTML += `
-                                        <div class="notif-item asg-type">
-                                            <div class="notif-icon"><i class="fas fa-clipboard-list"></i></div>
-                                            <div class="notif-content">
-                                                <div class="notif-title">${subName}</div>
-                                                <div class="notif-desc">${contentDesc}</div>
-                                                <div class="notif-meta">
-                                                    <span class="meta-tag"><i class="fas fa-graduation-cap"></i> ${clsName}</span>
-                                                    <span class="meta-tag"><i class="fas fa-calendar-alt"></i> ${data[cls].semester || 'Chưa XĐ'}</span>
-                                                </div>
+                                asgContainer.innerHTML += `
+                                    <div class="notif-item asg-type">
+                                        <div class="notif-icon"><i class="fas fa-clipboard-list"></i></div>
+                                        <div class="notif-content">
+                                            <div class="notif-title">${subName}</div>
+                                            <div class="notif-meta">
+                                                <span class="meta-tag"><i class="fas fa-graduation-cap"></i> Lớp: ${clsName}</span>
+                                                <span class="meta-tag"><i class="fas fa-calendar-alt"></i> Học kỳ: ${data[cls].semester || 'Chưa XĐ'}</span>
                                             </div>
-                                            <div class="notif-action">
-                                                <a href="xem-phan-cong.html" class="btn-view">Chi tiết <i class="fas fa-arrow-right"></i></a>
+                                            <div class="notif-desc">
+                                                <div style="font-weight: 600; color: var(--primary); margin-bottom: 6px;">Chi tiết nhiệm vụ:</div>
+                                                ${taskListHtml}
                                             </div>
                                         </div>
-                                    `;
-                                }
-                            });
+                                        <div class="notif-action">
+                                            <a href="xem-phan-cong.html" class="btn-view">Xác nhận <i class="fas fa-arrow-right"></i></a>
+                                        </div>
+                                    </div>
+                                `;
+                            }
                         }
                     });
                 });
 
                 if (asgCount === 0) {
                     asgContainer.innerHTML = `<div class="empty-state"><i class="fas fa-check-circle"></i>Bạn chưa có nhiệm vụ phân công nào mới.</div>`;
-                }
-            });
-
-            // 2. Quét Bảng Lịch Công Tác (Tương lai)
-            onSnapshot(collection(db, "calendar_events"), (snapshot) => {
-                calContainer.innerHTML = '';
-                let calCount = 0;
-                let eventsList = [];
-                const now = new Date();
-
-                snapshot.forEach(doc => {
-                    const evt = doc.data();
-                    if (evt.gv && evt.gv.includes(currentUserName) && evt.status !== 'returned') {
-                        let eventDate = new Date(evt.start);
-                        if (eventDate >= now) {
-                            eventsList.push(evt);
-                        }
-                    }
-                });
-
-                // Sắp xếp lịch theo thời gian gần nhất
-                eventsList.sort((a, b) => new Date(a.start) - new Date(b.start));
-
-                eventsList.forEach(evt => {
-                    calCount++;
-                    let startDate = new Date(evt.start);
-                    let endDate = evt.end ? new Date(evt.end) : new Date(startDate.getTime() + 4 * 3600000);
-                    
-                    const timeOpts = { hour: 'numeric', minute: '2-digit', hour12: false };
-                    let sTime = startDate.toLocaleTimeString('vi-VN', timeOpts);
-                    let eTime = endDate.toLocaleTimeString('vi-VN', timeOpts);
-                    let dateStr = startDate.toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
-                    
-                    let clsName = evt.class === 'THS2025' ? 'Khóa 25-27' : (evt.class === 'THS2026' ? 'Khóa 26-28' : evt.class);
-
-                    calContainer.innerHTML += `
-                        <div class="notif-item cal-type">
-                            <div class="notif-icon"><i class="fas fa-calendar-day"></i></div>
-                            <div class="notif-content">
-                                <div class="notif-title">${evt.subject}</div>
-                                <div class="notif-desc">Nhiệm vụ: <b>${evt.task}</b></div>
-                                <div class="notif-meta">
-                                    <span class="meta-tag meta-highlight"><i class="fas fa-clock"></i> ${sTime} - ${eTime} | ${dateStr}</span>
-                                    <span class="meta-tag"><i class="fas fa-users"></i> Lớp: ${clsName}</span>
-                                </div>
-                            </div>
-                            <div class="notif-action">
-                                <a href="xem-phan-cong.html" class="btn-view">Xác nhận <i class="fas fa-arrow-right"></i></a>
-                            </div>
-                        </div>
-                    `;
-                });
-
-                if (calCount === 0) {
-                    calContainer.innerHTML = `<div class="empty-state"><i class="fas fa-mug-hot"></i>Hiện tại không có lịch giảng dạy nào sắp diễn ra.</div>`;
                 }
             });
         }
