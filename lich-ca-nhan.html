@@ -28,28 +28,31 @@
         .task-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); border-color: var(--primary-light); }
         
         .task-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: var(--primary); }
-        .task-card.today::before { background: #f59e0b; } /* Màu cam cho nhiệm vụ hôm nay */
         
-        .task-time { font-size: 0.9rem; font-weight: 700; color: #d97706; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        /* Trạng thái Hôm nay */
+        .task-card.today::before { background: #f59e0b; }
         .task-card.today .task-time { color: #ef4444; }
 
+        /* Trạng thái Đã hoàn thành */
+        .task-card.completed { opacity: 0.85; background-color: #f8fafc; }
+        .task-card.completed::before { background: #10b981; }
+        .task-card.completed .task-time { color: #10b981; }
+        
+        .task-time { font-size: 0.9rem; font-weight: 700; color: #0ea5e9; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
         .task-subject { font-size: 1.15rem; font-weight: 700; color: var(--text-dark); margin-bottom: 5px; line-height: 1.4; }
         .task-role { font-size: 0.9rem; color: var(--text-body); margin-bottom: 15px; font-weight: 500; }
         .task-class { background: var(--bg-page); border: 1px solid var(--border); padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; color: var(--text-body); display: inline-block; width: fit-content; margin-bottom: auto; }
 
-        /* Nút Tương tác */
-        .task-actions { display: flex; gap: 10px; margin-top: 20px; padding-top: 15px; border-top: 1px dashed var(--border); }
-        
-        .btn-accept { flex: 1; background-color: #10b981; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; }
-        .btn-accept:hover { background-color: #059669; }
-        .btn-accept:disabled { background-color: #10b981; opacity: 1; cursor: default; } /* Đã nhận thì xanh đậm đứng yên */
+        .badge-completed { display: inline-block; margin-top: 15px; color: #10b981; font-weight: bold; font-size: 0.85rem; padding-top: 10px; border-top: 1px dashed var(--border); }
 
-        .btn-reject { flex: 1; background-color: white; color: #ef4444; border: 1px solid #ef4444; padding: 10px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; }
+        /* Nút Tương tác */
+        .task-actions { display: flex; gap: 10px; margin-top: 15px; padding-top: 15px; border-top: 1px dashed var(--border); }
+        .btn-reject { flex: 1; background-color: white; color: #ef4444; border: 1px solid #ef4444; padding: 8px 10px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 0.9rem; }
         .btn-reject:hover { background-color: #fef2f2; }
 
         /* Toast Thông báo */
-        .toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
-        .toast { min-width: 250px; background-color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: 0.4s; font-weight: 600; border-left: 5px solid #22c55e; opacity: 0; }
+        .toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+        .toast { min-width: 250px; background-color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: 0.4s; font-weight: 600; border-left: 5px solid #22c55e; opacity: 0; pointer-events: auto; }
         .toast.show { transform: translateX(0); opacity: 1; }
         .toast.danger { border-left-color: #ef4444; }
 
@@ -67,8 +70,8 @@
 
     <main>
         <div class="page-header">
-            <h2><i class="fas fa-clipboard-list" style="color: var(--primary);"></i> PHÂN CÔNG CỦA TÔI</h2>
-            <p>Theo dõi và phản hồi các nhiệm vụ giảng dạy được giao</p>
+            <h2><i class="fas fa-clipboard-list" style="color: var(--primary);"></i> LỊCH TRÌNH CÁ NHÂN</h2>
+            <p>Theo dõi các nhiệm vụ giảng dạy và thực hành được giao</p>
         </div>
 
         <div id="loadingScreen"><i class="fas fa-spinner fa-spin fa-2x"></i><br>Đang tải dữ liệu phân công...</div>
@@ -76,7 +79,7 @@
         <div id="contentWrapper" class="hidden">
             <!-- Khu vực Nhiệm vụ Hôm nay -->
             <div class="task-section">
-                <h3><i class="fas fa-calendar-day"></i> Lịch dạy Hôm nay</h3>
+                <h3 style="color: #f59e0b; border-left-color: #f59e0b;"><i class="fas fa-calendar-day"></i> Lịch dạy Hôm nay</h3>
                 <div id="todayGrid" class="task-grid">
                     <!-- Dữ liệu JS -->
                 </div>
@@ -84,8 +87,16 @@
 
             <!-- Khu vực Nhiệm vụ Sắp tới -->
             <div class="task-section">
-                <h3><i class="fas fa-calendar-alt"></i> Lịch dạy Sắp tới (Tương lai)</h3>
+                <h3 style="color: #0ea5e9; border-left-color: #0ea5e9;"><i class="fas fa-calendar-alt"></i> Lịch dạy Sắp tới</h3>
                 <div id="upcomingGrid" class="task-grid">
+                    <!-- Dữ liệu JS -->
+                </div>
+            </div>
+
+            <!-- Khu vực Nhiệm vụ Đã hoàn thành -->
+            <div class="task-section">
+                <h3 style="color: #10b981; border-left-color: #10b981;"><i class="fas fa-history"></i> Nhiệm vụ Đã hoàn thành</h3>
+                <div id="completedGrid" class="task-grid">
                     <!-- Dữ liệu JS -->
                 </div>
             </div>
@@ -107,18 +118,6 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Map tên môn sang ID
-        const subjectsData = [
-            {"id": "sub_1", "name": "Triết học"}, {"id": "sub_2", "name": "Ngoại ngữ"}, {"id": "sub_3", "name": "Sinh học phân tử"}, {"id": "sub_4", "name": "Y đức - Xã hội học"}, {"id": "sub_5", "name": "Phương pháp nghiên cứu khoa học"}, {"id": "sub_6", "name": "Thống kê y học"},
-            {"id": "sub_7", "name": "Phương pháp dạy và học trong phục hồi chức năng"}, {"id": "sub_8", "name": "Quản lý và lãnh đạo trong phục hồi chức năng"}, {"id": "sub_9", "name": "Kỹ năng hướng dẫn lâm sàng và lý luận lâm sàng trong PHCN"}, {"id": "sub_10", "name": "Thực hành kỹ năng hướng dẫn lâm sàng"}, {"id": "sub_11", "name": "Thực hành dựa trên chứng cứ"},
-            {"id": "sub_12", "name": "Rối loạn nuốt"}, {"id": "sub_13", "name": "Rối loạn vận động tạo lời nói và nói lắp"}, {"id": "sub_14", "name": "Những rối loạn giao tiếp & nhận thức có nguồn gốc thần kinh"}, {"id": "sub_15", "name": "Những rối loạn phát sinh từ khiếm khuyết/Phẫu thuật vùng đầu và cổ"}, {"id": "sub_16", "name": "Khuyết tật giao tiếp suốt đời và giao tiếp tăng cường và thay thế"}, {"id": "sub_17", "name": "Thính lực học và PHCN thính giác"}, {"id": "sub_18", "name": "Quản lý ca bệnh phức tạp"}, {"id": "sub_19", "name": "Thực hành lâm sàng cho rối loạn giọng"}, {"id": "sub_20", "name": "Thực hành lâm sàng cho vấn đề rối loạn ngôn ngữ có nguồn gốc thần kinh"}, {"id": "sub_21", "name": "Thực hành lâm sàng cho người khuyết tật suốt đời"}, {"id": "sub_22", "name": "Thực hành lâm sàng cho trẻ em có rối loạn giao tiếp và nuốt"}, {"id": "sub_23", "name": "Thực hành lâm sàng ca bệnh phức tạp ở người lớn và trẻ em"},
-            {"id": "sub_24", "name": "Vật lý trị liệu Nhi nâng cao"}, {"id": "sub_25", "name": "Vật lý trị liệu Thần kinh cơ nâng cao"}, {"id": "sub_26", "name": "Vật lý trị liệu Cơ xương nâng cao"}, {"id": "sub_27", "name": "Vật lý trị liệu Tim mạch – Hô hấp nâng cao"}, {"id": "sub_28", "name": "Vật lý trị liệu trong thể thao"}, {"id": "sub_29", "name": "Ứng dụng công thái học trong can thiệp Vật lý trị liệu"}, {"id": "sub_30", "name": "Thực hành lâm sàng Vật lý trị liệu nâng cao 1"}, {"id": "sub_31", "name": "Thực hành lâm sàng Vật lý trị liệu nâng cao 2"},
-            {"id": "sub_32", "name": "Những vấn đề chuyên môn trong Hoạt động trị liệu"}, {"id": "sub_33", "name": "Lãnh đạo và quản lý trong Hoạt động trị liệu"}, {"id": "sub_34", "name": "Thiết kế và đánh giá chương trình Hoạt động trị liệu"}, {"id": "sub_35", "name": "Hoạt động trị liệu và quản lý chấn thương"}, {"id": "sub_36", "name": "Hoạt động trị liệu trong thực hành sức khỏe tâm thần trong suốt quá trình phát triển"}, {"id": "sub_37", "name": "Hoạt động trị liệu trong lão khoa"}, {"id": "sub_38", "name": "Thực hành hoạt động trị liệu 1"}, {"id": "sub_39", "name": "Thực hành hoạt động trị liệu 2"}, {"id": "sub_40", "name": "Thực hành hoạt động trị liệu 3"},
-            {"id": "sub_41", "name": "Thực hành lâm sàng Kỹ thuật Phục hồi chức năng 1"}, {"id": "sub_42", "name": "Thực hành lâm sàng Kỹ thuật Phục hồi chức năng 2"}, {"id": "sub_43", "name": "Thực hành lâm sàng Kỹ thuật Phục hồi chức năng 3"},
-            {"id": "sub_44", "name": "Đề án tốt nghiệp"}, {"id": "sub_45", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 1"}, {"id": "sub_46", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 2"}, {"id": "sub_47", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 3"}, {"id": "sub_48", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 4"}, {"id": "sub_49", "name": "Luận văn"},
-            {"id": "sub_99", "name": "Công việc chuyên môn khác"}
-        ];
-
         let currentUserName = '';
         let myEvents = [];
 
@@ -134,10 +133,10 @@
 
         // ĐỊNH DẠNG HIỂN THỊ THỜI GIAN
         function formatTaskTime(startStr, endStr) {
-            if (!startStr) return 'Chưa xác định';
+            if (!startStr) return { isToday: false, isPast: false, timeText: 'Chưa xác định' };
             
             const startDate = new Date(startStr);
-            const endDate = endStr ? new Date(endStr) : new Date(startDate.getTime() + 4 * 3600000);
+            const endDate = endStr ? new Date(endStr) : new Date(startDate.getTime() + 4 * 3600000); // Mặc định 4h nếu ko có end
             
             const timeOpts = { hour: '2-digit', minute: '2-digit', hour12: false };
             const sTime = startDate.toLocaleTimeString('vi-VN', timeOpts);
@@ -170,6 +169,7 @@
                             }
                         }, 300);
 
+                        // Bắt đầu Lắng nghe Database Lịch công tác
                         listenToMySchedules();
                     } else {
                         window.location.href = "login.html"; 
@@ -182,13 +182,13 @@
             }
         });
 
-        // TẢI & LỌC DỮ LIỆU CỦA RIÊNG MÌNH
+        // TẢI & LỌC DỮ LIỆU CỦA RIÊNG MÌNH TỪ BẢNG CALENDAR_EVENTS
         function listenToMySchedules() {
             onSnapshot(collection(db, "calendar_events"), (snapshot) => {
                 myEvents = [];
                 snapshot.forEach(doc => { 
                     const data = doc.data();
-                    // CHỈ lấy các sự kiện của mình và CHƯA BỊ TRẢ VỀ
+                    // Lọc các sự kiện có chứa tên mình và chưa bị trả về
                     if (data.gv && currentUserName && data.gv.includes(currentUserName) && data.status !== 'returned') {
                         myEvents.push(data);
                     }
@@ -197,120 +197,113 @@
             });
         }
 
-        // HIỂN THỊ RA MÀN HÌNH
+        // PHÂN LOẠI VÀ HIỂN THỊ RA MÀN HÌNH
         function renderTasks() {
             document.getElementById('loadingScreen').classList.add('hidden');
             document.getElementById('contentWrapper').classList.remove('hidden');
 
             const todayGrid = document.getElementById('todayGrid');
             const upcomingGrid = document.getElementById('upcomingGrid');
+            const completedGrid = document.getElementById('completedGrid');
             
             todayGrid.innerHTML = '';
             upcomingGrid.innerHTML = '';
+            completedGrid.innerHTML = '';
 
             let todayCount = 0;
             let upcomingCount = 0;
+            let completedCount = 0;
 
+            // Sắp xếp sự kiện tăng dần theo thời gian
             myEvents.sort((a, b) => new Date(a.start) - new Date(b.start));
 
             myEvents.forEach(evt => {
                 const timeInfo = formatTaskTime(evt.start, evt.end);
                 
-                // BỎ QUA CÁC NHIỆM VỤ ĐÃ TRÔI QUA
-                if (timeInfo.isPast) return; 
+                let category = '';
+                if (timeInfo.isToday) {
+                    category = 'today';
+                } else if (timeInfo.isPast) {
+                    category = 'completed';
+                } else {
+                    category = 'upcoming';
+                }
+
+                let badgeHtml = '';
+                let iconClass = 'fa-calendar-alt';
+                let actionHtml = '';
+
+                if (category === 'today') {
+                    iconClass = 'fa-clock';
+                } else if (category === 'completed') {
+                    iconClass = 'fa-check-circle';
+                    badgeHtml = `<div class="badge-completed"><i class="fas fa-check"></i> Nhiệm vụ đã hoàn thành</div>`;
+                }
+
+                // Nếu là nhiệm vụ Tương lai hoặc Hôm nay thì có nút Từ chối
+                if (category !== 'completed') {
+                    actionHtml = `
+                        <div class="task-actions">
+                            <button class="btn-reject" onclick="rejectTask('${evt.id}')" title="Không nhận nhiệm vụ này vào ngày này">
+                                <i class="fas fa-times-circle"></i> Từ chối nhiệm vụ
+                            </button>
+                        </div>
+                    `;
+                }
 
                 const cardHtml = `
-                    <div class="task-card ${timeInfo.isToday ? 'today' : ''}">
+                    <div class="task-card ${category}">
                         <div class="task-time">
-                            <i class="fas ${timeInfo.isToday ? 'fa-clock' : 'fa-calendar-alt'}"></i> ${timeInfo.timeText}
+                            <i class="fas ${iconClass}"></i> ${timeInfo.timeText}
                         </div>
                         <div class="task-subject">${evt.subject}</div>
                         <div class="task-role">Nhiệm vụ: ${evt.task}</div>
-                        <div class="task-class">Khóa: ${evt.class}</div>
-                        
-                        <div class="task-actions">
-                            <button class="btn-accept" disabled title="Nhiệm vụ đã được Admin phân công">
-                                <i class="fas fa-check-circle"></i> Đã nhận
-                            </button>
-                            <button class="btn-reject" onclick="rejectTask('${evt.id}')" title="Trả lại nhiệm vụ cho Bộ môn">
-                                <i class="fas fa-times-circle"></i> Không nhận
-                            </button>
-                        </div>
+                        <div class="task-class">Lớp: ${evt.class === 'THS2025' ? 'Khóa 25-27' : (evt.class === 'THS2026' ? 'Khóa 26-28' : evt.class)}</div>
+                        ${badgeHtml}
+                        ${actionHtml}
                     </div>
                 `;
 
-                if (timeInfo.isToday) {
+                if (category === 'today') {
                     todayGrid.innerHTML += cardHtml;
                     todayCount++;
-                } else {
+                } else if (category === 'upcoming') {
                     upcomingGrid.innerHTML += cardHtml;
                     upcomingCount++;
+                } else {
+                    // Chèn lên đầu danh sách Đã hoàn thành
+                    completedGrid.insertAdjacentHTML('afterbegin', cardHtml);
+                    completedCount++;
                 }
             });
 
+            // Hiển thị trạng thái rỗng
             if (todayCount === 0) {
-                todayGrid.innerHTML = `<div class="empty-state" style="grid-column: 1/-1;"><i class="fas fa-mug-hot"></i>Hôm nay bạn không có lịch dạy nào.</div>`;
+                todayGrid.innerHTML = `<div class="empty-state" style="grid-column: 1/-1;"><i class="fas fa-mug-hot"></i>Hôm nay bạn không có lịch công tác nào.</div>`;
             }
             if (upcomingCount === 0) {
-                upcomingGrid.innerHTML = `<div class="empty-state" style="grid-column: 1/-1;"><i class="fas fa-check-double"></i>Bạn chưa có lịch phân công sắp tới.</div>`;
+                upcomingGrid.innerHTML = `<div class="empty-state" style="grid-column: 1/-1;"><i class="fas fa-calendar-times"></i>Bạn chưa có lịch phân công sắp tới.</div>`;
+            }
+            if (completedCount === 0) {
+                completedGrid.innerHTML = `<div class="empty-state" style="grid-column: 1/-1;"><i class="fas fa-history"></i>Bạn chưa có nhiệm vụ nào đã hoàn thành.</div>`;
             }
         }
 
-        // TÍNH NĂNG TỪ CHỐI NHIỆM VỤ
+        // TÍNH NĂNG TỪ CHỐI NHIỆM VỤ -> TRẢ VỀ KHO (KHÔNG CẦN NHẬP LÝ DO)
         window.rejectTask = async (eventId) => {
-            const evt = myEvents.find(e => e.id === eventId);
-            if (!evt) return;
-
-            // BẮT BUỘC NHẬP LÝ DO
-            const reason = prompt(`Vui lòng nhập lý do không nhận nhiệm vụ:\n[${evt.task}] - ${evt.subject}`);
-            
-            if (!reason || reason.trim() === "") {
-                showToast("Thao tác bị hủy: Bạn bắt buộc phải nhập lý do từ chối!", "danger");
-                return;
-            }
-
-            if (confirm("Xác nhận TỪ CHỐI nhiệm vụ này?\nNhiệm vụ sẽ được hoàn trả về Bộ môn.")) {
+            if (confirm("Bạn có chắc chắn KHÔNG NHẬN nhiệm vụ này vào thời gian này?\nNhiệm vụ sẽ bị gỡ khỏi lịch của bạn và hoàn trả về kho của Bộ môn!")) {
                 try {
-                    // 1. Ghi lý do vào Ghi chú của Bảng Phân Công (assignments)
-                    const subObj = subjectsData.find(s => s.name === evt.subject);
-                    if (subObj) {
-                        const asgRef = doc(db, "assignments", subObj.id);
-                        const asgSnap = await getDoc(asgRef);
-                        
-                        if (asgSnap.exists()) {
-                            let asgData = asgSnap.data();
-                            if (asgData[evt.class] && asgData[evt.class].allocations) {
-                                let allocs = asgData[evt.class].allocations;
-                                // Tìm đúng Giảng viên và Nhiệm vụ
-                                let targetAlloc = allocs.find(a => a.gv === evt.gv && a.task === evt.task);
-                                
-                                if (targetAlloc) {
-                                    const today = new Date();
-                                    const dStr = String(today.getDate()).padStart(2, '0') + '/' + String(today.getMonth() + 1).padStart(2, '0') + '/' + today.getFullYear();
-                                    
-                                    targetAlloc.note = `[ĐÃ TỪ CHỐI] vào ${dStr}. Lý do: ${reason.trim()}`;
-                                    
-                                    // Cập nhật lại vào Database
-                                    await setDoc(asgRef, { 
-                                        [evt.class]: { allocations: allocs } 
-                                    }, { merge: true });
-                                }
-                            }
-                        }
-                    }
-
-                    // 2. Chuyển trạng thái Lịch thành 'returned' (Bị bôi đỏ bên kho Admin)
                     const evtRef = doc(db, "calendar_events", eventId);
                     const evtSnap = await getDoc(evtRef);
                     if (evtSnap.exists()) {
+                        // Tăng biến đếm rejected lên 1 và đổi trạng thái thành returned
                         let rejCount = evtSnap.data().rejected || 0;
                         await setDoc(evtRef, { status: 'returned', rejected: rejCount + 1 }, { merge: true });
                     } else {
-                        // Fallback nếu không tồn tại document (rất hiếm)
+                        // Xóa luôn nếu bản ghi có lỗi
                         await deleteDoc(evtRef);
                     }
-
-                    showToast("Đã từ chối nhiệm vụ và gửi lý do thành công!");
+                    showToast("Đã hoàn trả nhiệm vụ thành công!");
                 } catch(e) {
                     showToast("Lỗi khi hoàn trả: " + e.message, "danger");
                 }
