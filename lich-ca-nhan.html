@@ -111,7 +111,8 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, collection, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        // THÊM IMPORT updateDoc
+        import { getFirestore, doc, getDoc, updateDoc, collection, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY", authDomain: "bmphcn-aa9c6.firebaseapp.com", projectId: "bmphcn-aa9c6", storageBucket: "bmphcn-aa9c6.firebasestorage.app", messagingSenderId: "749494392719", appId: "1:749494392719:web:f220c751ff541620045dfa" };
         const app = initializeApp(firebaseConfig);
@@ -136,7 +137,7 @@
             if (!startStr) return { isToday: false, isPast: false, timeText: 'Chưa xác định' };
             
             const startDate = new Date(startStr);
-            const endDate = endStr ? new Date(endStr) : new Date(startDate.getTime() + 4 * 3600000); // Mặc định 4h nếu ko có end
+            const endDate = endStr ? new Date(endStr) : new Date(startDate.getTime() + 4 * 3600000); 
             
             const timeOpts = { hour: '2-digit', minute: '2-digit', hour12: false };
             const sTime = startDate.toLocaleTimeString('vi-VN', timeOpts);
@@ -188,6 +189,9 @@
                 myEvents = [];
                 snapshot.forEach(doc => { 
                     const data = doc.data();
+                    // LUÔN GẮN doc.id ĐỂ TRÁNH LỖI MẤT ID GÂY RA LỖI KHI XÓA/CẬP NHẬT
+                    data.id = doc.id; 
+                    
                     // Lọc các sự kiện có chứa tên mình và chưa bị trả về
                     if (data.gv && currentUserName && data.gv.includes(currentUserName) && data.status !== 'returned') {
                         myEvents.push(data);
@@ -271,7 +275,7 @@
                     upcomingGrid.innerHTML += cardHtml;
                     upcomingCount++;
                 } else {
-                    // Chèn lên đầu danh sách Đã hoàn thành
+                    // Chèn lên đầu danh sách Đã hoàn thành (nhiệm vụ gần nhất hiện ở trên cùng)
                     completedGrid.insertAdjacentHTML('afterbegin', cardHtml);
                     completedCount++;
                 }
@@ -289,7 +293,7 @@
             }
         }
 
-        // TÍNH NĂNG TỪ CHỐI NHIỆM VỤ -> TRẢ VỀ KHO (KHÔNG CẦN NHẬP LÝ DO)
+        // TÍNH NĂNG TỪ CHỐI NHIỆM VỤ -> TRẢ VỀ KHO ADMIN
         window.rejectTask = async (eventId) => {
             if (confirm("Bạn có chắc chắn KHÔNG NHẬN nhiệm vụ này vào thời gian này?\nNhiệm vụ sẽ bị gỡ khỏi lịch của bạn và hoàn trả về kho của Bộ môn!")) {
                 try {
@@ -298,14 +302,17 @@
                     if (evtSnap.exists()) {
                         // Tăng biến đếm rejected lên 1 và đổi trạng thái thành returned
                         let rejCount = evtSnap.data().rejected || 0;
-                        await setDoc(evtRef, { status: 'returned', rejected: rejCount + 1 }, { merge: true });
+                        await updateDoc(evtRef, { 
+                            status: 'returned', 
+                            rejected: rejCount + 1 
+                        });
+                        showToast("Đã hoàn trả nhiệm vụ thành công!");
                     } else {
-                        // Xóa luôn nếu bản ghi có lỗi
-                        await deleteDoc(evtRef);
+                        showToast("Lỗi: Không tìm thấy sự kiện trên hệ thống!", "danger");
                     }
-                    showToast("Đã hoàn trả nhiệm vụ thành công!");
                 } catch(e) {
-                    showToast("Lỗi khi hoàn trả: " + e.message, "danger");
+                    console.error("Lỗi khi hoàn trả:", e);
+                    showToast("Lỗi: Không thể hoàn trả. Vui lòng thử lại!", "danger");
                 }
             }
         };
