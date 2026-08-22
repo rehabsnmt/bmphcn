@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Lịch công tác Giảng viên - Bộ môn Phục hồi chức năng.">
+    <meta name="description" content="Lịch công tác - Bộ môn Phục hồi chức năng.">
     <title>Lịch Công Tác - Bộ môn Phục hồi chức năng</title>
     
     <link rel="icon" href="images/logo_Bộ môn.png" type="image/png">
@@ -16,20 +16,16 @@
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/vi.js'></script>
 
     <style>
-        /* APP LAYOUT: Mở khóa cuộn, mở rộng tối đa màn hình */
+        /* APP LAYOUT */
         html, body { min-height: 100vh; margin: 0; padding: 0; display: flex; flex-direction: column; background: var(--bg-page); }
         #header-placeholder { flex-shrink: 0; }
         #footer-placeholder { display: none; }
 
         /* Thanh công cụ gọn nhẹ trên cùng */
         .top-toolbar { position: sticky; top: 0; z-index: 1000; display: flex; justify-content: space-between; align-items: center; padding: 10px 2%; background: var(--surface); border-bottom: 1px solid var(--border); margin-bottom: 15px; box-shadow: var(--shadow-sm); }
-        .top-toolbar h2 { margin: 0; font-size: 1.4rem; color: var(--text-dark); display: flex; align-items: center; gap: 8px; font-weight: 800; }
+        .top-toolbar h2 { margin: 0; font-size: 1.4rem; color: var(--text-dark); display: flex; align-items: center; gap: 8px; font-weight: 800; text-transform: uppercase; }
         
         .controls-wrapper { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-        .tabs-header { display: flex; gap: 6px; }
-        .tab-btn { padding: 6px 15px; font-size: 0.95rem; font-weight: 600; color: var(--text-body); background: var(--bg-page); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; transition: 0.3s; }
-        .tab-btn:hover { background: #e2e8f0; color: var(--text-dark); }
-        .tab-btn.active { color: white; background: var(--primary); border-color: var(--primary); }
         .filter-select { padding: 6px 12px; font-size: 0.95rem; font-weight: 600; border-radius: 6px; border: 1px solid var(--border); outline: none; cursor: pointer; color: var(--text-dark); }
         .btn-toggle { background: white; color: var(--primary); border: 1px solid var(--primary); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.2s; font-size: 0.9rem;}
         .btn-toggle:hover { background: var(--primary-light); }
@@ -43,20 +39,22 @@
         
         #event-pool { flex: 1; overflow-y: auto; padding-right: 5px; } 
         #event-pool .fc-event { cursor: move; margin: 0 0 12px 0; padding: 12px; color: var(--text-dark); border: 1px solid var(--border); border-radius: 6px; text-align: left; transition: 0.2s; position: relative; }
-        #event-pool .fc-event.THS2025 { background-color: #f1f5f9; border-color: #cbd5e1; }
+        
+        /* Màu nền phân biệt Lớp trong Kho */
+        #event-pool .fc-event.THS2025 { background-color: #f0f9ff; border-color: #bae6fd; }
         #event-pool .fc-event.THS2026 { background-color: #fefce8; border-color: #fde047; }
         #event-pool .fc-event:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.05); filter: brightness(0.95); }
         
         /* Nhãn phân loại trong Kho */
         .class-tag { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; margin-bottom: 5px; }
-        .class-tag.THS2025 { background: #e0f2fe; color: #0284c7; border: 1px solid #7dd3fc; }
-        .class-tag.THS2026 { background: #fef08a; color: #b45309; border: 1px solid #fde047; }
+        .class-tag.THS2025 { background: #bae6fd; color: #0369a1; }
+        .class-tag.THS2026 { background: #fde047; color: #b45309; }
 
         #event-pool .event-gv { font-weight: 700; font-size: 1rem; margin-bottom: 4px; color: var(--primary); }
         #event-pool .event-info { display: block; font-size: 0.85rem; color: var(--text-body); line-height: 1.4; }
         
-        /* Cảnh báo sự kiện bị GV từ chối trả về */
-        #event-pool .fc-event.rejected-task { border-left: 4px solid #ef4444; border-color: #ef4444; background-color: #fef2f2; }
+        /* Cảnh báo sự kiện bị GV từ chối */
+        #event-pool .fc-event.rejected-task { border-left: 4px solid #ef4444 !important; border-color: #ef4444 !important; background-color: #fef2f2 !important; }
         #event-pool .fc-event.rejected-task .event-gv { color: #b91c1c; }
         #event-pool .fc-event.rejected-task .reject-badge { display: block; font-size: 0.75rem; color: #ef4444; font-weight: bold; margin-top: 5px; animation: blink 1.5s infinite; }
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
@@ -70,14 +68,14 @@
         .fc-button-active { background-color: var(--primary-hover) !important; }
 
         /* Style cho Sự kiện TRÊN LỊCH */
-        .fc-event-main { display: flex; flex-direction: column; height: 100%; padding: 4px 8px; box-sizing: border-box; }
+        .fc-event-main { display: flex; flex-direction: column; height: 100%; padding: 4px 6px; box-sizing: border-box; }
         .event-on-calendar { overflow: hidden; color: white; display: flex; flex-direction: column; gap: 3px; height: 100%; }
-        .event-on-calendar .evt-time { font-size: 0.85rem; font-weight: 600; background: rgba(0,0,0,0.25); padding: 2px 8px; border-radius: 4px; width: fit-content; margin-bottom: 4px; }
-        .event-on-calendar .evt-gv { font-size: 1.05rem; font-weight: 700; line-height: 1.2; text-shadow: 1px 1px 2px rgba(0,0,0,0.2); white-space: normal; }
-        .event-on-calendar .evt-sub { font-size: 0.85rem; font-weight: 400; opacity: 0.95; line-height: 1.3; white-space: normal; }
+        .event-on-calendar .evt-time { font-size: 0.85rem; font-weight: 600; background: rgba(0,0,0,0.25); padding: 2px 6px; border-radius: 4px; width: fit-content; margin-bottom: 2px; }
+        .event-on-calendar .evt-gv { font-size: 1rem; font-weight: 700; line-height: 1.2; text-shadow: 1px 1px 2px rgba(0,0,0,0.2); white-space: normal; }
+        .event-on-calendar .evt-sub { font-size: 0.8rem; font-weight: 400; opacity: 0.95; line-height: 1.3; white-space: normal; }
         .evt-gv-mobile { display: none; }
 
-        /* Chấm đỏ Bệnh viện trên cùng (All-day) - Đổi sang Xanh Ngọc */
+        /* Chấm Bệnh viện trên cùng (All-day) */
         .evt-clinical-dot { background-color: #10b981; color: white; border-radius: 4px; padding: 2px 0; text-align: center; font-weight: 700; font-size: 0.85rem; cursor: pointer; display: block; box-shadow: 0 2px 5px rgba(16, 185, 129, 0.4); transition: 0.2s; }
         .evt-clinical-dot:hover { background-color: #059669; transform: scale(1.02); }
 
@@ -106,8 +104,8 @@
         .btn-secondary { background: white; color: var(--text-dark); border: 1px solid var(--border); padding: 8px 15px; border-radius: 4px; cursor: pointer; transition: 0.2s; font-weight: 600; }
         .btn-secondary:hover { background: #e2e8f0; }
 
-        /* Mở rộng Kích thước Modal Bệnh viện */
-        #clinicalModal .modal-content { width: 95%; max-width: 750px; max-height: 85vh; }
+        /* Modal Bệnh viện */
+        #clinicalModal .modal-content { max-width: 750px; max-height: 85vh; }
         .clin-card { margin-bottom: 15px; padding: 15px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; border-left: 4px solid #10b981; }
         .clin-card-title { font-weight: 700; color: var(--text-dark); font-size: 1.15rem; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; }
 
@@ -148,12 +146,6 @@
             <button id="btnToggleSidebar" class="btn-toggle hidden" onclick="toggleSidebar()" title="Thu gọn/Mở rộng Kho sự kiện">
                 <i class="fas fa-bars"></i> Kho Sự Kiện
             </button>
-            <div class="tabs-header">
-                <!-- TÙY CHỌN TẤT CẢ LÀ MẶC ĐỊNH -->
-                <button class="tab-btn active" onclick="switchClass('ALL', this)">Tất cả</button>
-                <button class="tab-btn" onclick="switchClass('THS2025', this)">Khóa ThS 25-27</button>
-                <button class="tab-btn" onclick="switchClass('THS2026', this)">Khóa ThS 26-28</button>
-            </div>
             <select id="semesterSelect" class="filter-select" onchange="processAndRenderEvents()">
                 <option value="ALL">Tất cả Học kỳ</option>
                 <option value="Học kỳ 1">Học kỳ 1</option>
@@ -169,7 +161,7 @@
         <div id="external-events">
             <h4>Chưa lên lịch</h4>
             <div style="font-size: 0.85rem; color: #64748b; margin-bottom: 15px; font-style: italic; line-height: 1.4;">
-                Kéo thẻ thả vào khung giờ bên phải.
+                Kéo thẻ phân công thả vào khung giờ bên phải.
             </div>
             <div id="event-pool">
                 <div style="text-align:center; padding: 20px;">Đang tải...</div>
@@ -252,7 +244,9 @@
         let currentUserEmail = '';
         let currentUserName = '';
         
-        let currentClass = 'ALL'; // MẶC ĐỊNH XEM TẤT CẢ KHÓA
+        // Mặc định luôn gom tất cả các lớp
+        const managedClasses = ['THS2025', 'THS2026'];
+        
         let assignmentsData = {};
         let scheduledEvents = [];
         let clinicalSchedules = []; 
@@ -320,7 +314,7 @@
             return map;
         }
 
-        function validateClinicalSchedule(eventObj, gv, subject) {
+        function validateClinicalSchedule(eventObj, gvStr, subject) {
             if (!subject.toLowerCase().includes('thực hành lâm sàng')) return true; 
             
             const droppedDate = eventObj.start;
@@ -330,34 +324,41 @@
             const dateStr = `${y}-${m}-${d}`;
 
             const dailyClinicals = globalGroupedClinicals[dateStr] || [];
-            const teacherClinicals = dailyClinicals.filter(c => c.instructors && c.instructors.includes(gv));
-
-            if (teacherClinicals.length === 0) {
-                showToast(`Lỗi: Giảng viên ${gv} không có lịch trực Bệnh viện vào ngày này!`, "danger");
-                return false;
-            }
-
-            const startHour = droppedDate.getHours();
-            const isMorningDrop = startHour < 12; 
+            let targetGVs = gvStr ? gvStr.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
             
-            const hasMorningShift = teacherClinicals.some(c => c.shift.toLowerCase().includes('sáng') || c.shift.toLowerCase().includes('cả ngày'));
-            const hasAfternoonShift = teacherClinicals.some(c => c.shift.toLowerCase().includes('chiều') || c.shift.toLowerCase().includes('cả ngày'));
+            let valid = true;
+            for (let gv of targetGVs) {
+                const teacherClinicals = dailyClinicals.filter(c => c.instructors && c.instructors.includes(gv));
 
-            if (isMorningDrop && !hasMorningShift) {
-                showToast(`Lỗi: Lịch Bệnh viện của GV ngày này chỉ có ca Chiều!`, "danger");
-                return false;
-            }
-            if (!isMorningDrop && !hasAfternoonShift) {
-                showToast(`Lỗi: Lịch Bệnh viện của GV ngày này chỉ có ca Sáng!`, "danger");
-                return false;
-            }
+                if (teacherClinicals.length === 0) {
+                    showToast(`Lỗi: Giảng viên ${gv} không có lịch trực Bệnh viện vào ngày này!`, "danger");
+                    valid = false; break;
+                }
 
-            return true;
+                const startHour = droppedDate.getHours();
+                const isMorningDrop = startHour < 12; 
+                
+                const hasMorningShift = teacherClinicals.some(c => c.shift.toLowerCase().includes('sáng') || c.shift.toLowerCase().includes('cả ngày'));
+                const hasAfternoonShift = teacherClinicals.some(c => c.shift.toLowerCase().includes('chiều') || c.shift.toLowerCase().includes('cả ngày'));
+
+                if (isMorningDrop && !hasMorningShift) {
+                    showToast(`Lỗi: Lịch Bệnh viện của GV ${gv} ngày này chỉ có ca Chiều!`, "danger");
+                    valid = false; break;
+                }
+                if (!isMorningDrop && !hasAfternoonShift) {
+                    showToast(`Lỗi: Lịch Bệnh viện của GV ${gv} ngày này chỉ có ca Sáng!`, "danger");
+                    valid = false; break;
+                }
+            }
+            return valid;
         }
 
-        function hasOverlap(targetStart, targetEnd, gv, ignoreEventId) {
-            if (!targetEnd) targetEnd = new Date(targetStart.getTime() + 4 * 60 * 60 * 1000);
+        function hasOverlap(targetStart, targetEnd, gvStr, ignoreEventId) {
+            let tStart = targetStart.getTime();
+            let tEnd = targetEnd ? targetEnd.getTime() : tStart + 4 * 3600000;
+            
             let allEvents = calendar.getEvents();
+            let targetGVs = gvStr ? gvStr.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
             
             for (let e of allEvents) {
                 if (e.id === ignoreEventId) continue; 
@@ -365,10 +366,15 @@
                 const props = e.extendedProps;
                 if (props.type === 'clinical_summary') continue; 
                 
-                if (props.gv !== gv) continue; 
-                let eStart = e.start;
-                let eEnd = e.end || new Date(eStart.getTime() + 4 * 60 * 60 * 1000);
-                if (targetStart < eEnd && targetEnd > eStart) return true;
+                let eGVs = props.gv ? props.gv.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
+                let hasCommonGV = targetGVs.some(gv => eGVs.includes(gv));
+                
+                if (!hasCommonGV) continue; 
+                
+                let eStart = e.start.getTime();
+                let eEnd = e.end ? e.end.getTime() : eStart + 4 * 3600000;
+                
+                if (tStart < eEnd && tEnd > eStart) return true;
             }
             return false;
         }
@@ -413,13 +419,6 @@
             }
         });
 
-        window.switchClass = (cls, btnEl) => {
-            currentClass = cls;
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            btnEl.classList.add('active');
-            window.processAndRenderEvents();
-        };
-
         function initCalendar() {
             const containerEl = document.getElementById('external-events');
             if (isCalendarAdmin) {
@@ -457,6 +456,7 @@
                 allDayText: 'BV', 
                 defaultTimedEventDuration: '04:00:00', 
                 slotLabelFormat: { hour: 'numeric', minute: '2-digit', omitZeroMinute: false, meridiem: false, hour12: false },
+                eventTimeFormat: { hour: 'numeric', minute: '2-digit', meridiem: false, hour12: false },
                 editable: isCalendarAdmin, 
                 droppable: isCalendarAdmin, 
                 events: [],
@@ -474,18 +474,18 @@
                         };
                     }
 
-                    let sTime = arg.event.start ? arg.event.start.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'}) : '';
+                    let sTime = arg.event.start ? arg.event.start.toLocaleTimeString('vi-VN', {hour: 'numeric', minute:'2-digit', hour12: false}) : '';
                     let eTime = '';
                     if (arg.event.end) {
-                        eTime = arg.event.end.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'});
+                        eTime = arg.event.end.toLocaleTimeString('vi-VN', {hour: 'numeric', minute:'2-digit', hour12: false});
                     } else if (arg.event.start) {
                         let eObj = new Date(arg.event.start.getTime() + 4 * 60 * 60 * 1000);
-                        eTime = eObj.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'});
+                        eTime = eObj.toLocaleTimeString('vi-VN', {hour: 'numeric', minute:'2-digit', hour12: false});
                     }
-                    const timeStr = `${sTime} - ${eTime}`;
+                    const timeStr = `${sTime}-${eTime}`;
                     
                     let gvFull = props.gv || '';
-                    let gvShort = gvFull.split(',').map(n => n.trim().split(' ').pop()).join(', ');
+                    let gvShort = gvFull.split(/,|&/).map(n => n.trim().split(' ').pop()).join(', ');
                     
                     let clsRaw = props.class;
                     let clsTag = clsRaw === 'THS2025' ? '<b style="color:#fde047">[K25]</b> ' : (clsRaw === 'THS2026' ? '<b style="color:#a7f3d0">[K26]</b> ' : '');
@@ -516,7 +516,7 @@
                     const newUniqueId = props.originalId + '_' + Date.now();
                     
                     if (hasOverlap(info.event.start, info.event.end, props.gv, newUniqueId)) {
-                        showToast(`Lỗi: Giảng viên ${props.gv} bị trùng lịch với Lịch Lý thuyết khác!`, "danger");
+                        showToast(`Lỗi: Giảng viên bị trùng lịch với Lịch Lý thuyết khác!`, "danger");
                         info.revert(); return;
                     }
 
@@ -779,9 +779,8 @@
             poolDiv.innerHTML = '';
             let unscheduledCount = 0;
 
-            let currentClassEvents = scheduledEvents.filter(e => 
-                (currentClass === 'ALL' || e.class === currentClass) && e.status !== 'returned'
-            ).map(e => {
+            // HIỂN THỊ TẤT CẢ LỊCH ĐÃ XẾP TRÊN CALENDAR (Không lọc theo khóa)
+            let allScheduledEvents = scheduledEvents.filter(e => e.status !== 'returned').map(e => {
                 const isMyEvent = e.gv && currentUserName && e.gv.includes(currentUserName);
                 
                 let bgColor = e.class === 'THS2026' ? '#0d9488' : '#0284c7'; 
@@ -808,15 +807,15 @@
                         task: e.task,
                         scheduledByEmail: e.scheduledByEmail,
                         scheduledByName: e.scheduledByName,
-                        type: 'normal'
+                        type: 'normal',
+                        originalId: e.originalId || e.id
                     }
                 };
             });
-            calendar.addEventSource(currentClassEvents);
+            calendar.addEventSource(allScheduledEvents);
 
             // GOM NHÓM & TẠO CHẤM BỆNH VIỆN CHO ALL-DAY
-            let clinicalToMap = currentClass === 'ALL' ? clinicalSchedules : clinicalSchedules.filter(c => c.class_id === currentClass);
-            globalGroupedClinicals = getClinicalEventsMap(clinicalToMap); 
+            globalGroupedClinicals = getClinicalEventsMap(clinicalSchedules); 
             let clinicalEvents = [];
             for (let dateStr in globalGroupedClinicals) {
                 clinicalEvents.push({
@@ -836,99 +835,95 @@
             }
             calendar.addEventSource(clinicalEvents);
 
+            // ĐẾM SỐ BUỔI ĐÃ XẾP 
             let scheduledCounts = {};
-            currentClassEvents.forEach(e => {
-                const subObj = subjectsData.find(s => s.name === e.subject);
-                if(subObj) {
-                    const key = `${subObj.id}_${e.gv}_${e.task}_${e.class}`;
+            scheduledEvents.forEach(e => {
+                if (e.status !== 'returned') {
+                    const key = `${e.subject}_${e.gv}_${e.task}_${e.class}`;
                     if(!scheduledCounts[key]) scheduledCounts[key] = 0;
                     scheduledCounts[key]++;
                 }
             });
 
-            // TÁI TẠO KHO SỰ KIỆN (CHỈ KHI XEM TỪNG LỚP CỤ THỂ)
-            if (currentClass !== 'ALL') {
-                const classesToIterate = [currentClass];
-                
-                classesToIterate.forEach(cls => {
-                    for (let subId in assignmentsData) {
-                        const subAsg = assignmentsData[subId];
-                        if (subAsg[cls] && subAsg[cls].allocations) {
+            // TÁI TẠO KHO SỰ KIỆN TỪ TẤT CẢ CÁC KHÓA ĐƯỢC QUẢN LÝ
+            managedClasses.forEach(cls => {
+                for (let subId in assignmentsData) {
+                    const subAsg = assignmentsData[subId];
+                    if (subAsg[cls] && subAsg[cls].allocations) {
+                        
+                        if (subAsg[cls].status === 'proposed') continue;
+
+                        const semester = subAsg[cls].semester || 'Chưa xác định';
+                        if (selectedSemester !== 'ALL' && semester !== selectedSemester) continue; 
+                        const subName = subjectsData.find(s => s.id === subId)?.name || 'Môn không xác định';
+                        
+                        subAsg[cls].allocations.forEach(a => {
+                            const totalAssigned = parseInt(a.assigned) || 0;
+                            const keyForCount = `${subName}_${a.gv}_${a.task}_${cls}`;
+                            const alreadyScheduled = scheduledCounts[keyForCount] || 0;
                             
-                            if (subAsg[cls].status === 'proposed') continue;
+                            let rejectedCardsOfThisTask = scheduledEvents.filter(e => e.class === cls && e.status === 'returned' && e.subject === subName && e.gv === a.gv && e.task === a.task);
 
-                            const semester = subAsg[cls].semester || 'Chưa xác định';
-                            if (selectedSemester !== 'ALL' && semester !== selectedSemester) continue; 
-                            const subName = subjectsData.find(s => s.id === subId)?.name || 'Môn không xác định';
+                            let remaining = totalAssigned - alreadyScheduled;
+                            let remainingNormal = remaining - rejectedCardsOfThisTask.length; 
                             
-                            subAsg[cls].allocations.forEach(a => {
-                                const totalAssigned = parseInt(a.assigned) || 0;
-                                const keyForCount = `${subId}_${a.gv}_${a.task}_${cls}`;
-                                const alreadyScheduled = scheduledCounts[keyForCount] || 0;
+                            const renderCard = (isRejected, rTask = null) => {
+                                unscheduledCount++;
+                                const eventDiv = document.createElement('div');
+                                eventDiv.className = `fc-event ${cls} ${isRejected ? 'rejected-task' : ''}`;
                                 
-                                let rejectedCardsOfThisTask = scheduledEvents.filter(e => e.class === cls && e.status === 'returned' && e.subject === subName && e.gv === a.gv && e.task === a.task);
-
-                                let remaining = totalAssigned - alreadyScheduled;
-                                let remainingNormal = remaining - rejectedCardsOfThisTask.length; 
+                                eventDiv.setAttribute('data-id', keyForCount); 
+                                eventDiv.setAttribute('data-title', a.gv); 
+                                eventDiv.setAttribute('data-subject', subName);
+                                eventDiv.setAttribute('data-gv', a.gv);
+                                eventDiv.setAttribute('data-task', a.task);
+                                eventDiv.setAttribute('data-class', cls);
                                 
-                                if (remainingNormal > 0) {
-                                    for(let i=0; i<remainingNormal; i++) {
-                                        unscheduledCount++;
-                                        const eventDiv = document.createElement('div');
-                                        eventDiv.className = `fc-event ${cls}`;
-                                        eventDiv.setAttribute('data-id', keyForCount);
-                                        eventDiv.setAttribute('data-title', a.gv); 
-                                        eventDiv.setAttribute('data-subject', subName);
-                                        eventDiv.setAttribute('data-gv', a.gv);
-                                        eventDiv.setAttribute('data-task', a.task);
-                                        eventDiv.setAttribute('data-class', cls);
-                                        
-                                        let classTag = cls === 'THS2025' ? '<span class="class-tag THS2025">Khóa 25</span>' : '<span class="class-tag THS2026">Khóa 26</span>';
-
-                                        eventDiv.innerHTML = `
-                                            ${classTag}
-                                            <div class="event-gv">${a.gv}</div>
-                                            <span class="event-info">[${a.task}]<br>${subName}</span>
-                                        `;
-                                        poolDiv.appendChild(eventDiv);
-                                    }
+                                if (isRejected && rTask) {
+                                    eventDiv.setAttribute('data-original-id', rTask.id); 
                                 }
 
-                                rejectedCardsOfThisTask.forEach(rTask => {
-                                    unscheduledCount++;
-                                    const eventDiv = document.createElement('div');
-                                    eventDiv.className = `fc-event rejected-task ${cls}`;
-                                    eventDiv.setAttribute('data-id', keyForCount); 
-                                    eventDiv.setAttribute('data-title', a.gv); 
-                                    eventDiv.setAttribute('data-subject', subName);
-                                    eventDiv.setAttribute('data-gv', a.gv);
-                                    eventDiv.setAttribute('data-task', a.task);
-                                    eventDiv.setAttribute('data-class', cls);
-                                    eventDiv.setAttribute('data-original-id', rTask.id); 
-                                    
+                                let classTag = cls === 'THS2025' ? '<span class="class-tag THS2025">Khóa 25</span>' : '<span class="class-tag THS2026">Khóa 26</span>';
+
+                                let rejectHtml = '';
+                                if (isRejected && rTask) {
                                     const rejectTimes = rTask.rejected || 1;
-                                    let classTag = cls === 'THS2025' ? '<span class="class-tag THS2025">Khóa 25</span>' : '<span class="class-tag THS2026">Khóa 26</span>';
+                                    rejectHtml = `<span class="reject-badge"><i class="fas fa-exclamation-circle"></i> Bị từ chối (${rejectTimes} lần)</span>`;
+                                }
 
-                                    eventDiv.innerHTML = `
-                                        ${classTag}
-                                        <div class="event-gv">${a.gv}</div>
-                                        <span class="event-info">[${a.task}]<br>${subName}</span>
-                                        <span class="reject-badge"><i class="fas fa-exclamation-circle"></i> Bị từ chối (${rejectTimes} lần)</span>
-                                    `;
-                                    poolDiv.prepend(eventDiv); 
-                                });
+                                eventDiv.innerHTML = `
+                                    ${classTag}
+                                    <div class="event-gv">${a.gv}</div>
+                                    <span class="event-info">[${a.task}]<br>${subName}</span>
+                                    ${rejectHtml}
+                                `;
+                                
+                                if (isRejected) {
+                                    poolDiv.prepend(eventDiv);
+                                } else {
+                                    poolDiv.appendChild(eventDiv);
+                                }
+                            };
 
+                            if (remainingNormal > 0) {
+                                for(let i=0; i<remainingNormal; i++) {
+                                    renderCard(false);
+                                }
+                            }
+
+                            rejectedCardsOfThisTask.forEach(rTask => {
+                                renderCard(true, rTask);
                             });
-                        }
+
+                        });
                     }
-                });
-            }
+                }
+            });
 
             const extEventsPanel = document.getElementById('external-events');
             const btnToggle = document.getElementById('btnToggleSidebar');
 
-            // NẾU LÀ ADMIN VÀ KHÔNG PHẢI CHẾ ĐỘ 'ALL' THÌ MỚI HIỆN KHO SỰ KIỆN
-            if (isCalendarAdmin && currentClass !== 'ALL') {
+            if (isCalendarAdmin) {
                 btnToggle.classList.remove('hidden'); 
                 if (unscheduledCount === 0) {
                     extEventsPanel.style.display = 'none';
