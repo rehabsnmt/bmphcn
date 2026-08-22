@@ -66,9 +66,6 @@
         .progress-bar { height: 100%; background-color: #16a34a; transition: width 0.4s ease; }
         .progress-text { font-size: 0.8rem; color: var(--text-body); font-weight: 600; margin-top: 3px; display: inline-block; text-align: left; }
 
-        #accessDenied { text-align: center; padding: 50px 20px; }
-        #accessDenied i { font-size: 4rem; color: var(--accent); margin-bottom: 20px; }
-
         /* Modal Phân công ngang */
         .gv-block { border: 1px solid #cbd5e1; padding: 15px; margin-bottom: 15px; border-radius: 8px; background: #f8fafc; }
         .gv-block-header { display: flex; gap: 10px; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px dashed #cbd5e1; }
@@ -133,7 +130,7 @@
                         <th style="min-width: 320px;">Tên Học phần</th>
                         <th style="width: 120px;">Học kỳ</th>
                         <th style="min-width: 320px;">Phân công Giảng viên</th>
-                        <th style="width: 180px;">Tiến độ tự động</th>
+                        <th style="width: 180px;">Tiến độ tự động (LT/TH)</th>
                         <th class="col-action hidden" style="width: 100px; text-align: center;">Thao tác</th>
                     </tr>
                 </thead>
@@ -143,12 +140,6 @@
             </table>
         </div>
     </main>
-
-    <div id="accessDenied" class="hidden">
-        <h2 style="color: var(--text-dark);">Khu vực giới hạn</h2>
-        <p style="color: var(--text-body); margin-bottom: 20px;">Tính năng này chỉ dành cho Ban Quản lý Bộ môn.</p>
-        <button class="btn-primary" onclick="window.location.href='dashboard.html'">Quay lại Dashboard</button>
-    </div>
 
     <!-- MODAL CHI TIẾT MÔN HỌC -->
     <div id="subjectModal" class="modal-overlay hidden">
@@ -199,18 +190,19 @@
         </div>
     </div>
 
-    <!-- MODAL PHÂN CÔNG (MÔN THƯỜNG) -->
+    <!-- MODAL PHÂN CÔNG (MÔN THƯỜNG VÀ CÔNG VIỆC KHÁC) -->
     <div id="assignModal" class="modal-overlay hidden">
         <div class="modal-content" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
             <button class="modal-close" onclick="document.getElementById('assignModal').classList.add('hidden')">X</button>
-            <h3 style="color: var(--primary); margin-top: 0;">Phân công giảng dạy</h3>
+            <h3 style="color: var(--primary); margin-top: 0;" id="asgModalTitle">Phân công giảng dạy</h3>
             <p style="font-weight: bold; color: var(--text-dark); margin-bottom: 5px; text-align: justify;" id="asgName">Tên môn học</p>
             
             <div id="proposalBanner" class="hidden" style="background: #fef08a; color: #b45309; padding: 10px; border-radius: 6px; font-weight: bold; margin-bottom: 15px; font-size: 0.9rem;">
                 <i class="fas fa-info-circle"></i> Đang có Đề xuất phân công chờ duyệt. Trưởng BM có thể điều chỉnh và bấm Duyệt.
             </div>
 
-            <div style="font-size: 0.95rem; color: var(--text-body); margin-bottom: 20px; display: flex; gap: 20px;">
+            <!-- Nếu là môn Công việc khác thì ẩn phần Giới hạn LT/TH đi -->
+            <div id="asgLimits" style="font-size: 0.95rem; color: var(--text-body); margin-bottom: 20px; display: flex; gap: 20px;">
                 <span>Lý thuyết tối đa: <strong id="asgLT" style="color: var(--primary);">0</strong> buổi</span>
                 <span>Thực hành tối đa: <strong id="asgTH" style="color: var(--primary);">0</strong> buổi</span>
             </div>
@@ -282,14 +274,16 @@
 
         let internalLecturers = []; 
         let visitingLecturers = []; 
+        let learnersList = []; // Danh sách học viên
+        let thesesList = []; // Danh sách đề tài luận văn để lấy GVHD
+        
         let currentClass = 'THS2025'; 
         let assignmentsDB = {}; 
-        let calendarEventsDB = []; // Lưu trữ lịch công tác để tính "Đã hoàn thành" tự động
+        let calendarEventsDB = []; 
         let currentEditingSubId = null;
         
-        // PHÂN QUYỀN
-        let isHOD = false; // Trưởng BM (Cô Vân, SuperAdmin) - Quyền Duyệt
-        let isManager = false; // Giáo vụ (Thầy Nguyên, Thầy Duy) - Quyền Đề xuất
+        let isHOD = false; 
+        let isManager = false; 
 
         const taskOptions = ["Lý thuyết", "Thực hành", "Thực tế", "Ra đề thi", "Coi thi", "Chấm thi", "Soạn mới, sửa BG/GT", "Công việc khác"];
 
@@ -342,7 +336,8 @@
             {"id": "sub_46", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 2", "credits": 3, "theory": 1, "practice": 2, "department": "BMPHCN", "isPHCN": true, "orientations": ["NC"], "group": "4. PHẦN CHUYÊN ĐỀ NGHIÊN CỨU"},
             {"id": "sub_47", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 3", "credits": 3, "theory": 1, "practice": 2, "department": "BMPHCN", "isPHCN": true, "orientations": ["NC"], "group": "4. PHẦN CHUYÊN ĐỀ NGHIÊN CỨU"},
             {"id": "sub_48", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 4", "credits": 3, "theory": 1, "practice": 2, "department": "BMPHCN", "isPHCN": true, "orientations": ["NC"], "group": "4. PHẦN CHUYÊN ĐỀ NGHIÊN CỨU"},
-            {"id": "sub_49", "name": "Luận văn", "credits": 12, "theory": 0, "practice": 12, "department": "BMPHCN", "isPHCN": true, "orientations": ["NC"], "group": "5. LUẬN VĂN"}
+            {"id": "sub_49", "name": "Luận văn", "credits": 12, "theory": 0, "practice": 12, "department": "BMPHCN", "isPHCN": true, "orientations": ["NC"], "group": "5. LUẬN VĂN"},
+            {"id": "sub_99", "name": "Công việc chuyên môn khác", "credits": 0, "theory": 0, "practice": 0, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD", "NC"], "group": "6. CÔNG VIỆC KHÁC"}
         ];
 
         subjectsData.forEach(sub => {
@@ -396,8 +391,49 @@
             }
         };
 
-        async function fetchGVList() {
+        // LIÊN KẾT: TỰ ĐỘNG CHỌN GVHD KHI CHỌN HỌC VIÊN
+        window.onStudentChange = (selectEl) => {
+            const studentName = selectEl.value;
+            if(!studentName) return;
+
+            const thesis = thesesList.find(t => t.author === studentName);
+            if(thesis) {
+                // Tách GVHD chính và phụ (Nếu có chữ 'và' hoặc dấu phẩy)
+                let gvString = thesis.advisor || '';
+                let gvs = gvString.split(/,|và|&/).map(s => s.trim()).filter(s => s);
+                
+                const row = selectEl.closest('.task-row');
+                if(gvs.length > 0) {
+                    const selGv1 = row.querySelector('.sel-gv1');
+                    // Kiểm tra xem tên GV có trong list option chưa, nếu chưa thì bật OTHER
+                    let optionExists = Array.from(selGv1.options).some(opt => opt.value === gvs[0]);
+                    if(optionExists) {
+                        selGv1.value = gvs[0];
+                        checkOtherGV(selGv1);
+                    } else {
+                        selGv1.value = 'OTHER';
+                        checkOtherGV(selGv1);
+                        selGv1.nextElementSibling.value = gvs[0];
+                    }
+                }
+                if(gvs.length > 1) {
+                    const selGv2 = row.querySelector('.sel-gv2');
+                    let optionExists = Array.from(selGv2.options).some(opt => opt.value === gvs[1]);
+                    if(optionExists) {
+                        selGv2.value = gvs[1];
+                        checkOtherGV(selGv2);
+                    } else {
+                        selGv2.value = 'OTHER';
+                        checkOtherGV(selGv2);
+                        selGv2.nextElementSibling.value = gvs[1];
+                    }
+                }
+            }
+        };
+
+        async function fetchExternalData() {
             try {
+                // 1. Tải Giảng viên
                 const snapUser = await getDocs(collection(db, "users"));
                 internalLecturers = [];
                 snapUser.forEach(doc => {
@@ -407,10 +443,25 @@
                         internalLecturers.push(`${pref}${d.fullName}`);
                     }
                 });
-
                 const snapVisit = await getDocs(collection(db, "visiting_lecturers"));
                 visitingLecturers = snapVisit.docs.map(d => d.data().name);
-            } catch (e) { console.error("Lỗi tải DS GV", e); }
+
+                // 2. Lấy danh sách Học viên từ bảng learners
+                const snapLearners = await getDocs(collection(db, "learners"));
+                learnersList = [];
+                snapLearners.forEach(doc => {
+                    const d = doc.data();
+                    if(d.fullName) learnersList.push({ name: d.fullName, classId: d.className });
+                });
+
+                // 3. Lấy thông tin GVHD từ bảng theses
+                const snapTheses = await getDocs(collection(db, "theses"));
+                thesesList = [];
+                snapTheses.forEach(doc => {
+                    thesesList.push(doc.data());
+                });
+
+            } catch (e) { console.error("Lỗi tải Data", e); }
         }
 
         // HÀM TỰ ĐỘNG TÍNH SỐ BUỔI ĐÃ HOÀN THÀNH TỪ LỊCH
@@ -419,9 +470,7 @@
             let count = 0;
             calendarEventsDB.forEach(e => {
                 if (e.class === cls && e.subject === subName && e.gv === gv && e.task === task) {
-                    // Tính thời gian kết thúc của sự kiện (nếu ko có end thì lấy start + 4h)
                     let eventEnd = e.end ? new Date(e.end) : new Date(new Date(e.start).getTime() + 4 * 3600000);
-                    // Nếu thời gian kết thúc đã qua -> Tính là hoàn thành
                     if (eventEnd < now) {
                         count++;
                     }
@@ -432,6 +481,26 @@
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
+                // ĐỔI HEADER THÀNH TÊN GIẢNG VIÊN
+                try {
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    if (userDoc.exists()) {
+                        const data = userDoc.data();
+                        let prefix = data.degree === 'ThS' ? 'ThS. ' : (data.degree === 'TS' ? 'TS. ' : '');
+                        let currentUserName = `${prefix}${data.fullName}`;
+                        setTimeout(() => {
+                            const btnAuthNav = document.getElementById('btnAuthNav');
+                            if (btnAuthNav) {
+                                btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right:5px;"></i> ${currentUserName}`;
+                                btnAuthNav.href = "dashboard.html";
+                            }
+                        }, 300);
+                    }
+                } catch(e) {}
+
+                // MỞ CHO MỌI GV XEM
+                document.getElementById('mainContent').classList.remove('hidden');
+
                 const email = user.email.toLowerCase();
                 const adminEmails = ['lethanhvan@ump.edu.vn', 'hoangtran1483@gmail.com'];
                 const managerEmails = ['phanthenguyenpt@ump.edu.vn', 'thduypt@ump.edu.vn'];
@@ -439,29 +508,24 @@
                 if (adminEmails.includes(email)) isHOD = true;
                 if (managerEmails.includes(email)) isManager = true;
 
-                if (!isHOD && !isManager) {
-                    document.getElementById('accessDenied').classList.remove('hidden');
-                } else {
-                    document.getElementById('mainContent').classList.remove('hidden');
-                    // Hiện Action column header
+                // CHỈ HIỆN CỘT THAO TÁC (PHÂN CÔNG) CHO ADMIN
+                if (isHOD || isManager) {
                     document.querySelector('.col-action').classList.remove('hidden');
-                    
-                    await fetchGVList();
-                    
-                    // Lắng nghe Phân công
-                    onSnapshot(collection(db, "assignments"), (snapshot) => {
-                        assignmentsDB = {};
-                        snapshot.forEach(doc => { assignmentsDB[doc.id] = doc.data(); });
-                        window.renderTable(); 
-                    });
-
-                    // Lắng nghe Lịch công tác để tính Tự động
-                    onSnapshot(collection(db, "calendar_events"), (snapshot) => {
-                        calendarEventsDB = [];
-                        snapshot.forEach(doc => { calendarEventsDB.push(doc.data()); });
-                        window.renderTable();
-                    });
                 }
+                
+                await fetchExternalData();
+                
+                onSnapshot(collection(db, "assignments"), (snapshot) => {
+                    assignmentsDB = {};
+                    snapshot.forEach(doc => { assignmentsDB[doc.id] = doc.data(); });
+                    window.renderTable(); 
+                });
+
+                onSnapshot(collection(db, "calendar_events"), (snapshot) => {
+                    calendarEventsDB = [];
+                    snapshot.forEach(doc => { calendarEventsDB.push(doc.data()); });
+                    window.renderTable();
+                });
             } else {
                 window.location.href = "login.html";
             }
@@ -507,7 +571,7 @@
                 const semData = {};
                 filteredSubs.forEach(sub => {
                     const asg = (assignmentsDB[sub.id] && assignmentsDB[sub.id][currentClass]) || { semester: 'Chưa phân bổ', allocations: [] };
-                    const sem = asg.semester || 'Chưa phân bổ';
+                    const sem = sub.id === 'sub_99' ? 'Các Công Việc Khác' : (asg.semester || 'Chưa phân bổ');
                     if(!semData[sem]) semData[sem] = [];
                     semData[sem].push(sub);
                 });
@@ -526,12 +590,11 @@
             const asg = asgDoc[currentClass] || { semester: '', allocations: [] };
             const isThesis = sub.name.includes("Luận văn") || sub.name.includes("Đề án");
             
-            // Xử lý Huy hiệu Chờ duyệt
             let isProposed = asg.status === 'proposed';
             let statusBadge = isProposed ? `<span class="badge-pending" title="Đang chờ Trưởng BM duyệt">Chờ duyệt</span>` : '';
             
             let badgeHtml = '';
-            if (currentClass === 'THS2026' && sub.orientations.length === 1) {
+            if (currentClass === 'THS2026' && sub.orientations.length === 1 && sub.id !== 'sub_99') {
                 const isUD = sub.orientations[0] === 'UD';
                 badgeHtml = `<span class="badge-orient ${isUD ? 'badge-ud' : 'badge-nc'}">[Chỉ ${isUD ? 'Ứng dụng' : 'Nghiên cứu'}]</span>`;
             }
@@ -556,12 +619,12 @@
                     let gvListDisplay = [];
                     for (let gv in gvMap) {
                         let taskHtml = gvMap[gv].map(t => {
-                            // TỰ ĐỘNG LẤY ĐÃ HOÀN THÀNH TỪ LỊCH
                             let autoCompleted = window.getCompletedSessions(currentClass, sub.name, t.gv, t.task);
                             
                             let txt = `• [${t.task}] (${t.assigned} buổi) <span style="color:#16a34a; font-size:0.8rem; font-weight:bold;">[Đã dạy: ${autoCompleted}]</span>`;
                             if(t.note) txt += ` <br><i style="color:#64748b; font-size:0.85rem; padding-left:10px;">Ghi chú: ${t.note}</i>`;
                             
+                            // CHỈ TÍNH VÀO TỔNG TIẾN ĐỘ CHO MÔN NẾU LÀ LT / TH
                             if (t.task === 'Lý thuyết' || t.task === 'Thực hành' || t.task === 'Thực tế') {
                                 completedLT_TH += autoCompleted;
                             }
@@ -574,9 +637,13 @@
                 }
                 
                 if (sub.isPHCN) {
-                    const pct = sub.totalSessions > 0 ? Math.min(100, Math.round((completedLT_TH / sub.totalSessions) * 100)) : 100;
-                    let pColor = '#16a34a'; if (pct < 50) pColor = '#f59e0b'; if (pct === 0) pColor = '#e2e8f0';
-                    progressHtml = `<div class="progress-container"><div class="progress-bar" style="width: ${pct}%; background-color: ${pColor};"></div></div><span class="progress-text">${completedLT_TH} / ${sub.totalSessions} buổi (${pct}%)</span>`;
+                    if (sub.id === 'sub_99') {
+                        progressHtml = `<span style="color:#94a3b8; font-size:0.85rem;">Công việc khác</span>`;
+                    } else {
+                        const pct = sub.totalSessions > 0 ? Math.min(100, Math.round((completedLT_TH / sub.totalSessions) * 100)) : 100;
+                        let pColor = '#16a34a'; if (pct < 50) pColor = '#f59e0b'; if (pct === 0) pColor = '#e2e8f0';
+                        progressHtml = `<div class="progress-container"><div class="progress-bar" style="width: ${pct}%; background-color: ${pColor};"></div></div><span class="progress-text">${completedLT_TH} / ${sub.totalSessions} buổi (${pct}%)</span>`;
+                    }
                 } else {
                     gvHtml = `<span style="color:#64748b; font-weight: 600;">${sub.department}</span>`;
                     progressHtml = `<span style="color:#94a3b8; font-size:0.85rem;">Phụ thuộc Bộ môn khác</span>`;
@@ -594,14 +661,17 @@
                 }
             }
 
+            // ẨN CỘT THAO TÁC NẾU LÀ GV BÌNH THƯỜNG
+            let colActionDisplay = (isHOD || isManager) ? `<td align="center">${actionHtml}</td>` : '';
+
             tbody.innerHTML += `
                 <tr class="subject-row ${gClass}">
                     <td align="center" style="font-weight:bold; color:#94a3b8;">${sttIndex}</td>
                     <td><div class="subject-link" onclick="openSubjectModal('${sub.id}')">${sub.name} ${badgeHtml} ${statusBadge}</div></td>
-                    <td style="font-weight:600; color:var(--text-dark);">${asg.semester || '—'}</td>
+                    <td style="font-weight:600; color:var(--text-dark);">${sub.id === 'sub_99' ? '—' : (asg.semester || '—')}</td>
                     <td>${gvHtml}</td>
                     <td>${progressHtml}</td>
-                    <td align="center">${actionHtml}</td>
+                    ${colActionDisplay}
                 </tr>
             `;
         }
@@ -670,7 +740,6 @@
                 document.getElementById('tasgSemester').value = asg.semester || 'Học kỳ 4';
                 document.getElementById('thesisAllocContainer').innerHTML = '';
                 
-                // Banner & Nút duyệt
                 const banner = document.getElementById('thesisProposalBanner');
                 const btnSave = document.getElementById('btnSubmitThesis');
                 if (isHOD && isProposed) {
@@ -690,11 +759,19 @@
                 document.getElementById('asgName').innerText = `${sub.name} (Khóa: ${currentClass})`;
                 document.getElementById('asgLT').innerText = sub.theorySessions;
                 document.getElementById('asgTH').innerText = sub.practiceSessions;
-                document.getElementById('asgSemester').value = asg.semester;
+                
+                // Môn Công việc khác không cần Giới hạn buổi hay Học kỳ
+                if (sub.id === 'sub_99') {
+                    document.getElementById('asgLimits').classList.add('hidden');
+                    document.getElementById('asgSemesterContainer').classList.add('hidden');
+                } else {
+                    document.getElementById('asgLimits').classList.remove('hidden');
+                    document.getElementById('asgSemesterContainer').classList.remove('hidden');
+                    document.getElementById('asgSemester').value = asg.semester;
+                }
                 
                 document.getElementById('allocContainer').innerHTML = '';
                 
-                // Banner & Nút duyệt
                 const banner = document.getElementById('proposalBanner');
                 const btnSave = document.getElementById('btnSubmitAssign');
                 if (isHOD && isProposed) {
@@ -784,12 +861,13 @@
         };
 
         window.saveAssignment = async () => {
-            const semester = document.getElementById('asgSemester').value;
+            const currentSub = subjectsData.find(s => s.id === currentEditingSubId);
+            const semester = currentSub.id === 'sub_99' ? 'Tất cả' : document.getElementById('asgSemester').value;
+            
             const blocks = document.querySelectorAll('#allocContainer .gv-block');
             let allocations = [];
             
             let sumLT = 0, sumTH = 0;
-            const currentSub = subjectsData.find(s => s.id === currentEditingSubId);
             const externalGVsToSave = new Set();
             let hasError = false;
             
@@ -806,8 +884,7 @@
                     const note = row.querySelector('.inp-note').value.trim();
                     
                     if (!task || isNaN(assigned) || assigned <= 0) {
-                        hasError = true;
-                        break;
+                        hasError = true; break;
                     }
 
                     allocations.push({ gv, task, assigned, completed, note });
@@ -822,18 +899,20 @@
                 showToast("Vui lòng điền đủ Tên Giảng viên, Nhiệm vụ và Số buổi phân công!", "danger"); return;
             }
 
-            if (sumLT > currentSub.theorySessions) {
-                showToast(`Số buổi Lý thuyết (${sumLT}) vượt quá tối đa (${currentSub.theorySessions})!`, "danger"); return;
-            }
-            if (sumTH > currentSub.practiceSessions) {
-                showToast(`Số buổi Thực hành/Lâm sàng (${sumTH}) vượt quá tối đa (${currentSub.practiceSessions})!`, "danger"); return;
+            // Nếu không phải môn công việc khác, kiểm tra vượt giờ
+            if (currentSub.id !== 'sub_99') {
+                if (sumLT > currentSub.theorySessions) {
+                    showToast(`Số buổi Lý thuyết (${sumLT}) vượt quá tối đa (${currentSub.theorySessions})!`, "danger"); return;
+                }
+                if (sumTH > currentSub.practiceSessions) {
+                    showToast(`Số buổi Thực hành/Lâm sàng (${sumTH}) vượt quá tối đa (${currentSub.practiceSessions})!`, "danger"); return;
+                }
             }
 
             for (let gv of externalGVsToSave) {
                 try { await setDoc(doc(collection(db, "visiting_lecturers")), { name: gv }); } catch(e){}
             }
 
-            // Gắn status: Nếu là HOD thì lưu thẳng (approved), nếu là Manager thì là (proposed)
             const assignStatus = isHOD ? 'approved' : 'proposed';
 
             try {
@@ -843,23 +922,37 @@
                 
                 document.getElementById('assignModal').classList.add('hidden');
                 showToast(isHOD ? "Lưu phân công thành công!" : "Đã gửi đề xuất thành công!");
-                fetchGVList(); 
+                fetchExternalData(); 
             } catch (e) { showToast("Lỗi khi lưu: " + e.message, "danger"); }
         };
 
-        // GIAO DIỆN TẠO DÒNG LUẬN VĂN
-        window.addThesisRow = (student = '', gv1 = '', gv2 = '') => {
+        // GIAO DIỆN TẠO DÒNG LUẬN VĂN MỚI TÍCH HỢP DATA
+        window.addThesisRow = (studentName = '', gv1 = '', gv2 = '') => {
             const container = document.getElementById('thesisAllocContainer');
             const row = document.createElement('div');
             row.className = 'task-row'; 
             
+            // Lọc ra các học viên của lớp hiện tại chưa được chọn
+            let studentOpts = '<option value="">-- Chọn Học viên --</option>';
+            // Cho phép nhập tên ngoài (Nếu HV chưa cập nhật lên hệ thống)
+            let isCustomStudent = studentName && !learnersList.find(l => l.name === studentName);
+            
+            learnersList.forEach(l => {
+                // Chỉ lấy HV của lớp đang xét hoặc HV đã được gán trước đó
+                if(l.classId === currentClass || l.name === studentName) {
+                    studentOpts += `<option value="${l.name}" ${l.name === studentName ? 'selected' : ''}>${l.name}</option>`;
+                }
+            });
+            studentOpts += `<option value="OTHER" ${isCustomStudent ? 'selected' : ''}>+ Nhập tên khác...</option>`;
+
             const gv1Opts = window.getGvOptionsHtml(gv1);
             const gv2Opts = window.getGvOptionsHtml(gv2);
 
             row.innerHTML = `
                 <div style="flex: 1.5; min-width:150px;">
                     <span class="alloc-label">Họ tên Học viên</span>
-                    <input type="text" class="inp-student" placeholder="Nhập tên HV..." value="${student}">
+                    <select class="sel-student" onchange="onStudentChange(this)">${studentOpts}</select>
+                    <input type="text" class="inp-student-other ${isCustomStudent ? '' : 'hidden'}" placeholder="Nhập tên HV..." value="${isCustomStudent ? studentName : ''}">
                 </div>
                 <div style="flex: 2; min-width:150px;">
                     <span class="alloc-label">GV Hướng dẫn 1 (Chính)</span>
@@ -886,7 +979,9 @@
             let hasError = false;
             
             for (let row of rows) {
-                const student = row.querySelector('.inp-student').value.trim();
+                const selStu = row.querySelector('.sel-student');
+                const student = selStu.value === 'OTHER' ? row.querySelector('.inp-student-other').value.trim() : selStu.value;
+                
                 const sel1 = row.querySelector('.sel-gv1');
                 let gv1 = sel1.value === 'OTHER' ? sel1.nextElementSibling.value.trim() : sel1.value;
                 const sel2 = row.querySelector('.sel-gv2');
@@ -919,7 +1014,6 @@
                 
                 document.getElementById('thesisAssignModal').classList.add('hidden');
                 showToast(isHOD ? "Lưu phân công HD Luận văn thành công!" : "Đã gửi đề xuất thành công!");
-                fetchGVList();
             } catch (e) { showToast("Lỗi khi lưu: " + e.message, "danger"); }
         };
 
