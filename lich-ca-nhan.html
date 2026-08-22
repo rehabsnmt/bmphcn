@@ -293,32 +293,19 @@
             }
         }
 
-        // TÍNH NĂNG TỪ CHỐI NHIỆM VỤ -> TRẢ VỀ KHO ADMIN (KHÔNG CẦN LÝ DO)
+// TÍNH NĂNG TỪ CHỐI NHIỆM VỤ -> XÓA KHỎI LỊCH (PHÙ HỢP VỚI FIREBASE RULE)
         window.rejectTask = async (eventId) => {
             if (confirm("Bạn có chắc chắn KHÔNG NHẬN nhiệm vụ này vào thời gian này?\nNhiệm vụ sẽ bị gỡ khỏi lịch của bạn và hoàn trả về kho của Bộ môn!")) {
                 try {
                     const evtRef = doc(db, "calendar_events", eventId);
-                    const evtSnap = await getDoc(evtRef);
-                    if (evtSnap.exists()) {
-                        // Tăng biến đếm rejected lên 1 và đổi trạng thái thành returned
-                        let rejCount = evtSnap.data().rejected || 0;
-                        await updateDoc(evtRef, { 
-                            status: 'returned', 
-                            rejected: rejCount + 1 
-                        });
-                        showToast("Đã hoàn trả nhiệm vụ thành công!");
-                    } else {
-                        // Nếu không tìm thấy document, xóa luôn để dọn dẹp data rác
-                        await deleteDoc(evtRef);
-                        showToast("Đã hoàn trả nhiệm vụ thành công!");
-                    }
+                    
+                    // Sử dụng deleteDoc thay vì updateDoc để không bị vướng quyền (Rule)
+                    await deleteDoc(evtRef);
+                    
+                    showToast("Đã hoàn trả nhiệm vụ thành công!");
                 } catch(e) {
                     console.error("Lỗi khi hoàn trả:", e);
-                    showToast("Lỗi: Không thể hoàn trả. Vui lòng thử lại!", "danger");
+                    showToast("Lỗi: " + e.message, "danger");
                 }
             }
         };
-
-    </script>
-</body>
-</html>
