@@ -87,10 +87,18 @@
             flex: 1; overflow-y: auto; overflow-x: hidden;
             display: flex; flex-direction: column; gap: 8px;
         }
-        .evt-item-row1 { display: flex; gap: 6px; align-items: baseline; white-space: nowrap; }
-        .evt-room-badge { background: #fbbf24; color: #78350f; font-weight: 800; font-size: 0.75rem; padding: 1px 5px; border-radius: 3px; }
-        .evt-gv-name { font-size: 0.85rem; font-weight: 700; color: var(--primary); overflow: hidden; text-overflow: ellipsis; }
-        .evt-item-row2 { font-size: 0.8rem; color: #475569; margin-top: 2px; padding-left: 32px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .evt-item { display: flex; flex-direction: column; gap: 2px; margin-bottom: 4px; }
+        .evt-item-row1 { display: flex; gap: 6px; align-items: flex-start; }
+        .evt-room-badge { 
+            background: #fbbf24; color: #78350f; font-weight: 800; font-size: 0.7rem; 
+            padding: 2px 4px; border-radius: 3px; flex-shrink: 0; min-width: 22px; text-align: center; margin-top: 1px;
+        }
+        .evt-gv-name { 
+            font-size: 0.75rem; font-weight: 700; color: var(--text-dark); line-height: 1.3; word-break: break-word;
+        }
+        .evt-item-row2 { 
+            font-size: 0.75rem; color: var(--primary); padding-left: 28px; line-height: 1.3; word-break: break-word;
+        }
 
         /* Chấm Bệnh viện trên cùng (All-day) */
         .evt-clinical-dot { background-color: #10b981; color: white; border-radius: 4px; padding: 2px 0; text-align: center; font-weight: 700; font-size: 0.85rem; cursor: pointer; display: block; box-shadow: 0 2px 5px rgba(16, 185, 129, 0.4); transition: 0.2s; }
@@ -302,16 +310,6 @@
             setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
         }
 
-        // Hàm hỗ trợ viết tắt tên (Giữ 3 chữ đầu + 2 kí tự chữ kế tiếp)
-        function truncateName(fullName) {
-            if (!fullName) return '';
-            let parts = fullName.split(' ');
-            if (parts.length <= 3) return fullName; 
-            let firstPart = parts.slice(0, 3).join(' ');
-            let lastPart = parts[3].substring(0, 2);
-            return `${firstPart} ${lastPart}...`;
-        }
-
         function initRoomSelect() {
             const select = document.getElementById('roomSelect');
             select.innerHTML = '';
@@ -410,7 +408,7 @@
             return valid;
         }
 
-        // HÀM KIỂM TRA TRÙNG LỊCH & TRÙNG PHÒNG ĐÃ CẬP NHẬT CHO TỔ HỢP GOM NHÓM
+        // HÀM KIỂM TRA TRÙNG LỊCH & TRÙNG PHÒNG (Bỏ qua ID của thẻ đang thao tác để không tự cản chính mình)
         function hasOverlap(targetStart, targetEnd, gvStr, targetClass, targetTask, targetRoom, ignoreEventIds) {
             let ignoreList = Array.isArray(ignoreEventIds) ? ignoreEventIds : [ignoreEventIds];
             let tStart = targetStart.getTime();
@@ -440,7 +438,7 @@
             const blockingTasks = ['Lý thuyết', 'Thực hành', 'Thực tế', 'Coi thi'];
 
             for (let e of allSubEvents) {
-                if (ignoreList.includes(e.id)) continue; 
+                if (ignoreList.includes(e.id)) continue; // Bỏ qua thẻ đang thao tác
                 
                 let eStart = new Date(e.start).getTime();
                 let eEnd = e.end ? new Date(e.end).getTime() : eStart + 4 * 3600000;
@@ -557,13 +555,11 @@
                     
                     if (props.type === 'clinical_summary') {
                         return {
-                            html: `
-                            <div class="evt-clinical-dot" title="Click xem chi tiết Bệnh viện">BV</div>
-                            `
+                            html: `<div class="evt-clinical-dot" title="Click xem chi tiết Bệnh viện">BV</div>`
                         };
                     }
 
-                    // TÙY CHỈNH THẺ SỰ KIỆN GOM NHÓM LỚP HỌC (THEO YÊU CẦU MỚI)
+                    // TÙY CHỈNH THẺ SỰ KIỆN GOM NHÓM (HIỂN THỊ DẠNG LIST NHƯ YÊU CẦU MỚI)
                     if (props.type === 'grouped_normal') {
                         let sTime = arg.event.start ? arg.event.start.toLocaleTimeString('vi-VN', {hour: 'numeric', minute:'2-digit', hour12: false}) : '';
                         let eTime = '';
@@ -582,8 +578,7 @@
                         
                         let itemsHtml = props.events.map(e => {
                             let gvFull = e.gv || '';
-                            let gvTokens = gvFull.split(/,|&/).map(s=>s.trim());
-                            let gvDisplay = gvTokens.map(gv => truncateName(gv)).join(', ');
+                            let clsTag = e.class === 'THS2025' ? '<span style="color:#0369a1">[K25]</span>' : '<span style="color:#b45309">[K26]</span>';
                             
                             let shortRoom = '';
                             if (e.room && e.room !== 'Khác...') {
@@ -592,13 +587,11 @@
                                 shortRoom = '??';
                             }
                             
-                            let clsTag = e.class === 'THS2025' ? '<span style="color:#0369a1">[K25]</span>' : '<span style="color:#b45309">[K26]</span>';
-                            
                             return `
-                            <div class="evt-item" style="margin-bottom: 8px; line-height: 1.3;">
+                            <div class="evt-item">
                                 <div class="evt-item-row1">
                                     <span class="evt-room-badge">${shortRoom}</span>
-                                    <span class="evt-gv-name" title="${gvFull}">${clsTag} ${gvDisplay}</span>
+                                    <span class="evt-gv-name">${clsTag} ${gvFull}</span>
                                 </div>
                                 <div class="evt-item-row2" title="${e.subject}">${e.subject}</div>
                             </div>
@@ -633,7 +626,7 @@
                     document.getElementById('roomModal').classList.remove('hidden');
                 },
 
-                // DỜI LỊCH (KÉO THẢ NHÓM) 
+                // DỜI LỊCH (KÉO THẢ NHÓM SANG KHUNG GIỜ KHÁC)
                 eventDrop: async function(info) {
                     if (!isCalendarAdmin) { info.revert(); return; }
                     const props = info.event.extendedProps;
@@ -645,7 +638,7 @@
                     if (props.type === 'grouped_normal') {
                         const subEvents = props.events;
                         
-                        // Kiểm tra quyền và logic cho từng sub-event trong nhóm
+                        // Kiểm tra quyền và logic cho từng sự kiện trong nhóm
                         for (let e of subEvents) {
                             if (e.scheduledByEmail && e.scheduledByEmail !== currentUserEmail && currentUserEmail !== 'hoangtran1483@gmail.com') {
                                 showToast(`Lỗi: Không thể dời lịch nhóm chứa môn do GV khác xếp!`, "danger");
@@ -656,7 +649,7 @@
                             }
                         }
 
-                        // Kiểm tra trùng cho từng cái, bỏ qua ID của chính nhóm này
+                        // Khi di chuyển cả nhóm, cần bỏ qua ID của TẤT CẢ các thẻ trong nhóm để tránh bị tự phát hiện trùng
                         const groupIds = subEvents.map(ev => ev.id);
                         for (let e of subEvents) {
                             const overlapCheck = hasOverlap(info.event.start, info.event.end, e.gv, e.class, e.task, e.room, groupIds);
@@ -740,7 +733,7 @@
                         tooltip.innerHTML = `
                             <strong><i class="fas fa-hospital-user"></i> Lịch Đi Bệnh Viện</strong><br>
                             Có <b>${count}</b> nhóm sinh viên đi thực tập trong ngày hôm nay.<br>
-                            <span style="color: #bae6fd; font-weight: normal; font-size: 0.8rem; margin-top:5px; display:block; border-top:1px dashed rgba(255,255,255,0.2); padding-top:5px;"><i class="fas fa-hand-pointer"></i> Click để xem chi tiết từng Bệnh viện</span>
+                            <span class="tooltip-scheduler" style="color: #bae6fd; font-weight: normal; font-size: 0.8rem;"><i class="fas fa-hand-pointer"></i> Click để xem chi tiết từng Bệnh viện</span>
                         `;
                     } else if (props.type === 'grouped_normal') {
                         let html = `<strong><i class="fas fa-layer-group"></i> ${props.events.length} Lớp Học</strong><br>`;
@@ -778,7 +771,7 @@
                     }
                 },
 
-                // SỬ DỤNG DUY NHẤT 1 MODAL ĐỂ HIỂN THỊ CẢ LỊCH NHÓM & BỆNH VIỆN
+                // MODAL HIỂN THỊ CHI TIẾT
                 eventClick: function(info) {
                     const props = info.event.extendedProps;
                     const modal = document.getElementById('multiEventModal');
@@ -877,7 +870,8 @@
 
             document.getElementById('roomModal').classList.add('hidden');
 
-            const overlapCheck = hasOverlap(info.event.start, info.event.end, props.gv, props.eventClass, props.task, selectedRoom, []);
+            // CẬP NHẬT: Thêm ID của sự kiện vừa kéo vào danh sách ignoreEventIds để không tự va chạm trùng lịch với chính nó!
+            const overlapCheck = hasOverlap(info.event.start, info.event.end, props.gv, props.eventClass, props.task, selectedRoom, [info.event.id]);
             if (overlapCheck.hasOverlap) {
                 showToast(overlapCheck.reason, "danger");
                 info.revert();
