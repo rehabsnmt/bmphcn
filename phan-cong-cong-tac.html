@@ -170,9 +170,7 @@
             <div class="filter-controls">
                 <select id="filterMajor" onchange="window.renderTable()">
                     <option value="ALL">-- Chọn chuyên ngành --</option>
-                    <option value="Vật lý trị liệu">Vật lý trị liệu</option>
-                    <option value="Hoạt động trị liệu">Hoạt động trị liệu</option>
-                    <option value="Ngôn ngữ trị liệu">Ngôn ngữ trị liệu</option>
+                    <!-- Danh sách ngành tự động được thêm bởi JavaScript -->
                 </select>
                 
                 <select id="filterOrient" class="hidden" onchange="window.renderTable()">
@@ -483,35 +481,27 @@
                     });
                 }
                 
-                // THUẬT TOÁN SẮP XẾP MỚI: DỰA VÀO CHỮ SỐ Ở ĐẦU TÊN NHÓM RỒI MỚI ĐẾN SỐ TRONG ID
+                // THUẬT TOÁN SẮP XẾP CHÍNH XÁC: THEO NHÓM TRƯỚC -> THEO ID TỪ NHỎ TỚI LỚN
                 subjectsData = loadedSubs.sort((a, b) => {
-                    // Trích xuất số tự nhiên từ tên nhóm (ví dụ: "1." -> 1, "3.2." -> 3.2)
                     let groupA = a.group || '';
                     let groupB = b.group || '';
                     
-                    let numGroupA = parseFloat(groupA.match(/^\d+(\.\d+)?/)) || 999;
-                    let numGroupB = parseFloat(groupB.match(/^\d+(\.\d+)?/)) || 999;
-                    
-                    if (numGroupA !== numGroupB) {
-                        return numGroupA - numGroupB;
-                    }
-                    
-                    // Nếu cùng chung 1 số hiệu Nhóm, tiếp tục so sánh theo chữ cái (nếu cần)
-                    let strGroupCompare = groupA.localeCompare(groupB, 'vi');
-                    if(strGroupCompare !== 0) return strGroupCompare;
+                    let groupCompare = groupA.localeCompare(groupB, 'vi');
+                    if (groupCompare !== 0) return groupCompare;
 
-                    // Cuối cùng, so sánh theo số ID môn học
-                    let matchA = a.id.match(/\d+/);
-                    let matchB = b.id.match(/\d+/);
-                    let numA = matchA ? parseInt(matchA[0], 10) : 999;
-                    let numB = matchB ? parseInt(matchB[0], 10) : 999;
+                    // Lấy phần số trong ID (hỗ trợ cả trường hợp ID là "sub_1" hoặc chỉ là "1")
+                    let numA = parseInt(String(a.id).replace(/\D/g, ''), 10);
+                    let numB = parseInt(String(b.id).replace(/\D/g, ''), 10);
+                    
+                    if (isNaN(numA)) numA = 99999;
+                    if (isNaN(numB)) numB = 99999;
                     
                     if (numA !== numB) return numA - numB;
                     
-                    return a.id.localeCompare(b.id);
+                    return String(a.id).localeCompare(String(b.id));
                 });
 
-                // TÍNH TOÁN QUY ĐỔI SỐ BUỔI VÀ NHÓM CHUYÊN NGÀNH
+                // TÍNH TOÁN QUY ĐỔI SỐ BUỔI VÀ NHÓM CHUYÊN NGÀNH ĐỘNG
                 subjectsData.forEach(sub => {
                     sub.theorySessions = (sub.theory || 0) * 3; 
                     
@@ -718,7 +708,7 @@
             let filteredSubs = subjectsData.filter(s => {
                 if (currentClass === 'THS2025' && (!s.orientations || !s.orientations.includes("NC"))) return false;
                 if (fMajor !== 'ALL' && s.majorTag !== 'ALL' && s.majorTag !== fMajor) return false;
-                if (currentClass === 'THS2026' && fOrient !== 'ALL' && (!s.orientations || !s.orientations.includes(fOrient)) && s.id !== 'sub_99') return false;
+                if (currentClass === 'THS2026' && fOrient !== 'ALL' && (!s.orientations || !s.orientations.includes(fOrient)) && s.id !== 'sub_99' && s.id !== 'sub_50' && s.id !== 'sub_60') return false; // Cho phép môn "Công việc chuyên môn khác" hiện
                 return true;
             });
 
@@ -745,7 +735,9 @@
                 const semData = {};
                 filteredSubs.forEach(sub => {
                     const asg = (assignmentsDB[sub.id] && assignmentsDB[sub.id][currentClass]) || { semester: 'Chưa phân bổ', allocations: [] };
-                    const sem = sub.id === 'sub_99' ? 'Các Công Việc Khác' : (asg.semester || 'Chưa phân bổ');
+                    // Đưa môn "Công việc chuyên môn khác" xuống cuối
+                    const isOtherTask = sub.name.toLowerCase().includes("công việc chuyên môn khác");
+                    const sem = isOtherTask ? 'Các Công Việc Khác' : (asg.semester || 'Chưa phân bổ');
                     if(!semData[sem]) semData[sem] = [];
                     semData[sem].push(sub);
                 });
@@ -780,7 +772,8 @@
             let statusBadge = isProposed ? `<span class="proposal-badge" title="Đang chờ Trưởng BM duyệt">Chờ duyệt</span>` : '';
             
             let orientTag = '';
-            if (sub.orientations && sub.orientations.length === 1 && sub.id !== 'sub_99') {
+            // Nhận diện nếu môn học được tách nhánh và khác môn Công việc khác
+            if (sub.orientations && sub.orientations.length === 1 && !sub.name.toLowerCase().includes("công việc chuyên môn khác")) {
                 const isUD = sub.orientations[0] === 'UD';
                 orientTag = `<span class="badge-orient ${isUD ? 'badge-ud' : 'badge-nc'}">[Hệ ${isUD ? 'Ứng dụng' : 'Nghiên cứu'}]</span>`;
             }
@@ -818,7 +811,7 @@
                 }
                 
                 if (!isThesis) {
-                    if (sub.id === 'sub_99') {
+                    if (sub.name.toLowerCase().includes("công việc chuyên môn khác")) {
                         progressHtml = `<span style="color:#94a3b8; font-size:0.85rem;">Công việc khác</span>`;
                     } else {
                         const pct = sub.totalSessions > 0 ? Math.min(100, Math.round((completedLT_TH / sub.totalSessions) * 100)) : 100;
@@ -852,7 +845,7 @@
                             <div class="mobile-toggle-btn" onclick="toggleMobileRow(this)"><i class="fas fa-chevron-down"></i></div>
                         </div>
                     </td>
-                    <td style="font-weight:600; color:var(--text-dark);">${sub.id === 'sub_99' ? '—' : (asg.semester || '—')}</td>
+                    <td style="font-weight:600; color:var(--text-dark);">${sub.name.toLowerCase().includes("công việc chuyên môn khác") ? '—' : (asg.semester || '—')}</td>
                     <td>${gvHtml}</td>
                     <td>${progressHtml}</td>
                     ${colActionDisplay}
@@ -864,7 +857,7 @@
             const sub = subjectsData.find(s => s.id === id);
             
             let displayName = sub.name;
-            if (sub.orientations && sub.orientations.length === 1 && sub.id !== 'sub_99') {
+            if (sub.orientations && sub.orientations.length === 1 && !sub.name.toLowerCase().includes("công việc chuyên môn khác")) {
                 const isUD = sub.orientations[0] === 'UD';
                 displayName += isUD ? ' (Hệ Ứng dụng)' : ' (Hệ Nghiên cứu)';
             }
@@ -1002,7 +995,7 @@
                 document.getElementById('asgLT').innerText = sub.theorySessions;
                 document.getElementById('asgTH').innerText = sub.practiceSessions;
                 
-                if (sub.id === 'sub_99') {
+                if (sub.name.toLowerCase().includes("công việc chuyên môn khác")) {
                     document.getElementById('asgLimits').classList.add('hidden');
                     document.getElementById('asgSemesterContainer').classList.add('hidden');
                 } else {
@@ -1149,7 +1142,7 @@
 
         window.saveAssignment = async () => {
             const currentSub = subjectsData.find(s => s.id === currentEditingSubId);
-            const semester = currentSub.id === 'sub_99' ? 'Tất cả' : document.getElementById('asgSemester').value;
+            const semester = currentSub.name.toLowerCase().includes("công việc chuyên môn khác") ? 'Tất cả' : document.getElementById('asgSemester').value;
             
             const blocks = document.querySelectorAll('#allocContainer .gv-block');
             let allocations = [];
@@ -1189,7 +1182,7 @@
             }
 
             if (hasError) { showToast("Dữ liệu nhập không hợp lệ!", "danger"); return; }
-            if (currentSub.id !== 'sub_99') {
+            if (!currentSub.name.toLowerCase().includes("công việc chuyên môn khác")) {
                 if (sumLT > currentSub.theorySessions) { showToast(`Số buổi Lý thuyết (${sumLT}) vượt quá tối đa (${currentSub.theorySessions})!`, "danger"); return; }
                 if (sumTH > currentSub.practiceSessions) { showToast(`Số buổi Thực hành (${sumTH}) vượt quá tối đa (${currentSub.practiceSessions})!`, "danger"); return; }
             }
@@ -1381,13 +1374,13 @@
             let filteredSubs = subjectsData.filter(s => {
                 if (currentClass === 'THS2025' && (!s.orientations || !s.orientations.includes("NC"))) return false;
                 if (fMajor !== 'ALL' && s.majorTag !== 'ALL' && s.majorTag !== fMajor) return false;
-                if (currentClass === 'THS2026' && fOrient !== 'ALL' && (!s.orientations || !s.orientations.includes(fOrient)) && s.id !== 'sub_99') return false;
+                if (currentClass === 'THS2026' && fOrient !== 'ALL' && (!s.orientations || !s.orientations.includes(fOrient)) && !s.name.toLowerCase().includes('công việc chuyên môn khác')) return false;
                 return true;
             });
 
             let total = 0;
             filteredSubs.forEach(sub => {
-                if (sub.id !== 'sub_99') {
+                if (!sub.name.toLowerCase().includes("công việc chuyên môn khác")) {
                     const asg = (assignmentsDB[sub.id] && assignmentsDB[sub.id][currentClass]) || {};
                     const sem = asg.semester || 'Chưa phân bổ';
                     if(stats[sem] !== undefined) {
