@@ -170,7 +170,9 @@
             <div class="filter-controls">
                 <select id="filterMajor" onchange="window.renderTable()">
                     <option value="ALL">-- Chọn chuyên ngành --</option>
-                    <!-- Danh sách ngành tự động được thêm bởi JavaScript -->
+                    <option value="Vật lý trị liệu">Vật lý trị liệu</option>
+                    <option value="Hoạt động trị liệu">Hoạt động trị liệu</option>
+                    <option value="Ngôn ngữ trị liệu">Ngôn ngữ trị liệu</option>
                 </select>
                 
                 <select id="filterOrient" class="hidden" onchange="window.renderTable()">
@@ -375,6 +377,21 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // THỨ TỰ NHÓM CỐ ĐỊNH CHUẨN XÁC
+        const GROUP_ORDER = [
+            "1. Kiến thức chung",
+            "2. Kiến thức cơ sở",
+            "3.1. Kiến thức ngành (bắt buộc)",
+            "3.2. Kiến thức ngành (tự chọn - Vật lý trị liệu)",
+            "3.2. Kiến thức ngành (tự chọn - Hoạt động trị liệu)",
+            "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)",
+            "4. Chuyên đề nghiên cứu",
+            "4. Thực tập",
+            "5. Đề án",
+            "5. Luận văn",
+            "6. CÔNG VIỆC KHÁC"
+        ];
+
         let internalLecturers = []; 
         let visitingLecturers = []; 
         let learnersList = []; 
@@ -401,7 +418,6 @@
             setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
         }
 
-        // TỰ ĐỘNG CẬP NHẬT SELECT CHUYÊN NGÀNH
         window.updateMajorDropdown = () => {
             let uniqueMajors = new Set();
             subjectsData.forEach(s => {
@@ -482,8 +498,23 @@
                     });
                 }
                 
-                // THUẬT TOÁN SẮP XẾP ĐÃ ĐƯỢC CHỈNH SỬA: Sắp xếp theo ID trước
+                // --- THUẬT TOÁN SẮP XẾP CHÍNH XÁC ---
                 subjectsData = loadedSubs.sort((a, b) => {
+                    // 1. Ưu tiên Nhóm trước (Dựa vào index trong mảng GROUP_ORDER cố định)
+                    let groupA = a.group || '';
+                    let groupB = b.group || '';
+                    
+                    let indexA = GROUP_ORDER.indexOf(groupA);
+                    let indexB = GROUP_ORDER.indexOf(groupB);
+                    
+                    if (indexA === -1) indexA = 999;
+                    if (indexB === -1) indexB = 999;
+
+                    if (indexA !== indexB) {
+                        return indexA - indexB; // Nhóm nào có index nhỏ hơn (đứng trước) thì xếp trước
+                    }
+
+                    // 2. Bên trong cùng 1 Nhóm, sắp xếp theo ID môn học
                     let matchA = a.id.match(/\d+/);
                     let matchB = b.id.match(/\d+/);
                     let numA = matchA ? parseInt(matchA[0], 10) : 999;
@@ -491,19 +522,18 @@
                     
                     if (numA !== numB) return numA - numB;
                     
-                    // Nếu cùng số ID (vd: sub_24_UD và sub_24_NC) thì so xếp liền kề
+                    // 3. Nếu cùng số ID (vd: sub_24_NC và sub_24_UD) thì xếp liền kề nhau
                     return a.id.localeCompare(b.id);
                 });
 
-                // TÍNH TOÁN QUY ĐỔI SỐ BUỔI VÀ NHÓM CHUYÊN NGÀNH ĐỘNG
+                // TÍNH TOÁN QUY ĐỔI SỐ BUỔI VÀ NHÓM CHUYÊN NGÀNH
                 subjectsData.forEach(sub => {
                     sub.theorySessions = (sub.theory || 0) * 3; 
                     
-                    // CHỈ CÓ ĐÚNG CHUỖI "Thực hành lâm sàng" mới được 40 tiết = 8 buổi
                     if (sub.name && sub.name.toLowerCase().includes("thực hành lâm sàng")) {
-                        sub.practiceSessions = (sub.practice || 0) * 8; // 1 TC = 40T = 8B
+                        sub.practiceSessions = (sub.practice || 0) * 8; 
                     } else {
-                        sub.practiceSessions = (sub.practice || 0) * 6; // Các môn Lab, Thực hành kỹ năng... 1 TC = 30T = 6B
+                        sub.practiceSessions = (sub.practice || 0) * 6; 
                     }
                     sub.totalSessions = sub.theorySessions + sub.practiceSessions;
                     
@@ -708,7 +738,6 @@
             });
 
             if (viewMode === 'STRUCT') {
-                // ĐẢM BẢO GIỮ NGUYÊN THỨ TỰ NHƯ TRONG DATA GỐC (Bằng Map) - Tức là lấy ID đầu tiên của Group đó làm gốc
                 const groupedMap = new Map();
                 filteredSubs.forEach(s => {
                     let gName = s.group || 'Chưa phân nhóm';
