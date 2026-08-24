@@ -409,7 +409,6 @@
                 else b.classList.remove('active');
             });
 
-            // Ẩn hiện Select Định hướng tùy theo Khóa
             const filterOrient = document.getElementById('filterOrient');
             if (cls === 'THS2025') {
                 filterOrient.classList.add('hidden');
@@ -445,33 +444,45 @@
 
         async function fetchExternalData() {
             try {
+                // Tải Môn Học
                 const snapSubjects = await getDocs(collection(db, "subjects"));
-                subjectsData = [];
+                let loadedSubs = [];
                 snapSubjects.forEach(doc => {
                     let sub = doc.data();
                     sub.id = doc.id;
                     
                     sub.theorySessions = (sub.theory || 0) * 3; 
-                    // CHỈNH SỬA QUY ĐỔI MÔN ĐẶC BIỆT
                     if (sub.name.toLowerCase().includes("thực hành kỹ năng hướng dẫn lâm sàng")) {
-                        sub.practiceSessions = (sub.practice || 0) * 6; // 1 TC = 30T = 6B
+                        sub.practiceSessions = (sub.practice || 0) * 6; 
                     } else if (sub.name.toLowerCase().includes("lâm sàng")) {
-                        sub.practiceSessions = (sub.practice || 0) * 8; // 1 TC = 40T = 8B
+                        sub.practiceSessions = (sub.practice || 0) * 8; 
                     } else {
-                        sub.practiceSessions = (sub.practice || 0) * 6; // 1 TC = 30T = 6B
+                        sub.practiceSessions = (sub.practice || 0) * 6; 
                     }
                     sub.totalSessions = sub.theorySessions + sub.practiceSessions;
                     
-                    // Gắn Tag Chuyên ngành dựa vào thuộc tính Group để tiện filter sau này
                     let grp = sub.group || '';
                     if (grp.includes("Vật lý trị liệu")) sub.majorTag = "Vật lý trị liệu";
                     else if (grp.includes("Hoạt động trị liệu")) sub.majorTag = "Hoạt động trị liệu";
                     else if (grp.includes("Ngôn ngữ trị liệu")) sub.majorTag = "Ngôn ngữ trị liệu";
                     else sub.majorTag = "ALL";
 
-                    subjectsData.push(sub);
+                    // Hỗ trợ convert string "UD, NC" thành array nếu lỡ import sai định dạng
+                    if (typeof sub.orientations === 'string') {
+                        sub.orientations = sub.orientations.split(',').map(s => s.trim());
+                    }
+
+                    loadedSubs.push(sub);
+                });
+                
+                // Sắp xếp môn học theo định dạng "sub_X"
+                subjectsData = loadedSubs.sort((a, b) => {
+                    let numA = parseInt(a.id.replace('sub_', '')) || 0;
+                    let numB = parseInt(b.id.replace('sub_', '')) || 0;
+                    return numA - numB;
                 });
 
+                // Tải Users
                 const snapUser = await getDocs(collection(db, "users"));
                 internalLecturers = [];
                 snapUser.forEach(doc => {
@@ -482,9 +493,11 @@
                     }
                 });
                 
+                // Tải Thỉnh giảng
                 const snapVisit = await getDocs(collection(db, "visiting_lecturers"));
                 visitingLecturers = snapVisit.docs.map(d => d.data().name);
 
+                // Tải Học viên
                 const snapLearners = await getDocs(collection(db, "learners"));
                 learnersList = [];
                 snapLearners.forEach(doc => {
@@ -492,13 +505,14 @@
                     if(d.fullName) learnersList.push({ name: d.fullName, classId: d.className });
                 });
 
+                // Tải Đề tài
                 const snapTheses = await getDocs(collection(db, "theses"));
                 thesesList = [];
                 snapTheses.forEach(doc => {
                     thesesList.push(doc.data());
                 });
 
-            } catch (e) { console.error("Lỗi tải Data", e); showToast("Không thể tải danh sách môn học từ hệ thống!", "danger"); }
+            } catch (e) { console.error("Lỗi tải Data", e); showToast("Lỗi mạng: Không tải được danh sách môn học!", "danger"); }
         }
 
         window.getCompletedSessions = (cls, subName, gv, task) => {
@@ -531,7 +545,7 @@
                     htmlList.push(`<div class="gv-allocation-text"><i class="fas fa-user-graduate" style="color:var(--primary);"></i> <b>${stu}</b>: ${textArr.join(' | ')}</div>`);
                 }
                 let content = htmlList.join('<hr style="border-top:1px dashed #cbd5e1; margin: 8px 0;">');
-                if (isProposed) return `<div class="proposal-box"><b style="color: #b45309;"><i class="fas fa-clock"></i> ĐỀ XUẤT:</b><br>${content}</div>`;
+                if (isProposed) return `<div class="proposal-box"><b style="color: #b45309;"><i class="fas fa-clock"></i> ĐỀ XUẤT CHỜ DUYỆT:</b><br>${content}</div>`;
                 return `<div>${content}</div>`;
 
             } else {
@@ -557,7 +571,7 @@
                 
                 if (isProposed) {
                     return `<div class="proposal-box">
-                                <b style="color: #b45309; font-size: 0.85rem;"><i class="fas fa-clock"></i> BẢN ĐỀ XUẤT MỚI CHỜ DUYỆT:</b><br>
+                                <b style="color: #b45309; font-size: 0.85rem;"><i class="fas fa-clock"></i> ĐỀ XUẤT CHỜ DUYỆT:</b><br>
                                 ${content}
                             </div>`;
                 }
@@ -597,24 +611,31 @@
                 await fetchExternalData(); 
 
                 if (subjectsData.length === 0) {
-                    document.getElementById('loadingScreen').innerHTML = "<i class='fas fa-exclamation-triangle'></i><br>Chưa có dữ liệu Danh sách Môn học trên hệ thống.";
+                    document.getElementById('loadingScreen').innerHTML = "<i class='fas fa-exclamation-triangle'></i><br>Không có dữ liệu môn học. Xin vui lòng kiểm tra Database (Collection 'subjects').";
                     return;
                 }
 
                 document.getElementById('loadingScreen').classList.add('hidden');
                 document.getElementById('mainContent').classList.remove('hidden');
                 
+                // TẢI DATA assignments & calendar_events song song nhưng phải đợi xong mới render
+                let isAsgLoaded = false;
+                let isCalLoaded = false;
+
                 onSnapshot(collection(db, "assignments"), (snapshot) => {
                     assignmentsDB = {};
                     snapshot.forEach(doc => { assignmentsDB[doc.id] = doc.data(); });
-                    window.renderTable(); 
+                    isAsgLoaded = true;
+                    if(isCalLoaded) window.renderTable(); 
                 });
 
                 onSnapshot(collection(db, "calendar_events"), (snapshot) => {
                     calendarEventsDB = [];
                     snapshot.forEach(doc => { calendarEventsDB.push(doc.data()); });
-                    window.renderTable();
+                    isCalLoaded = true;
+                    if(isAsgLoaded) window.renderTable();
                 });
+
             } else {
                 window.location.href = "login.html";
             }
@@ -645,9 +666,9 @@
             const fMajor = document.getElementById('filterMajor').value;
             const fOrient = document.getElementById('filterOrient').value;
             
-            // LỌC MÔN HỌC (Filter Muti-layer)
+            // LỌC MÔN HỌC
             let filteredSubs = subjectsData.filter(s => {
-                // Nếu là Khóa 2025 thì bắt buộc chỉ lấy môn có Hướng Nghiên cứu
+                // Khóa 2025: Bắt buộc chỉ lấy môn hướng NC
                 if (currentClass === 'THS2025' && (!s.orientations || !s.orientations.includes("NC"))) return false;
 
                 // Lọc theo Chuyên ngành
@@ -709,8 +730,10 @@
             let progressHtml = '';
             let completedLT_TH = 0;
 
-            if (sub.isPHCN !== false) {
-                // CÓ NỐI DỮ LIỆU ĐÃ PHÂN CÔNG (asg.allocations) TỪ DB
+            // KIỂM TRA MÔN TRONG HAY NGOÀI BM (boolean format support)
+            let isBM = (sub.isPHCN === true || sub.isPHCN === "true" || sub.isPHCN === "TRUE");
+
+            if (isBM) {
                 let approvedHtml = buildAllocationHTML(asg.allocations, false, sub.name, isThesis);
                 let proposedHtml = '';
                 if (isProposed && asg.proposed_allocations && asg.proposed_allocations.length > 0) {
@@ -751,7 +774,7 @@
 
             let actionHtml = '';
             if (isHOD || isManager) {
-                if (sub.isPHCN !== false) {
+                if (isBM) {
                     let btnText = isHOD && isProposed ? 'Duyệt' : 'Phân công';
                     let btnClass = isHOD && isProposed ? 'btn-success' : 'btn-outline';
                     actionHtml = `<button class="${btnClass}" onclick="openAssignModal('${sub.id}')">${btnText}</button>`;
@@ -872,7 +895,7 @@
                 if (!targetAllocations || targetAllocations.length === 0) { 
                     addStudentBlock(); 
                 } else {
-                    // LOGIC MỚI: Nhóm theo Học viên
+                    // Nhóm theo Học viên
                     let stuMap = {};
                     targetAllocations.forEach(a => {
                         if (!stuMap[a.student]) stuMap[a.student] = [];
@@ -946,6 +969,32 @@
                         });
                     }
                 }
+                
+                // KHÓA SELECT NẾU ĐÃ CÓ GIỜ HOÀN THÀNH
+                const blocks = document.querySelectorAll('#allocContainer .gv-block');
+                blocks.forEach(block => {
+                    const completedInputs = block.querySelectorAll('.inp-completed');
+                    let hasCompleted = false;
+                    completedInputs.forEach(inp => {
+                        if (parseInt(inp.value) > 0) hasCompleted = true;
+                    });
+                    if (hasCompleted) {
+                        const selGv = block.querySelector('.sel-gv');
+                        selGv.disabled = true;
+                        selGv.insertAdjacentHTML('afterend', `<input type="hidden" class="hidden-gv-val" value="${selGv.value}">`);
+                        
+                        const otherInput = block.querySelector('.inp-gv-other');
+                        if (otherInput) otherInput.disabled = true;
+                        
+                        const btnDeleteGv = block.querySelector('.btn-delete-gv');
+                        if(btnDeleteGv) {
+                            btnDeleteGv.style.opacity = '0.5';
+                            btnDeleteGv.style.cursor = 'not-allowed';
+                            btnDeleteGv.onclick = () => showToast('Không thể xóa giảng viên đã có nhiệm vụ hoàn thành!', 'danger');
+                        }
+                    }
+                });
+
                 document.getElementById('assignModal').classList.remove('hidden');
             }
         };
@@ -1018,6 +1067,7 @@
         window.saveAssignment = async () => {
             const currentSub = subjectsData.find(s => s.id === currentEditingSubId);
             const semester = currentSub.id === 'sub_99' ? 'Tất cả' : document.getElementById('asgSemester').value;
+            
             const blocks = document.querySelectorAll('#allocContainer .gv-block');
             let allocations = [];
             
@@ -1076,11 +1126,10 @@
                 await setDoc(doc(db, "assignments", currentEditingSubId), { [currentClass]: updateData }, { merge: true });
                 document.getElementById('assignModal').classList.add('hidden');
                 showToast(isHOD ? "Lưu phân công thành công!" : "Đã gửi đề xuất thành công!");
-                window.renderTable(); 
             } catch (e) { showToast("Lỗi khi lưu: " + e.message, "danger"); }
         };
 
-        // --- CÁC HÀM CHO MÔN LUẬN VĂN (CHỌN HỌC VIÊN TRƯỚC) ---
+        // --- CÁC HÀM CHO MÔN LUẬN VĂN ---
         window.addStudentBlock = (student = '') => {
             const container = document.getElementById('thesisAllocContainer');
             const block = document.createElement('div');
@@ -1218,7 +1267,6 @@
                 await setDoc(doc(db, "assignments", currentEditingSubId), { [currentClass]: updateData }, { merge: true });
                 document.getElementById('thesisAssignModal').classList.add('hidden');
                 showToast(isHOD ? "Lưu phân công HD Luận văn thành công!" : "Đã gửi đề xuất thành công!");
-                window.renderTable();
             } catch (e) { showToast("Lỗi khi lưu: " + e.message, "danger"); }
         };
 
@@ -1229,7 +1277,6 @@
             
             document.getElementById('dashClassName').innerText = `(${currentClass})`;
             
-            // Tính toán tổng số TC theo học kỳ, Lọc tương tự như bảng
             let stats = { "Học kỳ 1": 0, "Học kỳ 2": 0, "Học kỳ 3": 0, "Học kỳ 4": 0, "Chưa phân bổ": 0 };
             
             let filteredSubs = subjectsData.filter(s => {
