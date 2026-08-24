@@ -172,6 +172,7 @@
                     <option value="ALL">-- Chọn chuyên ngành --</option>
                     <option value="Vật lý trị liệu">Vật lý trị liệu</option>
                     <option value="Hoạt động trị liệu">Hoạt động trị liệu</option>
+                    <option value="Ngôn ngữ trị liệu">Ngôn ngữ trị liệu</option>
                 </select>
                 
                 <select id="filterOrient" class="hidden" onchange="window.renderTable()">
@@ -656,9 +657,6 @@
             
             // LỌC MÔN HỌC
             let filteredSubs = subjectsData.filter(s => {
-                // ẨN LUÔN MÔN NGÔN NGỮ TRỊ LIỆU
-                if (s.majorTag === 'Ngôn ngữ trị liệu') return false;
-
                 if (currentClass === 'THS2025' && (!s.orientations || !s.orientations.includes("NC"))) return false;
                 if (fMajor !== 'ALL' && s.majorTag !== 'ALL' && s.majorTag !== fMajor) return false;
                 if (currentClass === 'THS2026' && fOrient !== 'ALL' && (!s.orientations || !s.orientations.includes(fOrient)) && s.id !== 'sub_99') return false;
@@ -712,10 +710,10 @@
             let isProposed = asg.status === 'proposed';
             let statusBadge = isProposed ? `<span class="proposal-badge" title="Đang chờ Trưởng BM duyệt">Chờ duyệt</span>` : '';
             
-            let badgeHtml = '';
-            if (currentClass === 'THS2026' && sub.orientations && sub.orientations.length === 1 && sub.id !== 'sub_99') {
+            let orientTag = '';
+            if (sub.orientations && sub.orientations.length === 1 && sub.id !== 'sub_99') {
                 const isUD = sub.orientations[0] === 'UD';
-                badgeHtml = `<span class="badge-orient ${isUD ? 'badge-ud' : 'badge-nc'}">[Chỉ ${isUD ? 'Ứng dụng' : 'Nghiên cứu'}]</span>`;
+                orientTag = `<span class="badge-orient ${isUD ? 'badge-ud' : 'badge-nc'}">[Hệ ${isUD ? 'Ứng dụng' : 'Nghiên cứu'}]</span>`;
             }
             
             let creditsBadge = `<span class="badge-credits">${sub.credits || 0} TC</span>`;
@@ -781,7 +779,7 @@
                     <td align="center" style="font-weight:bold; color:#94a3b8;">${sttIndex}</td>
                     <td>
                         <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div class="subject-link" onclick="openSubjectModal('${sub.id}')">${sub.name} ${creditsBadge} ${badgeHtml} ${statusBadge}</div>
+                            <div class="subject-link" onclick="openSubjectModal('${sub.id}')">${sub.name} ${orientTag} ${creditsBadge} ${statusBadge}</div>
                             <div class="mobile-toggle-btn" onclick="toggleMobileRow(this)"><i class="fas fa-chevron-down"></i></div>
                         </div>
                     </td>
@@ -795,7 +793,14 @@
 
         window.openSubjectModal = (id) => {
             const sub = subjectsData.find(s => s.id === id);
-            document.getElementById('detName').innerText = sub.name;
+            
+            let displayName = sub.name;
+            if (sub.orientations && sub.orientations.length === 1 && sub.id !== 'sub_99') {
+                const isUD = sub.orientations[0] === 'UD';
+                displayName += isUD ? ' (Hệ Ứng dụng)' : ' (Hệ Nghiên cứu)';
+            }
+
+            document.getElementById('detName').innerText = displayName;
             document.getElementById('detGroup').innerText = sub.group || 'Chưa có';
             document.getElementById('detDept').innerText = sub.department || 'Chưa có';
             document.getElementById('detCredits').innerText = sub.credits || 0;
@@ -862,7 +867,6 @@
             const fMajor = document.getElementById('filterMajor').value;
             const fOrient = document.getElementById('filterOrient').value;
             
-            // RÀNG BUỘC PHẢI CHỌN ĐỦ FILTER TRƯỚC KHI PHÂN CÔNG
             if (fMajor === 'ALL') {
                 showToast("Vui lòng Chọn cụ thể CHUYÊN NGÀNH trên thanh công cụ trước khi phân công!", "danger");
                 return;
@@ -1306,7 +1310,6 @@
             let stats = { "Học kỳ 1": 0, "Học kỳ 2": 0, "Học kỳ 3": 0, "Học kỳ 4": 0, "Chưa phân bổ": 0 };
             
             let filteredSubs = subjectsData.filter(s => {
-                if (s.majorTag === 'Ngôn ngữ trị liệu') return false;
                 if (currentClass === 'THS2025' && (!s.orientations || !s.orientations.includes("NC"))) return false;
                 if (fMajor !== 'ALL' && s.majorTag !== 'ALL' && s.majorTag !== fMajor) return false;
                 if (currentClass === 'THS2026' && fOrient !== 'ALL' && (!s.orientations || !s.orientations.includes(fOrient)) && s.id !== 'sub_99') return false;
