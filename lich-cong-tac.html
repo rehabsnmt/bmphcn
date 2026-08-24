@@ -67,20 +67,38 @@
         .fc-button-primary:hover { background-color: var(--primary-hover) !important; }
         .fc-button-active { background-color: var(--primary-hover) !important; }
 
-        /* Style cho Sự kiện TRÊN LỊCH */
-        .fc-event-main { display: flex; flex-direction: column; height: 100%; padding: 4px 6px; box-sizing: border-box; }
-        .event-on-calendar { overflow: hidden; color: white; display: flex; flex-direction: column; gap: 3px; height: 100%; }
+        /* TÙY CHỈNH THẺ SỰ KIỆN GOM NHÓM (GROUPED EVENT) TRÊN LỊCH */
+        .fc-event-main { padding: 0 !important; }
         
-        /* Chỉnh sửa lại CSS Nhóm Thời gian và Phòng */
-        .event-on-calendar .evt-time { font-size: 0.85rem; font-weight: 600; background: rgba(0,0,0,0.25); padding: 2px 6px; border-radius: 4px; width: fit-content; margin-bottom: 0; }
-        .event-on-calendar .evt-room { font-size: 0.8rem; background: #fbbf24; color: #78350f; padding: 2px 6px; border-radius: 4px; font-weight: 800; text-shadow: none; white-space: nowrap; width: fit-content; }
-
-        /* Chỉnh sửa lại CSS Giảng viên để ko bị đè 2 dòng */
-        .event-on-calendar .evt-gv { font-size: 1rem; font-weight: 700; line-height: 1.2; text-shadow: 1px 1px 2px rgba(0,0,0,0.2); white-space: normal; }
-        .event-on-calendar .evt-gv-desktop { display: block; }
-        .event-on-calendar .evt-gv-mobile { display: none; }
-        
-        .event-on-calendar .evt-sub { font-size: 0.8rem; font-weight: 400; opacity: 0.95; line-height: 1.3; white-space: normal; }
+        .evt-group-container {
+            background: white; border: 1px solid #cbd5e1;
+            border-radius: 4px; padding: 6px; box-sizing: border-box;
+            height: 100%; display: flex; flex-direction: column;
+            overflow: hidden; border-left: 4px solid var(--primary);
+            color: var(--text-dark); box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .evt-group-header {
+            font-size: 0.8rem; font-weight: 700; color: #64748b;
+            margin-bottom: 6px; padding-bottom: 4px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex; align-items: center; justify-content: flex-start;
+        }
+        .evt-items-list {
+            flex: 1; overflow-y: auto; overflow-x: hidden;
+            display: flex; flex-direction: column; gap: 8px;
+        }
+        .evt-item { display: flex; flex-direction: column; gap: 2px; margin-bottom: 4px; }
+        .evt-item-row1 { display: flex; gap: 6px; align-items: flex-start; }
+        .evt-room-badge { 
+            background: #fbbf24; color: #78350f; font-weight: 800; font-size: 0.7rem; 
+            padding: 2px 4px; border-radius: 3px; flex-shrink: 0; min-width: 22px; text-align: center; margin-top: 1px;
+        }
+        .evt-gv-name { 
+            font-size: 0.75rem; font-weight: 700; color: var(--text-dark); line-height: 1.3; word-break: break-word;
+        }
+        .evt-item-row2 { 
+            font-size: 0.75rem; color: var(--primary); padding-left: 28px; line-height: 1.3; word-break: break-word;
+        }
 
         /* Chấm Bệnh viện trên cùng (All-day) */
         .evt-clinical-dot { background-color: #10b981; color: white; border-radius: 4px; padding: 2px 0; text-align: center; font-weight: 700; font-size: 0.85rem; cursor: pointer; display: block; box-shadow: 0 2px 5px rgba(16, 185, 129, 0.4); transition: 0.2s; }
@@ -90,8 +108,6 @@
 
         /* Tooltip Rà chuột */
         #eventTooltip { position: fixed; z-index: 9999; background: rgba(15, 23, 42, 0.95); color: white; padding: 12px 15px; border-radius: 8px; font-size: 0.9rem; pointer-events: none; display: none; box-shadow: 0 10px 25px rgba(0,0,0,0.3); line-height: 1.6; max-width: 350px; border-left: 4px solid var(--primary); }
-        #eventTooltip strong { color: #38bdf8; font-size: 1rem; }
-        #eventTooltip .tooltip-scheduler { color: #fef08a; font-weight: bold; display: block; margin-top: 5px; border-top: 1px dashed rgba(255,255,255,0.2); padding-top: 5px; }
 
         /* Toast */
         .toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
@@ -99,12 +115,12 @@
         .toast.show { transform: translateX(0); opacity: 1; }
         .toast.danger { border-left-color: #ef4444; }
 
-        /* Modal Chi tiết chung */
+        /* Modal Chi tiết chung (Dùng chung cho xếp phòng, xem chi tiết gom nhóm, và xem chi tiết BV) */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 2000; padding: 10px; }
         .modal-content { background: white; width: 95%; max-width: 600px; border-radius: 8px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); overflow: hidden; display: flex; flex-direction: column; }
         .modal-header { padding: 15px 20px; background: var(--primary); color: white; display: flex; justify-content: space-between; align-items: center; }
         .modal-header h3 { margin: 0; font-size: 1.1rem; }
-        .modal-body { padding: 20px; line-height: 1.8; text-align: justify; overflow-y: auto; }
+        .modal-body { padding: 20px; line-height: 1.8; text-align: justify; overflow-y: auto; max-height: 70vh;}
         .modal-footer { padding: 15px 20px; background: #f1f5f9; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border); }
         
         .btn-danger { background: var(--accent); color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s;}
@@ -120,12 +136,12 @@
         .form-group select { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border); font-size: 1rem; outline: none; }
         .form-group select:focus { border-color: var(--primary); }
 
-        /* Modal Bệnh viện */
-        #clinicalModal .modal-content { max-width: 750px; max-height: 85vh; }
+        /* Modal Bệnh viện / Lớp học (Dùng chung modal-body) */
+        #multiEventModal .modal-content { max-width: 750px; }
         .clin-card { margin-bottom: 15px; padding: 15px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; border-left: 4px solid #10b981; }
         .clin-card-title { font-weight: 700; color: var(--text-dark); font-size: 1.15rem; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; }
 
-        /* Responsive Điện thoại - Thu gọn Giao diện Lịch */
+        /* Responsive Điện thoại */
         @media (max-width: 900px) {
             main { flex-direction: column; }
             #external-events { position: relative; width: 100%; top: 0; max-height: 350px; }
@@ -137,13 +153,6 @@
             /* ẨN TOÀN BỘ CỘT THỜI GIAN ĐỂ GIẢI PHÓNG DIỆN TÍCH CHO ĐIỆN THOẠI */
             .fc .fc-timegrid-axis, .fc .fc-timegrid-slot-label { width: 0 !important; padding: 0 !important; border: none !important; }
             .fc .fc-timegrid-slot-label-cushion, .fc .fc-timegrid-axis-cushion { display: none !important; }
-
-            /* Rút gọn thẻ lịch trên điện thoại */
-            .fc-event-main { padding: 4px !important; }
-            .event-on-calendar .evt-gv-desktop { display: none !important; }
-            .event-on-calendar .evt-gv-mobile { display: block !important; font-size: 0.85rem; font-weight: 700; white-space: normal; line-height: 1.2; text-shadow: 1px 1px 2px rgba(0,0,0,0.2); }
-            .event-on-calendar .evt-sub { display: none; }
-            .event-on-calendar .evt-time { display: none; } /* Ẩn thời gian nhưng vẫn giữ khung dọc để hiện tên Phòng */
         }
     </style>
 </head>
@@ -211,43 +220,18 @@
         </div>
     </div>
 
-    <!-- MODAL CHI TIẾT LỊCH DẠY LÝ THUYẾT -->
-    <div id="eventModal" class="modal-overlay hidden">
+    <!-- MODAL CHI TIẾT TỔ HỢP SỰ KIỆN -->
+    <div id="multiEventModal" class="modal-overlay hidden">
         <div class="modal-content">
-            <div class="modal-header">
-                <h3>Chi tiết Lịch dạy</h3>
-                <span style="cursor: pointer; font-weight: bold; font-size: 1.2rem;" onclick="document.getElementById('eventModal').classList.add('hidden')">X</span>
+            <div class="modal-header" id="multiEventModalHeader" style="background: var(--primary);">
+                <h3 id="multiEventModalTitle">Chi tiết Lịch</h3>
+                <span style="cursor: pointer; font-weight: bold; font-size: 1.2rem;" onclick="document.getElementById('multiEventModal').classList.add('hidden')">X</span>
             </div>
-            <div class="modal-body">
-                <p><strong>Khóa/Lớp:</strong> <span id="mdlClass" style="color: var(--primary); font-weight: bold;"></span></p>
-                <p><strong>Phòng học:</strong> <span id="mdlRoom" style="background: #fbbf24; color: #78350f; padding: 2px 6px; border-radius: 4px; font-weight: bold;"></span></p>
-                <p><strong>Môn học:</strong> <span id="mdlSubject"></span></p>
-                <p><strong>Nhiệm vụ:</strong> <span id="mdlTask"></span></p>
-                <p><strong>Giảng viên:</strong> <span id="mdlGv" style="color: var(--primary); font-weight: bold; font-size: 1.1rem;"></span></p>
-                <p><strong>Thời gian:</strong> <span id="mdlTime" style="font-weight: 600; color: #d97706;"></span></p>
-                <p style="margin-top: 15px; padding-top: 10px; border-top: 1px dashed var(--border);">
-                    <i class="fas fa-user-edit" style="color:#64748b;"></i> <strong>Người xếp lịch:</strong> <span id="mdlScheduler" style="color:#64748b; font-weight:bold;"></span>
-                </p>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-secondary" onclick="document.getElementById('eventModal').classList.add('hidden')">Đóng</button>
-                <button class="btn-danger hidden" id="btnDeleteEvent" onclick="deleteEvent()">Xóa khỏi lịch</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL CHI TIẾT TỔ HỢP BỆNH VIỆN -->
-    <div id="clinicalModal" class="modal-overlay hidden">
-        <div class="modal-content">
-            <div class="modal-header" style="background: #10b981;">
-                <h3>Chi tiết Lịch Bệnh viện</h3>
-                <span style="cursor: pointer; font-weight: bold; font-size: 1.2rem;" onclick="document.getElementById('clinicalModal').classList.add('hidden')">X</span>
-            </div>
-            <div class="modal-body" id="clinicalModalBody">
+            <div class="modal-body" id="multiEventModalBody">
                 <!-- Nội dung được đổ bằng JS -->
             </div>
             <div class="modal-footer">
-                <button class="btn-secondary" onclick="document.getElementById('clinicalModal').classList.add('hidden')">Đóng</button>
+                <button class="btn-secondary" onclick="document.getElementById('multiEventModal').classList.add('hidden')">Đóng</button>
             </div>
         </div>
     </div>
@@ -299,9 +283,21 @@
         let scheduledEvents = [];
         let clinicalSchedules = []; 
         let globalGroupedClinicals = {}; 
-        let currentClickedEventId = null;
+        
+        // Cần truy cập toàn cục khi xóa sự kiện từ bảng Modal
+        window.deleteSubEvent = async (id) => {
+            if(!id) return;
+            if(confirm("Bạn có chắc muốn xóa sự kiện này khỏi lịch? (Sự kiện sẽ được trả về kho)")) {
+                try {
+                    await deleteDoc(doc(db, "calendar_events", id));
+                    showToast("Đã xóa khỏi lịch!");
+                    document.getElementById('multiEventModal').classList.add('hidden');
+                } catch(e) {
+                    showToast("Lỗi xóa: " + e.message, "danger");
+                }
+            }
+        };
 
-        // Biến lưu trữ tạm thời khi Admin thả sự kiện xuống cần chọn phòng
         let pendingDropInfo = null;
 
         function showToast(message, type = 'success') {
@@ -314,7 +310,6 @@
             setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
         }
 
-        // Đổ danh sách phòng vào Modal
         function initRoomSelect() {
             const select = document.getElementById('roomSelect');
             select.innerHTML = '';
@@ -402,7 +397,7 @@
                 const hasAfternoonShift = teacherClinicals.some(c => c.shift.toLowerCase().includes('chiều') || c.shift.toLowerCase().includes('cả ngày'));
 
                 if (isMorningDrop && !hasMorningShift) {
-                    showToast(`Lỗi: Lịch Bệnh viện của GV ${gv} ngày này chỉ có ca Chiều!`, "danger");
+                    showToast(`Lỗi: Lịch Bệnh viện của GV ${gv} ngày này chỉ có ca Sáng!`, "danger");
                     valid = false; break;
                 }
                 if (!isMorningDrop && !hasAfternoonShift) {
@@ -413,43 +408,57 @@
             return valid;
         }
 
-        // HÀM KIỂM TRA TRÙNG LỊCH & TRÙNG PHÒNG THÔNG MINH
-        function hasOverlap(targetStart, targetEnd, gvStr, targetClass, targetTask, targetRoom, ignoreEventId) {
+        // HÀM KIỂM TRA TRÙNG LỊCH & TRÙNG PHÒNG (Bỏ qua ID của thẻ đang thao tác để không tự cản chính mình)
+        function hasOverlap(targetStart, targetEnd, gvStr, targetClass, targetTask, targetRoom, ignoreEventIds) {
+            let ignoreList = Array.isArray(ignoreEventIds) ? ignoreEventIds : [ignoreEventIds];
             let tStart = targetStart.getTime();
             let tEnd = targetEnd ? targetEnd.getTime() : tStart + 4 * 3600000;
             
-            let allEvents = calendar.getEvents();
+            let allSubEvents = [];
+            calendar.getEvents().forEach(e => {
+                if (e.extendedProps.type === 'grouped_normal') {
+                    allSubEvents.push(...e.extendedProps.events.map(subEv => ({
+                        ...subEv,
+                        start: e.start, 
+                        end: e.end      
+                    })));
+                } else if (e.extendedProps.type === 'normal') {
+                    allSubEvents.push({
+                        id: e.id,
+                        start: e.start,
+                        end: e.end,
+                        room: e.extendedProps.room,
+                        class: e.extendedProps.class,
+                        gv: e.extendedProps.gv,
+                        task: e.extendedProps.task
+                    });
+                }
+            });
             
             const blockingTasks = ['Lý thuyết', 'Thực hành', 'Thực tế', 'Coi thi'];
 
-            for (let e of allEvents) {
-                if (e.id === ignoreEventId) continue; 
+            for (let e of allSubEvents) {
+                if (ignoreList.includes(e.id)) continue; // Bỏ qua thẻ đang thao tác
                 
-                const props = e.extendedProps;
-                if (props.type === 'clinical_summary') continue; 
-                
-                let eStart = e.start.getTime();
-                let eEnd = e.end ? e.end.getTime() : eStart + 4 * 3600000;
+                let eStart = new Date(e.start).getTime();
+                let eEnd = e.end ? new Date(e.end).getTime() : eStart + 4 * 3600000;
                 
                 // NẾU TRÙNG GIỜ (Thời gian giao nhau)
                 if (tStart < eEnd && tEnd > eStart) {
-                    
-                    // 1. Kiểm tra TRÙNG PHÒNG: Khác lớp nhưng xài chung phòng => Cấm
-                    if (targetRoom && props.room && targetRoom !== 'Khác...' && props.room === targetRoom) {
+                    // 1. Kiểm tra TRÙNG PHÒNG
+                    if (targetRoom && e.room && targetRoom !== 'Khác...' && e.room === targetRoom) {
                         return { hasOverlap: true, reason: `Phòng ${targetRoom} đã có lớp khác học vào khung giờ này!` };
                     }
-
-                    // 2. Kiểm tra Trùng lịch Khóa học: 1 lớp không thể học 2 môn
-                    if (props.class === targetClass && blockingTasks.includes(targetTask) && blockingTasks.includes(props.task)) {
+                    // 2. Kiểm tra Trùng lịch Khóa học
+                    if (e.class === targetClass && blockingTasks.includes(targetTask) && blockingTasks.includes(e.task)) {
                         return { hasOverlap: true, reason: `Lớp ${targetClass} đã có lịch học/thi vào khung giờ này!` };
                     }
-                    
-                    // 3. Kiểm tra Trùng lịch Giảng viên: GV không thể dạy 2 nơi
+                    // 3. Kiểm tra Trùng lịch Giảng viên
                     let targetGVs = gvStr ? gvStr.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
-                    let eGVs = props.gv ? props.gv.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
+                    let eGVs = e.gv ? e.gv.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
                     let hasCommonGV = targetGVs.some(gv => eGVs.includes(gv));
                     
-                    if (hasCommonGV && blockingTasks.includes(targetTask) && blockingTasks.includes(props.task)) {
+                    if (hasCommonGV && blockingTasks.includes(targetTask) && blockingTasks.includes(e.task)) {
                         return { hasOverlap: true, reason: `Giảng viên bị trùng lịch dạy/coi thi khác!` };
                     }
                 }
@@ -512,7 +521,8 @@
                                 gv: eventEl.getAttribute('data-gv'),
                                 task: eventEl.getAttribute('data-task'),
                                 originalId: eventEl.getAttribute('data-original-id') || eventEl.getAttribute('data-id'),
-                                eventClass: eventEl.getAttribute('data-class')
+                                eventClass: eventEl.getAttribute('data-class'),
+                                type: 'normal'
                             }
                         };
                     }
@@ -545,54 +555,64 @@
                     
                     if (props.type === 'clinical_summary') {
                         return {
+                            html: `<div class="evt-clinical-dot" title="Click xem chi tiết Bệnh viện">BV</div>`
+                        };
+                    }
+
+                    // TÙY CHỈNH THẺ SỰ KIỆN GOM NHÓM (HIỂN THỊ DẠNG LIST NHƯ YÊU CẦU MỚI)
+                    if (props.type === 'grouped_normal') {
+                        let sTime = arg.event.start ? arg.event.start.toLocaleTimeString('vi-VN', {hour: 'numeric', minute:'2-digit', hour12: false}) : '';
+                        let eTime = '';
+                        if (arg.event.end) {
+                            eTime = arg.event.end.toLocaleTimeString('vi-VN', {hour: 'numeric', minute:'2-digit', hour12: false});
+                        } else if (arg.event.start) {
+                            let eObj = new Date(arg.event.start.getTime() + 4 * 60 * 60 * 1000);
+                            eTime = eObj.toLocaleTimeString('vi-VN', {hour: 'numeric', minute:'2-digit', hour12: false});
+                        }
+                        const timeStr = `${sTime}–${eTime}`;
+                        const count = props.events.length;
+                        
+                        let headerHtml = `<div class="evt-group-header">
+                                            <span>${timeStr} &nbsp;&bull;&nbsp; ${count} lớp</span>
+                                          </div>`;
+                        
+                        let itemsHtml = props.events.map(e => {
+                            let gvFull = e.gv || '';
+                            let clsTag = e.class === 'THS2025' ? '<span style="color:#0369a1">[THS2025]</span>' : '<span style="color:#b45309">[THS2026]</span>';
+                            
+                            let shortRoom = '';
+                            if (e.room && e.room !== 'Khác...') {
+                                shortRoom = e.room.replace('Phòng ', 'P').replace('Hội trường', 'HT');
+                            } else {
+                                shortRoom = '??';
+                            }
+                            
+                            return `
+                            <div class="evt-item">
+                                <div class="evt-item-row1">
+                                    <span class="evt-room-badge">${shortRoom}</span>
+                                    <span class="evt-gv-name">${clsTag} ${gvFull}</span>
+                                </div>
+                                <div class="evt-item-row2" title="${e.subject}">${e.subject}</div>
+                            </div>
+                            `;
+                        }).join('');
+
+                        let isMyEvent = props.events.some(e => e.gv && currentUserName && e.gv.includes(currentUserName));
+                        let borderLeftColor = isMyEvent ? '#ea580c' : 'var(--primary)';
+                        let bgColor = isMyEvent ? '#fff7ed' : 'white';
+
+                        return {
                             html: `
-                            <div class="evt-clinical-dot" title="Click xem chi tiết Bệnh viện">
-                                BV
+                            <div class="evt-group-container" style="background: ${bgColor}; border-left-color: ${borderLeftColor};">
+                                ${headerHtml}
+                                <div class="evt-items-list">${itemsHtml}</div>
                             </div>
                             `
                         };
                     }
-
-                    let sTime = arg.event.start ? arg.event.start.toLocaleTimeString('vi-VN', {hour: 'numeric', minute:'2-digit', hour12: false}) : '';
-                    let eTime = '';
-                    if (arg.event.end) {
-                        eTime = arg.event.end.toLocaleTimeString('vi-VN', {hour: 'numeric', minute:'2-digit', hour12: false});
-                    } else if (arg.event.start) {
-                        let eObj = new Date(arg.event.start.getTime() + 4 * 60 * 60 * 1000);
-                        eTime = eObj.toLocaleTimeString('vi-VN', {hour: 'numeric', minute:'2-digit', hour12: false});
-                    }
-                    const timeStr = `${sTime}-${eTime}`;
-                    
-                    let gvFull = props.gv || '';
-                    let gvShort = gvFull.split(/,|&/).map(n => n.trim().split(' ').pop()).join(', ');
-                    
-                    let clsRaw = props.class;
-                    let clsTag = clsRaw === 'THS2025' ? '<b style="color:#0369a1">[K25]</b> ' : (clsRaw === 'THS2026' ? '<b style="color:#b45309">[K26]</b> ' : '');
-                    
-                    // Rút gọn tên Phòng
-                    let shortRoom = '';
-                    if (props.room && props.room !== 'Khác...') {
-                        shortRoom = props.room.replace('Phòng ', 'P');
-                        if (shortRoom === 'Hội trường') shortRoom = 'HT';
-                    }
-                    let roomTag = shortRoom ? `<div class="evt-room" style="margin-top: 3px;">${shortRoom}</div>` : '';
-
-                    return {
-                        html: `
-                        <div class="event-on-calendar">
-                            <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 3px; margin-bottom: 4px;">
-                                <span class="evt-time">${timeStr}</span>
-                                ${roomTag}
-                            </div>
-                            <div class="evt-gv evt-gv-desktop">${clsTag}${gvFull}</div>
-                            <div class="evt-gv evt-gv-mobile">${clsTag}${gvShort}</div>
-                            <div class="evt-sub">${props.subject} (${props.task})</div>
-                        </div>
-                        `
-                    };
                 },
 
-                // BƯỚC 1: BẮT ĐẦU NHẬN SỰ KIỆN TỪ KHO
                 eventReceive: function(info) {
                     if (!isCalendarAdmin) { info.revert(); return; }
                     
@@ -601,83 +621,106 @@
                         info.revert(); return;
                     }
 
-                    // Tạm dừng việc lưu, mở Modal chọn phòng
                     pendingDropInfo = info;
-                    document.getElementById('roomSelect').value = ROOM_LIST[0]; // Reset phòng
+                    document.getElementById('roomSelect').value = ROOM_LIST[0]; 
                     document.getElementById('roomModal').classList.remove('hidden');
                 },
 
-                // DỜI LỊCH (DRAG ĐI CHỖ KHÁC) TRONG CÙNG KHUNG LỊCH
+                // DỜI LỊCH (KÉO THẢ NHÓM SANG KHUNG GIỜ KHÁC)
                 eventDrop: async function(info) {
                     if (!isCalendarAdmin) { info.revert(); return; }
-                    if (info.event.extendedProps.type === 'clinical_summary') {
+                    const props = info.event.extendedProps;
+                    
+                    if (props.type === 'clinical_summary') {
                         info.revert(); return; 
                     }
                     
-                    const props = info.event.extendedProps;
+                    if (props.type === 'grouped_normal') {
+                        const subEvents = props.events;
+                        
+                        // Kiểm tra quyền và logic cho từng sự kiện trong nhóm
+                        for (let e of subEvents) {
+                            if (e.scheduledByEmail && e.scheduledByEmail !== currentUserEmail && currentUserEmail !== 'hoangtran1483@gmail.com') {
+                                showToast(`Lỗi: Không thể dời lịch nhóm chứa môn do GV khác xếp!`, "danger");
+                                info.revert(); return;
+                            }
+                            if (!validateClinicalSchedule({start: info.event.start}, e.gv, e.subject)) {
+                                info.revert(); return;
+                            }
+                        }
 
-                    if (props.scheduledByEmail && props.scheduledByEmail !== currentUserEmail && currentUserEmail !== 'hoangtran1483@gmail.com') {
-                        showToast(`Lỗi: Bạn không thể dời lịch do giảng viên khác xếp!`, "danger");
-                        info.revert(); return;
-                    }
-                    
-                    if (!validateClinicalSchedule(info.event, props.gv, props.subject)) {
-                        info.revert(); return;
-                    }
+                        // Khi di chuyển cả nhóm, cần bỏ qua ID của TẤT CẢ các thẻ trong nhóm để tránh bị tự phát hiện trùng
+                        const groupIds = subEvents.map(ev => ev.id);
+                        for (let e of subEvents) {
+                            const overlapCheck = hasOverlap(info.event.start, info.event.end, e.gv, e.class, e.task, e.room, groupIds);
+                            if (overlapCheck.hasOverlap) {
+                                showToast(overlapCheck.reason, "danger");
+                                info.revert(); return;
+                            }
+                        }
 
-                    // Kiểm tra trùng phòng / trùng lớp / trùng GV (gửi kèm phòng cũ)
-                    const overlapCheck = hasOverlap(info.event.start, info.event.end, props.gv, props.class, props.task, props.room, info.event.id);
-                    if (overlapCheck.hasOverlap) {
-                        showToast(overlapCheck.reason, "danger");
-                        info.revert(); return;
-                    }
-
-                    try {
-                        await setDoc(doc(db, "calendar_events", info.event.id), { 
-                            start: info.event.startStr,
-                            end: info.event.endStr || null,
-                            allDay: info.event.allDay
-                        }, { merge: true });
-                        showToast("Đã dời lịch thành công!");
-                    } catch(e) {
-                        showToast("Lỗi dời lịch!", "danger");
-                        info.revert();
+                        try {
+                            let promises = subEvents.map(e => {
+                                return setDoc(doc(db, "calendar_events", e.id), { 
+                                    start: info.event.startStr,
+                                    end: info.event.endStr || null,
+                                    allDay: info.event.allDay
+                                }, { merge: true });
+                            });
+                            await Promise.all(promises);
+                            showToast("Đã dời toàn bộ lịch trong nhóm thành công!");
+                        } catch(err) {
+                            showToast("Lỗi dời lịch!", "danger");
+                            info.revert();
+                        }
                     }
                 },
 
-                // KÉO GIÃN THỜI GIAN LỊCH
+                // KÉO GIÃN THỜI GIAN NHÓM
                 eventResize: async function(info) {
                     if (!isCalendarAdmin) { info.revert(); return; }
-                    if (info.event.extendedProps.type === 'clinical_summary') {
-                        info.revert(); return;
-                    }
-                    
                     const props = info.event.extendedProps;
-
-                    if (props.scheduledByEmail && props.scheduledByEmail !== currentUserEmail && currentUserEmail !== 'hoangtran1483@gmail.com') {
-                        showToast(`Lỗi: Bạn không thể thay đổi thời lượng lịch do giảng viên khác xếp!`, "danger");
-                        info.revert(); return;
+                    
+                    if (props.type === 'clinical_summary') {
+                        info.revert(); return; 
                     }
                     
-                    if (!validateClinicalSchedule(info.event, props.gv, props.subject)) {
-                        info.revert(); return;
-                    }
+                    if (props.type === 'grouped_normal') {
+                        const subEvents = props.events;
+                        
+                        for (let e of subEvents) {
+                            if (e.scheduledByEmail && e.scheduledByEmail !== currentUserEmail && currentUserEmail !== 'hoangtran1483@gmail.com') {
+                                showToast(`Lỗi: Không thể đổi thời lượng nhóm chứa môn do GV khác xếp!`, "danger");
+                                info.revert(); return;
+                            }
+                            if (!validateClinicalSchedule({start: info.event.start}, e.gv, e.subject)) {
+                                info.revert(); return;
+                            }
+                        }
 
-                    const overlapCheck = hasOverlap(info.event.start, info.event.end, props.gv, props.class, props.task, props.room, info.event.id);
-                    if (overlapCheck.hasOverlap) {
-                        showToast(overlapCheck.reason, "danger");
-                        info.revert(); return;
-                    }
+                        const groupIds = subEvents.map(ev => ev.id);
+                        for (let e of subEvents) {
+                            const overlapCheck = hasOverlap(info.event.start, info.event.end, e.gv, e.class, e.task, e.room, groupIds);
+                            if (overlapCheck.hasOverlap) {
+                                showToast(overlapCheck.reason, "danger");
+                                info.revert(); return;
+                            }
+                        }
 
-                    try {
-                        await setDoc(doc(db, "calendar_events", info.event.id), { 
-                            start: info.event.startStr,
-                            end: info.event.endStr 
-                        }, { merge: true });
-                        showToast("Đã cập nhật thời lượng!");
-                    } catch(e) {
-                        showToast("Lỗi cập nhật thời lượng!", "danger");
-                        info.revert();
+                        try {
+                            let promises = subEvents.map(e => {
+                                return setDoc(doc(db, "calendar_events", e.id), { 
+                                    start: info.event.startStr,
+                                    end: info.event.endStr || null,
+                                    allDay: info.event.allDay
+                                }, { merge: true });
+                            });
+                            await Promise.all(promises);
+                            showToast("Đã cập nhật thời lượng cho nhóm!");
+                        } catch(err) {
+                            showToast("Lỗi cập nhật thời lượng!", "danger");
+                            info.revert();
+                        }
                     }
                 },
 
@@ -692,28 +735,16 @@
                             Có <b>${count}</b> nhóm sinh viên đi thực tập trong ngày hôm nay.<br>
                             <span class="tooltip-scheduler" style="color: #bae6fd; font-weight: normal; font-size: 0.8rem;"><i class="fas fa-hand-pointer"></i> Click để xem chi tiết từng Bệnh viện</span>
                         `;
-                    } else {
-                        let sTime = info.event.start ? info.event.start.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'}) : '';
-                        let eTime = '';
-                        if (info.event.end) {
-                            eTime = info.event.end.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'});
-                        } else if (info.event.start) {
-                            let eObj = new Date(info.event.start.getTime() + 4 * 60 * 60 * 1000);
-                            eTime = eObj.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'});
-                        }
-                        const dateStr = info.event.start ? info.event.start.toLocaleDateString('vi-VN', {day:'2-digit', month:'2-digit', year:'numeric'}) : '';
-                        
-                        let clsName = props.class === 'THS2025' ? 'Khóa 25-27' : (props.class === 'THS2026' ? 'Khóa 26-28' : props.class);
-
-                        tooltip.innerHTML = `
-                            <strong><i class="fas fa-book"></i> ${props.subject}</strong><br>
-                            Lớp: ${clsName} <br>
-                            Phòng học: <span style="color: #fbbf24; font-weight: bold;">${props.room || 'Chưa XĐ'}</span><br>
-                            Nhiệm vụ: ${props.task}<br>
-                            Giảng viên: ${props.gv}<br>
-                            Thời gian: ${sTime} - ${eTime} (${dateStr})<br>
-                            <span class="tooltip-scheduler"><i class="fas fa-user-edit"></i> Xếp bởi: ${props.scheduledByName || 'Admin'}</span>
-                        `;
+                    } else if (props.type === 'grouped_normal') {
+                        let html = `<strong><i class="fas fa-layer-group"></i> ${props.events.length} Lớp Học</strong><br>`;
+                        props.events.forEach(e => {
+                            let cName = e.class === 'THS2025' ? 'THS2025' : 'THS2026';
+                            html += `<div style="margin-top:6px; border-top:1px dashed rgba(255,255,255,0.2); padding-top:6px; line-height: 1.4;">
+                                <span style="color:#fbbf24; font-weight:bold;">${e.room || '??'}</span> | <span style="color:#bae6fd;">[${cName}] ${e.gv}</span><br>
+                                <span style="font-size:0.85rem;">${e.subject}</span>
+                            </div>`;
+                        });
+                        tooltip.innerHTML = html;
                     }
                     
                     tooltip.style.display = 'block';
@@ -731,6 +762,7 @@
                     info.el.addEventListener('mousemove', moveTooltip);
                     info.el._moveTooltip = moveTooltip; 
                 },
+
                 eventMouseLeave: function(info) {
                     const tooltip = document.getElementById('eventTooltip');
                     tooltip.style.display = 'none';
@@ -739,8 +771,13 @@
                     }
                 },
 
+                // MODAL HIỂN THỊ CHI TIẾT
                 eventClick: function(info) {
                     const props = info.event.extendedProps;
+                    const modal = document.getElementById('multiEventModal');
+                    const modalBody = document.getElementById('multiEventModalBody');
+                    const modalTitle = document.getElementById('multiEventModalTitle');
+                    const modalHeader = document.getElementById('multiEventModalHeader');
                     
                     if (props.type === 'clinical_summary') {
                         let dateObj = new Date(props.dateStr);
@@ -752,7 +789,7 @@
                             hospitalGroups[c.hospital].push(c);
                         });
 
-                        let html = `<div style="color: var(--primary); font-weight:bold; font-size:1.1rem; margin-bottom:15px; border-bottom: 2px solid var(--border); padding-bottom:10px;">
+                        let html = `<div style="color: #10b981; font-weight:bold; font-size:1.1rem; margin-bottom:15px; border-bottom: 2px solid var(--border); padding-bottom:10px;">
                                         Ngày ${dateVN}
                                     </div>`;
                         
@@ -776,43 +813,54 @@
                             html += `</div>`;
                         }
                         
-                        document.getElementById('clinicalModalBody').innerHTML = html;
-                        document.getElementById('clinicalModal').classList.remove('hidden');
+                        modalBody.innerHTML = html;
+                        modalTitle.innerText = "Chi tiết Lịch Bệnh viện";
+                        modalHeader.style.background = "#10b981";
+                        modal.classList.remove('hidden');
                         return;
                     }
 
-                    currentClickedEventId = info.event.id;
-                    let clsName = props.class === 'THS2025' ? 'ThS 25-27' : (props.class === 'THS2026' ? 'ThS 26-28' : props.class);
-                    document.getElementById('mdlClass').innerText = clsName || 'N/A';
-                    document.getElementById('mdlSubject').innerText = props.subject || '';
-                    document.getElementById('mdlGv').innerText = props.gv || '';
-                    document.getElementById('mdlTask').innerText = props.task || '';
-                    document.getElementById('mdlRoom').innerText = props.room || 'Chưa có phòng';
-                    document.getElementById('mdlScheduler').innerText = props.scheduledByName || 'Không xác định';
-                    
-                    let sTime = info.event.start ? info.event.start.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'}) : '';
-                    let eTime = '';
-                    if (info.event.end) {
-                        eTime = info.event.end.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'});
-                    } else if (info.event.start) {
-                        let eObj = new Date(info.event.start.getTime() + 4 * 60 * 60 * 1000);
-                        eTime = eObj.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'});
-                    }
-                    const dateStr = info.event.start ? info.event.start.toLocaleDateString('vi-VN', {weekday: 'long', day:'2-digit', month:'2-digit', year:'numeric'}) : '';
-                    document.getElementById('mdlTime').innerText = `${sTime} - ${eTime} (${dateStr})`;
+                    if (props.type === 'grouped_normal') {
+                        let sTime = info.event.start ? info.event.start.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'}) : '';
+                        let eTime = info.event.end ? info.event.end.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'}) : '';
+                        if (!eTime && info.event.start) {
+                            eTime = new Date(info.event.start.getTime() + 4*3600000).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'});
+                        }
+                        const dateStr = info.event.start ? info.event.start.toLocaleDateString('vi-VN', {weekday: 'long', day:'2-digit', month:'2-digit', year:'numeric'}) : '';
+                        
+                        let html = `<div style="color: var(--primary); font-weight:bold; font-size:1.1rem; margin-bottom:15px; border-bottom: 2px solid var(--border); padding-bottom:10px;">
+                                        ${sTime} - ${eTime} (${dateStr})
+                                    </div>`;
+                        
+                        props.events.forEach(e => {
+                            let clsName = e.class === 'THS2025' ? 'THS2025' : (e.class === 'THS2026' ? 'THS2026' : e.class);
+                            let canDelete = isCalendarAdmin && (!e.scheduledByEmail || e.scheduledByEmail === currentUserEmail || currentUserEmail === 'hoangtran1483@gmail.com');
+                            
+                            let delBtn = canDelete ? `<button class="btn-danger" style="padding:4px 10px; font-size:0.8rem;" onclick="deleteSubEvent('${e.id}')"><i class="fas fa-trash"></i> Trả về kho</button>` : '';
 
-                    if (isCalendarAdmin && (!props.scheduledByEmail || props.scheduledByEmail === currentUserEmail || currentUserEmail === 'hoangtran1483@gmail.com')) {
-                        document.getElementById('btnDeleteEvent').classList.remove('hidden');
-                    } else {
-                        document.getElementById('btnDeleteEvent').classList.add('hidden');
+                            html += `
+                            <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:12px; margin-bottom:12px; position:relative;">
+                                <div style="position:absolute; right:12px; top:12px;">${delBtn}</div>
+                                <p style="margin:0 0 5px 0;"><strong>Khóa/Lớp:</strong> <span style="color:var(--primary); font-weight:bold;">${clsName}</span></p>
+                                <p style="margin:0 0 5px 0;"><strong>Phòng học:</strong> <span style="background:#fbbf24; color:#78350f; padding:2px 6px; border-radius:4px; font-weight:bold;">${e.room || 'Chưa XĐ'}</span></p>
+                                <p style="margin:0 0 5px 0; padding-right:85px;"><strong>Môn học:</strong> ${e.subject}</p>
+                                <p style="margin:0 0 5px 0;"><strong>Nhiệm vụ:</strong> ${e.task}</p>
+                                <p style="margin:0 0 5px 0;"><strong>Giảng viên:</strong> <span style="color:var(--primary); font-weight:bold;">${e.gv}</span></p>
+                                <p style="margin:0; font-size:0.85rem; color:#64748b;"><i class="fas fa-user-edit"></i> Xếp bởi: ${e.scheduledByName || 'Admin'}</p>
+                            </div>
+                            `;
+                        });
+                        
+                        modalBody.innerHTML = html;
+                        modalTitle.innerText = "Chi tiết Tổ hợp Lịch dạy";
+                        modalHeader.style.background = "var(--primary)";
+                        modal.classList.remove('hidden');
                     }
-                    document.getElementById('eventModal').classList.remove('hidden');
                 }
             });
             calendar.render();
         }
 
-        // BƯỚC 2: XÁC NHẬN PHÒNG VÀ LƯU VÀO DATABASE
         window.confirmRoomSelection = async () => {
             if (!pendingDropInfo) return;
 
@@ -822,8 +870,8 @@
 
             document.getElementById('roomModal').classList.add('hidden');
 
-            // KIỂM TRA TRÙNG LỊCH (KÈM PHÒNG)
-            const overlapCheck = hasOverlap(info.event.start, info.event.end, props.gv, props.eventClass, props.task, selectedRoom, info.event.id);
+            // CẬP NHẬT: Thêm ID của sự kiện vừa kéo vào danh sách ignoreEventIds để không tự va chạm trùng lịch với chính nó!
+            const overlapCheck = hasOverlap(info.event.start, info.event.end, props.gv, props.eventClass, props.task, selectedRoom, [info.event.id]);
             if (overlapCheck.hasOverlap) {
                 showToast(overlapCheck.reason, "danger");
                 info.revert();
@@ -831,10 +879,7 @@
                 return;
             }
 
-            // Gán dữ liệu
             const newUniqueId = props.originalId + '_' + Date.now();
-            info.event.setProp('id', newUniqueId); 
-            info.event.setExtendedProp('room', selectedRoom); // Hiển thị tạm trên giao diện
 
             const eventData = {
                 id: newUniqueId, 
@@ -846,7 +891,7 @@
                 subject: props.subject,
                 gv: props.gv,
                 task: props.task,
-                room: selectedRoom, // Lưu phòng vào DB
+                room: selectedRoom, 
                 scheduledByEmail: currentUserEmail,
                 scheduledByName: currentUserName,
                 status: 'scheduled'
@@ -855,7 +900,7 @@
             try {
                 await setDoc(doc(db, "calendar_events", eventData.id), eventData);
                 showToast(`Đã xếp lịch thành công (${selectedRoom})!`);
-                info.event.remove(); // Xóa bản nháp trên giao diện, chờ dữ liệu trả về từ Firestore
+                info.event.remove(); 
             } catch(e) {
                 showToast("Lỗi khi lưu lịch: " + e.message, "danger");
                 info.revert(); 
@@ -863,7 +908,6 @@
             pendingDropInfo = null;
         };
 
-        // BƯỚC 2 (PHỤ): HỦY XẾP LỊCH NẾU KHÔNG CHỌN PHÒNG
         window.cancelRoomSelection = () => {
             if (pendingDropInfo) {
                 pendingDropInfo.revert();
@@ -904,42 +948,48 @@
             poolDiv.innerHTML = '';
             let unscheduledCount = 0;
 
-            let currentClassEvents = scheduledEvents.filter(e => e.status !== 'returned').map(e => {
-                const isMyEvent = e.gv && currentUserName && e.gv.includes(currentUserName);
-                
-                let bgColor = e.class === 'THS2026' ? '#0d9488' : '#0284c7'; 
-                let bdColor = e.class === 'THS2026' ? '#0f766e' : '#0369a1';
-                
-                if (isMyEvent) {
-                    bgColor = '#ea580c';
-                    bdColor = '#c2410c';
-                }
+            // BƯỚC GOM NHÓM (GROUPING): Tất cả các sự kiện cùng giờ được gộp làm 1 block
+            let scheduledEventsNormal = scheduledEvents.filter(e => e.status !== 'returned');
+            let groupedEvents = {};
 
-                return {
-                    id: e.id,
-                    title: e.title,
-                    start: e.start,
-                    end: e.end,
-                    allDay: e.allDay,
-                    backgroundColor: bgColor, 
-                    borderColor: bdColor,
-                    textColor: 'white',
-                    extendedProps: {
-                        class: e.class,
-                        subject: e.subject,
-                        gv: e.gv,
-                        task: e.task,
-                        room: e.room, // Kéo thông tin phòng từ DB ra
-                        scheduledByEmail: e.scheduledByEmail,
-                        scheduledByName: e.scheduledByName,
-                        type: 'normal',
-                        originalId: e.originalId || e.id
-                    }
-                };
+            scheduledEventsNormal.forEach(e => {
+                let sTime = new Date(e.start).getTime();
+                let eTime = e.end ? new Date(e.end).getTime() : sTime + 4 * 3600 * 1000;
+                let key = `${sTime}_${eTime}`;
+                
+                if (!groupedEvents[key]) {
+                    groupedEvents[key] = {
+                        start: e.start,
+                        end: e.end,
+                        allDay: e.allDay,
+                        events: []
+                    };
+                }
+                groupedEvents[key].events.push(e);
             });
+
+            let currentClassEvents = [];
+            for (let key in groupedEvents) {
+                let group = groupedEvents[key];
+                
+                // Set color to transparent so Custom HTML renders the full UI
+                currentClassEvents.push({
+                    id: 'group_' + key,
+                    start: group.start,
+                    end: group.end,
+                    allDay: group.allDay,
+                    backgroundColor: 'transparent',
+                    borderColor: 'transparent',
+                    textColor: '#0f172a',
+                    extendedProps: {
+                        type: 'grouped_normal',
+                        events: group.events
+                    }
+                });
+            }
             calendar.addEventSource(currentClassEvents);
 
-            // GOM NHÓM & TẠO CHẤM BỆNH VIỆN
+            // Bệnh viện
             globalGroupedClinicals = getClinicalEventsMap(clinicalSchedules); 
             let clinicalEvents = [];
             for (let dateStr in globalGroupedClinicals) {
@@ -1008,7 +1058,7 @@
                                     eventDiv.setAttribute('data-original-id', rTask.id); 
                                 }
 
-                                let classTag = cls === 'THS2025' ? '<span class="class-tag THS2025">Khóa 25</span>' : '<span class="class-tag THS2026">Khóa 26</span>';
+                                let classTag = cls === 'THS2025' ? '<span class="class-tag THS2025">THS2025</span>' : '<span class="class-tag THS2026">THS2026</span>';
 
                                 let rejectHtml = '';
                                 if (isRejected && rTask) {
@@ -1062,19 +1112,6 @@
                 btnToggle.classList.add('hidden');
             }
             setTimeout(() => { calendar.updateSize(); }, 50);
-        };
-
-        window.deleteEvent = async () => {
-            if(!currentClickedEventId) return;
-            if(confirm("Bạn có chắc muốn xóa sự kiện này khỏi lịch? (Sự kiện sẽ được trả về kho)")) {
-                try {
-                    await deleteDoc(doc(db, "calendar_events", currentClickedEventId));
-                    showToast("Đã xóa khỏi lịch!");
-                    document.getElementById('eventModal').classList.add('hidden');
-                } catch(e) {
-                    showToast("Lỗi xóa: " + e.message, "danger");
-                }
-            }
         };
 
     </script>
