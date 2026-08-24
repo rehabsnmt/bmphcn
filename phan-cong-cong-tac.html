@@ -170,8 +170,7 @@
             <div class="filter-controls">
                 <select id="filterMajor" onchange="window.renderTable()">
                     <option value="ALL">-- Chọn chuyên ngành --</option>
-                    <option value="Vật lý trị liệu">Vật lý trị liệu</option>
-                    <option value="Hoạt động trị liệu">Hoạt động trị liệu</option>
+                    <!-- Danh sách ngành tự động được thêm bởi JavaScript -->
                 </select>
                 
                 <select id="filterOrient" class="hidden" onchange="window.renderTable()">
@@ -402,6 +401,31 @@
             setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
         }
 
+        // TỰ ĐỘNG CẬP NHẬT SELECT CHUYÊN NGÀNH
+        window.updateMajorDropdown = () => {
+            let uniqueMajors = new Set();
+            subjectsData.forEach(s => {
+                if (currentClass === 'THS2025' && (!s.orientations || !s.orientations.includes("NC"))) return;
+                if (s.majorTag && s.majorTag !== 'ALL') {
+                    uniqueMajors.add(s.majorTag);
+                }
+            });
+
+            const filterMajor = document.getElementById('filterMajor');
+            const currentVal = filterMajor.value;
+            filterMajor.innerHTML = '<option value="ALL">-- Chọn chuyên ngành --</option>';
+            
+            Array.from(uniqueMajors).sort().forEach(major => {
+                filterMajor.innerHTML += `<option value="${major}">${major}</option>`;
+            });
+            
+            if (uniqueMajors.has(currentVal)) {
+                filterMajor.value = currentVal;
+            } else {
+                filterMajor.value = 'ALL';
+            }
+        };
+
         window.switchClass = (cls) => {
             currentClass = cls;
             document.querySelectorAll('.tab-btn').forEach(b => {
@@ -416,6 +440,8 @@
             } else {
                 filterOrient.classList.remove('hidden');
             }
+            
+            window.updateMajorDropdown();
             window.renderTable();
         };
 
@@ -456,7 +482,7 @@
                     });
                 }
                 
-                // SẮP XẾP MÔN HỌC: THEO NHÓM (GROUP) TRƯỚC -> THEO MÃ MÔN HỌC (ID)
+                // SẮP XẾP MÔN HỌC: THEO NHÓM TRƯỚC -> THEO MÃ MÔN HỌC (ID)
                 subjectsData = loadedSubs.sort((a, b) => {
                     let groupA = a.group || '';
                     let groupB = b.group || '';
@@ -472,7 +498,6 @@
                     return a.id.localeCompare(b.id);
                 });
 
-                // TÍNH TOÁN QUY ĐỔI SỐ BUỔI VÀ GÁN TAG CHUYÊN NGÀNH
                 subjectsData.forEach(sub => {
                     sub.theorySessions = (sub.theory || 0) * 3; 
                     
@@ -484,10 +509,18 @@
                     sub.totalSessions = sub.theorySessions + sub.practiceSessions;
                     
                     let grp = sub.group || '';
-                    if (grp.includes("Vật lý trị liệu")) sub.majorTag = "Vật lý trị liệu";
-                    else if (grp.includes("Hoạt động trị liệu")) sub.majorTag = "Hoạt động trị liệu";
-                    else if (grp.includes("Ngôn ngữ trị liệu")) sub.majorTag = "Ngôn ngữ trị liệu";
-                    else sub.majorTag = "ALL";
+                    let match = grp.match(/\(([^)]+)\)/);
+                    if (grp.includes("TỰ CHỌN") && match) {
+                        sub.majorTag = match[1].trim();
+                    } else if (grp.includes("Vật lý trị liệu")) {
+                        sub.majorTag = "Vật lý trị liệu";
+                    } else if (grp.includes("Hoạt động trị liệu")) {
+                        sub.majorTag = "Hoạt động trị liệu";
+                    } else if (grp.includes("Ngôn ngữ trị liệu")) {
+                        sub.majorTag = "Ngôn ngữ trị liệu";
+                    } else {
+                        sub.majorTag = "ALL";
+                    }
 
                     if (typeof sub.orientations === 'string') {
                         sub.orientations = sub.orientations.split(',').map(s => s.trim());
@@ -616,6 +649,7 @@
                 }
                 
                 await fetchExternalData(); 
+                window.updateMajorDropdown();
 
                 if (subjectsData.length === 0) {
                     document.getElementById('loadingScreen').innerHTML = "<i class='fas fa-exclamation-triangle'></i><br>Chưa có dữ liệu Danh sách Môn học trên hệ thống.";
@@ -667,12 +701,10 @@
             const fMajor = document.getElementById('filterMajor').value;
             const fOrient = document.getElementById('filterOrient').value;
             
-            // LỌC MÔN HỌC (ĐÃ BỎ ẨN NGÔN NGỮ TRỊ LIỆU)
             let filteredSubs = subjectsData.filter(s => {
                 if (currentClass === 'THS2025' && (!s.orientations || !s.orientations.includes("NC"))) return false;
                 if (fMajor !== 'ALL' && s.majorTag !== 'ALL' && s.majorTag !== fMajor) return false;
                 if (currentClass === 'THS2026' && fOrient !== 'ALL' && (!s.orientations || !s.orientations.includes(fOrient)) && s.id !== 'sub_99') return false;
-
                 return true;
             });
 
