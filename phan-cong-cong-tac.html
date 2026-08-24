@@ -468,40 +468,809 @@
 
         async function fetchExternalData() {
             try {
-                let snapSubjects = await getDocs(collection(db, "subjects"));
-                let loadedSubs = [];
-                
-                if (snapSubjects.empty) {
-                    showToast("Chưa có dữ liệu Danh sách Môn học trên hệ thống!", "danger");
-                } else {
-                    snapSubjects.forEach(doc => {
-                        let sub = doc.data();
-                        sub.id = doc.id;
-                        loadedSubs.push(sub);
-                    });
-                }
-                
-                // THUẬT TOÁN SẮP XẾP CHÍNH XÁC: THEO NHÓM TRƯỚC -> THEO ID TỪ NHỎ TỚI LỚN
-                subjectsData = loadedSubs.sort((a, b) => {
-                    let groupA = a.group || '';
-                    let groupB = b.group || '';
-                    
-                    let groupCompare = groupA.localeCompare(groupB, 'vi');
-                    if (groupCompare !== 0) return groupCompare;
+                // SỬ DỤNG DỮ LIỆU CỐ ĐỊNH TỪ FILE BẠN CUNG CẤP THAY VÌ LẤY TỪ DB
+                subjectsData = [
+                    {
+                        "id": "sub_1",
+                        "name": "Triết học",
+                        "credits": 3,
+                        "theory": 3,
+                        "practice": 0,
+                        "department": "BM KHXH-NV",
+                        "isPHCN": false,
+                        "orientations": [
+                            "NC",
+                            "UD"
+                        ],
+                        "group": "1. Kiến thức chung"
+                    },
+                    {
+                        "id": "sub_2",
+                        "name": "Ngoại ngữ",
+                        "credits": 2,
+                        "theory": 2,
+                        "practice": 0,
+                        "department": "BM Ngoại ngữ",
+                        "isPHCN": false,
+                        "orientations": [
+                            "NC",
+                            "UD"
+                        ],
+                        "group": "1. Kiến thức chung"
+                    },
+                    {
+                        "id": "sub_3",
+                        "name": "Sinh học phân tử",
+                        "credits": 2,
+                        "theory": 2,
+                        "practice": 0,
+                        "department": "TT Y sinh học phân tử",
+                        "isPHCN": false,
+                        "orientations": [
+                            "NC",
+                            "UD"
+                        ],
+                        "group": "2. Kiến thức cơ sở"
+                    },
+                    {
+                        "id": "sub_4",
+                        "name": "Y đức - Xã hội học",
+                        "credits": 2,
+                        "theory": 2,
+                        "practice": 0,
+                        "department": "BM Y đức",
+                        "isPHCN": false,
+                        "orientations": [
+                            "NC",
+                            "UD"
+                        ],
+                        "group": "2. Kiến thức cơ sở"
+                    },
+                    {
+                        "id": "sub_5",
+                        "name": "Phương pháp nghiên cứu khoa học",
+                        "credits": 2,
+                        "theory": 1,
+                        "practice": 1,
+                        "department": "TT GD Y học",
+                        "isPHCN": false,
+                        "orientations": [
+                            "NC",
+                            "UD"
+                        ],
+                        "group": "2. Kiến thức cơ sở"
+                    },
+                    {
+                        "id": "sub_6",
+                        "name": "Thống kê y học",
+                        "credits": 2,
+                        "theory": 1,
+                        "practice": 1,
+                        "department": "BM Thống kê Y học",
+                        "isPHCN": false,
+                        "orientations": [
+                            "NC",
+                            "UD"
+                        ],
+                        "group": "2. Kiến thức cơ sở"
+                    },
+                    {
+                        "id": "sub_7",
+                        "name": "Phương pháp dạy & học PHCN",
+                        "credits": 2,
+                        "theory": 1,
+                        "practice": 1,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "NC",
+                            "UD"
+                        ],
+                        "group": "3.1. Kiến thức ngành (bắt buộc)"
+                    },
+                    {
+                        "id": "sub_8",
+                        "name": "Quản lý & lãnh đạo PHCN",
+                        "credits": 2,
+                        "theory": 1,
+                        "practice": 1,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "NC",
+                            "UD"
+                        ],
+                        "group": "3.1. Kiến thức ngành (bắt buộc)"
+                    },
+                    {
+                        "id": "sub_9",
+                        "name": "Kỹ năng hướng dẫn lâm sàng",
+                        "credits": 2,
+                        "theory": 1,
+                        "practice": 1,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "NC",
+                            "UD"
+                        ],
+                        "group": "3.1. Kiến thức ngành (bắt buộc)"
+                    },
+                    {
+                        "id": "sub_10",
+                        "name": "Thực hành dựa trên chứng cứ",
+                        "credits": 2,
+                        "theory": 1,
+                        "practice": 1,
+                        "department": "TT GD Y học",
+                        "isPHCN": false,
+                        "orientations": [
+                            "NC",
+                            "UD"
+                        ],
+                        "group": "3.1. Kiến thức ngành (bắt buộc)"
+                    },
+                    {
+                        "id": "sub_11",
+                        "name": "VLTL Nhi nâng cao",
+                        "credits": 3,
+                        "theory": 1,
+                        "practice": 2,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "NC",
+                            "UD"
+                        ],
+                        "group": "3.2. Kiến thức ngành (tự chọn - Vật lý trị liệu)"
+                    },
+                    {
+                        "id": "sub_12",
+                        "name": "VLTL Thần kinh cơ nâng cao",
+                        "credits": 2,
+                        "theory": 1,
+                        "practice": 1,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "NC",
+                            "UD"
+                        ],
+                        "group": "3.2. Kiến thức ngành (tự chọn - Vật lý trị liệu)"
+                    },
+                    {
+                        "id": "sub_13",
+                        "name": "VLTL Cơ xương nâng cao",
+                        "credits": 2,
+                        "theory": 1,
+                        "practice": 1,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "NC",
+                            "UD"
+                        ],
+                        "group": "3.2. Kiến thức ngành (tự chọn - Vật lý trị liệu)"
+                    },
+                    {
+                        "id": "sub_14",
+                        "name": "VLTL Tim mạch - Hô hấp nâng cao",
+                        "credits": 2,
+                        "theory": 1,
+                        "practice": 1,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "NC"
+                        ],
+                        "group": "3.2. Kiến thức ngành (tự chọn - Vật lý trị liệu)"
+                    },
+                    {
+                        "id": "sub_15",
+                        "name": "Thực hành lâm sàng VLTL nâng cao 1",
+                        "credits": 3,
+                        "theory": 0,
+                        "practice": 3,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "NC"
+                        ],
+                        "group": "3.2. Kiến thức ngành (tự chọn - Vật lý trị liệu)"
+                    },
+                    {
+                        "id": "sub_16",
+                        "name": "Thực hành lâm sàng VLTL nâng cao 2",
+                        "credits": 3,
+                        "theory": 0,
+                        "practice": 3,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "NC"
+                        ],
+                        "group": "3.2. Kiến thức ngành (tự chọn - Vật lý trị liệu)"
+                    },
+                    {
+                        "id": "sub_17",
+                        "name": "Lãnh đạo & quản lý trong HĐTL",
+                        "credits": 3,
+                        "theory": 1,
+                        "practice": 2,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "NC"
+                        ],
+                        "group": "3.2. Kiến thức ngành (tự chọn - Hoạt động trị liệu)"
+                    },
+                    {
+                        "id": "sub_18",
+                        "name": "Thiết kế & đánh giá chương trình HĐTL",
+                        "credits": 3,
+                        "theory": 1,
+                        "practice": 2,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "NC",
+                            "UD"
+                        ],
+                        "group": "3.2. Kiến thức ngành (tự chọn - Hoạt động trị liệu)"
+                    },
+                    {
+                        "id": "sub_19",
+                        "name": "HĐTL & quản lý chấn thương",
+                        "credits": 3,
+                        "theory": 1,
+                        "practice": 2,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "NC",
+                            "UD"
+                        ],
+                        "group": "3.2. Kiến thức ngành (tự chọn - Hoạt động trị liệu)"
+                    },
+                    {
+                        "id": "sub_20",
+                        "name": "HĐTL trong sức khỏe tâm thần",
+                        "credits": 3,
+                        "theory": 1,
+                        "practice": 2,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "NC",
+                            "UD"
+                        ],
+                        "group": "3.2. Kiến thức ngành (tự chọn - Hoạt động trị liệu)"
+                    },
+                    {
+                        "id": "sub_21",
+                        "name": "HĐTL trong lão khoa",
+                        "credits": 3,
+                        "theory": 1,
+                        "practice": 2,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "NC",
+                            "UD"
+                        ],
+                        "group": "3.2. Kiến thức ngành (tự chọn - Hoạt động trị liệu)"
+                    },
+                    {
+                        "id": "sub_22",
+                        "name": "Rối loạn nuốt",
+                        "credits": 3,
+                        "theory": 2,
+                        "practice": 1,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "NC"
+                        ],
+                        "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)"
+                    },
+                    {
+                        "id": "sub_23",
+                        "name": "Rối loạn vận động tạo lời nói và nói lắp",
+                        "credits": 2,
+                        "theory": 1,
+                        "practice": 1,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "NC"
+                        ],
+                        "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)"
+                    },
+                    {
+                        "id": "sub_24",
+                        "name": "Thực hành lâm sàng rối loạn giọng",
+                        "credits": 2,
+                        "theory": 0,
+                        "practice": 2,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "NC"
+                        ],
+                        "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)"
+                    },
+                    {
+                        "id": "sub_25",
+                        "name": "Thực hành lâm sàng rối loạn ngôn ngữ thần kinh",
+                        "credits": 2,
+                        "theory": 0,
+                        "practice": 2,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "NC"
+                        ],
+                        "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)"
+                    },
+                    {
+                        "id": "sub_26",
+                        "name": "Thực hành lâm sàng người khuyết tật suốt đời",
+                        "credits": 2,
+                        "theory": 0,
+                        "practice": 2,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "NC"
+                        ],
+                        "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)"
+                    },
+                    {
+                        "id": "sub_27",
+                        "name": "Thực hành lâm sàng trẻ em rối loạn giao tiếp/nuốt",
+                        "credits": 2,
+                        "theory": 0,
+                        "practice": 2,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "NC"
+                        ],
+                        "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)"
+                    },
+                    {
+                        "id": "sub_28",
+                        "name": "Thực hành lâm sàng ca bệnh phức tạp",
+                        "credits": 2,
+                        "theory": 0,
+                        "practice": 2,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "NC"
+                        ],
+                        "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)"
+                    },
+                    {
+                        "id": "sub_29",
+                        "name": "Chuyên đề nâng cao PHCN 1",
+                        "credits": 3,
+                        "theory": 1,
+                        "practice": 2,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "NC"
+                        ],
+                        "group": "4. Chuyên đề nghiên cứu"
+                    },
+                    {
+                        "id": "sub_30",
+                        "name": "Chuyên đề nâng cao PHCN 2",
+                        "credits": 3,
+                        "theory": 1,
+                        "practice": 2,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "NC"
+                        ],
+                        "group": "4. Chuyên đề nghiên cứu"
+                    },
+                    {
+                        "id": "sub_31",
+                        "name": "Chuyên đề nâng cao PHCN 3",
+                        "credits": 3,
+                        "theory": 1,
+                        "practice": 2,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "NC"
+                        ],
+                        "group": "4. Chuyên đề nghiên cứu"
+                    },
+                    {
+                        "id": "sub_32",
+                        "name": "Chuyên đề nâng cao PHCN 4",
+                        "credits": 3,
+                        "theory": 1,
+                        "practice": 2,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "NC"
+                        ],
+                        "group": "4. Chuyên đề nghiên cứu"
+                    },
+                    {
+                        "id": "sub_33",
+                        "name": "Luận văn",
+                        "credits": 12,
+                        "theory": 0,
+                        "practice": 0,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "NC"
+                        ],
+                        "group": "5. Luận văn"
+                    },
+                    {
+                        "id": "sub_34",
+                        "name": "Thực hành hướng dẫn lâm sàng",
+                        "credits": 2,
+                        "theory": 1,
+                        "practice": 1,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "UD"
+                        ],
+                        "group": "3.1. Kiến thức ngành (bắt buộc)"
+                    },
+                    {
+                        "id": "sub_35",
+                        "name": "VLTL Tim mạch - Hô hấp nâng cao",
+                        "credits": 3,
+                        "theory": 1,
+                        "practice": 2,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "UD"
+                        ],
+                        "group": "3.2. Kiến thức ngành (tự chọn - Vật lý trị liệu)"
+                    },
+                    {
+                        "id": "sub_36",
+                        "name": "VLTL trong thể thao",
+                        "credits": 3,
+                        "theory": 1,
+                        "practice": 2,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "UD"
+                        ],
+                        "group": "3.2. Kiến thức ngành (tự chọn - Vật lý trị liệu)"
+                    },
+                    {
+                        "id": "sub_37",
+                        "name": "Ứng dụng công thái học trong VLTL",
+                        "credits": 4,
+                        "theory": 2,
+                        "practice": 2,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "UD"
+                        ],
+                        "group": "3.2. Kiến thức ngành (tự chọn - Vật lý trị liệu)"
+                    },
+                    {
+                        "id": "sub_38",
+                        "name": "Thực hành lâm sàng VLTL nâng cao 1",
+                        "credits": 4,
+                        "theory": 0,
+                        "practice": 4,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "UD"
+                        ],
+                        "group": "3.2. Kiến thức ngành (tự chọn - Vật lý trị liệu)"
+                    },
+                    {
+                        "id": "sub_39",
+                        "name": "Thực hành lâm sàng VLTL nâng cao 2",
+                        "credits": 4,
+                        "theory": 0,
+                        "practice": 4,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "UD"
+                        ],
+                        "group": "3.2. Kiến thức ngành (tự chọn - Vật lý trị liệu)"
+                    },
+                    {
+                        "id": "sub_40",
+                        "name": "Vấn đề chuyên môn trong HĐTL",
+                        "credits": 3,
+                        "theory": 1,
+                        "practice": 2,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "UD"
+                        ],
+                        "group": "3.2. Kiến thức ngành (tự chọn - Hoạt động trị liệu)"
+                    },
+                    {
+                        "id": "sub_41",
+                        "name": "Thực hành HĐTL 1",
+                        "credits": 3,
+                        "theory": 0,
+                        "practice": 3,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "UD"
+                        ],
+                        "group": "3.2. Kiến thức ngành (tự chọn - Hoạt động trị liệu)"
+                    },
+                    {
+                        "id": "sub_42",
+                        "name": "Thực hành HĐTL 2",
+                        "credits": 3,
+                        "theory": 0,
+                        "practice": 3,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "UD"
+                        ],
+                        "group": "3.2. Kiến thức ngành (tự chọn - Hoạt động trị liệu)"
+                    },
+                    {
+                        "id": "sub_43",
+                        "name": "Thực hành HĐTL 3",
+                        "credits": 3,
+                        "theory": 0,
+                        "practice": 3,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "UD"
+                        ],
+                        "group": "3.2. Kiến thức ngành (tự chọn - Hoạt động trị liệu)"
+                    },
+                    {
+                        "id": "sub_44",
+                        "name": "Rối loạn nuốt",
+                        "credits": 3,
+                        "theory": 2,
+                        "practice": 1,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "UD"
+                        ],
+                        "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)"
+                    },
+                    {
+                        "id": "sub_45",
+                        "name": "Rối loạn vận động tạo lời nói và nói lắp",
+                        "credits": 2,
+                        "theory": 1,
+                        "practice": 1,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "UD"
+                        ],
+                        "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)"
+                    },
+                    {
+                        "id": "sub_46",
+                        "name": "Rối loạn giao tiếp & nhận thức thần kinh",
+                        "credits": 2,
+                        "theory": 0,
+                        "practice": 2,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "UD"
+                        ],
+                        "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)"
+                    },
+                    {
+                        "id": "sub_47",
+                        "name": "Rối loạn từ khiếm khuyết/phẫu thuật đầu cổ",
+                        "credits": 2,
+                        "theory": 0,
+                        "practice": 2,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "UD"
+                        ],
+                        "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)"
+                    },
+                    {
+                        "id": "sub_48",
+                        "name": "Khuyết tật giao tiếp suốt đời & AAC",
+                        "credits": 2,
+                        "theory": 0,
+                        "practice": 2,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "UD"
+                        ],
+                        "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)"
+                    },
+                    {
+                        "id": "sub_49",
+                        "name": "Thính lực học & PHCN thính giác",
+                        "credits": 2,
+                        "theory": 0,
+                        "practice": 2,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "UD"
+                        ],
+                        "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)"
+                    },
+                    {
+                        "id": "sub_50",
+                        "name": "Quản lý ca bệnh phức tạp",
+                        "credits": 2,
+                        "theory": 0,
+                        "practice": 2,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "UD"
+                        ],
+                        "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)"
+                    },
+                    {
+                        "id": "sub_51",
+                        "name": "Thực hành lâm sàng rối loạn giọng",
+                        "credits": 2,
+                        "theory": 0,
+                        "practice": 2,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "UD"
+                        ],
+                        "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)"
+                    },
+                    {
+                        "id": "sub_52",
+                        "name": "Thực hành lâm sàng rối loạn ngôn ngữ thần kinh",
+                        "credits": 2,
+                        "theory": 0,
+                        "practice": 2,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "UD"
+                        ],
+                        "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)"
+                    },
+                    {
+                        "id": "sub_53",
+                        "name": "Thực hành lâm sàng người khuyết tật suốt đời",
+                        "credits": 2,
+                        "theory": 0,
+                        "practice": 2,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "UD"
+                        ],
+                        "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)"
+                    },
+                    {
+                        "id": "sub_54",
+                        "name": "Thực hành lâm sàng trẻ em rối loạn giao tiếp/nuốt",
+                        "credits": 2,
+                        "theory": 0,
+                        "practice": 2,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "UD"
+                        ],
+                        "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)"
+                    },
+                    {
+                        "id": "sub_55",
+                        "name": "Thực hành lâm sàng ca bệnh phức tạp",
+                        "credits": 2,
+                        "theory": 0,
+                        "practice": 2,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "UD"
+                        ],
+                        "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)"
+                    },
+                    {
+                        "id": "sub_56",
+                        "name": "Thực hành lâm sàng PHCN 1",
+                        "credits": 2,
+                        "theory": 0,
+                        "practice": 2,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "UD"
+                        ],
+                        "group": "4. Thực tập"
+                    },
+                    {
+                        "id": "sub_57",
+                        "name": "Thực hành lâm sàng PHCN 2",
+                        "credits": 2,
+                        "theory": 0,
+                        "practice": 2,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "UD"
+                        ],
+                        "group": "4. Thực tập"
+                    },
+                    {
+                        "id": "sub_58",
+                        "name": "Thực hành lâm sàng PHCN 3",
+                        "credits": 2,
+                        "theory": 0,
+                        "practice": 2,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "UD"
+                        ],
+                        "group": "4. Thực tập"
+                    },
+                    {
+                        "id": "sub_59",
+                        "name": "Đề án",
+                        "credits": 6,
+                        "theory": 0,
+                        "practice": 0,
+                        "department": "BM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "UD"
+                        ],
+                        "group": "5. Đề án"
+                    },
+                    {
+                        "id": "sub_60",
+                        "name": "Công việc chuyên môn khác",
+                        "credits": 0,
+                        "theory": 0,
+                        "practice": 0,
+                        "department": "BMBM PHCN",
+                        "isPHCN": true,
+                        "orientations": [
+                            "UD",
+                            "NC"
+                        ],
+                        "group": "6. Công việc khác"
+                    }
+                ];
 
-                    // Lấy phần số trong ID (hỗ trợ cả trường hợp ID là "sub_1" hoặc chỉ là "1")
-                    let numA = parseInt(String(a.id).replace(/\D/g, ''), 10);
-                    let numB = parseInt(String(b.id).replace(/\D/g, ''), 10);
-                    
-                    if (isNaN(numA)) numA = 99999;
-                    if (isNaN(numB)) numB = 99999;
-                    
-                    if (numA !== numB) return numA - numB;
-                    
-                    return String(a.id).localeCompare(String(b.id));
-                });
-
-                // TÍNH TOÁN QUY ĐỔI SỐ BUỔI VÀ NHÓM CHUYÊN NGÀNH ĐỘNG
+                // TÍNH TOÁN QUY ĐỔI SỐ BUỔI VÀ NHÓM CHUYÊN NGÀNH
                 subjectsData.forEach(sub => {
                     sub.theorySessions = (sub.theory || 0) * 3; 
                     
@@ -524,10 +1293,6 @@
                         sub.majorTag = "Ngôn ngữ trị liệu";
                     } else {
                         sub.majorTag = "ALL";
-                    }
-
-                    if (typeof sub.orientations === 'string') {
-                        sub.orientations = sub.orientations.split(',').map(s => s.trim());
                     }
                 });
 
@@ -562,873 +1327,3 @@
                 showToast("Lỗi mạng: Không tải được danh sách môn học!", "danger"); 
             }
         }
-
-        window.getCompletedSessions = (cls, subName, gv, task) => {
-            const now = new Date();
-            let count = 0;
-            calendarEventsDB.forEach(e => {
-                if (e.class === cls && e.subject === subName && e.gv === gv && e.task === task) {
-                    let eventEnd = e.end ? new Date(e.end) : new Date(new Date(e.start).getTime() + 4 * 3600000);
-                    if (eventEnd < now) { count++; }
-                }
-            });
-            return count;
-        };
-
-        function buildAllocationHTML(allocs, isProposed, subName, isThesis) {
-            if (!allocs || allocs.length === 0) return '';
-            
-            if (isThesis) {
-                let stuMap = {};
-                allocs.forEach(a => {
-                    if(!stuMap[a.student]) stuMap[a.student] = [];
-                    stuMap[a.student].push(a);
-                });
-                let htmlList = [];
-                for (let stu in stuMap) {
-                    let textArr = stuMap[stu].map(a => `<b>${a.gv}</b> <span style="color:#64748b; font-size:0.85rem;">(${a.role})</span>`);
-                    htmlList.push(`<div class="gv-allocation-text"><i class="fas fa-user-graduate" style="color:var(--primary);"></i> <b>${stu}</b>: ${textArr.join(' | ')}</div>`);
-                }
-                let content = htmlList.join('<hr style="border-top:1px dashed #cbd5e1; margin: 8px 0;">');
-                if (isProposed) return `<div class="proposal-box"><b style="color: #b45309;"><i class="fas fa-clock"></i> ĐỀ XUẤT CHỜ DUYỆT:</b><br>${content}</div>`;
-                return `<div>${content}</div>`;
-
-            } else {
-                let gvMap = {};
-                allocs.forEach(a => {
-                    if(!gvMap[a.gv]) gvMap[a.gv] = [];
-                    gvMap[a.gv].push(a);
-                });
-
-                let gvListDisplay = [];
-                for (let gv in gvMap) {
-                    let taskHtml = gvMap[gv].map(t => {
-                        let autoCompleted = window.getCompletedSessions(currentClass, subName, t.gv, t.task);
-                        let txt = `• [${t.task}] (${t.assigned} buổi) <span style="color:#16a34a; font-size:0.8rem; font-weight:bold;">[Đã dạy: ${autoCompleted}]</span>`;
-                        if(t.note) txt += ` <br><i style="color:#64748b; font-size:0.85rem; padding-left:10px;">Ghi chú: ${t.note}</i>`;
-                        return txt;
-                    }).join('<br>');
-                    gvListDisplay.push(`<div class="gv-allocation-text"><b style="color:var(--primary);">${gv}</b><br><div style="padding-left:10px;">${taskHtml}</div></div>`);
-                }
-                
-                let content = gvListDisplay.join('<hr style="border-top:1px dashed #cbd5e1; border-bottom:none; margin: 8px 0;">');
-                
-                if (isProposed) {
-                    return `<div class="proposal-box">
-                                <b style="color: #b45309; font-size: 0.85rem;"><i class="fas fa-clock"></i> BẢN ĐỀ XUẤT MỚI CHỜ DUYỆT:</b><br>
-                                ${content}
-                            </div>`;
-                }
-                return `<div>${content}</div>`;
-            }
-        }
-
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                try {
-                    const userDoc = await getDoc(doc(db, "users", user.uid));
-                    if (userDoc.exists()) {
-                        const data = userDoc.data();
-                        let prefix = data.degree === 'ThS' ? 'ThS. ' : (data.degree === 'TS' ? 'TS. ' : '');
-                        let currentUserName = `${prefix}${data.fullName}`;
-                        setTimeout(() => {
-                            const btnAuthNav = document.getElementById('btnAuthNav');
-                            if (btnAuthNav) {
-                                btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right:5px;"></i> ${currentUserName}`;
-                                btnAuthNav.href = "dashboard.html";
-                            }
-                        }, 300);
-                    }
-                } catch(e) {}
-
-                const email = user.email.toLowerCase();
-                const adminEmails = ['lethanhvan@ump.edu.vn', 'hoangtran1483@gmail.com'];
-                const managerEmails = ['phanthenguyenpt@ump.edu.vn', 'thduypt@ump.edu.vn'];
-                
-                if (adminEmails.includes(email)) isHOD = true;
-                if (managerEmails.includes(email)) isManager = true;
-
-                if (isHOD || isManager) {
-                    document.querySelector('.col-action').classList.remove('hidden');
-                }
-                
-                await fetchExternalData(); 
-                window.updateMajorDropdown();
-
-                if (subjectsData.length === 0) {
-                    document.getElementById('loadingScreen').innerHTML = "<i class='fas fa-exclamation-triangle'></i><br>Chưa có dữ liệu Danh sách Môn học trên hệ thống.";
-                    return;
-                }
-
-                document.getElementById('loadingScreen').classList.add('hidden');
-                document.getElementById('mainContent').classList.remove('hidden');
-                
-                onSnapshot(collection(db, "assignments"), (snapshot) => {
-                    assignmentsDB = {};
-                    snapshot.forEach(doc => { assignmentsDB[doc.id] = doc.data(); });
-                    window.renderTable(); 
-                });
-
-                onSnapshot(collection(db, "calendar_events"), (snapshot) => {
-                    calendarEventsDB = [];
-                    snapshot.forEach(doc => { calendarEventsDB.push(doc.data()); });
-                    window.renderTable();
-                });
-
-            } else {
-                window.location.href = "login.html";
-            }
-        });
-
-        window.toggleGroup = (groupClass, iconId) => {
-            const rows = document.querySelectorAll('.' + groupClass);
-            const icon = document.getElementById(iconId);
-            let isHidden = false;
-            rows.forEach(r => {
-                if(r.classList.contains('hidden')) { r.classList.remove('hidden'); isHidden = false; }
-                else { r.classList.add('hidden'); isHidden = true; }
-            });
-            if (isHidden) icon.parentElement.classList.add('group-collapsed');
-            else icon.parentElement.classList.remove('group-collapsed');
-        };
-
-        window.toggleMobileRow = (iconEl) => {
-            const tr = iconEl.closest('.subject-row');
-            tr.classList.toggle('expanded');
-        };
-
-        window.renderTable = () => {
-            const tbody = document.getElementById('tableBody');
-            tbody.innerHTML = '';
-            
-            const viewMode = document.getElementById('viewModeSelect').value;
-            const fMajor = document.getElementById('filterMajor').value;
-            const fOrient = document.getElementById('filterOrient').value;
-            
-            let filteredSubs = subjectsData.filter(s => {
-                if (currentClass === 'THS2025' && (!s.orientations || !s.orientations.includes("NC"))) return false;
-                if (fMajor !== 'ALL' && s.majorTag !== 'ALL' && s.majorTag !== fMajor) return false;
-                if (currentClass === 'THS2026' && fOrient !== 'ALL' && (!s.orientations || !s.orientations.includes(fOrient)) && s.id !== 'sub_99' && s.id !== 'sub_50' && s.id !== 'sub_60') return false; // Cho phép môn "Công việc chuyên môn khác" hiện
-                return true;
-            });
-
-            if (viewMode === 'STRUCT') {
-                const groupedMap = new Map();
-                filteredSubs.forEach(s => {
-                    let gName = s.group || 'Chưa phân nhóm';
-                    if(!groupedMap.has(gName)) groupedMap.set(gName, []);
-                    groupedMap.get(gName).push(s);
-                });
-
-                let stt = 1;
-                let gIdx = 0;
-                groupedMap.forEach((subsInGroup, groupName) => {
-                    const gClass = `grp-${gIdx}`;
-                    let groupTotal = 0;
-                    subsInGroup.forEach(s => groupTotal += (s.credits || 0));
-                    
-                    tbody.innerHTML += `<tr class="group-header" onclick="toggleGroup('${gClass}', 'icon-${gIdx}')"><td colspan="6" class="group-title"><i id="icon-${gIdx}" class="fas fa-chevron-down group-icon"></i> ${groupName} <span style="color:#b45309; font-size:0.9rem; margin-left: 10px;">(Tổng: ${groupTotal} TC)</span></td></tr>`;
-                    subsInGroup.forEach(sub => { appendSubjectRow(tbody, sub, gClass, stt++); });
-                    gIdx++;
-                });
-            } else {
-                const semData = {};
-                filteredSubs.forEach(sub => {
-                    const asg = (assignmentsDB[sub.id] && assignmentsDB[sub.id][currentClass]) || { semester: 'Chưa phân bổ', allocations: [] };
-                    // Đưa môn "Công việc chuyên môn khác" xuống cuối
-                    const isOtherTask = sub.name.toLowerCase().includes("công việc chuyên môn khác");
-                    const sem = isOtherTask ? 'Các Công Việc Khác' : (asg.semester || 'Chưa phân bổ');
-                    if(!semData[sem]) semData[sem] = [];
-                    semData[sem].push(sub);
-                });
-
-                const semOrder = ['Học kỳ 1', 'Học kỳ 2', 'Học kỳ 3', 'Học kỳ 4', 'Chưa phân bổ', 'Các Công Việc Khác'];
-                const semKeys = Object.keys(semData).sort((a, b) => {
-                    let idxA = semOrder.indexOf(a);
-                    let idxB = semOrder.indexOf(b);
-                    if(idxA === -1) idxA = 99;
-                    if(idxB === -1) idxB = 99;
-                    return idxA - idxB;
-                });
-
-                let stt = 1;
-                semKeys.forEach((semName, gIdx) => {
-                    const gClass = `sem-${gIdx}`;
-                    let semTotal = 0;
-                    semData[semName].forEach(s => semTotal += (s.credits || 0));
-                    
-                    tbody.innerHTML += `<tr class="group-header" onclick="toggleGroup('${gClass}', 'icon-sem-${gIdx}')"><td colspan="6" class="group-title"><i id="icon-sem-${gIdx}" class="fas fa-chevron-down group-icon"></i> ${semName} <span style="color:#b45309; font-size:0.9rem; margin-left: 10px;">(Tổng: ${semTotal} TC)</span></td></tr>`;
-                    semData[semName].forEach(sub => { appendSubjectRow(tbody, sub, gClass, stt++); });
-                });
-            }
-        };
-
-        function appendSubjectRow(tbody, sub, gClass, sttIndex) {
-            const asgDoc = assignmentsDB[sub.id] || {};
-            const asg = asgDoc[currentClass] || { semester: '', allocations: [], proposed_allocations: [] };
-            const isThesis = sub.name && (sub.name.includes("Luận văn") || sub.name.includes("Đề án"));
-            
-            let isProposed = asg.status === 'proposed';
-            let statusBadge = isProposed ? `<span class="proposal-badge" title="Đang chờ Trưởng BM duyệt">Chờ duyệt</span>` : '';
-            
-            let orientTag = '';
-            // Nhận diện nếu môn học được tách nhánh và khác môn Công việc khác
-            if (sub.orientations && sub.orientations.length === 1 && !sub.name.toLowerCase().includes("công việc chuyên môn khác")) {
-                const isUD = sub.orientations[0] === 'UD';
-                orientTag = `<span class="badge-orient ${isUD ? 'badge-ud' : 'badge-nc'}">[Hệ ${isUD ? 'Ứng dụng' : 'Nghiên cứu'}]</span>`;
-            }
-            
-            let creditsBadge = `<span class="badge-credits">${sub.credits || 0} TC</span>`;
-            
-            let gvHtml = '';
-            let progressHtml = '';
-            let completedLT_TH = 0;
-
-            let isBM = (sub.isPHCN === true || sub.isPHCN === "true" || sub.isPHCN === "TRUE");
-
-            if (isBM) {
-                let approvedHtml = buildAllocationHTML(asg.allocations, false, sub.name, isThesis);
-                let proposedHtml = '';
-                if (isProposed && asg.proposed_allocations && asg.proposed_allocations.length > 0) {
-                    proposedHtml = buildAllocationHTML(asg.proposed_allocations, true, sub.name, isThesis);
-                }
-                
-                gvHtml = approvedHtml + proposedHtml;
-                if (!gvHtml) gvHtml = '<span style="color:#94a3b8; font-style:italic;">Chưa phân công</span>';
-
-                if (asg.allocations && asg.allocations.length > 0) {
-                    if (isThesis) {
-                        let totalStudents = new Set();
-                        asg.allocations.forEach(a => totalStudents.add(a.student));
-                        progressHtml = `<span class="progress-text" style="color:var(--primary);">Đã phân công ${totalStudents.size} Học viên</span>`;
-                    } else {
-                        asg.allocations.forEach(t => {
-                            if (t.task === 'Lý thuyết' || t.task === 'Thực hành' || t.task === 'Thực tế') {
-                                completedLT_TH += window.getCompletedSessions(currentClass, sub.name, t.gv, t.task);
-                            }
-                        });
-                    }
-                }
-                
-                if (!isThesis) {
-                    if (sub.name.toLowerCase().includes("công việc chuyên môn khác")) {
-                        progressHtml = `<span style="color:#94a3b8; font-size:0.85rem;">Công việc khác</span>`;
-                    } else {
-                        const pct = sub.totalSessions > 0 ? Math.min(100, Math.round((completedLT_TH / sub.totalSessions) * 100)) : 100;
-                        let pColor = '#16a34a'; if (pct < 50) pColor = '#f59e0b'; if (pct === 0) pColor = '#e2e8f0';
-                        progressHtml = `<div class="progress-container"><div class="progress-bar" style="width: ${pct}%; background-color: ${pColor};"></div></div><span class="progress-text">${completedLT_TH} / ${sub.totalSessions} buổi (${pct}%)</span>`;
-                    }
-                }
-            } else {
-                gvHtml = `<span style="color:#64748b; font-weight: 600;">${sub.department || 'Đơn vị khác'}</span>`;
-                progressHtml = `<span style="color:#94a3b8; font-size:0.85rem;">Đơn vị khác</span>`;
-            }
-
-            let actionHtml = '';
-            if (isHOD || isManager) {
-                if (isBM) {
-                    let btnText = isHOD && isProposed ? 'Duyệt' : 'Phân công';
-                    let btnClass = isHOD && isProposed ? 'btn-success' : 'btn-outline';
-                    actionHtml = `<button class="${btnClass}" onclick="openAssignModal('${sub.id}')">${btnText}</button>`;
-                } else {
-                    actionHtml = `<button class="btn-outline" style="border-color:#94a3b8; color:#64748b;" onclick="openSemesterModal('${sub.id}')">Học kỳ</button>`;
-                }
-            }
-            let colActionDisplay = (isHOD || isManager) ? `<td align="center">${actionHtml}</td>` : '';
-
-            tbody.innerHTML += `
-                <tr class="subject-row ${gClass}">
-                    <td align="center" style="font-weight:bold; color:#94a3b8;">${sttIndex}</td>
-                    <td>
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div class="subject-link" onclick="openSubjectModal('${sub.id}')">${sub.name} ${orientTag} ${creditsBadge} ${statusBadge}</div>
-                            <div class="mobile-toggle-btn" onclick="toggleMobileRow(this)"><i class="fas fa-chevron-down"></i></div>
-                        </div>
-                    </td>
-                    <td style="font-weight:600; color:var(--text-dark);">${sub.name.toLowerCase().includes("công việc chuyên môn khác") ? '—' : (asg.semester || '—')}</td>
-                    <td>${gvHtml}</td>
-                    <td>${progressHtml}</td>
-                    ${colActionDisplay}
-                </tr>
-            `;
-        }
-
-        window.openSubjectModal = (id) => {
-            const sub = subjectsData.find(s => s.id === id);
-            
-            let displayName = sub.name;
-            if (sub.orientations && sub.orientations.length === 1 && !sub.name.toLowerCase().includes("công việc chuyên môn khác")) {
-                const isUD = sub.orientations[0] === 'UD';
-                displayName += isUD ? ' (Hệ Ứng dụng)' : ' (Hệ Nghiên cứu)';
-            }
-
-            document.getElementById('detName').innerText = displayName;
-            document.getElementById('detGroup').innerText = sub.group || 'Chưa có';
-            document.getElementById('detDept').innerText = sub.department || 'Chưa có';
-            document.getElementById('detCredits').innerText = sub.credits || 0;
-            document.getElementById('detTheory').innerText = sub.theory || 0;
-            document.getElementById('detTheorySessions').innerText = sub.theorySessions;
-            document.getElementById('detPractice').innerText = sub.practice || 0;
-            document.getElementById('detPracticeSessions').innerText = sub.practiceSessions;
-            
-            const noteEl = document.getElementById('detPracticeNote');
-            if (sub.name && sub.name.toLowerCase().includes("thực hành lâm sàng")) {
-                noteEl.innerText = "(Quy đổi Lâm sàng: 1 TC = 40 tiết = 8 buổi)";
-            } else if ((sub.practice || 0) > 0) {
-                noteEl.innerText = "(Quy đổi Thực hành Lab/Kỹ năng: 1 TC = 30 tiết = 6 buổi)";
-            } else {
-                noteEl.innerText = "";
-            }
-
-            document.getElementById('detTotal').innerText = sub.totalSessions;
-            
-            if (sub.schedule) {
-                document.getElementById('detScheduleContainer').classList.remove('hidden');
-                document.getElementById('detSchedule').innerHTML = sub.schedule;
-            } else {
-                document.getElementById('detScheduleContainer').classList.add('hidden');
-            }
-
-            document.getElementById('subjectModal').classList.remove('hidden');
-        };
-
-        window.openSemesterModal = (id) => {
-            const fMajor = document.getElementById('filterMajor').value;
-            const fOrient = document.getElementById('filterOrient').value;
-            
-            if (fMajor === 'ALL') {
-                showToast("Vui lòng Chọn cụ thể CHUYÊN NGÀNH trên thanh công cụ trước khi chọn học kỳ!", "danger");
-                return;
-            }
-            if (currentClass === 'THS2026' && fOrient === 'ALL') {
-                showToast("Vui lòng Chọn cụ thể ĐỊNH HƯỚNG trên thanh công cụ trước khi chọn học kỳ!", "danger");
-                return;
-            }
-
-            currentEditingSubId = id;
-            const sub = subjectsData.find(s => s.id === id);
-            const asg = (assignmentsDB[id] && assignmentsDB[id][currentClass]) || { semester: '' };
-            
-            document.getElementById('semName').innerText = `${sub.name} (Lớp: ${currentClass})`;
-            document.getElementById('semSemester').value = asg.semester;
-            document.getElementById('semesterModal').classList.remove('hidden');
-        };
-
-        window.saveSemesterOnly = async () => {
-            const semester = document.getElementById('semSemester').value;
-            try {
-                await setDoc(doc(db, "assignments", currentEditingSubId), { 
-                    [currentClass]: { semester: semester, allocations: [], proposed_allocations: [], status: 'approved' } 
-                }, { merge: true });
-                document.getElementById('semesterModal').classList.add('hidden');
-                showToast("Cập nhật học kỳ thành công!");
-            } catch (e) { showToast("Lỗi: " + e.message, "danger"); }
-        }
-
-        window.openAssignModal = (id) => {
-            const fMajor = document.getElementById('filterMajor').value;
-            const fOrient = document.getElementById('filterOrient').value;
-            
-            if (fMajor === 'ALL') {
-                showToast("Vui lòng Chọn cụ thể CHUYÊN NGÀNH trên thanh công cụ trước khi phân công!", "danger");
-                return;
-            }
-            if (currentClass === 'THS2026' && fOrient === 'ALL') {
-                showToast("Vui lòng Chọn cụ thể ĐỊNH HƯỚNG trên thanh công cụ trước khi phân công!", "danger");
-                return;
-            }
-
-            currentEditingSubId = id;
-            const sub = subjectsData.find(s => s.id === id);
-            const asg = (assignmentsDB[id] && assignmentsDB[id][currentClass]) || { semester: '', allocations: [], proposed_allocations: [], status: 'approved' };
-            const isProposed = asg.status === 'proposed';
-
-            if(sub.name && (sub.name.includes("Luận văn") || sub.name.includes("Đề án"))) {
-                document.getElementById('tasgName').innerText = `${sub.name} (Lớp: ${currentClass})`;
-                document.getElementById('tasgSemester').value = asg.semester || 'Học kỳ 4';
-                document.getElementById('thesisAllocContainer').innerHTML = '';
-                
-                let targetAllocations = asg.allocations;
-
-                const banner = document.getElementById('thesisProposalBanner');
-                const btnSave = document.getElementById('btnSubmitThesis');
-                if (isProposed) {
-                    targetAllocations = asg.proposed_allocations || [];
-                    banner.classList.remove('hidden');
-                    document.getElementById('thesisCurrentApprovedSection').classList.remove('hidden');
-                    document.getElementById('thesisCurrentApprovedContent').innerHTML = buildAllocationHTML(asg.allocations, false, sub.name, true) || '<i>Chưa có phân công nào.</i>';
-                    
-                    if (isHOD) {
-                        btnSave.innerText = "Duyệt & Lưu phân công";
-                        btnSave.classList.replace('btn-primary', 'btn-success');
-                    } else {
-                        btnSave.innerText = "Gửi đề xuất";
-                        btnSave.classList.replace('btn-success', 'btn-primary');
-                    }
-                } else {
-                    banner.classList.add('hidden');
-                    document.getElementById('thesisCurrentApprovedSection').classList.add('hidden');
-                    btnSave.innerText = isManager ? "Gửi đề xuất" : "Lưu phân công";
-                    btnSave.classList.replace('btn-success', 'btn-primary');
-                }
-
-                if (!targetAllocations || targetAllocations.length === 0) { 
-                    addStudentBlock(); 
-                } else {
-                    let stuMap = {};
-                    targetAllocations.forEach(a => {
-                        if (!stuMap[a.student]) stuMap[a.student] = [];
-                        stuMap[a.student].push(a);
-                    });
-                    for (let stu in stuMap) {
-                        const block = addStudentBlock(stu);
-                        const gvContainer = block.querySelector('.thesis-gv-container');
-                        stuMap[stu].forEach(a => {
-                            addGvToThesisBlock(gvContainer, a.gv, a.role);
-                        });
-                    }
-                }
-                document.getElementById('thesisAssignModal').classList.remove('hidden');
-
-            } else {
-                document.getElementById('asgName').innerText = `${sub.name} (Lớp: ${currentClass})`;
-                document.getElementById('asgLT').innerText = sub.theorySessions;
-                document.getElementById('asgTH').innerText = sub.practiceSessions;
-                
-                if (sub.name.toLowerCase().includes("công việc chuyên môn khác")) {
-                    document.getElementById('asgLimits').classList.add('hidden');
-                    document.getElementById('asgSemesterContainer').classList.add('hidden');
-                } else {
-                    document.getElementById('asgLimits').classList.remove('hidden');
-                    document.getElementById('asgSemesterContainer').classList.remove('hidden');
-                    document.getElementById('asgSemester').value = asg.semester;
-                }
-                
-                document.getElementById('allocContainer').innerHTML = '';
-                
-                let targetAllocations = asg.allocations;
-
-                const banner = document.getElementById('proposalBanner');
-                const btnSave = document.getElementById('btnSubmitAssign');
-                if (isProposed) {
-                    targetAllocations = asg.proposed_allocations || [];
-                    banner.classList.remove('hidden');
-                    document.getElementById('currentApprovedSection').classList.remove('hidden');
-                    document.getElementById('currentApprovedContent').innerHTML = buildAllocationHTML(asg.allocations, false, sub.name, false) || '<i>Chưa có phân công nào.</i>';
-                    
-                    if (isHOD) {
-                        btnSave.innerText = "Duyệt & Lưu phân công";
-                        btnSave.classList.replace('btn-primary', 'btn-success');
-                    } else {
-                        btnSave.innerText = "Gửi đề xuất";
-                        btnSave.classList.replace('btn-success', 'btn-primary');
-                    }
-                } else {
-                    banner.classList.add('hidden');
-                    document.getElementById('currentApprovedSection').classList.add('hidden');
-                    btnSave.innerText = isManager ? "Gửi đề xuất" : "Lưu phân công";
-                    btnSave.classList.replace('btn-success', 'btn-primary');
-                }
-
-                if (!targetAllocations || targetAllocations.length === 0) { 
-                    addGvBlock(); 
-                } else {
-                    let gvMap = {};
-                    targetAllocations.forEach(a => {
-                        if (!gvMap[a.gv]) gvMap[a.gv] = [];
-                        gvMap[a.gv].push(a);
-                    });
-                    for (let gv in gvMap) {
-                        const block = addGvBlock(gv);
-                        const taskContainer = block.querySelector('.task-container');
-                        gvMap[gv].forEach(t => {
-                            let autoCompleted = window.getCompletedSessions(currentClass, sub.name, t.gv, t.task);
-                            addTaskRow(taskContainer, t.task, t.assigned, autoCompleted, t.note);
-                        });
-                    }
-                }
-                
-                const blocks = document.querySelectorAll('#allocContainer .gv-block');
-                blocks.forEach(block => {
-                    const completedInputs = block.querySelectorAll('.inp-completed');
-                    let hasCompleted = false;
-                    completedInputs.forEach(inp => {
-                        if (parseInt(inp.value) > 0) hasCompleted = true;
-                    });
-                    if (hasCompleted) {
-                        const selGv = block.querySelector('.sel-gv');
-                        selGv.disabled = true;
-                        selGv.insertAdjacentHTML('afterend', `<input type="hidden" class="hidden-gv-val" value="${selGv.value}">`);
-                        
-                        const otherInput = block.querySelector('.inp-gv-other');
-                        if (otherInput) otherInput.disabled = true;
-                        
-                        const btnDeleteGv = block.querySelector('.btn-delete-gv');
-                        if(btnDeleteGv) {
-                            btnDeleteGv.style.opacity = '0.5';
-                            btnDeleteGv.style.cursor = 'not-allowed';
-                            btnDeleteGv.onclick = () => showToast('Không thể xóa giảng viên đã có nhiệm vụ hoàn thành!', 'danger');
-                        }
-                    }
-                });
-
-                document.getElementById('assignModal').classList.remove('hidden');
-            }
-        };
-
-        window.addGvBlock = (gv = '') => {
-            const container = document.getElementById('allocContainer');
-            const block = document.createElement('div');
-            block.className = 'gv-block';
-            
-            const gvOptions = window.getGvOptionsHtml(gv);
-            
-            block.innerHTML = `
-                <div class="gv-block-header">
-                    <div style="flex: 1;">
-                        <span class="alloc-label" style="margin-bottom: 5px;">Chọn Giảng viên phụ trách:</span>
-                        <select class="sel-gv" style="width: 100%;" onchange="checkOtherGV(this)">${gvOptions.html}</select>
-                        <input type="text" class="inp-gv-other ${gvOptions.isCustom ? '' : 'hidden'}" placeholder="Nhập tên GV..." value="${gvOptions.isCustom ? gv : ''}" style="width: 100%; margin-top: 5px;">
-                    </div>
-                    <button class="btn-danger btn-delete-gv" style="margin-top: 15px;" onclick="this.closest('.gv-block').remove()">Xóa GV</button>
-                </div>
-                <div class="task-container"></div>
-                <button class="btn-outline" style="margin-top: 10px;" onclick="addTaskRow(this.previousElementSibling)">+ Thêm Nhiệm vụ</button>
-            `;
-            container.appendChild(block);
-            if(!gv) addTaskRow(block.querySelector('.task-container')); 
-            return block;
-        };
-
-        window.addTaskRow = (taskContainer, task = '', assigned = '', completed = 0, note = '') => {
-            const row = document.createElement('div');
-            row.className = 'task-row';
-            
-            const isCompleted = parseInt(completed) > 0;
-            const minAssigned = isCompleted ? parseInt(completed) : 1;
-            const taskSelectAttr = isCompleted ? 'disabled' : '';
-
-            let taskOpts = '<option value="">-- Chọn --</option>';
-            taskOptions.forEach(t => { taskOpts += `<option value="${t}" ${task === t ? 'selected' : ''}>${t}</option>`; });
-
-            const deleteBtnHtml = isCompleted 
-                ? `<button class="btn-danger" style="padding: 6px 12px; opacity: 0.5; cursor: not-allowed;" onclick="showToast('Nhiệm vụ này đã có buổi dạy, không thể xóa!', 'danger')" title="Đã có buổi dạy, không thể xóa">Xóa</button>`
-                : `<button class="btn-danger" style="padding: 6px 12px;" onclick="this.parentElement.parentElement.remove()" title="Xóa nhiệm vụ">Xóa</button>`;
-
-            row.innerHTML = `
-                <div style="flex: 1.5; min-width: 130px;">
-                    <span class="alloc-label">Loại công việc</span>
-                    <select class="sel-task" ${taskSelectAttr}>${taskOpts}</select>
-                    ${isCompleted ? `<input type="hidden" class="hidden-task-val" value="${task}">` : ''}
-                </div>
-                <div style="flex: 1; min-width: 90px;">
-                    <span class="alloc-label">Số buổi</span>
-                    <input type="number" class="inp-assigned" value="${assigned}" min="${minAssigned}" onchange="if(this.value < ${minAssigned}) { this.value = ${minAssigned}; showToast('Số buổi phân công không thể nhỏ hơn số buổi đã dạy (${minAssigned})', 'danger'); }">
-                </div>
-                <div style="flex: 1; min-width: 90px;" title="Tự động tính từ Lịch Công Tác">
-                    <span class="alloc-label">Hoàn thành</span>
-                    <input type="number" class="inp-completed" value="${completed}" readonly>
-                </div>
-                <div style="flex: 2; min-width: 150px;">
-                    <span class="alloc-label">Ghi chú</span>
-                    <input type="text" class="inp-note" placeholder="Tùy chọn..." value="${note}">
-                </div>
-                <div style="flex: 0; padding-bottom: 2px;">
-                    ${deleteBtnHtml}
-                </div>
-            `;
-            taskContainer.appendChild(row);
-        };
-
-        window.saveAssignment = async () => {
-            const currentSub = subjectsData.find(s => s.id === currentEditingSubId);
-            const semester = currentSub.name.toLowerCase().includes("công việc chuyên môn khác") ? 'Tất cả' : document.getElementById('asgSemester').value;
-            
-            const blocks = document.querySelectorAll('#allocContainer .gv-block');
-            let allocations = [];
-            
-            let sumLT = 0, sumTH = 0;
-            const externalGVsToSave = new Set();
-            let hasError = false;
-            
-            for (let block of blocks) {
-                const sel = block.querySelector('.sel-gv');
-                let gv = '';
-                if (sel.disabled) {
-                    gv = block.querySelector('.hidden-gv-val') ? block.querySelector('.hidden-gv-val').value : sel.value;
-                } else {
-                    gv = sel.value === 'OTHER' ? block.querySelector('.inp-gv-other').value.trim() : sel.value;
-                }
-                
-                if (!gv) continue;
-
-                const taskRows = block.querySelectorAll('.task-row');
-                for (let row of taskRows) {
-                    let task = row.querySelector('.sel-task').value;
-                    if (!task && row.querySelector('.hidden-task-val')) task = row.querySelector('.hidden-task-val').value;
-
-                    const assigned = parseInt(row.querySelector('.inp-assigned').value);
-                    const completed = parseInt(row.querySelector('.inp-completed').value) || 0;
-                    const note = row.querySelector('.inp-note').value.trim();
-                    
-                    if (!task || isNaN(assigned) || assigned < completed) { hasError = true; break; }
-
-                    allocations.push({ gv, task, assigned, completed, note });
-                    
-                    if (task === 'Lý thuyết') sumLT += assigned;
-                    if (task === 'Thực hành' || task === 'Thực tế') sumTH += assigned;
-                    if (!internalLecturers.includes(gv) && !visitingLecturers.includes(gv)) externalGVsToSave.add(gv);
-                }
-            }
-
-            if (hasError) { showToast("Dữ liệu nhập không hợp lệ!", "danger"); return; }
-            if (!currentSub.name.toLowerCase().includes("công việc chuyên môn khác")) {
-                if (sumLT > currentSub.theorySessions) { showToast(`Số buổi Lý thuyết (${sumLT}) vượt quá tối đa (${currentSub.theorySessions})!`, "danger"); return; }
-                if (sumTH > currentSub.practiceSessions) { showToast(`Số buổi Thực hành (${sumTH}) vượt quá tối đa (${currentSub.practiceSessions})!`, "danger"); return; }
-            }
-
-            for (let gv of externalGVsToSave) { try { await setDoc(doc(collection(db, "visiting_lecturers")), { name: gv }); } catch(e){} }
-
-            const assignStatus = isHOD ? 'approved' : 'proposed';
-            let updateData = { semester: semester, status: assignStatus };
-            if (isHOD) {
-                updateData.allocations = allocations;
-                updateData.proposed_allocations = [];
-            } else {
-                updateData.proposed_allocations = allocations;
-            }
-
-            try {
-                await setDoc(doc(db, "assignments", currentEditingSubId), { [currentClass]: updateData }, { merge: true });
-                document.getElementById('assignModal').classList.add('hidden');
-                showToast(isHOD ? "Lưu phân công thành công!" : "Đã gửi đề xuất thành công!");
-            } catch (e) { showToast("Lỗi khi lưu: " + e.message, "danger"); }
-        };
-
-        window.addStudentBlock = (student = '') => {
-            const container = document.getElementById('thesisAllocContainer');
-            const block = document.createElement('div');
-            block.className = 'gv-block';
-            
-            let isCustomStudent = student && !learnersList.find(l => l.name === student);
-            let studentOpts = '<option value="">-- Chọn Học viên --</option>';
-            learnersList.forEach(l => {
-                if(l.classId === currentClass || l.name === student) {
-                    studentOpts += `<option value="${l.name}" ${l.name === student ? 'selected' : ''}>${l.name}</option>`;
-                }
-            });
-            studentOpts += `<option value="OTHER" ${isCustomStudent ? 'selected' : ''}>+ Nhập tên khác...</option>`;
-
-            block.innerHTML = `
-                <div class="gv-block-header" style="background:#e0f2fe; padding:10px; border-radius:6px; margin-bottom:10px;">
-                    <div style="flex: 1;">
-                        <span class="alloc-label" style="margin-bottom: 5px;">Chọn Học viên thực hiện:</span>
-                        <div style="display: flex; gap: 5px;">
-                            <select class="sel-student" style="flex: 1;" onchange="checkOtherStudent(this)">${studentOpts}</select>
-                            <button class="btn-info" onclick="showThesisInfo(this)" title="Xem thông tin Đề tài"><i class="fas fa-info-circle"></i></button>
-                        </div>
-                        <input type="text" class="inp-student-other ${isCustomStudent ? '' : 'hidden'}" placeholder="Nhập tên HV..." value="${isCustomStudent ? student : ''}" style="width: 100%; margin-top: 5px;">
-                    </div>
-                    <button class="btn-danger" style="margin-top: 15px;" onclick="this.closest('.gv-block').remove()">Xóa HV</button>
-                </div>
-                <div class="thesis-gv-container" style="padding-left:15px; border-left: 2px solid #cbd5e1; margin-left: 5px;"></div>
-                <button class="btn-outline" style="margin-top: 10px; margin-left: 15px;" onclick="addGvToThesisBlock(this.previousElementSibling)">+ Thêm Giảng viên HD</button>
-            `;
-            container.appendChild(block);
-            if(!student) addGvToThesisBlock(block.querySelector('.thesis-gv-container')); 
-            return block;
-        };
-
-        window.addGvToThesisBlock = (container, gv = '', role = 'GVHD1') => {
-            const row = document.createElement('div');
-            row.className = 'task-row'; 
-            
-            const gvOptions = window.getGvOptionsHtml(gv);
-
-            row.innerHTML = `
-                <div style="flex: 2; min-width:180px;">
-                    <span class="alloc-label">Giảng viên Hướng dẫn</span>
-                    <select class="sel-gv" style="width:100%;" onchange="checkOtherGV(this)">${gvOptions.html}</select>
-                    <input type="text" class="inp-gv-other ${gvOptions.isCustom ? '' : 'hidden'}" placeholder="Nhập tên GV..." value="${gvOptions.isCustom ? gv : ''}" style="width: 100%; margin-top: 5px;">
-                </div>
-                <div style="flex: 1.5; min-width:120px;">
-                    <span class="alloc-label">Vai trò</span>
-                    <select class="sel-role">
-                        <option value="GVHD1" ${role === 'GVHD1' ? 'selected' : ''}>GVHD Chính (1)</option>
-                        <option value="GVHD2" ${role === 'GVHD2' ? 'selected' : ''}>GVHD Phụ (2)</option>
-                    </select>
-                </div>
-                <div style="flex: 0; padding-bottom: 2px;">
-                    <button class="btn-danger" style="padding: 6px 12px;" onclick="this.parentElement.parentElement.remove()">Xóa</button>
-                </div>
-            `;
-            container.appendChild(row);
-        };
-
-        window.checkOtherStudent = (selectEl) => {
-            const inputEl = selectEl.parentElement.nextElementSibling;
-            if(selectEl.value === 'OTHER') {
-                inputEl.classList.remove('hidden');
-            } else {
-                inputEl.classList.add('hidden');
-            }
-        };
-
-        window.showThesisInfo = (btn) => {
-            const block = btn.closest('.gv-block');
-            const selStudent = block.querySelector('.sel-student');
-            const studentName = selStudent.value === 'OTHER' ? block.querySelector('.inp-student-other').value.trim() : selStudent.value;
-            
-            if(!studentName) {
-                showToast("Vui lòng chọn Học viên trước!", "danger");
-                return;
-            }
-
-            const thesis = thesesList.find(t => t.author === studentName);
-            if(!thesis) {
-                showToast("Chưa có dữ liệu Đề tài cho Học viên này trên hệ thống!", "danger");
-                return;
-            }
-
-            document.getElementById('thesisDetailContent').innerHTML = `
-                <p><strong>Học viên:</strong> ${thesis.author} (${thesis.studentClass || 'N/A'})</p>
-                <p><strong>Đề tài:</strong> ${thesis.title}</p>
-                <p><strong>Chuyên ngành:</strong> ${thesis.major}</p>
-                <p><strong>Hướng nghiên cứu:</strong> ${thesis.category}</p>
-                <p><strong>GVHD (Hệ thống dự kiến ban đầu):</strong> <span style="color: var(--primary); font-weight: bold;">${thesis.advisor}</span></p>
-            `;
-            document.getElementById('thesisDetailModal').classList.remove('hidden');
-        };
-
-        window.saveThesisAssignment = async () => {
-            const semester = document.getElementById('tasgSemester').value;
-            const blocks = document.querySelectorAll('#thesisAllocContainer .gv-block');
-            let allocations = [];
-            const externalGVsToSave = new Set();
-            let hasError = false;
-            
-            for (let block of blocks) {
-                const selStu = block.querySelector('.sel-student');
-                const student = selStu.value === 'OTHER' ? block.querySelector('.inp-student-other').value.trim() : selStu.value;
-                if (!student) continue;
-
-                const gvRows = block.querySelectorAll('.thesis-gv-container .task-row');
-                for (let row of gvRows) {
-                    const selGv = row.querySelector('.sel-gv');
-                    let gv = selGv.value === 'OTHER' ? row.querySelector('.inp-gv-other').value.trim() : selGv.value;
-                    const role = row.querySelector('.sel-role').value;
-                    
-                    if (!gv) { hasError = true; break; }
-                    
-                    allocations.push({ gv: gv, student: student, role: role, task: 'Hướng dẫn LV, LATS' });
-                    if (!internalLecturers.includes(gv) && !visitingLecturers.includes(gv)) externalGVsToSave.add(gv);
-                }
-            }
-
-            if (hasError) { showToast("Vui lòng nhập đầy đủ Tên Học viên và Giảng viên!", "danger"); return; }
-
-            for (let gv of externalGVsToSave) { try { await setDoc(doc(collection(db, "visiting_lecturers")), { name: gv }); } catch(e){} }
-
-            const assignStatus = isHOD ? 'approved' : 'proposed';
-            let updateData = { semester: semester, status: assignStatus };
-            if (isHOD) {
-                updateData.allocations = allocations;
-                updateData.proposed_allocations = [];
-            } else {
-                updateData.proposed_allocations = allocations;
-            }
-
-            try {
-                await setDoc(doc(db, "assignments", currentEditingSubId), { [currentClass]: updateData }, { merge: true });
-                document.getElementById('thesisAssignModal').classList.add('hidden');
-                showToast(isHOD ? "Lưu phân công HD Luận văn thành công!" : "Đã gửi đề xuất thành công!");
-            } catch (e) { showToast("Lỗi khi lưu: " + e.message, "danger"); }
-        };
-
-        // --- DASHBOARD THỐNG KÊ LẤY TỪ DB THỰC TẾ ---
-        window.openMiniDashboard = () => {
-            const fMajor = document.getElementById('filterMajor').value;
-            const fOrient = document.getElementById('filterOrient').value;
-            
-            if (fMajor === 'ALL') {
-                showToast("Vui lòng Chọn cụ thể CHUYÊN NGÀNH để xem Dashboard chính xác!", "danger");
-                return;
-            }
-            if (currentClass === 'THS2026' && fOrient === 'ALL') {
-                showToast("Vui lòng Chọn cụ thể ĐỊNH HƯỚNG để xem Dashboard chính xác!", "danger");
-                return;
-            }
-
-            let filterDesc = currentClass === 'THS2025' ? 'Lớp THS2025' : 'Lớp THS2026';
-            if (fMajor !== 'ALL') filterDesc += ` - ${fMajor}`;
-            if (currentClass === 'THS2026' && fOrient !== 'ALL') {
-                filterDesc += ` - Hướng ${fOrient === 'UD' ? 'Ứng dụng' : 'Nghiên cứu'}`;
-            } else if (currentClass === 'THS2025') {
-                filterDesc += ` - Hướng Nghiên cứu`;
-            }
-
-            document.getElementById('dashClassName').innerText = `(${filterDesc})`;
-            
-            let stats = { "Học kỳ 1": 0, "Học kỳ 2": 0, "Học kỳ 3": 0, "Học kỳ 4": 0, "Chưa phân bổ": 0 };
-            
-            let filteredSubs = subjectsData.filter(s => {
-                if (currentClass === 'THS2025' && (!s.orientations || !s.orientations.includes("NC"))) return false;
-                if (fMajor !== 'ALL' && s.majorTag !== 'ALL' && s.majorTag !== fMajor) return false;
-                if (currentClass === 'THS2026' && fOrient !== 'ALL' && (!s.orientations || !s.orientations.includes(fOrient)) && !s.name.toLowerCase().includes('công việc chuyên môn khác')) return false;
-                return true;
-            });
-
-            let total = 0;
-            filteredSubs.forEach(sub => {
-                if (!sub.name.toLowerCase().includes("công việc chuyên môn khác")) {
-                    const asg = (assignmentsDB[sub.id] && assignmentsDB[sub.id][currentClass]) || {};
-                    const sem = asg.semester || 'Chưa phân bổ';
-                    if(stats[sem] !== undefined) {
-                        stats[sem] += (sub.credits || 0);
-                    } else {
-                        stats[sem] = sub.credits || 0;
-                    }
-                    total += (sub.credits || 0);
-                }
-            });
-
-            const grid = document.getElementById('dashboardGrid');
-            grid.innerHTML = '';
-            
-            const colors = {
-                'Học kỳ 1': '#3b82f6',
-                'Học kỳ 2': '#10b981',
-                'Học kỳ 3': '#f59e0b',
-                'Học kỳ 4': '#8b5cf6',
-                'Chưa phân bổ': '#94a3b8'
-            };
-
-            let targetTotal = total > 0 ? total : 1; 
-
-            ['Học kỳ 1', 'Học kỳ 2', 'Học kỳ 3', 'Học kỳ 4', 'Chưa phân bổ'].forEach(sem => {
-                let val = stats[sem] || 0;
-                let pct = (val / targetTotal) * 100;
-                if (pct > 100) pct = 100; 
-                
-                let sColor = colors[sem];
-                
-                grid.innerHTML += `
-                    <div style="margin-bottom: 8px;">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 6px;">
-                            <span style="font-weight: 700; color: ${val > 0 ? sColor : '#94a3b8'}; font-size: 1.05rem;">${sem}</span>
-                            <span style="font-weight: 800; color: ${val > 0 ? sColor : '#94a3b8'}; font-size: 1.15rem;">${val} TC</span>
-                        </div>
-                        <div style="width: 100%; height: 12px; background: #e2e8f0; border-radius: 6px; overflow: hidden; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);">
-                            <div style="height: 100%; width: ${pct}%; background-color: ${sColor}; border-radius: 6px; transition: width 0.6s ease-out;"></div>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            document.getElementById('dashTotalCredits').innerText = total;
-            document.getElementById('miniDashboardModal').classList.remove('hidden');
-        };
-
-    </script>
-</body>
-</html>
