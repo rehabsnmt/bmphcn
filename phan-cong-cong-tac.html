@@ -170,9 +170,7 @@
             <div class="filter-controls">
                 <select id="filterMajor" onchange="window.renderTable()">
                     <option value="ALL">-- Chọn chuyên ngành --</option>
-                    <option value="Vật lý trị liệu">Vật lý trị liệu</option>
-                    <option value="Hoạt động trị liệu">Hoạt động trị liệu</option>
-                    <option value="Ngôn ngữ trị liệu">Ngôn ngữ trị liệu</option>
+                    <!-- Danh sách ngành tự động được thêm bởi JavaScript -->
                 </select>
                 
                 <select id="filterOrient" class="hidden" onchange="window.renderTable()">
@@ -403,6 +401,31 @@
             setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
         }
 
+        // TỰ ĐỘNG CẬP NHẬT SELECT CHUYÊN NGÀNH
+        window.updateMajorDropdown = () => {
+            let uniqueMajors = new Set();
+            subjectsData.forEach(s => {
+                if (currentClass === 'THS2025' && (!s.orientations || !s.orientations.includes("NC"))) return;
+                if (s.majorTag && s.majorTag !== 'ALL') {
+                    uniqueMajors.add(s.majorTag);
+                }
+            });
+
+            const filterMajor = document.getElementById('filterMajor');
+            const currentVal = filterMajor.value;
+            filterMajor.innerHTML = '<option value="ALL">-- Chọn chuyên ngành --</option>';
+            
+            Array.from(uniqueMajors).sort().forEach(major => {
+                filterMajor.innerHTML += `<option value="${major}">${major}</option>`;
+            });
+            
+            if (uniqueMajors.has(currentVal)) {
+                filterMajor.value = currentVal;
+            } else {
+                filterMajor.value = 'ALL';
+            }
+        };
+
         window.switchClass = (cls) => {
             currentClass = cls;
             document.querySelectorAll('.tab-btn').forEach(b => {
@@ -417,6 +440,7 @@
             } else {
                 filterOrient.classList.remove('hidden');
             }
+            
             window.updateMajorDropdown();
             window.renderTable();
         };
@@ -443,31 +467,6 @@
             }
         };
 
-        // Hàm cập nhật chuyên ngành
-        window.updateMajorDropdown = () => {
-            let uniqueMajors = new Set();
-            subjectsData.forEach(s => {
-                if (currentClass === 'THS2025' && (!s.orientations || !s.orientations.includes("NC"))) return;
-                if (s.majorTag && s.majorTag !== 'ALL') {
-                    uniqueMajors.add(s.majorTag);
-                }
-            });
-
-            const filterMajor = document.getElementById('filterMajor');
-            const currentVal = filterMajor.value;
-            filterMajor.innerHTML = '<option value="ALL">-- Chọn chuyên ngành --</option>';
-            
-            Array.from(uniqueMajors).sort().forEach(major => {
-                filterMajor.innerHTML += `<option value="${major}">${major}</option>`;
-            });
-            
-            if (uniqueMajors.has(currentVal)) {
-                filterMajor.value = currentVal;
-            } else {
-                filterMajor.value = 'ALL';
-            }
-        };
-
         async function fetchExternalData() {
             try {
                 let snapSubjects = await getDocs(collection(db, "subjects"));
@@ -483,16 +482,8 @@
                     });
                 }
                 
-                // THUẬT TOÁN SẮP XẾP MỚI: Ưu tiên Group trước -> Sau đó đến ID (để đúng thứ tự tự nhiên sub_1 -> sub_n)
+                // THUẬT TOÁN SẮP XẾP ĐÃ ĐƯỢC CHỈNH SỬA: Sắp xếp theo ID trước
                 subjectsData = loadedSubs.sort((a, b) => {
-                    let groupA = a.group || '';
-                    let groupB = b.group || '';
-                    
-                    // So sánh theo Group (Bằng chữ cái/số tự nhiên của tên Nhóm)
-                    let groupCompare = groupA.localeCompare(groupB, 'vi');
-                    if (groupCompare !== 0) return groupCompare;
-
-                    // Nếu cùng chung 1 Group, so sánh theo số ID
                     let matchA = a.id.match(/\d+/);
                     let matchB = b.id.match(/\d+/);
                     let numA = matchA ? parseInt(matchA[0], 10) : 999;
@@ -500,18 +491,19 @@
                     
                     if (numA !== numB) return numA - numB;
                     
-                    // Nếu cùng số ID (vd: sub_24_UD và sub_24_NC) thì so sánh theo string để xếp cạnh nhau
+                    // Nếu cùng số ID (vd: sub_24_UD và sub_24_NC) thì so xếp liền kề
                     return a.id.localeCompare(b.id);
                 });
 
-                // TÍNH TOÁN SỐ BUỔI & GÁN TAG
+                // TÍNH TOÁN QUY ĐỔI SỐ BUỔI VÀ NHÓM CHUYÊN NGÀNH ĐỘNG
                 subjectsData.forEach(sub => {
                     sub.theorySessions = (sub.theory || 0) * 3; 
                     
+                    // CHỈ CÓ ĐÚNG CHUỖI "Thực hành lâm sàng" mới được 40 tiết = 8 buổi
                     if (sub.name && sub.name.toLowerCase().includes("thực hành lâm sàng")) {
-                        sub.practiceSessions = (sub.practice || 0) * 8; 
+                        sub.practiceSessions = (sub.practice || 0) * 8; // 1 TC = 40T = 8B
                     } else {
-                        sub.practiceSessions = (sub.practice || 0) * 6; 
+                        sub.practiceSessions = (sub.practice || 0) * 6; // Các môn Lab, Thực hành kỹ năng... 1 TC = 30T = 6B
                     }
                     sub.totalSessions = sub.theorySessions + sub.practiceSessions;
                     
@@ -716,7 +708,7 @@
             });
 
             if (viewMode === 'STRUCT') {
-                // ĐẢM BẢO GIỮ NGUYÊN THỨ TỰ NHƯ TRONG DATA GỐC (Bằng Map)
+                // ĐẢM BẢO GIỮ NGUYÊN THỨ TỰ NHƯ TRONG DATA GỐC (Bằng Map) - Tức là lấy ID đầu tiên của Group đó làm gốc
                 const groupedMap = new Map();
                 filteredSubs.forEach(s => {
                     let gName = s.group || 'Chưa phân nhóm';
