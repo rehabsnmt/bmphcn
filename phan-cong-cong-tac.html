@@ -377,21 +377,6 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // THỨ TỰ NHÓM CỐ ĐỊNH CHUẨN XÁC
-        const GROUP_ORDER = [
-            "1. Kiến thức chung",
-            "2. Kiến thức cơ sở",
-            "3.1. Kiến thức ngành (bắt buộc)",
-            "3.2. Kiến thức ngành (tự chọn - Vật lý trị liệu)",
-            "3.2. Kiến thức ngành (tự chọn - Hoạt động trị liệu)",
-            "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)",
-            "4. Chuyên đề nghiên cứu",
-            "4. Thực tập",
-            "5. Đề án",
-            "5. Luận văn",
-            "6. CÔNG VIỆC KHÁC"
-        ];
-
         let internalLecturers = []; 
         let visitingLecturers = []; 
         let learnersList = []; 
@@ -498,23 +483,24 @@
                     });
                 }
                 
-                // --- THUẬT TOÁN SẮP XẾP CHÍNH XÁC ---
+                // THUẬT TOÁN SẮP XẾP MỚI: DỰA VÀO CHỮ SỐ Ở ĐẦU TÊN NHÓM RỒI MỚI ĐẾN SỐ TRONG ID
                 subjectsData = loadedSubs.sort((a, b) => {
-                    // 1. Ưu tiên Nhóm trước (Dựa vào index trong mảng GROUP_ORDER cố định)
+                    // Trích xuất số tự nhiên từ tên nhóm (ví dụ: "1." -> 1, "3.2." -> 3.2)
                     let groupA = a.group || '';
                     let groupB = b.group || '';
                     
-                    let indexA = GROUP_ORDER.indexOf(groupA);
-                    let indexB = GROUP_ORDER.indexOf(groupB);
+                    let numGroupA = parseFloat(groupA.match(/^\d+(\.\d+)?/)) || 999;
+                    let numGroupB = parseFloat(groupB.match(/^\d+(\.\d+)?/)) || 999;
                     
-                    if (indexA === -1) indexA = 999;
-                    if (indexB === -1) indexB = 999;
-
-                    if (indexA !== indexB) {
-                        return indexA - indexB; // Nhóm nào có index nhỏ hơn (đứng trước) thì xếp trước
+                    if (numGroupA !== numGroupB) {
+                        return numGroupA - numGroupB;
                     }
+                    
+                    // Nếu cùng chung 1 số hiệu Nhóm, tiếp tục so sánh theo chữ cái (nếu cần)
+                    let strGroupCompare = groupA.localeCompare(groupB, 'vi');
+                    if(strGroupCompare !== 0) return strGroupCompare;
 
-                    // 2. Bên trong cùng 1 Nhóm, sắp xếp theo ID môn học
+                    // Cuối cùng, so sánh theo số ID môn học
                     let matchA = a.id.match(/\d+/);
                     let matchB = b.id.match(/\d+/);
                     let numA = matchA ? parseInt(matchA[0], 10) : 999;
@@ -522,7 +508,6 @@
                     
                     if (numA !== numB) return numA - numB;
                     
-                    // 3. Nếu cùng số ID (vd: sub_24_NC và sub_24_UD) thì xếp liền kề nhau
                     return a.id.localeCompare(b.id);
                 });
 
