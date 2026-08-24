@@ -376,51 +376,6 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // DATA ĐỂ AUTO-SEED ĐẢM BẢO CHÍNH XÁC TỔNG CÁC TÍN CHỈ
-        const defaultSubjectsData = [
-            {"id": "sub_1", "name": "Triết học", "credits": 3, "theory": 3, "practice": 0, "department": "Đơn vị khác", "isPHCN": false, "orientations": ["UD", "NC"], "group": "1. PHẦN KIẾN THỨC CHUNG"},
-            {"id": "sub_2", "name": "Ngoại ngữ", "credits": 2, "theory": 2, "practice": 0, "department": "Đơn vị khác", "isPHCN": false, "orientations": ["UD", "NC"], "group": "1. PHẦN KIẾN THỨC CHUNG"},
-            {"id": "sub_3", "name": "Sinh học phân tử", "credits": 2, "theory": 0, "practice": 2, "department": "Đơn vị khác", "isPHCN": false, "orientations": ["UD", "NC"], "group": "2. PHẦN KIẾN THỨC CƠ SỞ"},
-            {"id": "sub_4", "name": "Y đức - Xã hội học", "credits": 2, "theory": 0, "practice": 2, "department": "Đơn vị khác", "isPHCN": false, "orientations": ["UD", "NC"], "group": "2. PHẦN KIẾN THỨC CƠ SỞ"},
-            {"id": "sub_5", "name": "Phương pháp nghiên cứu khoa học", "credits": 2, "theory": 1, "practice": 1, "department": "Đơn vị khác", "isPHCN": false, "orientations": ["UD", "NC"], "group": "2. PHẦN KIẾN THỨC CƠ SỞ"},
-            {"id": "sub_6", "name": "Thống kê y học", "credits": 2, "theory": 1, "practice": 1, "department": "Đơn vị khác", "isPHCN": false, "orientations": ["UD", "NC"], "group": "2. PHẦN KIẾN THỨC CƠ SỞ"},
-            {"id": "sub_7", "name": "Phương pháp dạy và học trong phục hồi chức năng", "credits": 2, "theory": 1, "practice": 1, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD", "NC"], "group": "3. KIẾN THỨC NGÀNH - BẮT BUỘC"},
-            {"id": "sub_8", "name": "Quản lý và lãnh đạo trong phục hồi chức năng", "credits": 2, "theory": 1, "practice": 1, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD", "NC"], "group": "3. KIẾN THỨC NGÀNH - BẮT BUỘC"},
-            {"id": "sub_9", "name": "Kỹ năng hướng dẫn lâm sàng và lý luận lâm sàng trong PHCN", "credits": 2, "theory": 1, "practice": 1, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD", "NC"], "group": "3. KIẾN THỨC NGÀNH - BẮT BUỘC"},
-            {"id": "sub_10", "name": "Thực hành kỹ năng hướng dẫn lâm sàng", "credits": 2, "theory": 1, "practice": 1, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD"], "group": "3. KIẾN THỨC NGÀNH - BẮT BUỘC"},
-            {"id": "sub_11", "name": "Thực hành dựa trên chứng cứ", "credits": 2, "theory": 1, "practice": 1, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD", "NC"], "group": "3. KIẾN THỨC NGÀNH - BẮT BUỘC"},
-            {"id": "sub_24_UD", "name": "Vật lý trị liệu Nhi nâng cao", "credits": 3, "theory": 1, "practice": 2, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD"], "group": "3. NGÀNH - TỰ CHỌN (Vật lý trị liệu)"},
-            {"id": "sub_24_NC", "name": "Vật lý trị liệu Nhi nâng cao", "credits": 3, "theory": 1, "practice": 2, "department": "BMPHCN", "isPHCN": true, "orientations": ["NC"], "group": "3. NGÀNH - TỰ CHỌN (Vật lý trị liệu)"},
-            {"id": "sub_25", "name": "Vật lý trị liệu Thần kinh cơ nâng cao", "credits": 2, "theory": 1, "practice": 1, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD", "NC"], "group": "3. NGÀNH - TỰ CHỌN (Vật lý trị liệu)"},
-            {"id": "sub_26", "name": "Vật lý trị liệu Cơ xương nâng cao", "credits": 2, "theory": 1, "practice": 1, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD", "NC"], "group": "3. NGÀNH - TỰ CHỌN (Vật lý trị liệu)"},
-            {"id": "sub_27", "name": "Vật lý trị liệu Tim mạch – Hô hấp nâng cao", "credits": 3, "theory": 1, "practice": 2, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD", "NC"], "group": "3. NGÀNH - TỰ CHỌN (Vật lý trị liệu)"},
-            {"id": "sub_28", "name": "Vật lý trị liệu trong thể thao", "credits": 3, "theory": 1, "practice": 2, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD"], "group": "3. NGÀNH - TỰ CHỌN (Vật lý trị liệu)"},
-            {"id": "sub_29", "name": "Ứng dụng công thái học trong can thiệp Vật lý trị liệu", "credits": 4, "theory": 2, "practice": 2, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD"], "group": "3. NGÀNH - TỰ CHỌN (Vật lý trị liệu)"},
-            {"id": "sub_30_UD", "name": "Thực hành lâm sàng Vật lý trị liệu nâng cao 1", "credits": 4, "theory": 0, "practice": 4, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD"], "group": "3. NGÀNH - TỰ CHỌN (Vật lý trị liệu)"},
-            {"id": "sub_30_NC", "name": "Thực hành lâm sàng Vật lý trị liệu nâng cao 1", "credits": 3, "theory": 0, "practice": 3, "department": "BMPHCN", "isPHCN": true, "orientations": ["NC"], "group": "3. NGÀNH - TỰ CHỌN (Vật lý trị liệu)"},
-            {"id": "sub_31_UD", "name": "Thực hành lâm sàng Vật lý trị liệu nâng cao 2", "credits": 4, "theory": 0, "practice": 4, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD"], "group": "3. NGÀNH - TỰ CHỌN (Vật lý trị liệu)"},
-            {"id": "sub_31_NC", "name": "Thực hành lâm sàng Vật lý trị liệu nâng cao 2", "credits": 3, "theory": 0, "practice": 3, "department": "BMPHCN", "isPHCN": true, "orientations": ["NC"], "group": "3. NGÀNH - TỰ CHỌN (Vật lý trị liệu)"},
-            {"id": "sub_32", "name": "Những vấn đề chuyên môn trong Hoạt động trị liệu", "credits": 3, "theory": 1, "practice": 2, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD"], "group": "3. NGÀNH - TỰ CHỌN (Hoạt động trị liệu)"},
-            {"id": "sub_33", "name": "Lãnh đạo và quản lý trong Hoạt động trị liệu", "credits": 3, "theory": 1, "practice": 2, "department": "BMPHCN", "isPHCN": true, "orientations": ["NC"], "group": "3. NGÀNH - TỰ CHỌN (Hoạt động trị liệu)"},
-            {"id": "sub_34", "name": "Thiết kế và đánh giá chương trình Hoạt động trị liệu", "credits": 3, "theory": 1, "practice": 2, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD", "NC"], "group": "3. NGÀNH - TỰ CHỌN (Hoạt động trị liệu)"},
-            {"id": "sub_35", "name": "Hoạt động trị liệu và quản lý chấn thương", "credits": 3, "theory": 1, "practice": 2, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD", "NC"], "group": "3. NGÀNH - TỰ CHỌN (Hoạt động trị liệu)"},
-            {"id": "sub_36", "name": "Hoạt động trị liệu trong thực hành sức khỏe tâm thần trong suốt quá trình phát triển", "credits": 3, "theory": 1, "practice": 2, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD", "NC"], "group": "3. NGÀNH - TỰ CHỌN (Hoạt động trị liệu)"},
-            {"id": "sub_37", "name": "Hoạt động trị liệu trong lão khoa", "credits": 3, "theory": 1, "practice": 2, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD", "NC"], "group": "3. NGÀNH - TỰ CHỌN (Hoạt động trị liệu)"},
-            {"id": "sub_38", "name": "Thực hành hoạt động trị liệu 1", "credits": 3, "theory": 0, "practice": 3, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD"], "group": "3. NGÀNH - TỰ CHỌN (Hoạt động trị liệu)"},
-            {"id": "sub_39", "name": "Thực hành hoạt động trị liệu 2", "credits": 3, "theory": 0, "practice": 3, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD"], "group": "3. NGÀNH - TỰ CHỌN (Hoạt động trị liệu)"},
-            {"id": "sub_40", "name": "Thực hành hoạt động trị liệu 3", "credits": 3, "theory": 0, "practice": 3, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD"], "group": "3. NGÀNH - TỰ CHỌN (Hoạt động trị liệu)"},
-            {"id": "sub_41", "name": "Thực hành lâm sàng Kỹ thuật Phục hồi chức năng 1", "credits": 2, "theory": 0, "practice": 2, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD"], "group": "4. PHẦN THỰC TẬP"},
-            {"id": "sub_42", "name": "Thực hành lâm sàng Kỹ thuật Phục hồi chức năng 2", "credits": 2, "theory": 0, "practice": 2, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD"], "group": "4. PHẦN THỰC TẬP"},
-            {"id": "sub_43", "name": "Thực hành lâm sàng Kỹ thuật Phục hồi chức năng 3", "credits": 2, "theory": 0, "practice": 2, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD"], "group": "4. PHẦN THỰC TẬP"},
-            {"id": "sub_44", "name": "Đề án tốt nghiệp", "credits": 6, "theory": 0, "practice": 6, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD"], "group": "5. ĐỀ ÁN"},
-            {"id": "sub_45", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 1", "credits": 3, "theory": 1, "practice": 2, "department": "BMPHCN", "isPHCN": true, "orientations": ["NC"], "group": "4. PHẦN CHUYÊN ĐỀ NGHIÊN CỨU"},
-            {"id": "sub_46", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 2", "credits": 3, "theory": 1, "practice": 2, "department": "BMPHCN", "isPHCN": true, "orientations": ["NC"], "group": "4. PHẦN CHUYÊN ĐỀ NGHIÊN CỨU"},
-            {"id": "sub_47", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 3", "credits": 3, "theory": 1, "practice": 2, "department": "BMPHCN", "isPHCN": true, "orientations": ["NC"], "group": "4. PHẦN CHUYÊN ĐỀ NGHIÊN CỨU"},
-            {"id": "sub_48", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 4", "credits": 3, "theory": 1, "practice": 2, "department": "BMPHCN", "isPHCN": true, "orientations": ["NC"], "group": "4. PHẦN CHUYÊN ĐỀ NGHIÊN CỨU"},
-            {"id": "sub_49", "name": "Luận văn", "credits": 12, "theory": 0, "practice": 12, "department": "BMPHCN", "isPHCN": true, "orientations": ["NC"], "group": "5. LUẬN VĂN"},
-            {"id": "sub_99", "name": "Công việc chuyên môn khác", "credits": 0, "theory": 0, "practice": 0, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD", "NC"], "group": "6. CÔNG VIỆC KHÁC"}
-        ];
-
         let internalLecturers = []; 
         let visitingLecturers = []; 
         let learnersList = []; 
@@ -491,20 +446,11 @@
                 let snapSubjects = await getDocs(collection(db, "subjects"));
                 let loadedSubs = [];
                 
-                // AUTO-SEED: TỰ ĐỘNG KHỞI TẠO NẾU BẢNG TRỐNG
-                if (snapSubjects.empty) {
-                    showToast("Đang tự động khởi tạo dữ liệu Môn học lần đầu lên hệ thống...", "success");
-                    for (let sub of defaultSubjectsData) {
-                        try { await setDoc(doc(db, "subjects", sub.id), sub); } catch(e) {}
-                        loadedSubs.push(sub);
-                    }
-                } else {
-                    snapSubjects.forEach(doc => {
-                        let sub = doc.data();
-                        sub.id = doc.id;
-                        loadedSubs.push(sub);
-                    });
-                }
+                snapSubjects.forEach(doc => {
+                    let sub = doc.data();
+                    sub.id = doc.id;
+                    loadedSubs.push(sub);
+                });
                 
                 subjectsData = loadedSubs.sort((a, b) => {
                     let numA = parseInt(a.id.replace('sub_', '').replace('_UD','').replace('_NC','')) || 0;
@@ -512,15 +458,15 @@
                     return numA - numB;
                 });
 
-                // TÍNH TOÁN QUY ĐỔI SỐ BUỔI THEO ĐÚNG LOGIC MỚI
+                // TÍNH TOÁN QUY ĐỔI SỐ BUỔI VÀ NHÓM CHUYÊN NGÀNH
                 subjectsData.forEach(sub => {
                     sub.theorySessions = (sub.theory || 0) * 3; 
                     
-                    // CHỈ CHÍNH XÁC "Thực hành lâm sàng" MỚI = 40 tiết
-                    if (sub.name.toLowerCase().includes("thực hành lâm sàng")) {
+                    // CHỈ CÓ ĐÚNG CHUỖI "Thực hành lâm sàng" mới được 40 tiết = 8 buổi
+                    if (sub.name && sub.name.toLowerCase().includes("thực hành lâm sàng")) {
                         sub.practiceSessions = (sub.practice || 0) * 8; // 1 TC = 40T = 8B
                     } else {
-                        sub.practiceSessions = (sub.practice || 0) * 6; // 1 TC = 30T = 6B
+                        sub.practiceSessions = (sub.practice || 0) * 6; // Các môn Lab, Thực hành kỹ năng... 1 TC = 30T = 6B
                     }
                     sub.totalSessions = sub.theorySessions + sub.practiceSessions;
                     
@@ -658,24 +604,24 @@
                 
                 await fetchExternalData(); 
 
+                if (subjectsData.length === 0) {
+                    document.getElementById('loadingScreen').innerHTML = "<i class='fas fa-exclamation-triangle'></i><br>Chưa có dữ liệu Danh sách Môn học trên hệ thống.";
+                    return;
+                }
+
                 document.getElementById('loadingScreen').classList.add('hidden');
                 document.getElementById('mainContent').classList.remove('hidden');
                 
-                let isAsgLoaded = false;
-                let isCalLoaded = false;
-
                 onSnapshot(collection(db, "assignments"), (snapshot) => {
                     assignmentsDB = {};
                     snapshot.forEach(doc => { assignmentsDB[doc.id] = doc.data(); });
-                    isAsgLoaded = true;
-                    if(isCalLoaded) window.renderTable(); 
+                    window.renderTable(); 
                 });
 
                 onSnapshot(collection(db, "calendar_events"), (snapshot) => {
                     calendarEventsDB = [];
                     snapshot.forEach(doc => { calendarEventsDB.push(doc.data()); });
-                    isCalLoaded = true;
-                    if(isAsgLoaded) window.renderTable();
+                    window.renderTable();
                 });
 
             } else {
@@ -708,8 +654,9 @@
             const fMajor = document.getElementById('filterMajor').value;
             const fOrient = document.getElementById('filterOrient').value;
             
-            // LỌC MÔN HỌC ĐỂ RENDER
+            // LỌC MÔN HỌC
             let filteredSubs = subjectsData.filter(s => {
+                // ẨN LUÔN MÔN NGÔN NGỮ TRỊ LIỆU
                 if (s.majorTag === 'Ngôn ngữ trị liệu') return false;
 
                 if (currentClass === 'THS2025' && (!s.orientations || !s.orientations.includes("NC"))) return false;
@@ -760,7 +707,7 @@
         function appendSubjectRow(tbody, sub, gClass, sttIndex) {
             const asgDoc = assignmentsDB[sub.id] || {};
             const asg = asgDoc[currentClass] || { semester: '', allocations: [], proposed_allocations: [] };
-            const isThesis = sub.name.includes("Luận văn") || sub.name.includes("Đề án");
+            const isThesis = sub.name && (sub.name.includes("Luận văn") || sub.name.includes("Đề án"));
             
             let isProposed = asg.status === 'proposed';
             let statusBadge = isProposed ? `<span class="proposal-badge" title="Đang chờ Trưởng BM duyệt">Chờ duyệt</span>` : '';
@@ -858,7 +805,7 @@
             document.getElementById('detPracticeSessions').innerText = sub.practiceSessions;
             
             const noteEl = document.getElementById('detPracticeNote');
-            if (sub.name.toLowerCase().includes("thực hành lâm sàng")) {
+            if (sub.name && sub.name.toLowerCase().includes("thực hành lâm sàng")) {
                 noteEl.innerText = "(Quy đổi Lâm sàng: 1 TC = 40 tiết = 8 buổi)";
             } else if ((sub.practice || 0) > 0) {
                 noteEl.innerText = "(Quy đổi Thực hành Lab/Kỹ năng: 1 TC = 30 tiết = 6 buổi)";
@@ -879,6 +826,18 @@
         };
 
         window.openSemesterModal = (id) => {
+            const fMajor = document.getElementById('filterMajor').value;
+            const fOrient = document.getElementById('filterOrient').value;
+            
+            if (fMajor === 'ALL') {
+                showToast("Vui lòng Chọn cụ thể CHUYÊN NGÀNH trên thanh công cụ trước khi chọn học kỳ!", "danger");
+                return;
+            }
+            if (currentClass === 'THS2026' && fOrient === 'ALL') {
+                showToast("Vui lòng Chọn cụ thể ĐỊNH HƯỚNG trên thanh công cụ trước khi chọn học kỳ!", "danger");
+                return;
+            }
+
             currentEditingSubId = id;
             const sub = subjectsData.find(s => s.id === id);
             const asg = (assignmentsDB[id] && assignmentsDB[id][currentClass]) || { semester: '' };
@@ -918,7 +877,7 @@
             const asg = (assignmentsDB[id] && assignmentsDB[id][currentClass]) || { semester: '', allocations: [], proposed_allocations: [], status: 'approved' };
             const isProposed = asg.status === 'proposed';
 
-            if(sub.name.includes("Luận văn") || sub.name.includes("Đề án")) {
+            if(sub.name && (sub.name.includes("Luận văn") || sub.name.includes("Đề án"))) {
                 document.getElementById('tasgName').innerText = `${sub.name} (Lớp: ${currentClass})`;
                 document.getElementById('tasgSemester').value = asg.semester || 'Học kỳ 4';
                 document.getElementById('thesisAllocContainer').innerHTML = '';
@@ -1325,6 +1284,15 @@
             const fMajor = document.getElementById('filterMajor').value;
             const fOrient = document.getElementById('filterOrient').value;
             
+            if (fMajor === 'ALL') {
+                showToast("Vui lòng Chọn cụ thể CHUYÊN NGÀNH để xem Dashboard chính xác!", "danger");
+                return;
+            }
+            if (currentClass === 'THS2026' && fOrient === 'ALL') {
+                showToast("Vui lòng Chọn cụ thể ĐỊNH HƯỚNG để xem Dashboard chính xác!", "danger");
+                return;
+            }
+
             let filterDesc = currentClass === 'THS2025' ? 'Lớp THS2025' : 'Lớp THS2026';
             if (fMajor !== 'ALL') filterDesc += ` - ${fMajor}`;
             if (currentClass === 'THS2026' && fOrient !== 'ALL') {
