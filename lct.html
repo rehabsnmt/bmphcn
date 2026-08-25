@@ -167,7 +167,7 @@
         .form-group select { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border); font-size: 1rem; outline: none; }
         .form-group select:focus { border-color: var(--primary); }
 
-        /* Modal Bệnh viện / Lớp học (Dùng chung modal-body) */
+        /* Modal Bệnh viện / Lớp học */
         #multiEventModal .modal-content { max-width: 750px; }
         .clin-card { margin-bottom: 15px; padding: 15px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; border-left: 4px solid #10b981; }
         .clin-card-title { font-weight: 700; color: var(--text-dark); font-size: 1.15rem; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; }
@@ -375,15 +375,6 @@
         // TỪ ĐIỂN MAP TÊN ĐẦY ĐỦ -> TÊN NGẮN (Thầy X, Cô Y)
         let gvShortNameMap = {};
 
-        // TỪ ĐIỂN ÁNH XẠ ID ĐỒNG BỘ (UD -> NC và ngược lại) CHO MÔN TRÙNG TÊN
-        let twinSubjectMap = {};
-        subjectsData.forEach(s1 => {
-            let twin = subjectsData.find(s2 => s2.name === s1.name && s2.id !== s1.id);
-            if (twin) {
-                twinSubjectMap[s1.id] = twin.id;
-            }
-        });
-
         // Xóa sự kiện
         window.deleteSubEvent = async (id) => {
             if(!id) return;
@@ -526,7 +517,7 @@
         function hasOverlap(targetStart, targetEnd, gvStr, targetClass, targetTask, targetRoom, ignoreEventIds) {
             let ignoreList = Array.isArray(ignoreEventIds) ? ignoreEventIds : [ignoreEventIds];
             let tStart = targetStart.getTime();
-            let tEnd = targetEnd ? targetEnd.getTime() : tStart + 4 * 3600000;
+            let tEnd = targetEnd ? targetEnd.getTime() : tStart + 4.5 * 3600000;
             
             let allSubEvents = [];
             calendar.getEvents().forEach(e => {
@@ -555,19 +546,15 @@
                 if (ignoreList.includes(e.id)) continue; 
                 
                 let eStart = new Date(e.start).getTime();
-                let eEnd = e.end ? new Date(e.end).getTime() : eStart + 4 * 3600000;
+                let eEnd = e.end ? new Date(e.end).getTime() : eStart + 4.5 * 3600000;
                 
-                // NẾU TRÙNG GIỜ (Thời gian giao nhau)
                 if (tStart < eEnd && tEnd > eStart) {
-                    // 1. Kiểm tra TRÙNG PHÒNG
                     if (targetRoom && e.room && targetRoom !== 'Khác...' && e.room === targetRoom) {
                         return { hasOverlap: true, reason: `Phòng ${targetRoom} đã có lớp khác học vào khung giờ này!` };
                     }
-                    // 2. Kiểm tra Trùng lịch Khóa học
                     if (e.class === targetClass && blockingTasks.includes(targetTask) && blockingTasks.includes(e.task)) {
                         return { hasOverlap: true, reason: `Lớp ${targetClass} đã có lịch học/thi vào khung giờ này!` };
                     }
-                    // 3. Kiểm tra Trùng lịch Giảng viên
                     let targetGVs = gvStr ? gvStr.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
                     let eGVs = e.gv ? e.gv.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
                     let hasCommonGV = targetGVs.some(gv => eGVs.includes(gv));
@@ -605,7 +592,6 @@
             // 1. Lọc dữ liệu Sự kiện Bình thường
             let scheduledEventsNormal = scheduledEvents.filter(e => e.status !== 'returned');
             
-            // Khử trùng các lớp gộp chung (Ví dụ NC & UD trùng giờ, trùng môn, trùng GV)
             let deduplicatedNormalEventsMap = new Map();
             scheduledEventsNormal.forEach(e => {
                 let subObj = subjectsData.find(s => s.name === e.subject);
@@ -619,20 +605,22 @@
 
             deduplicatedNormalEventsMap.forEach((e) => {
                 let eStart = new Date(e.start);
-                let eEnd = e.end ? new Date(e.end) : new Date(eStart.getTime() + 4 * 3600000);
+                let eEnd = e.end ? new Date(e.end) : new Date(eStart.getTime() + 4.5 * 3600000);
                 
                 if (eStart >= viewStart && eStart < viewEnd && eEnd <= now) {
-                    let durationHours = (eEnd - eStart) / 3600000;
-                    let tiet = Math.round(durationHours); 
-                    
-                    reportEvents.push({
-                        timeObj: eStart,
-                        timeStr: `${eStart.toLocaleDateString('vi-VN', {weekday:'short', day:'2-digit', month:'2-digit', year:'numeric'})}<br>${eStart.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'})} - ${eEnd.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'})}`,
-                        content: `[${e.class}] ${e.subject}<br><i>(${e.task})</i>`,
-                        gv: window.formatGvName(e.gv),
-                        room: e.room || '',
-                        tiet: tiet
-                    });
+                    if (e.class && e.class.toUpperCase().includes('THS')) {
+                        let durationHours = (eEnd - eStart) / 3600000;
+                        let tiet = Math.round(durationHours); 
+                        
+                        reportEvents.push({
+                            timeObj: eStart,
+                            timeStr: `${eStart.toLocaleDateString('vi-VN', {weekday:'short', day:'2-digit', month:'2-digit', year:'numeric'})}<br>${eStart.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'})} - ${eEnd.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'})}`,
+                            content: `[${e.class}] ${e.subject}<br><i>(${e.task})</i>`,
+                            gv: e.gv, // Dùng họ tên đầy đủ
+                            room: e.room || '',
+                            tiet: tiet
+                        });
+                    }
                 }
             });
 
@@ -648,15 +636,17 @@
                 
                 if (globalGroupedClinicals[dateStr] && eEnd <= now) {
                     globalGroupedClinicals[dateStr].forEach(c => {
-                        let tiet = c.shift.toLowerCase().includes('cả ngày') ? 8 : 4;
-                        reportEvents.push({
-                            timeObj: new Date(d),
-                            timeStr: `${d.toLocaleDateString('vi-VN', {weekday:'short', day:'2-digit', month:'2-digit', year:'numeric'})}<br>${c.shift}`,
-                            content: `[${c.class_id}] Thực tập lâm sàng<br><i>(${c.specialty})</i>`,
-                            gv: window.formatGvName(c.instructors),
-                            room: c.hospital,
-                            tiet: tiet
-                        });
+                        if (c.class_id && c.class_id.toUpperCase().includes('THS')) {
+                            let tiet = c.shift.toLowerCase().includes('cả ngày') ? 8 : 4; 
+                            reportEvents.push({
+                                timeObj: new Date(d),
+                                timeStr: `${d.toLocaleDateString('vi-VN', {weekday:'short', day:'2-digit', month:'2-digit', year:'numeric'})}<br>${c.shift}`,
+                                content: `[${c.class_id}] Thực tập lâm sàng<br><i>(${c.specialty})</i>`,
+                                gv: c.instructors, // Dùng họ tên đầy đủ
+                                room: c.hospital,
+                                tiet: tiet
+                            });
+                        }
                     });
                 }
             }
@@ -803,7 +793,7 @@
                 slotMaxTime: '21:00:00',
                 allDaySlot: true, 
                 allDayText: 'BV', 
-                defaultTimedEventDuration: '04:00:00', 
+                defaultTimedEventDuration: '04:30:00', 
                 slotLabelFormat: { hour: 'numeric', minute: '2-digit', omitZeroMinute: false, meridiem: false, hour12: false },
                 eventTimeFormat: { hour: 'numeric', minute: '2-digit', meridiem: false, hour12: false },
                 editable: isCalendarAdmin, 
@@ -823,7 +813,7 @@
                         if (arg.event.end) {
                             eTime = arg.event.end.toLocaleTimeString('vi-VN', {hour: 'numeric', minute:'2-digit', hour12: false});
                         } else if (arg.event.start) {
-                            let eObj = new Date(arg.event.start.getTime() + 4 * 60 * 60 * 1000);
+                            let eObj = new Date(arg.event.start.getTime() + 4.5 * 60 * 60 * 1000);
                             eTime = eObj.toLocaleTimeString('vi-VN', {hour: 'numeric', minute:'2-digit', hour12: false});
                         }
                         const timeStr = `${sTime}–${eTime}`;
@@ -894,6 +884,7 @@
                     if (props.type === 'grouped_normal') {
                         const subEvents = props.events;
                         
+                        // Kiểm tra quyền và logic cho từng sự kiện trong nhóm
                         for (let e of subEvents) {
                             if (e.scheduledByEmail && e.scheduledByEmail !== currentUserEmail && currentUserEmail !== 'hoangtran1483@gmail.com') {
                                 showToast(`Lỗi: Không thể dời lịch nhóm chứa môn do GV khác xếp!`, "danger");
@@ -904,6 +895,7 @@
                             }
                         }
 
+                        // Khi di chuyển cả nhóm, cần bỏ qua ID của TẤT CẢ các thẻ trong nhóm để tránh bị tự phát hiện trùng
                         const groupIds = subEvents.map(ev => ev.id);
                         for (let e of subEvents) {
                             const overlapCheck = hasOverlap(info.event.start, info.event.end, e.gv, e.class, e.task, e.room, groupIds);
@@ -992,8 +984,9 @@
                         let html = `<strong><i class="fas fa-layer-group"></i> ${props.events.length} Lớp Học</strong><br>`;
                         props.events.forEach(e => {
                             let cName = e.class === 'THS2025' ? 'THS2025' : 'THS2026';
+                            let gvDisplay = window.formatGvName(e.gv);
                             html += `<div style="margin-top:6px; border-top:1px dashed rgba(255,255,255,0.2); padding-top:6px; line-height: 1.4;">
-                                <span style="color:#fbbf24; font-weight:bold;">${e.room || '??'}</span> | <span style="color:#bae6fd;">[${cName}] ${e.gv}</span><br>
+                                <span style="color:#fbbf24; font-weight:bold;">${e.room || '??'}</span> | <span style="color:#bae6fd;">[${cName}] ${gvDisplay}</span><br>
                                 <span style="font-size:0.85rem;">${e.subject}</span>
                             </div>`;
                         });
@@ -1076,7 +1069,7 @@
                         let sTime = info.event.start ? info.event.start.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'}) : '';
                         let eTime = info.event.end ? info.event.end.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'}) : '';
                         if (!eTime && info.event.start) {
-                            eTime = new Date(info.event.start.getTime() + 4*3600000).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'});
+                            eTime = new Date(info.event.start.getTime() + 4.5*3600000).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'});
                         }
                         const dateStr = info.event.start ? info.event.start.toLocaleDateString('vi-VN', {weekday: 'long', day:'2-digit', month:'2-digit', year:'numeric'}) : '';
                         
@@ -1199,8 +1192,10 @@
             poolDiv.innerHTML = '';
             let unscheduledCount = 0;
 
+            // BƯỚC GOM NHÓM (GROUPING): Tất cả các sự kiện cùng giờ được gộp làm 1 block
             let scheduledEventsNormal = scheduledEvents.filter(e => e.status !== 'returned');
             
+            // LỌC VÀ GỘP CÁC SỰ KIỆN GIỐNG NHAU (GỘP HỆ NC VÀ UD THÀNH 1 ĐỂ HIỂN THỊ)
             let deduplicatedEventsMap = new Map();
             scheduledEventsNormal.forEach(e => {
                 let subObj = subjectsData.find(s => s.name === e.subject);
@@ -1217,7 +1212,7 @@
 
             deduplicatedEvents.forEach(e => {
                 let sTime = new Date(e.start).getTime();
-                let eTime = e.end ? new Date(e.end).getTime() : sTime + 4 * 3600 * 1000;
+                let eTime = e.end ? new Date(e.end).getTime() : sTime + 4.5 * 3600 * 1000;
                 let key = `${sTime}_${eTime}`;
                 
                 if (!groupedEvents[key]) {
@@ -1251,6 +1246,7 @@
             }
             calendar.addEventSource(currentClassEvents);
 
+            // Bệnh viện
             globalGroupedClinicals = getClinicalEventsMap(clinicalSchedules); 
             let clinicalEvents = [];
             for (let dateStr in globalGroupedClinicals) {
@@ -1271,6 +1267,7 @@
             }
             calendar.addEventSource(clinicalEvents);
 
+            // ĐẾM SỐ BUỔI ĐÃ XẾP 
             let scheduledCounts = {};
             scheduledEvents.forEach(e => {
                 if (e.status !== 'returned') {
@@ -1280,13 +1277,12 @@
                 }
             });
 
+            // TÁI TẠO KHO SỰ KIỆN TỪ TẤT CẢ CÁC KHÓA (GOM NHÓM THEO MÔN + GV)
             let poolMap = new Map();
             
-            // LƯU Ý MỚI: QUÉT VÀ HIỂN THỊ ĐÚNG THEO THỨ TỰ BẢNG PHÂN CÔNG (subjectsData)
-            let subjectGroups = {};
             let orderedSubjectNames = [];
+            let subjectGroups = {};
 
-            // Đảm bảo duyệt đúng mảng tĩnh subjectsData để giữ nguyên thứ tự
             subjectsData.forEach(sub => {
                 if (!subjectGroups[sub.name]) {
                     orderedSubjectNames.push(sub.name);
@@ -1327,6 +1323,7 @@
                                             gv: a.gv
                                         });
                                     } else {
+                                        // Max cho trùng name (NC/UD)
                                         subjectCardsMap.get(keyForCount).count = Math.max(subjectCardsMap.get(keyForCount).count, remainingNormal);
                                     }
                                 }
@@ -1350,7 +1347,7 @@
                 const cardsArray = Array.from(subjectCardsMap.values());
                 
                 if (cardsArray.length > 0) {
-                    cardsArray.sort((a, b) => a.gv.localeCompare(b.gv)); // Xếp theo tên GV trong cùng 1 môn
+                    cardsArray.sort((a, b) => a.gv.localeCompare(b.gv));
 
                     let subjectContainer = document.createElement('div');
                     subjectContainer.className = 'pool-subject-group';
@@ -1392,7 +1389,6 @@
                         let countBadge = (!isRejected && count > 0) ? `<div class="count-badge">${count}</div>` : '';
                         let gvDisplay = window.formatGvName(a.gv);
 
-                        // LƯỢC BỎ TÊN MÔN HỌC BÊN TRONG THẺ, VÌ ĐÃ CÓ TIÊU ĐỀ MÔN Ở TRÊN
                         eventDiv.innerHTML = `
                             ${countBadge}
                             ${classTag}
