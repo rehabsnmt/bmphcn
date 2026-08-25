@@ -300,7 +300,7 @@
             }
         });
 
-        // CẤU HÌNH DANH SÁCH PHÒNG HỌC TẠI ĐÂY
+        // CẤU HÌNH DANH SÁCH PHÒNG HỌC
         const ROOM_LIST = [
             "Phòng 3",
             "Phòng 4",
@@ -311,7 +311,7 @@
             "Khác..."
         ];
 
-        // MẢNG DỮ LIỆU MÔN HỌC CHUẨN ĐƯỢC CHÉP TỪ FILE EXCEL
+        // MẢNG DỮ LIỆU MÔN HỌC CHUẨN
         const subjectsData = [
             { "id": "sub_1", "name": "Triết học", "credits": 3, "theory": 3, "practice": 0, "department": "BM KHXH-NV", "isPHCN": false, "orientations": [ "NC", "UD" ], "group": "1. Kiến thức chung" },
             { "id": "sub_2", "name": "Ngoại ngữ", "credits": 2, "theory": 2, "practice": 0, "department": "BM Ngoại ngữ", "isPHCN": false, "orientations": [ "NC", "UD" ], "group": "1. Kiến thức chung" },
@@ -763,6 +763,18 @@
             return { hasOverlap: false };
         }
 
+        window.toggleSidebar = () => {
+            const panel = document.getElementById('external-events');
+            if (panel.style.display === 'none') {
+                panel.style.display = 'flex';
+                panel.removeAttribute('data-manually-hidden');
+            } else {
+                panel.style.display = 'none';
+                panel.setAttribute('data-manually-hidden', 'true'); 
+            }
+            setTimeout(() => { if(calendar) calendar.updateSize(); }, 100);
+        };
+
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUserEmail = user.email.toLowerCase();
@@ -938,6 +950,7 @@
                     if (props.type === 'grouped_normal') {
                         const subEvents = props.events;
                         
+                        // Kiểm tra quyền và logic cho từng sự kiện trong nhóm
                         for (let e of subEvents) {
                             if (e.scheduledByEmail && e.scheduledByEmail !== currentUserEmail && currentUserEmail !== 'hoangtran1483@gmail.com') {
                                 showToast(`Lỗi: Không thể dời lịch nhóm chứa môn do GV khác xếp!`, "danger");
@@ -948,6 +961,7 @@
                             }
                         }
 
+                        // Khi di chuyển cả nhóm, cần bỏ qua ID của TẤT CẢ các thẻ trong nhóm để tránh bị tự phát hiện trùng
                         const groupIds = subEvents.map(ev => ev.id);
                         for (let e of subEvents) {
                             const overlapCheck = hasOverlap(info.event.start, info.event.end, e.gv, e.class, e.task, e.room, groupIds);
@@ -1323,6 +1337,7 @@
                                             gv: a.gv
                                         });
                                     } else {
+                                        // Max cho trùng name (NC/UD)
                                         subjectCardsMap.get(keyForCount).count = Math.max(subjectCardsMap.get(keyForCount).count, remainingNormal);
                                     }
                                 }
