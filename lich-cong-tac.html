@@ -300,7 +300,7 @@
             }
         });
 
-        // CẤU HÌNH DANH SÁCH PHÒNG HỌC
+        // CẤU HÌNH DANH SÁCH PHÒNG HỌC TẠI ĐÂY
         const ROOM_LIST = [
             "Phòng 3",
             "Phòng 4",
@@ -311,7 +311,7 @@
             "Khác..."
         ];
 
-        // MẢNG DỮ LIỆU MÔN HỌC CHUẨN
+        // MẢNG DỮ LIỆU MÔN HỌC CHUẨN ĐƯỢC CHÉP TỪ FILE EXCEL
         const subjectsData = [
             { "id": "sub_1", "name": "Triết học", "credits": 3, "theory": 3, "practice": 0, "department": "BM KHXH-NV", "isPHCN": false, "orientations": [ "NC", "UD" ], "group": "1. Kiến thức chung" },
             { "id": "sub_2", "name": "Ngoại ngữ", "credits": 2, "theory": 2, "practice": 0, "department": "BM Ngoại ngữ", "isPHCN": false, "orientations": [ "NC", "UD" ], "group": "1. Kiến thức chung" },
@@ -387,7 +387,7 @@
         let clinicalSchedules = []; 
         let globalGroupedClinicals = {}; 
         
-        // TỪ ĐIỂN MAP TÊN ĐẦY ĐỦ -> TÊN NGẮN (Thầy X, Cô Y)
+        // TỪ ĐIỂN MAP TÊN ĐẦY ĐỦ -> TÊN NGẮN (Thầy X, Cô Y, hoặc Full Name nếu Thỉnh giảng)
         let gvShortNameMap = {};
 
         // Xóa sự kiện
@@ -421,12 +421,10 @@
             if (!gvString) return '';
             let gvs = gvString.split(/,|&/).map(s => s.trim());
             let shortGvs = gvs.map(gv => {
+                // Nếu đã có trong Map (Cơ hữu hoặc Thỉnh giảng đã có thông tin) thì dùng
                 if (gvShortNameMap[gv]) return gvShortNameMap[gv];
-                
-                // Fallback nếu GV không có trong bảng users
-                let parts = gv.split(' ');
-                let firstName = parts[parts.length - 1];
-                return 'GV ' + firstName; 
+                // Trả về tên gốc đầy đủ nếu không quét ra thông tin
+                return gv; 
             });
             return shortGvs.join(', ');
         };
@@ -763,18 +761,6 @@
             return { hasOverlap: false };
         }
 
-        window.toggleSidebar = () => {
-            const panel = document.getElementById('external-events');
-            if (panel.style.display === 'none') {
-                panel.style.display = 'flex';
-                panel.removeAttribute('data-manually-hidden');
-            } else {
-                panel.style.display = 'none';
-                panel.setAttribute('data-manually-hidden', 'true'); 
-            }
-            setTimeout(() => { if(calendar) calendar.updateSize(); }, 100);
-        };
-
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUserEmail = user.email.toLowerCase();
@@ -783,6 +769,7 @@
 
                 gvShortNameMap = {};
                 try {
+                    // Quét GV Cơ Hữu
                     const snapUser = await getDocs(collection(db, "users"));
                     snapUser.forEach(doc => {
                         const d = doc.data();
@@ -797,6 +784,20 @@
                             gvShortNameMap[savedName] = `${genderPref}${firstName}`;
                         }
                     });
+
+                    // CẬP NHẬT: Quét GV Thỉnh Giảng để lấy gender
+                    const snapVisiting = await getDocs(collection(db, "visiting_lecturers"));
+                    snapVisiting.forEach(doc => {
+                        const d = doc.data();
+                        if (d.name && d.gender) {
+                            let nameParts = d.name.trim().split(' ');
+                            let firstName = nameParts[nameParts.length - 1]; 
+                            let genderPref = d.gender === 'm' ? 'Thầy ' : (d.gender === 'f' ? 'Cô ' : 'GV ');
+                            
+                            gvShortNameMap[d.name] = `${genderPref}${firstName}`;
+                        }
+                    });
+
                 } catch(e) {}
 
                 const userDoc = await getDoc(doc(db, "users", user.uid));
@@ -1337,7 +1338,6 @@
                                             gv: a.gv
                                         });
                                     } else {
-                                        // Max cho trùng name (NC/UD)
                                         subjectCardsMap.get(keyForCount).count = Math.max(subjectCardsMap.get(keyForCount).count, remainingNormal);
                                     }
                                 }
