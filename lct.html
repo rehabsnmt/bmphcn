@@ -93,11 +93,12 @@
             background: #fbbf24; color: #78350f; font-weight: 800; font-size: 0.7rem; 
             padding: 2px 4px; border-radius: 3px; flex-shrink: 0; min-width: 22px; text-align: center; margin-top: 1px;
         }
+        /* Thay đổi để Tên GV không bị ẩn (text-overflow) và tự xuống dòng gọn gàng */
         .evt-gv-name { 
-            font-size: 0.75rem; font-weight: 700; color: var(--text-dark); line-height: 1.3; word-break: break-word;
+            font-size: 0.75rem; font-weight: 700; color: var(--text-dark); line-height: 1.3; word-break: break-word; white-space: normal;
         }
         .evt-item-row2 { 
-            font-size: 0.75rem; color: var(--primary); padding-left: 28px; line-height: 1.3; word-break: break-word;
+            font-size: 0.75rem; color: var(--primary); padding-left: 28px; line-height: 1.3; word-break: break-word; white-space: normal;
         }
 
         /* Chấm Bệnh viện trên cùng (All-day) */
@@ -115,7 +116,7 @@
         .toast.show { transform: translateX(0); opacity: 1; }
         .toast.danger { border-left-color: #ef4444; }
 
-        /* Modal Chi tiết chung (Dùng chung cho xếp phòng, xem chi tiết gom nhóm, và xem chi tiết BV) */
+        /* Modal Chi tiết chung */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 2000; padding: 10px; }
         .modal-content { background: white; width: 95%; max-width: 600px; border-radius: 8px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); overflow: hidden; display: flex; flex-direction: column; }
         .modal-header { padding: 15px 20px; background: var(--primary); color: white; display: flex; justify-content: space-between; align-items: center; }
@@ -243,7 +244,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, collection, onSnapshot, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, collection, onSnapshot, setDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY", authDomain: "bmphcn-aa9c6.firebaseapp.com", projectId: "bmphcn-aa9c6", storageBucket: "bmphcn-aa9c6.firebasestorage.app", messagingSenderId: "749494392719", appId: "1:749494392719:web:f220c751ff541620045dfa" };
         const app = initializeApp(firebaseConfig);
@@ -261,15 +262,68 @@
             "Khác..."
         ];
 
+        // MẢNG DỮ LIỆU MÔN HỌC CHUẨN ĐƯỢC CHÉP TỪ FILE EXCEL CỦA BẠN (60 Môn)
         const subjectsData = [
-            {"id": "sub_1", "name": "Triết học"}, {"id": "sub_2", "name": "Ngoại ngữ"}, {"id": "sub_3", "name": "Sinh học phân tử"}, {"id": "sub_4", "name": "Y đức - Xã hội học"}, {"id": "sub_5", "name": "Phương pháp nghiên cứu khoa học"}, {"id": "sub_6", "name": "Thống kê y học"},
-            {"id": "sub_7", "name": "Phương pháp dạy và học trong phục hồi chức năng"}, {"id": "sub_8", "name": "Quản lý và lãnh đạo trong phục hồi chức năng"}, {"id": "sub_9", "name": "Kỹ năng hướng dẫn lâm sàng và lý luận lâm sàng trong PHCN"}, {"id": "sub_10", "name": "Thực hành kỹ năng hướng dẫn lâm sàng"}, {"id": "sub_11", "name": "Thực hành dựa trên chứng cứ"},
-            {"id": "sub_12", "name": "Rối loạn nuốt"}, {"id": "sub_13", "name": "Rối loạn vận động tạo lời nói và nói lắp"}, {"id": "sub_14", "name": "Những rối loạn giao tiếp & nhận thức có nguồn gốc thần kinh"}, {"id": "sub_15", "name": "Những rối loạn phát sinh từ khiếm khuyết/Phẫu thuật vùng đầu và cổ"}, {"id": "sub_16", "name": "Khuyết tật giao tiếp suốt đời và giao tiếp tăng cường và thay thế"}, {"id": "sub_17", "name": "Thính lực học và PHCN thính giác"}, {"id": "sub_18", "name": "Quản lý ca bệnh phức tạp"}, {"id": "sub_19", "name": "Thực hành lâm sàng cho rối loạn giọng"}, {"id": "sub_20", "name": "Thực hành lâm sàng cho vấn đề rối loạn ngôn ngữ có nguồn gốc thần kinh"}, {"id": "sub_21", "name": "Thực hành lâm sàng cho người khuyết tật suốt đời"}, {"id": "sub_22", "name": "Thực hành lâm sàng cho trẻ em có rối loạn giao tiếp và nuốt"}, {"id": "sub_23", "name": "Thực hành lâm sàng ca bệnh phức tạp ở người lớn và trẻ em"},
-            {"id": "sub_24", "name": "Vật lý trị liệu Nhi nâng cao"}, {"id": "sub_25", "name": "Vật lý trị liệu Thần kinh cơ nâng cao"}, {"id": "sub_26", "name": "Vật lý trị liệu Cơ xương nâng cao"}, {"id": "sub_27", "name": "Vật lý trị liệu Tim mạch – Hô hấp nâng cao"}, {"id": "sub_28", "name": "Vật lý trị liệu trong thể thao"}, {"id": "sub_29", "name": "Ứng dụng công thái học trong can thiệp Vật lý trị liệu"}, {"id": "sub_30", "name": "Thực hành lâm sàng Vật lý trị liệu nâng cao 1"}, {"id": "sub_31", "name": "Thực hành lâm sàng Vật lý trị liệu nâng cao 2"},
-            {"id": "sub_32", "name": "Những vấn đề chuyên môn trong Hoạt động trị liệu"}, {"id": "sub_33", "name": "Lãnh đạo và quản lý trong Hoạt động trị liệu"}, {"id": "sub_34", "name": "Thiết kế và đánh giá chương trình Hoạt động trị liệu"}, {"id": "sub_35", "name": "Hoạt động trị liệu và quản lý chấn thương"}, {"id": "sub_36", "name": "Hoạt động trị liệu trong thực hành sức khỏe tâm thần trong suốt quá trình phát triển"}, {"id": "sub_37", "name": "Hoạt động trị liệu trong lão khoa"}, {"id": "sub_38", "name": "Thực hành hoạt động trị liệu 1"}, {"id": "sub_39", "name": "Thực hành hoạt động trị liệu 2"}, {"id": "sub_40", "name": "Thực hành hoạt động trị liệu 3"},
-            {"id": "sub_41", "name": "Thực hành lâm sàng Kỹ thuật Phục hồi chức năng 1"}, {"id": "sub_42", "name": "Thực hành lâm sàng Kỹ thuật Phục hồi chức năng 2"}, {"id": "sub_43", "name": "Thực hành lâm sàng Kỹ thuật Phục hồi chức năng 3"},
-            {"id": "sub_44", "name": "Đề án tốt nghiệp"}, {"id": "sub_45", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 1"}, {"id": "sub_46", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 2"}, {"id": "sub_47", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 3"}, {"id": "sub_48", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 4"}, {"id": "sub_49", "name": "Luận văn"},
-            {"id": "sub_99", "name": "Công việc chuyên môn khác"}
+            { "id": "sub_1", "name": "Triết học", "credits": 3, "theory": 3, "practice": 0, "department": "BM KHXH-NV", "isPHCN": false, "orientations": [ "NC", "UD" ], "group": "1. Kiến thức chung" },
+            { "id": "sub_2", "name": "Ngoại ngữ", "credits": 2, "theory": 2, "practice": 0, "department": "BM Ngoại ngữ", "isPHCN": false, "orientations": [ "NC", "UD" ], "group": "1. Kiến thức chung" },
+            { "id": "sub_3", "name": "Sinh học phân tử", "credits": 2, "theory": 2, "practice": 0, "department": "TT Y sinh học phân tử", "isPHCN": false, "orientations": [ "NC", "UD" ], "group": "2. Kiến thức cơ sở" },
+            { "id": "sub_4", "name": "Y đức - Xã hội học", "credits": 2, "theory": 2, "practice": 0, "department": "BM Y đức", "isPHCN": false, "orientations": [ "NC", "UD" ], "group": "2. Kiến thức cơ sở" },
+            { "id": "sub_5", "name": "Phương pháp nghiên cứu khoa học", "credits": 2, "theory": 1, "practice": 1, "department": "TT GD Y học", "isPHCN": false, "orientations": [ "NC", "UD" ], "group": "2. Kiến thức cơ sở" },
+            { "id": "sub_6", "name": "Thống kê y học", "credits": 2, "theory": 1, "practice": 1, "department": "BM Thống kê Y học", "isPHCN": false, "orientations": [ "NC", "UD" ], "group": "2. Kiến thức cơ sở" },
+            { "id": "sub_7", "name": "Phương pháp dạy & học PHCN", "credits": 2, "theory": 1, "practice": 1, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC", "UD" ], "group": "3.1. Kiến thức ngành (bắt buộc)" },
+            { "id": "sub_8", "name": "Quản lý & lãnh đạo PHCN", "credits": 2, "theory": 1, "practice": 1, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC", "UD" ], "group": "3.1. Kiến thức ngành (bắt buộc)" },
+            { "id": "sub_9", "name": "Kỹ năng hướng dẫn lâm sàng", "credits": 2, "theory": 1, "practice": 1, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC", "UD" ], "group": "3.1. Kiến thức ngành (bắt buộc)" },
+            { "id": "sub_10", "name": "Thực hành dựa trên chứng cứ", "credits": 2, "theory": 1, "practice": 1, "department": "TT GD Y học", "isPHCN": false, "orientations": [ "NC", "UD" ], "group": "3.1. Kiến thức ngành (bắt buộc)" },
+            { "id": "sub_11", "name": "VLTL Nhi nâng cao", "credits": 3, "theory": 1, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC", "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Vật lý trị liệu)" },
+            { "id": "sub_12", "name": "VLTL Thần kinh cơ nâng cao", "credits": 2, "theory": 1, "practice": 1, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC", "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Vật lý trị liệu)" },
+            { "id": "sub_13", "name": "VLTL Cơ xương nâng cao", "credits": 2, "theory": 1, "practice": 1, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC", "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Vật lý trị liệu)" },
+            { "id": "sub_14", "name": "VLTL Tim mạch - Hô hấp nâng cao", "credits": 2, "theory": 1, "practice": 1, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC" ], "group": "3.2. Kiến thức ngành (tự chọn - Vật lý trị liệu)" },
+            { "id": "sub_15", "name": "Thực hành lâm sàng VLTL nâng cao 1", "credits": 3, "theory": 0, "practice": 3, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC" ], "group": "3.2. Kiến thức ngành (tự chọn - Vật lý trị liệu)" },
+            { "id": "sub_16", "name": "Thực hành lâm sàng VLTL nâng cao 2", "credits": 3, "theory": 0, "practice": 3, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC" ], "group": "3.2. Kiến thức ngành (tự chọn - Vật lý trị liệu)" },
+            { "id": "sub_17", "name": "Lãnh đạo & quản lý trong HĐTL", "credits": 3, "theory": 1, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC" ], "group": "3.2. Kiến thức ngành (tự chọn - Hoạt động trị liệu)" },
+            { "id": "sub_18", "name": "Thiết kế & đánh giá chương trình HĐTL", "credits": 3, "theory": 1, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC", "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Hoạt động trị liệu)" },
+            { "id": "sub_19", "name": "HĐTL & quản lý chấn thương", "credits": 3, "theory": 1, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC", "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Hoạt động trị liệu)" },
+            { "id": "sub_20", "name": "HĐTL trong sức khỏe tâm thần", "credits": 3, "theory": 1, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC", "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Hoạt động trị liệu)" },
+            { "id": "sub_21", "name": "HĐTL trong lão khoa", "credits": 3, "theory": 1, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC", "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Hoạt động trị liệu)" },
+            { "id": "sub_22", "name": "Rối loạn nuốt", "credits": 3, "theory": 2, "practice": 1, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC" ], "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)" },
+            { "id": "sub_23", "name": "Rối loạn vận động tạo lời nói và nói lắp", "credits": 2, "theory": 1, "practice": 1, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC" ], "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)" },
+            { "id": "sub_24", "name": "Thực hành lâm sàng rối loạn giọng", "credits": 2, "theory": 0, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC" ], "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)" },
+            { "id": "sub_25", "name": "Thực hành lâm sàng rối loạn ngôn ngữ thần kinh", "credits": 2, "theory": 0, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC" ], "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)" },
+            { "id": "sub_26", "name": "Thực hành lâm sàng người khuyết tật suốt đời", "credits": 2, "theory": 0, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC" ], "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)" },
+            { "id": "sub_27", "name": "Thực hành lâm sàng trẻ em rối loạn giao tiếp/nuốt", "credits": 2, "theory": 0, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC" ], "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)" },
+            { "id": "sub_28", "name": "Thực hành lâm sàng ca bệnh phức tạp", "credits": 2, "theory": 0, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC" ], "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)" },
+            { "id": "sub_29", "name": "Chuyên đề nâng cao PHCN 1", "credits": 3, "theory": 1, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC" ], "group": "4. Chuyên đề nghiên cứu" },
+            { "id": "sub_30", "name": "Chuyên đề nâng cao PHCN 2", "credits": 3, "theory": 1, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC" ], "group": "4. Chuyên đề nghiên cứu" },
+            { "id": "sub_31", "name": "Chuyên đề nâng cao PHCN 3", "credits": 3, "theory": 1, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC" ], "group": "4. Chuyên đề nghiên cứu" },
+            { "id": "sub_32", "name": "Chuyên đề nâng cao PHCN 4", "credits": 3, "theory": 1, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC" ], "group": "4. Chuyên đề nghiên cứu" },
+            { "id": "sub_33", "name": "Luận văn", "credits": 12, "theory": 0, "practice": 0, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC" ], "group": "5. Luận văn" },
+            { "id": "sub_34", "name": "Thực hành hướng dẫn lâm sàng", "credits": 2, "theory": 1, "practice": 1, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "3.1. Kiến thức ngành (bắt buộc)" },
+            { "id": "sub_35", "name": "VLTL Tim mạch - Hô hấp nâng cao", "credits": 3, "theory": 1, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Vật lý trị liệu)" },
+            { "id": "sub_36", "name": "VLTL trong thể thao", "credits": 3, "theory": 1, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Vật lý trị liệu)" },
+            { "id": "sub_37", "name": "Ứng dụng công thái học trong VLTL", "credits": 4, "theory": 2, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Vật lý trị liệu)" },
+            { "id": "sub_38", "name": "Thực hành lâm sàng VLTL nâng cao 1", "credits": 4, "theory": 0, "practice": 4, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Vật lý trị liệu)" },
+            { "id": "sub_39", "name": "Thực hành lâm sàng VLTL nâng cao 2", "credits": 4, "theory": 0, "practice": 4, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Vật lý trị liệu)" },
+            { "id": "sub_40", "name": "Vấn đề chuyên môn trong HĐTL", "credits": 3, "theory": 1, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Hoạt động trị liệu)" },
+            { "id": "sub_41", "name": "Thực hành HĐTL 1", "credits": 3, "theory": 0, "practice": 3, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Hoạt động trị liệu)" },
+            { "id": "sub_42", "name": "Thực hành HĐTL 2", "credits": 3, "theory": 0, "practice": 3, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Hoạt động trị liệu)" },
+            { "id": "sub_43", "name": "Thực hành HĐTL 3", "credits": 3, "theory": 0, "practice": 3, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Hoạt động trị liệu)" },
+            { "id": "sub_44", "name": "Rối loạn nuốt", "credits": 3, "theory": 2, "practice": 1, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)" },
+            { "id": "sub_45", "name": "Rối loạn vận động tạo lời nói và nói lắp", "credits": 2, "theory": 1, "practice": 1, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)" },
+            { "id": "sub_46", "name": "Rối loạn giao tiếp & nhận thức thần kinh", "credits": 2, "theory": 0, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)" },
+            { "id": "sub_47", "name": "Rối loạn từ khiếm khuyết/phẫu thuật đầu cổ", "credits": 2, "theory": 0, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)" },
+            { "id": "sub_48", "name": "Khuyết tật giao tiếp suốt đời & AAC", "credits": 2, "theory": 0, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)" },
+            { "id": "sub_49", "name": "Thính lực học & PHCN thính giác", "credits": 2, "theory": 0, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)" },
+            { "id": "sub_50", "name": "Quản lý ca bệnh phức tạp", "credits": 2, "theory": 0, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)" },
+            { "id": "sub_51", "name": "Thực hành lâm sàng rối loạn giọng", "credits": 2, "theory": 0, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)" },
+            { "id": "sub_52", "name": "Thực hành lâm sàng rối loạn ngôn ngữ thần kinh", "credits": 2, "theory": 0, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)" },
+            { "id": "sub_53", "name": "Thực hành lâm sàng người khuyết tật suốt đời", "credits": 2, "theory": 0, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)" },
+            { "id": "sub_54", "name": "Thực hành lâm sàng trẻ em rối loạn giao tiếp/nuốt", "credits": 2, "theory": 0, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)" },
+            { "id": "sub_55", "name": "Thực hành lâm sàng ca bệnh phức tạp", "credits": 2, "theory": 0, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)" },
+            { "id": "sub_56", "name": "Thực hành lâm sàng PHCN 1", "credits": 2, "theory": 0, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "4. Thực tập" },
+            { "id": "sub_57", "name": "Thực hành lâm sàng PHCN 2", "credits": 2, "theory": 0, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "4. Thực tập" },
+            { "id": "sub_58", "name": "Thực hành lâm sàng PHCN 3", "credits": 2, "theory": 0, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "4. Thực tập" },
+            { "id": "sub_59", "name": "Đề án", "credits": 6, "theory": 0, "practice": 0, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "5. Đề án" },
+            { "id": "sub_60", "name": "Công việc chuyên môn khác", "credits": 0, "theory": 0, "practice": 0, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD", "NC" ], "group": "6. Công việc khác" }
         ];
 
         let calendar;
@@ -284,6 +338,9 @@
         let clinicalSchedules = []; 
         let globalGroupedClinicals = {}; 
         
+        // TỪ ĐIỂN MAP TÊN ĐẦY ĐỦ -> TÊN NGẮN (Thầy X, Cô Y)
+        let gvShortNameMap = {};
+
         // Cần truy cập toàn cục khi xóa sự kiện từ bảng Modal
         window.deleteSubEvent = async (id) => {
             if(!id) return;
@@ -309,6 +366,21 @@
             setTimeout(() => toast.classList.add('show'), 10);
             setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
         }
+
+        // HÀM FORMAT TÊN GIẢNG VIÊN THÔNG MINH
+        window.formatGvName = (gvString) => {
+            if (!gvString) return '';
+            let gvs = gvString.split(/,|&/).map(s => s.trim());
+            let shortGvs = gvs.map(gv => {
+                if (gvShortNameMap[gv]) return gvShortNameMap[gv];
+                
+                // Fallback nếu GV không có trong bảng users
+                let parts = gv.split(' ');
+                let firstName = parts[parts.length - 1];
+                return 'GV ' + firstName; 
+            });
+            return shortGvs.join(', ');
+        };
 
         function initRoomSelect() {
             const select = document.getElementById('roomSelect');
@@ -408,7 +480,6 @@
             return valid;
         }
 
-        // HÀM KIỂM TRA TRÙNG LỊCH & TRÙNG PHÒNG (Bỏ qua ID của thẻ đang thao tác để không tự cản chính mình)
         function hasOverlap(targetStart, targetEnd, gvStr, targetClass, targetTask, targetRoom, ignoreEventIds) {
             let ignoreList = Array.isArray(ignoreEventIds) ? ignoreEventIds : [ignoreEventIds];
             let tStart = targetStart.getTime();
@@ -438,7 +509,7 @@
             const blockingTasks = ['Lý thuyết', 'Thực hành', 'Thực tế', 'Coi thi'];
 
             for (let e of allSubEvents) {
-                if (ignoreList.includes(e.id)) continue; // Bỏ qua thẻ đang thao tác
+                if (ignoreList.includes(e.id)) continue; 
                 
                 let eStart = new Date(e.start).getTime();
                 let eEnd = e.end ? new Date(e.end).getTime() : eStart + 4 * 3600000;
@@ -483,6 +554,25 @@
                 currentUserEmail = user.email.toLowerCase();
                 const adminEmails = ['lethanhvan@ump.edu.vn', 'phanthenguyenpt@ump.edu.vn', 'thduypt@ump.edu.vn', 'hoangtran1483@gmail.com'];
                 if (adminEmails.includes(currentUserEmail)) isCalendarAdmin = true;
+
+                // TIẾN HÀNH QUÉT DATABASE ĐỂ CHUẨN BỊ BỘ TỪ ĐIỂN TÊN GIẢNG VIÊN RÚT GỌN (Thầy/Cô)
+                gvShortNameMap = {};
+                try {
+                    const snapUser = await getDocs(collection(db, "users"));
+                    snapUser.forEach(doc => {
+                        const d = doc.data();
+                        if(d.fullName) {
+                            let pref = d.degree === 'ThS' ? 'ThS. ' : (d.degree === 'TS' ? 'TS. ' : '');
+                            let savedName = `${pref}${d.fullName}`; // Tên gốc (như trong bảng phân công)
+                            
+                            let nameParts = d.fullName.trim().split(' ');
+                            let firstName = nameParts[nameParts.length - 1]; 
+                            let genderPref = d.gender === 'm' ? 'Thầy ' : (d.gender === 'f' ? 'Cô ' : 'GV ');
+                            
+                            gvShortNameMap[savedName] = `${genderPref}${firstName}`;
+                        }
+                    });
+                } catch(e) {}
 
                 const userDoc = await getDoc(doc(db, "users", user.uid));
                 if (userDoc.exists()) {
@@ -555,11 +645,13 @@
                     
                     if (props.type === 'clinical_summary') {
                         return {
-                            html: `<div class="evt-clinical-dot" title="Click xem chi tiết Bệnh viện">BV</div>`
+                            html: `
+                            <div class="evt-clinical-dot" title="Click xem chi tiết Bệnh viện">BV</div>
+                            `
                         };
                     }
 
-                    // TÙY CHỈNH THẺ SỰ KIỆN GOM NHÓM (HIỂN THỊ DẠNG LIST NHƯ YÊU CẦU MỚI)
+                    // TÙY CHỈNH THẺ SỰ KIỆN GOM NHÓM
                     if (props.type === 'grouped_normal') {
                         let sTime = arg.event.start ? arg.event.start.toLocaleTimeString('vi-VN', {hour: 'numeric', minute:'2-digit', hour12: false}) : '';
                         let eTime = '';
@@ -578,6 +670,7 @@
                         
                         let itemsHtml = props.events.map(e => {
                             let gvFull = e.gv || '';
+                            let gvDisplay = window.formatGvName(gvFull); // Cập nhật gọi hàm tên rút gọn
                             let clsTag = e.class === 'THS2025' ? '<span style="color:#0369a1">[THS2025]</span>' : '<span style="color:#b45309">[THS2026]</span>';
                             
                             let shortRoom = '';
@@ -591,7 +684,7 @@
                             <div class="evt-item">
                                 <div class="evt-item-row1">
                                     <span class="evt-room-badge">${shortRoom}</span>
-                                    <span class="evt-gv-name">${clsTag} ${gvFull}</span>
+                                    <span class="evt-gv-name">${clsTag} ${gvDisplay}</span>
                                 </div>
                                 <div class="evt-item-row2" title="${e.subject}">${e.subject}</div>
                             </div>
@@ -771,7 +864,7 @@
                     }
                 },
 
-                // MODAL HIỂN THỊ CHI TIẾT
+                // MODAL HIỂN THỊ CHI TIẾT KHI CLICK VÀO LỊCH
                 eventClick: function(info) {
                     const props = info.event.extendedProps;
                     const modal = document.getElementById('multiEventModal');
