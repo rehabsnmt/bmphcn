@@ -155,7 +155,6 @@
         ];
 
         let calendarEvents = [];
-        let clinicalSchedules = [];
         let coefs = {};
         let usersMap = {}; 
         let visitingMap = {}; 
@@ -170,30 +169,6 @@
             setTimeout(() => toast.classList.add('show'), 10);
             setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
         };
-
-        function parseDate(dateStr) {
-            if (!dateStr) return null;
-            if (dateStr.includes('/')) {
-                const parts = dateStr.split('/');
-                return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
-            }
-            return dateStr;
-        }
-
-        function parseDays(daysStr) {
-            if (!daysStr) return [1,2,3,4,5];
-            let str = daysStr.toLowerCase();
-            if (str.includes('t2 - t6') || str.includes('thứ 2 đến thứ 6') || str.includes('cả tuần')) return [1,2,3,4,5];
-            let days = [];
-            if (str.includes('t2') || str.includes('thứ 2')) days.push(1);
-            if (str.includes('t3') || str.includes('thứ 3')) days.push(2);
-            if (str.includes('t4') || str.includes('thứ 4')) days.push(3);
-            if (str.includes('t5') || str.includes('thứ 5')) days.push(4);
-            if (str.includes('t6') || str.includes('thứ 6')) days.push(5);
-            if (str.includes('t7') || str.includes('thứ 7')) days.push(6);
-            if (str.includes('cn') || str.includes('chủ nhật')) days.push(0);
-            return days.length > 0 ? days : [1,2,3,4,5];
-        }
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
@@ -230,16 +205,10 @@
                     window.renderTable();
                 });
 
-                // Lắng nghe Lịch
+                // Lắng nghe Lịch Công Tác (Bỏ lắng nghe clinical_schedules)
                 onSnapshot(collection(db, "calendar_events"), (snapshot) => {
                     calendarEvents = [];
                     snapshot.forEach(doc => calendarEvents.push(doc.data()));
-                    window.renderTable();
-                });
-
-                onSnapshot(collection(db, "clinical_schedules"), (snapshot) => {
-                    clinicalSchedules = [];
-                    snapshot.forEach(doc => clinicalSchedules.push(doc.data()));
                     window.renderTable();
                 });
 
@@ -324,27 +293,6 @@
                     gvs.forEach(gv => {
                         allEvents.push({ gv, task: taskName, tiet });
                     });
-                }
-            });
-
-            // 2. Quét Lịch Bệnh viện (clinical_schedules)
-            clinicalSchedules.forEach(c => {
-                let startStr = parseDate(c.start_date);
-                let endStr = parseDate(c.end_date);
-                if (!startStr) return;
-                
-                let cStart = new Date(startStr);
-                let cEnd = endStr ? new Date(endStr) : new Date(startStr);
-                let days = parseDays(c.days); 
-
-                for (let d = new Date(cStart); d <= cEnd; d.setDate(d.getDate() + 1)) {
-                    if (days.includes(d.getDay()) && d >= start && d <= end) {
-                        let tiet = c.shift.toLowerCase().includes('cả ngày') ? 8 : 4;
-                        let gvs = c.instructors ? c.instructors.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
-                        gvs.forEach(gv => {
-                            allEvents.push({ gv, task: 'Thực hành bệnh viện', tiet });
-                        });
-                    }
                 }
             });
 
