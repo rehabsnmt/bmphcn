@@ -27,7 +27,7 @@
         /* Controls */
         .controls-wrapper { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; background: var(--surface); padding: 15px 20px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 20px; gap: 15px; box-shadow: var(--shadow-sm); }
         .filter-controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-        .filter-select { padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border); outline: none; font-size: 0.9rem; font-weight: 600; color: var(--text-dark); background-color: var(--bg-page); cursor: pointer; }
+        .filter-select { padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border); outline: none; font-size: 0.95rem; font-weight: 600; color: var(--primary); background-color: #f0f9ff; cursor: pointer; border-color: #bae6fd; }
 
         /* Buttons */
         .btn-primary { background-color: var(--primary); color: white; padding: 0.6rem 1.2rem; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; transition: 0.2s; }
@@ -45,21 +45,26 @@
         .badge-cohuu { background: #dbeafe; color: #0369a1; border: 1px solid #7dd3fc;}
         .badge-thinhgiang { background: #fefce8; color: #b45309; border: 1px solid #fde047;}
 
+        .cls-section { margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px dashed #e2e8f0; }
+        .cls-section:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+        .cls-title { font-weight: bold; color: #0369a1; font-size: 0.95rem; margin-bottom: 5px; }
+        .cls-title.ths2026 { color: #b45309; }
+
         .breakdown { margin: 0; padding-left: 20px; color: #475569; font-size: 0.9rem; line-height: 1.6; }
         .breakdown li { margin-bottom: 4px; }
-        .total-col { font-weight: 900; color: var(--primary); font-size: 1.2rem; text-align: center; vertical-align: middle !important;}
+        .total-col { font-weight: 900; color: var(--primary); font-size: 1.25rem; text-align: center; vertical-align: middle !important;}
         .td-gv-name { font-weight: bold; color: var(--text-dark); font-size: 1.05rem; }
 
         /* Khối Đối chiếu Khung CT */
-        .cmp-card { font-size: 0.85rem; padding-bottom: 10px; border-bottom: 1px dashed #cbd5e1; margin-bottom: 10px; }
-        .cmp-card:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-        .cmp-card-title { color: var(--primary); font-weight: bold; margin-bottom: 4px; line-height: 1.3; }
-        .cmp-row { display: flex; justify-content: space-between; margin-bottom: 3px; }
-        .cmp-bg { background: #f1f5f9; padding: 4px 6px; border-radius: 4px; margin-top: 4px; border: 1px solid #e2e8f0; }
+        .cmp-box { background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; margin-bottom: 5px; font-size: 0.85rem; }
+        .cmp-box p { margin: 0 0 5px 0; }
+        .cmp-box p:last-child { margin-bottom: 0; }
+        .over-limit { color: #ef4444; font-weight: bold; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
 
         /* Modal */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); display: flex; justify-content: center; align-items: center; z-index: 2000; padding: 10px; }
-        .modal-content { background: white; width: 95%; max-width: 500px; border-radius: 8px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); overflow: hidden; display: flex; flex-direction: column; }
+        .modal-content { background: white; width: 95%; max-width: 650px; border-radius: 8px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); overflow: hidden; display: flex; flex-direction: column; }
         .modal-header { padding: 15px 20px; background: var(--primary); color: white; display: flex; justify-content: space-between; align-items: center; }
         .modal-header h3 { margin: 0; font-size: 1.1rem; }
         .modal-body { padding: 20px; line-height: 1.8; overflow-y: auto; max-height: 70vh;}
@@ -82,17 +87,18 @@
     <main>
         <div class="header-title-box">
             <h2>THỐNG KÊ GIỜ GIẢNG</h2>
-            <div class="subtitle">BẢNG QUY ĐỔI VÀ ĐỐI CHIẾU TIẾN ĐỘ KHUNG CHƯƠNG TRÌNH</div>
+            <div class="subtitle">QUY ĐỔI GIỜ CHUẨN & ĐỐI CHIẾU TIẾN ĐỘ KHUNG CHƯƠNG TRÌNH</div>
         </div>
 
         <div class="controls-wrapper">
             <div class="filter-controls">
-                <span style="font-weight: 600; color: var(--text-body); font-size: 0.95rem;">Lọc thời gian: </span>
-                <input type="date" id="startDate" class="filter-select" title="Từ ngày">
-                <span style="color: var(--text-body);"> - </span>
-                <input type="date" id="endDate" class="filter-select" title="Đến ngày">
-                <button class="btn-primary" onclick="window.renderTable()"><i class="fas fa-filter"></i> Áp dụng</button>
-                <button class="btn-secondary" onclick="window.clearFilter()" style="margin-left:5px;"><i class="fas fa-sync-alt"></i></button>
+                <span style="font-weight: 600; color: var(--text-body); font-size: 0.95rem;">Lọc theo Năm Học: </span>
+                <select id="academicYear" class="filter-select" onchange="window.renderTable()">
+                    <option value="2025-2026">Năm học 2025 - 2026</option>
+                    <option value="2026-2027" selected>Năm học 2026 - 2027</option>
+                    <option value="2027-2028">Năm học 2027 - 2028</option>
+                </select>
+                <button class="btn-primary" onclick="window.renderTable()"><i class="fas fa-sync-alt"></i> Tải lại</button>
             </div>
             <div>
                 <button class="btn-toggle" onclick="openCoefModal()"><i class="fas fa-cog"></i> Cấu hình Hệ số Giờ chuẩn</button>
@@ -106,9 +112,9 @@
                         <th style="width: 50px; text-align: center;">STT</th>
                         <th style="width: 180px;">Tên Giảng Viên</th>
                         <th style="width: 100px; text-align: center;">Phân Loại</th>
-                        <th style="width: 180px;">Giờ Giảng Dạy<br><small>(Thực tế)</small></th>
-                        <th style="width: 200px;">Giờ Chuẩn Giảng Dạy<br><small>(Quy đổi theo hệ số)</small></th>
-                        <th style="min-width: 320px;">Đối chiếu Khung CT<br><small>(Tiến độ theo Từng Lớp)</small></th>
+                        <th style="width: 200px;">Giờ Giảng Dạy<br><small>(Thực tế / Theo lớp)</small></th>
+                        <th style="width: 230px;">Giờ Chuẩn<br><small>(Đơn vị: giờ / Đã nhân hệ số)</small></th>
+                        <th style="min-width: 320px;">Đối chiếu Khung CT Năm Học<br><small>(Tổng kết theo tiến độ Lớp)</small></th>
                         <th style="width: 100px; text-align: center;">Tổng<br>Giờ Chuẩn</th>
                     </tr>
                 </thead>
@@ -209,31 +215,31 @@
             { "id": "sub_59", "name": "Đề án", "credits": 6, "theory": 0, "practice": 0 }
         ];
 
-        // HÀM TÍNH SỐ TIẾT TỐI ĐA THEO KHUNG CHƯƠNG TRÌNH CHO MỘT MÔN
-        function getSubjectLimit(subName, task) {
-            let sub = subjectsData.find(s => s.name === subName);
-            if (!sub) return 0;
-            let theoryCredits = parseInt(sub.theory) || 0;
-            let practiceCredits = parseInt(sub.practice) || 0;
-            
-            let taskLower = task.toLowerCase();
-            if (taskLower.includes('lý thuyết')) {
-                return theoryCredits * 15; // 1 TC LT = 15 Tiết
-            } else if (taskLower.includes('thực hành') || taskLower.includes('thực tế') || taskLower.includes('lâm sàng')) {
-                if (sub.name.toLowerCase().includes('lâm sàng')) {
-                    return practiceCredits * 40; // 1 TC Lâm Sàng = 40 Tiết
-                } else {
-                    return practiceCredits * 30; // 1 TC TH/Lab = 30 Tiết
-                }
-            }
-            return 0; // Các nhiệm vụ khác (coi thi, ra đề) không có trần Khung CT cố định
-        }
-
         let calendarEvents = [];
-        let coefs = {};
+        let assignmentsData = {};
+        let coefs = { 'THS2025': {}, 'THS2026': {} };
         let usersMap = {}; 
         let visitingMap = {}; 
         let currentUserName = '';
+
+        const getYearConfig = (yearStr) => {
+            if (yearStr === '2025-2026') return {
+                'THS2025': ['Học kỳ 1', 'Học kỳ 2'],
+                'THS2026': [],
+                'start': '2025-08-01', 'end': '2026-07-31'
+            };
+            if (yearStr === '2026-2027') return {
+                'THS2025': ['Học kỳ 3', 'Học kỳ 4'],
+                'THS2026': ['Học kỳ 1', 'Học kỳ 2'],
+                'start': '2026-08-01', 'end': '2027-07-31'
+            };
+            if (yearStr === '2027-2028') return {
+                'THS2025': [],
+                'THS2026': ['Học kỳ 3', 'Học kỳ 4'],
+                'start': '2027-08-01', 'end': '2028-07-31'
+            };
+            return null;
+        }
 
         window.showToast = (message, type = 'success') => {
             const container = document.getElementById('toastContainer');
@@ -247,6 +253,7 @@
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
+                // Nạp Data Cán bộ
                 const snapUsers = await getDocs(collection(db, "users"));
                 snapUsers.forEach(doc => {
                     const d = doc.data();
@@ -268,16 +275,30 @@
                     }
                 }, 300);
 
-                onSnapshot(doc(db, "settings", "teaching_coefficients"), (docSnap) => {
+                // Lắng nghe cấu hình Hệ số (Tách 2 lớp)
+                onSnapshot(doc(db, "settings", "teaching_coefficients_v2"), (docSnap) => {
                     if (docSnap.exists()) {
-                        coefs = docSnap.data();
+                        let data = docSnap.data();
+                        if (data['THS2025']) coefs['THS2025'] = data['THS2025'];
+                        if (data['THS2026']) coefs['THS2026'] = data['THS2026'];
                     } else {
-                        TASK_LIST.forEach(t => coefs[t] = 1.0);
+                        TASK_LIST.forEach(t => {
+                            coefs['THS2025'][t] = 1.0;
+                            coefs['THS2026'][t] = 1.0;
+                        });
                     }
                     window.renderCoefForm();
                     window.renderTable();
                 });
 
+                // Phân công Data để lấy Học kỳ
+                onSnapshot(collection(db, "assignments"), (snapshot) => {
+                    assignmentsData = {};
+                    snapshot.forEach(doc => { assignmentsData[doc.id] = doc.data(); });
+                    window.renderTable();
+                });
+
+                // Lịch Công Tác
                 onSnapshot(collection(db, "calendar_events"), (snapshot) => {
                     calendarEvents = [];
                     snapshot.forEach(doc => calendarEvents.push(doc.data()));
@@ -289,24 +310,25 @@
             }
         });
 
-        window.clearFilter = () => {
-            document.getElementById('startDate').value = '';
-            document.getElementById('endDate').value = '';
-            window.renderTable();
-        };
-
         window.renderCoefForm = () => {
             const form = document.getElementById('coefForm');
-            form.innerHTML = '';
-            TASK_LIST.forEach(task => {
-                let val = coefs[task] !== undefined ? coefs[task] : 1.0;
-                form.innerHTML += `
-                    <div style="display:flex; justify-content:space-between; margin-bottom:12px; align-items:center; border-bottom: 1px dashed #e2e8f0; padding-bottom:8px;">
-                        <label style="font-weight:600; width:65%; color:var(--text-dark);"><i class="fas fa-caret-right" style="color:var(--primary); margin-right:5px;"></i> ${task}</label>
-                        <input type="number" step="0.1" id="coef_${task.replace(/\s+/g,'_')}" value="${val}" style="width:25%; padding:8px; border-radius:6px; border:1px solid var(--border); text-align:center; font-weight:bold;">
-                    </div>
-                `;
+            let html = '<div style="display:flex; gap:20px;">';
+            ['THS2025', 'THS2026'].forEach(cls => {
+                html += `<div style="flex:1;">
+                    <h4 style="text-align:center; color:var(--primary); border-bottom:2px solid var(--primary); padding-bottom:5px; margin-top:0;">Hệ số Lớp ${cls}</h4>`;
+                TASK_LIST.forEach(task => {
+                    let val = coefs[cls][task] !== undefined ? coefs[cls][task] : 1.0;
+                    html += `
+                        <div style="display:flex; justify-content:space-between; margin-bottom:10px; align-items:center; border-bottom: 1px dashed #e2e8f0; padding-bottom:4px;">
+                            <label style="font-size:0.8rem; width:65%; font-weight:600;">${task}</label>
+                            <input type="number" step="0.1" id="coef_${cls}_${task.replace(/\s+/g,'_')}" value="${val}" style="width:30%; padding:4px; border-radius:4px; border:1px solid var(--border); text-align:center; font-weight:bold;">
+                        </div>
+                    `;
+                });
+                html += `</div>`;
             });
+            html += '</div>';
+            form.innerHTML = html;
         };
 
         window.openCoefModal = () => {
@@ -314,13 +336,16 @@
         };
 
         window.saveCoefs = async () => {
-            let newCoefs = {};
-            TASK_LIST.forEach(task => {
-                let key = `coef_${task.replace(/\s+/g,'_')}`;
-                newCoefs[task] = parseFloat(document.getElementById(key).value) || 1.0;
+            let newCoefs = { 'THS2025': {}, 'THS2026': {} };
+            ['THS2025', 'THS2026'].forEach(cls => {
+                TASK_LIST.forEach(task => {
+                    let key = `coef_${cls}_${task.replace(/\s+/g,'_')}`;
+                    let el = document.getElementById(key);
+                    newCoefs[cls][task] = el ? (parseFloat(el.value) || 1.0) : 1.0;
+                });
             });
             try {
-                await setDoc(doc(db, "settings", "teaching_coefficients"), newCoefs);
+                await setDoc(doc(db, "settings", "teaching_coefficients_v2"), newCoefs);
                 document.getElementById('coefModal').classList.add('hidden');
                 window.showToast("Cập nhật hệ số thành công!");
             } catch(e) {
@@ -329,74 +354,128 @@
         };
 
         window.renderTable = () => {
-            let startD = document.getElementById('startDate').value;
-            let endD = document.getElementById('endDate').value;
-            let start = startD ? new Date(startD) : new Date('2000-01-01');
-            let end = endD ? new Date(endD) : new Date('2099-12-31');
-            end.setHours(23, 59, 59);
+            let selectedYear = document.getElementById('academicYear').value;
+            let yearConf = getYearConfig(selectedYear);
+            if (!yearConf) return;
 
-            let allEvents = [];
-            let validCalEvents = calendarEvents.filter(e => e.status !== 'returned');
+            let yStart = new Date(yearConf.start);
+            let yEnd = new Date(yearConf.end);
+            yEnd.setHours(23, 59, 59);
+
+            // 1. TÍNH KHUNG CHƯƠNG TRÌNH TỐI ĐA CHO TỪNG LỚP TRONG NĂM HỌC
+            let classLimits = { 'THS2025': { LT: 0, TH: 0 }, 'THS2026': { LT: 0, TH: 0 } };
             
-            // Xóa trùng lặp lớp ghép (Để tính tổng tiến độ lớp)
+            ['THS2025', 'THS2026'].forEach(cls => {
+                let allowedSems = yearConf[cls];
+                if (allowedSems.length === 0) return;
+
+                let groupedByName = {};
+                subjectsData.forEach(sub => {
+                    let asg = (assignmentsData[sub.id] && assignmentsData[sub.id][cls]) || {};
+                    if (allowedSems.includes(asg.semester)) {
+                        if (!groupedByName[sub.name]) groupedByName[sub.name] = { LT: 0, TH: 0 };
+                        
+                        let LT_Tiet = (parseInt(sub.theory) || 0) * 15;
+                        let TH_Tiet = 0;
+                        if (sub.name.toLowerCase().includes('lâm sàng')) {
+                            TH_Tiet = (parseInt(sub.practice) || 0) * 40;
+                        } else {
+                            TH_Tiet = (parseInt(sub.practice) || 0) * 30;
+                        }
+
+                        // Lấy MAX nếu có tách NC/UD (cùng tên môn)
+                        groupedByName[sub.name].LT = Math.max(groupedByName[sub.name].LT, LT_Tiet);
+                        groupedByName[sub.name].TH = Math.max(groupedByName[sub.name].TH, TH_Tiet);
+                    }
+                });
+
+                for (let name in groupedByName) {
+                    classLimits[cls].LT += groupedByName[name].LT;
+                    classLimits[cls].TH += groupedByName[name].TH;
+                }
+            });
+
+            // 2. LỌC VÀ LOẠI BỎ SỰ KIỆN TRÙNG LẶP TRONG LỊCH
+            let validCalEvents = calendarEvents.filter(e => e.status !== 'returned');
             let deduplicatedCalMap = new Map();
             validCalEvents.forEach(e => {
-                let subObj = subjectsData.find(s => s.name === e.subject);
-                let baseSubId = subObj ? subObj.id : e.subject; 
-                let deduplicateKey = `${e.start}_${e.end}_${e.room}_${baseSubId}_${e.task}_${e.gv}`;
+                let baseSubId = e.subject; 
+                let deduplicateKey = `${e.start}_${e.end}_${e.room}_${baseSubId}_${e.task}_${e.gv}_${e.class}`;
                 if (!deduplicatedCalMap.has(deduplicateKey)) {
                     deduplicatedCalMap.set(deduplicateKey, e);
                 }
             });
 
-            // Tổng hợp tiến độ của Lớp (Không bị nhân đôi nếu 2 GV xài chung phòng)
-            let classSubjectStats = {};
-            
+            let globalClassTaught = { 'THS2025': { LT: 0, TH: 0 }, 'THS2026': { LT: 0, TH: 0 } };
+            let gvStats = {};            
+            let gvClassSubjectStats = {};
+
+            // Để tránh cộng dồn tiến độ lớp nhiều lần nếu có 2 GV cùng xài 1 thẻ (Dạy chung), ta dùng Set() tracking
+            let processedClassSessions = new Set();
+
             deduplicatedCalMap.forEach(e => {
+                let cls = e.class;
+                let allowedSems = yearConf[cls];
+                if (!allowedSems) return;
+
                 let eStart = new Date(e.start);
-                let eEnd = e.end ? new Date(e.end) : new Date(eStart.getTime() + 4.5 * 3600000);
-                
-                if (eStart >= start && eStart <= end) {
+                let isValid = false;
+
+                // Kiểm tra xem Môn này có thuộc học kỳ được quy định trong năm học không
+                if (e.subject.toLowerCase().includes('công việc chuyên môn khác')) {
+                    if (eStart >= yStart && eStart <= yEnd) isValid = true;
+                } else {
+                    let subVariants = subjectsData.filter(s => s.name === e.subject);
+                    for (let variant of subVariants) {
+                        let asg = (assignmentsData[variant.id] && assignmentsData[variant.id][cls]) || {};
+                        if (allowedSems.includes(asg.semester)) {
+                            isValid = true; break;
+                        }
+                    }
+                }
+
+                if (isValid) {
+                    let eEnd = e.end ? new Date(e.end) : new Date(eStart.getTime() + 4.5 * 3600000);
                     let durationHours = (eEnd - eStart) / 3600000;
-                    let tiet = Math.round(durationHours / 0.9); // Quy đổi 4.5h = 5 tiết
+                    let tiet = Math.round(durationHours / 0.9); // 4.5h = 5 tiết
                     
                     let taskName = e.task || 'Công việc khác';
-                    
-                    let cKey = `${e.class}_${e.subject}_${taskName}`;
-                    if (!classSubjectStats[cKey]) classSubjectStats[cKey] = 0;
-                    classSubjectStats[cKey] += tiet;
+                    if (taskName.toLowerCase().includes('thực hành') && !taskName.toLowerCase().includes('bệnh viện')) taskName = 'Thực hành';
 
-                    // Mảng cho Từng Giảng Viên
+                    let tLower = taskName.toLowerCase();
+                    let category = 'OTHER';
+                    if (tLower.includes('lý thuyết')) category = 'LT';
+                    else if (tLower.includes('thực hành') || tLower.includes('thực tế')) category = 'TH';
+
+                    // Cộng vào Tiến độ Tổng của Lớp (Chỉ cộng 1 lần cho 1 khung giờ dù có bao nhiêu GV)
+                    let sessionKey = `${e.start}_${e.end}_${e.room}_${e.subject}_${taskName}_${cls}`;
+                    if (!processedClassSessions.has(sessionKey)) {
+                        processedClassSessions.add(sessionKey);
+                        if (category === 'LT') globalClassTaught[cls].LT += tiet;
+                        if (category === 'TH') globalClassTaught[cls].TH += tiet;
+                    }
+
+                    // Tách GV và cộng vào hồ sơ cá nhân
                     let gvs = e.gv ? e.gv.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
                     gvs.forEach(gv => {
-                        allEvents.push({ gv, task: taskName, tiet, subject: e.subject, class: e.class });
+                        if (!gvStats[gv]) gvStats[gv] = {};
+                        if (!gvStats[gv][cls]) gvStats[gv][cls] = {};
+                        if (!gvStats[gv][cls][taskName]) gvStats[gv][cls][taskName] = 0;
+                        gvStats[gv][cls][taskName] += tiet;
+
+                        if (!gvClassSubjectStats[gv]) gvClassSubjectStats[gv] = { 'THS2025': {LT: 0, TH: 0}, 'THS2026': {LT: 0, TH: 0} };
+                        if (category === 'LT') gvClassSubjectStats[gv][cls].LT += tiet;
+                        if (category === 'TH') gvClassSubjectStats[gv][cls].TH += tiet;
                     });
                 }
             });
 
-            // Tổng hợp Dữ liệu cho Bảng
-            let gvStats = {};            // Tổng toàn cục theo Task cho Cột 4, 5
-            let gvClassSubjectStats = {}; // Tổng chi tiết cho Cột 6
-
-            allEvents.forEach(e => {
-                // GV global
-                if (!gvStats[e.gv]) gvStats[e.gv] = {};
-                if (!gvStats[e.gv][e.task]) gvStats[e.gv][e.task] = 0;
-                gvStats[e.gv][e.task] += e.tiet;
-
-                // GV per class-subject
-                if (!gvClassSubjectStats[e.gv]) gvClassSubjectStats[e.gv] = {};
-                let cKey = `${e.class}_${e.subject}_${e.task}`;
-                if (!gvClassSubjectStats[e.gv][cKey]) gvClassSubjectStats[e.gv][cKey] = 0;
-                gvClassSubjectStats[e.gv][cKey] += e.tiet;
-            });
-
-            // Xuất HTML
+            // 3. RENDER HTML
             let tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
             
             if (Object.keys(gvStats).length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 30px; color:#64748b;">Không có dữ liệu giờ giảng trong khoảng thời gian này.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 30px; color:#64748b;">Không có dữ liệu phân công/lịch dạy nào được ghi nhận cho ${selectedYear}.</td></tr>`;
                 return;
             }
 
@@ -407,68 +486,60 @@
                 let type = usersMap[gv] ? "Cơ hữu" : (visitingMap[gv] ? "Thỉnh giảng" : "Chưa phân loại");
                 let badgeClass = usersMap[gv] ? "badge-cohuu" : "badge-thinhgiang";
                 
-                let realHtml = '<ul class="breakdown">';
-                let stdHtml = '<ul class="breakdown">';
+                let realHtml = '';
+                let stdHtml = '';
+                let cmpHtml = '';
                 let totalStd = 0;
 
-                // CỘT 4 & CỘT 5
-                for (let task in gvStats[gv]) {
-                    let rTiet = gvStats[gv][task];
-                    let coef = coefs[task] !== undefined ? coefs[task] : 1.0;
-                    let sGio = rTiet * coef;
-                    totalStd += sGio;
-
-                    realHtml += `<li><i class="fas fa-check" style="color:#10b981; margin-right:5px; font-size:0.8em;"></i> <b>${task}</b>: <span style="color:var(--primary); font-weight:bold;">${rTiet}</span> tiết</li>`;
-                    stdHtml += `<li><i class="fas fa-check" style="color:#10b981; margin-right:5px; font-size:0.8em;"></i> <b>${task}</b>: <span style="color:var(--primary); font-weight:bold;">${sGio.toFixed(1)}</span> giờ <i style="color:#94a3b8; font-size:0.85em;">(x${coef})</i></li>`;
-                }
-                realHtml += '</ul>';
-                stdHtml += '</ul>';
-
-                // CỘT 6: SO SÁNH KHUNG CHƯƠNG TRÌNH
-                let cmpHtml = '';
-                if (gvClassSubjectStats[gv]) {
-                    for (let cKey in gvClassSubjectStats[gv]) {
-                        let parts = cKey.split('_');
-                        let cls = parts[0];
-                        let subName = parts[1];
-                        let task = parts[2];
+                ['THS2025', 'THS2026'].forEach(cls => {
+                    if (gvStats[gv][cls] && Object.keys(gvStats[gv][cls]).length > 0) {
+                        let clsTitle = cls === 'THS2026' ? 'cls-title ths2026' : 'cls-title';
                         
-                        let gvTiet = gvClassSubjectStats[gv][cKey];
-                        let coef = coefs[task] || 1.0;
-                        let gvGio = gvTiet * coef;
+                        // Render Giờ Thực Tế
+                        realHtml += `<div class="cls-section"><div class="${clsTitle}">[${cls}]</div><ul class="breakdown">`;
+                        stdHtml += `<div class="cls-section"><div class="${clsTitle}">[${cls}]</div><ul class="breakdown">`;
 
-                        let totalClassTiet = classSubjectStats[cKey] || 0;
-                        let limitTiet = getSubjectLimit(subName, task);
-                        let limitGio = limitTiet * coef;
+                        for (let task in gvStats[gv][cls]) {
+                            let rTiet = gvStats[gv][cls][task];
+                            let coef = coefs[cls][task] || 1.0;
+                            let sGio = rTiet * coef;
+                            totalStd += sGio;
 
-                        let statusText = '';
-                        if (limitTiet > 0 && totalClassTiet > limitTiet) {
-                            statusText = `<span style="color:#ef4444; font-weight:bold; font-size:0.8rem;">(Vượt mức Khung CT!)</span>`;
+                            realHtml += `<li><b>${task}</b>: <span style="color:var(--primary); font-weight:bold;">${rTiet}</span> tiết</li>`;
+                            stdHtml += `<li><b>${task}</b>: <span style="color:var(--primary); font-weight:bold;">${sGio.toFixed(1)}</span> giờ <i style="color:#94a3b8; font-size:0.8em;">(x${coef})</i></li>`;
                         }
+                        realHtml += '</ul></div>';
+                        stdHtml += '</ul></div>';
 
-                        let limitTietDisplay = limitTiet > 0 ? limitTiet : '?';
-                        let limitGioDisplay = limitGio > 0 ? limitGio.toFixed(1) : '?';
+                        // Render Đối chiếu Khung CT
+                        let gvLT = gvClassSubjectStats[gv][cls].LT || 0;
+                        let gvTH = gvClassSubjectStats[gv][cls].TH || 0;
+                        
+                        if (gvLT > 0 || gvTH > 0) {
+                            cmpHtml += `<div class="cmp-box">
+                                <div class="${clsTitle}" style="border-bottom:1px solid #cbd5e1; padding-bottom:5px; margin-bottom:8px;">[${cls}] Đối chiếu Tổng Năm</div>
+                            `;
 
-                        cmpHtml += `
-                            <div class="cmp-card">
-                                <div class="cmp-card-title">[${cls}] ${subName}</div>
-                                <div style="color: #475569; margin-bottom: 3px;">Nhiệm vụ: <b style="color:var(--text-dark);">${task}</b></div>
-                                <div class="cmp-row">
-                                    <span>GV thực hiện:</span>
-                                    <span><b>${gvTiet}</b> tiết / <b>${gvGio.toFixed(1)}</b> giờ</span>
-                                </div>
-                                <div class="cmp-row cmp-bg">
-                                    <span>Tiến độ Lớp:</span>
-                                    <span style="text-align:right;">
-                                        <b>${totalClassTiet} / ${limitTietDisplay}</b> tiết<br>
-                                        <span style="color:var(--primary);"><b>${(totalClassTiet * coef).toFixed(1)} / ${limitGioDisplay}</b> giờ</span>
-                                    </span>
-                                </div>
-                                ${statusText ? `<div style="text-align:right; margin-top:2px;">${statusText}</div>` : ''}
-                            </div>
-                        `;
+                            if (gvLT > 0) {
+                                let totalLT = globalClassTaught[cls].LT;
+                                let limitLT = classLimits[cls].LT;
+                                let isOver = limitLT > 0 && totalLT > limitLT;
+                                cmpHtml += `<p><b>Lý thuyết:</b> GV đã dạy ${gvLT} tiết</p>
+                                            <p style="padding-left:10px; color:#475569; margin-bottom:8px;">↳ Tiến độ lớp: <b>${totalLT}</b> / ${limitLT > 0 ? limitLT : '?'} tiết ${isOver ? '<span class="over-limit">(Vượt mức Khung CT!)</span>' : ''}</p>`;
+                            }
+                            if (gvTH > 0) {
+                                let totalTH = globalClassTaught[cls].TH;
+                                let limitTH = classLimits[cls].TH;
+                                let isOver = limitTH > 0 && totalTH > limitTH;
+                                cmpHtml += `<p><b>Thực hành:</b> GV đã dạy ${gvTH} tiết</p>
+                                            <p style="padding-left:10px; color:#475569;">↳ Tiến độ lớp: <b>${totalTH}</b> / ${limitTH > 0 ? limitTH : '?'} tiết ${isOver ? '<span class="over-limit">(Vượt mức Khung CT!)</span>' : ''}</p>`;
+                            }
+                            cmpHtml += `</div>`;
+                        }
                     }
-                }
+                });
+
+                if (!cmpHtml) cmpHtml = '<span style="color:#94a3b8; font-style:italic;">Không có nội dung thuộc Khung CT.</span>';
 
                 tbody.innerHTML += `
                     <tr style="transition:0.2s;" onmouseover="this.style.backgroundColor='#f8fafc'" onmouseout="this.style.backgroundColor='transparent'">
