@@ -37,13 +37,33 @@
         #external-events { position: sticky; top: 80px; width: 280px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 15px; box-shadow: var(--shadow-sm); flex-shrink: 0; display: none; flex-direction: column; max-height: calc(100vh - 100px); transition: 0.3s; }
         #external-events h4 { margin: 0 0 10px 0; color: var(--primary); border-bottom: 1px dashed var(--border); padding-bottom: 10px; font-size: 1.05rem; flex-shrink: 0; }
         
-        #event-pool { flex: 1; overflow-y: auto; padding-right: 15px; padding-top: 10px; } 
-        #event-pool .fc-event { cursor: move; margin: 0 0 15px 0; padding: 12px; color: var(--text-dark); border: 1px solid var(--border); border-radius: 6px; text-align: left; transition: 0.2s; position: relative; }
+        #event-pool { flex: 1; overflow-y: auto; padding-right: 15px; padding-top: 5px; } 
+        #event-pool .fc-event { cursor: move; margin: 0 0 10px 0; padding: 10px 12px; color: var(--text-dark); border: 1px solid var(--border); border-radius: 6px; text-align: left; transition: 0.2s; position: relative; }
         
+        /* Box chứa Môn học trong Kho */
+        .pool-subject-group {
+            margin-bottom: 18px;
+            padding: 12px 10px 2px 10px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .pool-subject-title {
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: var(--text-dark);
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #f1f5f9;
+            line-height: 1.4;
+        }
+        .pool-subject-title i { color: var(--primary); margin-right: 5px; }
+
         /* Huy hiệu đếm số sự kiện gộp */
         .count-badge {
             position: absolute; top: -10px; right: -10px; background-color: #ef4444; color: white;
-            border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center;
+            border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
             font-size: 0.8rem; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2); border: 2px solid white; z-index: 10;
         }
 
@@ -74,7 +94,7 @@
         .fc-button-primary:hover { background-color: var(--primary-hover) !important; }
         .fc-button-active { background-color: var(--primary-hover) !important; }
 
-        /* TÙY CHỈNH THẺ SỰ KIỆN GOM NHÓM TRÊN LỊCH */
+        /* TÙY CHỈNH THẺ SỰ KIỆN GOM NHÓM (GROUPED EVENT) TRÊN LỊCH */
         .fc-event-main { padding: 0 !important; }
         
         .evt-group-container {
@@ -100,6 +120,7 @@
             background: #fbbf24; color: #78350f; font-weight: 800; font-size: 0.7rem; 
             padding: 2px 4px; border-radius: 3px; flex-shrink: 0; min-width: 22px; text-align: center; margin-top: 1px;
         }
+        /* Thay đổi để Tên GV không bị ẩn (text-overflow) và tự xuống dòng gọn gàng */
         .evt-gv-name { 
             font-size: 0.75rem; font-weight: 700; color: var(--text-dark); line-height: 1.3; word-break: break-word; white-space: normal;
         }
@@ -257,7 +278,7 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // CẤU HÌNH DANH SÁCH PHÒNG HỌC
+        // CẤU HÌNH DANH SÁCH PHÒNG HỌC TẠI ĐÂY
         const ROOM_LIST = [
             "Phòng 3",
             "Phòng 4",
@@ -268,7 +289,7 @@
             "Khác..."
         ];
 
-        // MẢNG DỮ LIỆU MÔN HỌC CHUẨN
+        // MẢNG DỮ LIỆU MÔN HỌC CHUẨN ĐƯỢC CHÉP TỪ FILE EXCEL
         const subjectsData = [
             { "id": "sub_1", "name": "Triết học", "credits": 3, "theory": 3, "practice": 0, "department": "BM KHXH-NV", "isPHCN": false, "orientations": [ "NC", "UD" ], "group": "1. Kiến thức chung" },
             { "id": "sub_2", "name": "Ngoại ngữ", "credits": 2, "theory": 2, "practice": 0, "department": "BM Ngoại ngữ", "isPHCN": false, "orientations": [ "NC", "UD" ], "group": "1. Kiến thức chung" },
@@ -347,15 +368,6 @@
         // TỪ ĐIỂN MAP TÊN ĐẦY ĐỦ -> TÊN NGẮN (Thầy X, Cô Y)
         let gvShortNameMap = {};
 
-        // TỪ ĐIỂN ÁNH XẠ ID ĐỒNG BỘ (UD -> NC và ngược lại) CHO MÔN TRÙNG TÊN
-        let twinSubjectMap = {};
-        subjectsData.forEach(s1 => {
-            let twin = subjectsData.find(s2 => s2.name === s1.name && s2.id !== s1.id);
-            if (twin) {
-                twinSubjectMap[s1.id] = twin.id;
-            }
-        });
-
         // Xóa sự kiện
         window.deleteSubEvent = async (id) => {
             if(!id) return;
@@ -388,6 +400,8 @@
             let gvs = gvString.split(/,|&/).map(s => s.trim());
             let shortGvs = gvs.map(gv => {
                 if (gvShortNameMap[gv]) return gvShortNameMap[gv];
+                
+                // Fallback nếu GV không có trong bảng users
                 let parts = gv.split(' ');
                 let firstName = parts[parts.length - 1];
                 return 'GV ' + firstName; 
@@ -527,13 +541,17 @@
                 let eStart = new Date(e.start).getTime();
                 let eEnd = e.end ? new Date(e.end).getTime() : eStart + 4 * 3600000;
                 
+                // NẾU TRÙNG GIỜ (Thời gian giao nhau)
                 if (tStart < eEnd && tEnd > eStart) {
+                    // 1. Kiểm tra TRÙNG PHÒNG
                     if (targetRoom && e.room && targetRoom !== 'Khác...' && e.room === targetRoom) {
                         return { hasOverlap: true, reason: `Phòng ${targetRoom} đã có lớp khác học vào khung giờ này!` };
                     }
+                    // 2. Kiểm tra Trùng lịch Khóa học
                     if (e.class === targetClass && blockingTasks.includes(targetTask) && blockingTasks.includes(e.task)) {
                         return { hasOverlap: true, reason: `Lớp ${targetClass} đã có lịch học/thi vào khung giờ này!` };
                     }
+                    // 3. Kiểm tra Trùng lịch Giảng viên
                     let targetGVs = gvStr ? gvStr.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
                     let eGVs = e.gv ? e.gv.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
                     let hasCommonGV = targetGVs.some(gv => eGVs.includes(gv));
@@ -673,6 +691,8 @@
                         
                         let itemsHtml = props.events.map(e => {
                             let gvDisplay = window.formatGvName(e.gv);
+                            let clsTag = e.class === 'THS2025' ? '<span style="color:#0369a1">[THS2025]</span>' : '<span style="color:#b45309">[THS2026]</span>';
+                            
                             let shortRoom = '';
                             if (e.room && e.room !== 'Khác...') {
                                 shortRoom = e.room.replace('Phòng ', 'P').replace('Hội trường', 'HT');
@@ -681,10 +701,10 @@
                             }
                             
                             return `
-                            <div class="evt-item" style="margin-bottom: 8px; line-height: 1.3;">
+                            <div class="evt-item">
                                 <div class="evt-item-row1">
                                     <span class="evt-room-badge">${shortRoom}</span>
-                                    <span class="evt-gv-name" title="${e.gv}">${e.class} - ${gvDisplay}</span>
+                                    <span class="evt-gv-name" title="${e.gv}">${clsTag} ${gvDisplay}</span>
                                 </div>
                                 <div class="evt-item-row2" title="${e.subject}">${e.subject}</div>
                             </div>
@@ -730,6 +750,7 @@
                     if (props.type === 'grouped_normal') {
                         const subEvents = props.events;
                         
+                        // Kiểm tra quyền và logic cho từng sự kiện trong nhóm
                         for (let e of subEvents) {
                             if (e.scheduledByEmail && e.scheduledByEmail !== currentUserEmail && currentUserEmail !== 'hoangtran1483@gmail.com') {
                                 showToast(`Lỗi: Không thể dời lịch nhóm chứa môn do GV khác xếp!`, "danger");
@@ -740,6 +761,7 @@
                             }
                         }
 
+                        // Khi di chuyển cả nhóm, cần bỏ qua ID của TẤT CẢ các thẻ trong nhóm để tránh bị tự phát hiện trùng
                         const groupIds = subEvents.map(ev => ev.id);
                         for (let e of subEvents) {
                             const overlapCheck = hasOverlap(info.event.start, info.event.end, e.gv, e.class, e.task, e.room, groupIds);
@@ -827,8 +849,9 @@
                     } else if (props.type === 'grouped_normal') {
                         let html = `<strong><i class="fas fa-layer-group"></i> ${props.events.length} Lớp Học</strong><br>`;
                         props.events.forEach(e => {
+                            let cName = e.class === 'THS2025' ? 'THS2025' : 'THS2026';
                             html += `<div style="margin-top:6px; border-top:1px dashed rgba(255,255,255,0.2); padding-top:6px; line-height: 1.4;">
-                                <span style="color:#fbbf24; font-weight:bold;">${e.room || '??'}</span> | <span style="color:#bae6fd;">[${e.class}] ${e.gv}</span><br>
+                                <span style="color:#fbbf24; font-weight:bold;">${e.room || '??'}</span> | <span style="color:#bae6fd;">[${cName}] ${e.gv}</span><br>
                                 <span style="font-size:0.85rem;">${e.subject}</span>
                             </div>`;
                         });
@@ -920,13 +943,15 @@
                                     </div>`;
                         
                         props.events.forEach(e => {
+                            let clsName = e.class === 'THS2025' ? 'THS2025' : (e.class === 'THS2026' ? 'THS2026' : e.class);
                             let canDelete = isCalendarAdmin && (!e.scheduledByEmail || e.scheduledByEmail === currentUserEmail || currentUserEmail === 'hoangtran1483@gmail.com');
+                            
                             let delBtn = canDelete ? `<button class="btn-danger" style="padding:4px 10px; font-size:0.8rem;" onclick="deleteSubEvent('${e.id}')"><i class="fas fa-trash"></i> Trả về kho</button>` : '';
 
                             html += `
                             <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:12px; margin-bottom:12px; position:relative;">
                                 <div style="position:absolute; right:12px; top:12px;">${delBtn}</div>
-                                <p style="margin:0 0 5px 0;"><strong>Khóa/Lớp:</strong> <span style="color:var(--primary); font-weight:bold;">${e.class}</span></p>
+                                <p style="margin:0 0 5px 0;"><strong>Khóa/Lớp:</strong> <span style="color:var(--primary); font-weight:bold;">${clsName}</span></p>
                                 <p style="margin:0 0 5px 0;"><strong>Phòng học:</strong> <span style="background:#fbbf24; color:#78350f; padding:2px 6px; border-radius:4px; font-weight:bold;">${e.room || 'Chưa XĐ'}</span></p>
                                 <p style="margin:0 0 5px 0; padding-right:85px;"><strong>Môn học:</strong> ${e.subject}</p>
                                 <p style="margin:0 0 5px 0;"><strong>Nhiệm vụ:</strong> ${e.task}</p>
@@ -1032,10 +1057,10 @@
             poolDiv.innerHTML = '';
             let unscheduledCount = 0;
 
-            // BƯỚC GOM NHÓM (GROUPING): Tất cả các sự kiện cùng giờ được gộp làm 1 block
+            // BƯỚC GOM NHÓM LỊCH:
             let scheduledEventsNormal = scheduledEvents.filter(e => e.status !== 'returned');
             
-            // LỌC VÀ GỘP CÁC SỰ KIỆN GIỐNG NHAU (GỘP HỆ NC VÀ UD THÀNH 1 ĐỂ HIỂN THỊ)
+            // LỌC VÀ GỘP CÁC SỰ KIỆN GIỐNG NHAU (UD/NC)
             let deduplicatedEventsMap = new Map();
             scheduledEventsNormal.forEach(e => {
                 let subObj = subjectsData.find(s => s.name === e.subject);
@@ -1086,7 +1111,6 @@
             }
             calendar.addEventSource(currentClassEvents);
 
-            // Bệnh viện
             globalGroupedClinicals = getClinicalEventsMap(clinicalSchedules); 
             let clinicalEvents = [];
             for (let dateStr in globalGroupedClinicals) {
@@ -1107,7 +1131,6 @@
             }
             calendar.addEventSource(clinicalEvents);
 
-            // ĐẾM SỐ BUỔI ĐÃ XẾP 
             let scheduledCounts = {};
             scheduledEvents.forEach(e => {
                 if (e.status !== 'returned') {
@@ -1117,106 +1140,133 @@
                 }
             });
 
-            // TÁI TẠO KHO SỰ KIỆN TỪ TẤT CẢ CÁC KHÓA (GOM NHÓM THEO MÔN + GV)
+            // TÁI TẠO KHO SỰ KIỆN
             let poolMap = new Map();
             
-            managedClasses.forEach(cls => {
-                for (let subId in assignmentsData) {
-                    const subAsg = assignmentsData[subId];
-                    if (subAsg[cls] && subAsg[cls].allocations) {
-                        
-                        if (subAsg[cls].status === 'proposed') continue;
+            // Xây dựng danh sách Subject có thứ tự
+            let orderedSubjectNames = [];
+            let subjectGroups = {};
 
-                        const semester = subAsg[cls].semester || 'Chưa xác định';
-                        if (selectedSemester !== 'ALL' && semester !== selectedSemester) continue; 
-                        const subName = subjectsData.find(s => s.id === subId)?.name || 'Môn không xác định';
-                        
-                        subAsg[cls].allocations.forEach(a => {
-                            const totalAssigned = parseInt(a.assigned) || 0;
-                            const keyForCount = `${subName}_${a.gv}_${a.task}_${cls}`;
-                            const alreadyScheduled = scheduledCounts[keyForCount] || 0;
-                            
-                            let rejectedCardsOfThisTask = scheduledEvents.filter(e => e.class === cls && e.status === 'returned' && e.subject === subName && e.gv === a.gv && e.task === a.task);
-
-                            let remaining = totalAssigned - alreadyScheduled;
-                            let remainingNormal = remaining - rejectedCardsOfThisTask.length; 
-                            
-                            if (remainingNormal > 0) {
-                                // Group the items inside the pool instead of rendering duplicate cards
-                                let groupKey = `${subName}_${a.gv}_${a.task}_${cls}`;
-                                if (!poolMap.has(groupKey)) {
-                                    poolMap.set(groupKey, {
-                                        count: 0,
-                                        data: { subName, a, cls, keyForCount },
-                                        type: 'normal'
-                                    });
-                                }
-                                poolMap.get(groupKey).count += remainingNormal;
-                            }
-
-                            rejectedCardsOfThisTask.forEach(rTask => {
-                                let rKey = `reject_${rTask.id}`;
-                                poolMap.set(rKey, {
-                                    count: 1,
-                                    data: { subName, a, cls, keyForCount, rTask },
-                                    type: 'rejected'
-                                });
-                            });
-
-                        });
-                    }
+            subjectsData.forEach(sub => {
+                if (!subjectGroups[sub.name]) {
+                    orderedSubjectNames.push(sub.name);
+                    subjectGroups[sub.name] = [];
                 }
+                subjectGroups[sub.name].push(sub.id);
             });
 
-            // RENDER KHO SỰ KIỆN (CHỈ HIỂN THỊ 1 THẺ ĐẠI DIỆN + BADGE)
-            const renderCard = (poolItem) => {
-                const isRejected = poolItem.type === 'rejected';
-                const count = poolItem.count;
-                const { subName, a, cls, keyForCount, rTask } = poolItem.data;
+            orderedSubjectNames.forEach(subName => {
+                const subIds = subjectGroups[subName];
+                let subjectCardsMap = new Map();
+
+                subIds.forEach(subId => {
+                    const subAsg = assignmentsData[subId];
+                    if (!subAsg) return;
+
+                    managedClasses.forEach(cls => {
+                        if (subAsg[cls] && subAsg[cls].allocations && subAsg[cls].status !== 'proposed') {
+                            const semester = subAsg[cls].semester || 'Chưa xác định';
+                            if (selectedSemester !== 'ALL' && semester !== selectedSemester) return; 
+
+                            subAsg[cls].allocations.forEach(a => {
+                                const totalAssigned = parseInt(a.assigned) || 0;
+                                const keyForCount = `${subName}_${a.gv}_${a.task}_${cls}`;
+                                const alreadyScheduled = scheduledCounts[keyForCount] || 0;
+                                
+                                let rejectedCardsOfThisTask = scheduledEvents.filter(e => e.class === cls && e.status === 'returned' && e.subject === subName && e.gv === a.gv && e.task === a.task);
+
+                                let remaining = totalAssigned - alreadyScheduled;
+                                let remainingNormal = remaining - rejectedCardsOfThisTask.length; 
+                                
+                                if (remainingNormal > 0) {
+                                    if (!subjectCardsMap.has(keyForCount)) {
+                                        subjectCardsMap.set(keyForCount, {
+                                            type: 'normal',
+                                            data: { subName, a, cls, keyForCount },
+                                            count: remainingNormal,
+                                            gv: a.gv
+                                        });
+                                    } else {
+                                        // Max cho trùng name (NC/UD)
+                                        subjectCardsMap.get(keyForCount).count = Math.max(subjectCardsMap.get(keyForCount).count, remainingNormal);
+                                    }
+                                }
+
+                                rejectedCardsOfThisTask.forEach(rTask => {
+                                    let rKey = `reject_${rTask.id}`;
+                                    if (!subjectCardsMap.has(rKey)) {
+                                        subjectCardsMap.set(rKey, {
+                                            type: 'rejected',
+                                            data: { subName, a, cls, keyForCount, rTask },
+                                            count: 1,
+                                            gv: a.gv
+                                        });
+                                    }
+                                });
+                            });
+                        }
+                    });
+                });
+
+                const cardsArray = Array.from(subjectCardsMap.values());
                 
-                unscheduledCount += count;
-                const eventDiv = document.createElement('div');
-                eventDiv.className = `fc-event ${cls} ${isRejected ? 'rejected-task' : ''}`;
-                
-                eventDiv.setAttribute('data-id', keyForCount); 
-                eventDiv.setAttribute('data-title', a.gv); 
-                eventDiv.setAttribute('data-subject', subName);
-                eventDiv.setAttribute('data-gv', a.gv);
-                eventDiv.setAttribute('data-task', a.task);
-                eventDiv.setAttribute('data-class', cls);
-                
-                if (isRejected && rTask) {
-                    eventDiv.setAttribute('data-original-id', rTask.id); 
+                if (cardsArray.length > 0) {
+                    cardsArray.sort((a, b) => a.gv.localeCompare(b.gv));
+
+                    let subjectContainer = document.createElement('div');
+                    subjectContainer.className = 'pool-subject-group';
+                    
+                    let subjectHeader = document.createElement('div');
+                    subjectHeader.className = 'pool-subject-title';
+                    subjectHeader.innerHTML = `<i class="fas fa-book"></i> ${subName}`;
+                    subjectContainer.appendChild(subjectHeader);
+
+                    cardsArray.forEach(item => {
+                        const isRejected = item.type === 'rejected';
+                        const count = item.count;
+                        const { a, cls, keyForCount, rTask } = item.data;
+                        
+                        unscheduledCount += count;
+                        
+                        const eventDiv = document.createElement('div');
+                        eventDiv.className = `fc-event ${cls} ${isRejected ? 'rejected-task' : ''}`;
+                        
+                        eventDiv.setAttribute('data-id', keyForCount); 
+                        eventDiv.setAttribute('data-title', a.gv); 
+                        eventDiv.setAttribute('data-subject', subName);
+                        eventDiv.setAttribute('data-gv', a.gv);
+                        eventDiv.setAttribute('data-task', a.task);
+                        eventDiv.setAttribute('data-class', cls);
+                        
+                        if (isRejected && rTask) {
+                            eventDiv.setAttribute('data-original-id', rTask.id); 
+                        }
+
+                        let classTag = cls === 'THS2025' ? '<span class="class-tag THS2025">THS2025</span>' : '<span class="class-tag THS2026">THS2026</span>';
+
+                        let rejectHtml = '';
+                        if (isRejected && rTask) {
+                            const rejectTimes = rTask.rejected || 1;
+                            rejectHtml = `<span class="reject-badge"><i class="fas fa-exclamation-circle"></i> Bị từ chối (${rejectTimes} lần)</span>`;
+                        }
+
+                        let countBadge = (!isRejected && count > 0) ? `<div class="count-badge">${count}</div>` : '';
+                        let gvDisplay = window.formatGvName(a.gv);
+
+                        eventDiv.innerHTML = `
+                            ${countBadge}
+                            ${classTag}
+                            <div class="event-gv" title="${a.gv}">${gvDisplay}</div>
+                            <span class="event-info">[${a.task}]</span>
+                            ${rejectHtml}
+                        `;
+                        
+                        subjectContainer.appendChild(eventDiv);
+                    });
+
+                    poolDiv.appendChild(subjectContainer);
                 }
-
-                let classTag = cls === 'THS2025' ? '<span class="class-tag THS2025">THS2025</span>' : '<span class="class-tag THS2026">THS2026</span>';
-
-                let rejectHtml = '';
-                if (isRejected && rTask) {
-                    const rejectTimes = rTask.rejected || 1;
-                    rejectHtml = `<span class="reject-badge"><i class="fas fa-exclamation-circle"></i> Bị từ chối (${rejectTimes} lần)</span>`;
-                }
-
-                let countBadge = (!isRejected && count > 0) ? `<div class="count-badge">${count}</div>` : '';
-
-                let gvDisplay = window.formatGvName(a.gv);
-
-                eventDiv.innerHTML = `
-                    ${countBadge}
-                    ${classTag}
-                    <div class="event-gv" title="${a.gv}">${gvDisplay}</div>
-                    <span class="event-info">[${a.task}]<br>${subName}</span>
-                    ${rejectHtml}
-                `;
-                
-                if (isRejected) {
-                    poolDiv.prepend(eventDiv);
-                } else {
-                    poolDiv.appendChild(eventDiv);
-                }
-            };
-
-            poolMap.forEach(item => renderCard(item));
+            });
 
             const extEventsPanel = document.getElementById('external-events');
             const btnToggle = document.getElementById('btnToggleSidebar');
