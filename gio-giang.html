@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Thống kê giờ giảng - Bộ môn Phục hồi chức năng.">
+    <title>Thống kê Giờ giảng - Bộ môn Phục hồi chức năng</title>
+    
+    <link rel="icon" href="images/logo_Bộ môn.png" type="image/png">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* APP LAYOUT */
+        html, body { min-height: 100vh; margin: 0; padding: 0; display: flex; flex-direction: column; background: var(--bg-page); }
+        #header-placeholder { flex-shrink: 0; }
+        #footer-placeholder { display: none; }
+
+        main { max-width: 1400px; padding: 2rem 3%; margin: 0 auto; min-height: 75vh; width: 100%; box-sizing: border-box; }
+        
+        .header-title-box { text-align: center; margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid var(--border); overflow: hidden; }
+        .header-title-box h2 { font-size: clamp(1rem, 3.5vw, 1.6rem); color: var(--text-dark); margin: 0; font-weight: 700; white-space: nowrap; text-overflow: ellipsis; }
+        .header-title-box .subtitle { font-size: clamp(0.65rem, 2.2vw, 1rem); color: var(--text-body); font-weight: 600; margin-top: 5px; white-space: nowrap; text-overflow: ellipsis; }
+
+        .hidden { display: none !important; }
+        
+        /* Controls */
+        .controls-wrapper { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; background: var(--surface); padding: 15px 20px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 20px; gap: 15px; box-shadow: var(--shadow-sm); }
+        .filter-controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .filter-select { padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border); outline: none; font-size: 0.9rem; font-weight: 600; color: var(--text-dark); background-color: var(--bg-page); cursor: pointer; }
+
+        /* Buttons */
+        .btn-primary { background-color: var(--primary); color: white; padding: 0.6rem 1.2rem; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-primary:hover { background-color: var(--primary-hover); }
+        .btn-toggle { background: white; color: var(--primary); border: 1px solid var(--primary); padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.2s; font-size: 0.9rem;}
+        .btn-toggle:hover { background: var(--primary-light); }
+
+        /* Bảng */
+        .table-container { overflow-x: auto; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--surface); box-shadow: var(--shadow-sm); }
+        table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
+        th { background-color: #f8fafc; font-weight: bold; color: var(--text-dark); text-transform: uppercase; font-size: 0.85rem; position: sticky; top: 0; z-index: 10; border-bottom: 2px solid #cbd5e1;}
+        
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; white-space: nowrap; }
+        .badge-cohuu { background: #dbeafe; color: #0369a1; border: 1px solid #7dd3fc;}
+        .badge-thinhgiang { background: #fefce8; color: #b45309; border: 1px solid #fde047;}
+
+        .breakdown { margin: 0; padding-left: 20px; color: #475569; font-size: 0.9rem; line-height: 1.6; }
+        .breakdown li { margin-bottom: 4px; }
+        .total-col { font-weight: 900; color: var(--primary); font-size: 1.2rem; text-align: center; vertical-align: middle !important;}
+        .td-gv-name { font-weight: bold; color: var(--text-dark); font-size: 1.05rem; }
+
+        /* Modal */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); display: flex; justify-content: center; align-items: center; z-index: 2000; padding: 10px; }
+        .modal-content { background: white; width: 95%; max-width: 500px; border-radius: 8px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); overflow: hidden; display: flex; flex-direction: column; }
+        .modal-header { padding: 15px 20px; background: var(--primary); color: white; display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h3 { margin: 0; font-size: 1.1rem; }
+        .modal-body { padding: 20px; line-height: 1.8; overflow-y: auto; max-height: 70vh;}
+        .modal-footer { padding: 15px 20px; background: #f1f5f9; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border); }
+        .btn-secondary { background: white; color: var(--text-dark); border: 1px solid var(--border); padding: 8px 15px; border-radius: 4px; cursor: pointer; transition: 0.2s; font-weight: 600; }
+        .btn-secondary:hover { background: #e2e8f0; }
+
+        /* Toast */
+        .toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;}
+        .toast { min-width: 250px; background-color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: 0.4s; font-weight: 600; border-left: 5px solid #22c55e; opacity: 0; }
+        .toast.show { transform: translateX(0); opacity: 1; }
+        .toast.danger { border-left-color: #ef4444; }
+    </style>
+</head>
+<body>
+
+    <div id="header-placeholder"></div>
+    <div id="toastContainer" class="toast-container"></div>
+
+    <main>
+        <div class="header-title-box">
+            <h2>THỐNG KÊ GIỜ GIẢNG</h2>
+            <div class="subtitle">BẢNG QUY ĐỔI GIỜ CHUẨN THEO NHIỆM VỤ DỰA TRÊN LỊCH CÔNG TÁC</div>
+        </div>
+
+        <div class="controls-wrapper">
+            <div class="filter-controls">
+                <span style="font-weight: 600; color: var(--text-body); font-size: 0.95rem;">Lọc thời gian: </span>
+                <input type="date" id="startDate" class="filter-select" title="Từ ngày">
+                <span style="color: var(--text-body);"> - </span>
+                <input type="date" id="endDate" class="filter-select" title="Đến ngày">
+                <button class="btn-primary" onclick="window.renderTable()"><i class="fas fa-filter"></i> Áp dụng</button>
+                <button class="btn-secondary" onclick="window.clearFilter()" style="margin-left:5px;"><i class="fas fa-sync-alt"></i></button>
+            </div>
+            <div>
+                <button class="btn-toggle" onclick="openCoefModal()"><i class="fas fa-cog"></i> Cấu hình Hệ số Giờ chuẩn</button>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 50px; text-align: center;">STT</th>
+                        <th style="width: 200px;">Tên Giảng Viên</th>
+                        <th style="width: 120px; text-align: center;">Phân Loại</th>
+                        <th>Giờ Giảng Dạy (Thực Tế)</th>
+                        <th>Giờ Chuẩn Giảng Dạy (Quy Đổi)</th>
+                        <th style="width: 120px; text-align: center;">Tổng Giờ Chuẩn</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr><td colspan="6" style="text-align:center; padding:30px;"><i class="fas fa-spinner fa-spin"></i> Đang tính toán dữ liệu...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- Modal Cấu hình Hệ số -->
+    <div id="coefModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Cấu hình Hệ số Giờ chuẩn</h3>
+                <span style="cursor: pointer; font-weight: bold; font-size: 1.2rem;" onclick="document.getElementById('coefModal').classList.add('hidden')">X</span>
+            </div>
+            <div class="modal-body" id="coefForm">
+                <!-- Inputs rendered via JS -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="document.getElementById('coefModal').classList.add('hidden')">Hủy</button>
+                <button class="btn-primary" onclick="saveCoefs()">Lưu Cấu Hình</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="footer-placeholder"></div>
+
+    <script src="js/layout.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, collection, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY", authDomain: "bmphcn-aa9c6.firebaseapp.com", projectId: "bmphcn-aa9c6", storageBucket: "bmphcn-aa9c6.firebasestorage.app", messagingSenderId: "749494392719", appId: "1:749494392719:web:f220c751ff541620045dfa" };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const TASK_LIST = [
+            "Lý thuyết",
+            "Thực hành",
+            "Thực tế",
+            "Thực hành bệnh viện",
+            "Ra đề thi",
+            "Coi thi",
+            "Chấm thi",
+            "Soạn mới, sửa BG/GT",
+            "Hướng dẫn LV, LATS",
+            "Công việc khác"
+        ];
+
+        let calendarEvents = [];
+        let clinicalSchedules = [];
+        let coefs = {};
+        let usersMap = {}; 
+        let visitingMap = {}; 
+        let currentUserName = '';
+
+        window.showToast = (message, type = 'success') => {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerText = message;
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
+        };
+
+        function parseDate(dateStr) {
+            if (!dateStr) return null;
+            if (dateStr.includes('/')) {
+                const parts = dateStr.split('/');
+                return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+            }
+            return dateStr;
+        }
+
+        function parseDays(daysStr) {
+            if (!daysStr) return [1,2,3,4,5];
+            let str = daysStr.toLowerCase();
+            if (str.includes('t2 - t6') || str.includes('thứ 2 đến thứ 6') || str.includes('cả tuần')) return [1,2,3,4,5];
+            let days = [];
+            if (str.includes('t2') || str.includes('thứ 2')) days.push(1);
+            if (str.includes('t3') || str.includes('thứ 3')) days.push(2);
+            if (str.includes('t4') || str.includes('thứ 4')) days.push(3);
+            if (str.includes('t5') || str.includes('thứ 5')) days.push(4);
+            if (str.includes('t6') || str.includes('thứ 6')) days.push(5);
+            if (str.includes('t7') || str.includes('thứ 7')) days.push(6);
+            if (str.includes('cn') || str.includes('chủ nhật')) days.push(0);
+            return days.length > 0 ? days : [1,2,3,4,5];
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // Nạp Data Cán bộ
+                const snapUsers = await getDocs(collection(db, "users"));
+                snapUsers.forEach(doc => {
+                    const d = doc.data();
+                    if(d.fullName) {
+                        let pref = d.degree === 'ThS' ? 'ThS. ' : (d.degree === 'TS' ? 'TS. ' : '');
+                        usersMap[`${pref}${d.fullName}`] = "Cơ hữu";
+                        if (doc.id === user.uid) currentUserName = `${pref}${d.fullName}`;
+                    }
+                });
+                
+                const snapVisit = await getDocs(collection(db, "visiting_lecturers"));
+                snapVisit.forEach(doc => { visitingMap[doc.data().name] = "Thỉnh giảng"; });
+
+                setTimeout(() => {
+                    const btnAuthNav = document.getElementById('btnAuthNav');
+                    if (btnAuthNav) {
+                        btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right:5px;"></i> ${currentUserName}`;
+                        btnAuthNav.href = "dashboard.html";
+                    }
+                }, 300);
+
+                // Lắng nghe cấu hình Hệ số
+                onSnapshot(doc(db, "settings", "teaching_coefficients"), (docSnap) => {
+                    if (docSnap.exists()) {
+                        coefs = docSnap.data();
+                    } else {
+                        TASK_LIST.forEach(t => coefs[t] = 1.0);
+                    }
+                    window.renderCoefForm();
+                    window.renderTable();
+                });
+
+                // Lắng nghe Lịch
+                onSnapshot(collection(db, "calendar_events"), (snapshot) => {
+                    calendarEvents = [];
+                    snapshot.forEach(doc => calendarEvents.push(doc.data()));
+                    window.renderTable();
+                });
+
+                onSnapshot(collection(db, "clinical_schedules"), (snapshot) => {
+                    clinicalSchedules = [];
+                    snapshot.forEach(doc => clinicalSchedules.push(doc.data()));
+                    window.renderTable();
+                });
+
+            } else {
+                window.location.href = "login.html";
+            }
+        });
+
+        window.clearFilter = () => {
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+            window.renderTable();
+        };
+
+        window.renderCoefForm = () => {
+            const form = document.getElementById('coefForm');
+            form.innerHTML = '';
+            TASK_LIST.forEach(task => {
+                let val = coefs[task] !== undefined ? coefs[task] : 1.0;
+                form.innerHTML += `
+                    <div style="display:flex; justify-content:space-between; margin-bottom:12px; align-items:center; border-bottom: 1px dashed #e2e8f0; padding-bottom:8px;">
+                        <label style="font-weight:600; width:65%; color:var(--text-dark);"><i class="fas fa-caret-right" style="color:var(--primary); margin-right:5px;"></i> ${task}</label>
+                        <input type="number" step="0.1" id="coef_${task.replace(/\s+/g,'_')}" value="${val}" style="width:25%; padding:8px; border-radius:6px; border:1px solid var(--border); text-align:center; font-weight:bold;">
+                    </div>
+                `;
+            });
+        };
+
+        window.openCoefModal = () => {
+            document.getElementById('coefModal').classList.remove('hidden');
+        };
+
+        window.saveCoefs = async () => {
+            let newCoefs = {};
+            TASK_LIST.forEach(task => {
+                let key = `coef_${task.replace(/\s+/g,'_')}`;
+                newCoefs[task] = parseFloat(document.getElementById(key).value) || 1.0;
+            });
+            try {
+                await setDoc(doc(db, "settings", "teaching_coefficients"), newCoefs);
+                document.getElementById('coefModal').classList.add('hidden');
+                window.showToast("Cập nhật hệ số thành công!");
+            } catch(e) {
+                window.showToast("Lỗi cập nhật: " + e.message, "danger");
+            }
+        };
+
+        window.renderTable = () => {
+            let startD = document.getElementById('startDate').value;
+            let endD = document.getElementById('endDate').value;
+            let start = startD ? new Date(startD) : new Date('2000-01-01');
+            let end = endD ? new Date(endD) : new Date('2099-12-31');
+            end.setHours(23, 59, 59);
+
+            let allEvents = [];
+            
+            // 1. Quét Lịch thường (calendar_events)
+            let validCalEvents = calendarEvents.filter(e => e.status !== 'returned');
+            
+            // Xóa trùng lặp lớp ghép (Trường hợp môn UD và NC học chung phòng chung giờ)
+            let deduplicatedCalMap = new Map();
+            validCalEvents.forEach(e => {
+                let baseSubId = e.subject; 
+                let deduplicateKey = `${e.start}_${e.end}_${e.room}_${baseSubId}_${e.task}_${e.gv}`;
+                if (!deduplicatedCalMap.has(deduplicateKey)) {
+                    deduplicatedCalMap.set(deduplicateKey, e);
+                }
+            });
+
+            deduplicatedCalMap.forEach(e => {
+                let eStart = new Date(e.start);
+                let eEnd = e.end ? new Date(e.end) : new Date(eStart.getTime() + 4.5 * 3600000);
+                
+                if (eStart >= start && eStart <= end) {
+                    let durationHours = (eEnd - eStart) / 3600000;
+                    let tiet = Math.round(durationHours / 0.9); // Quy đổi chuẩn 4.5h = 5 tiết
+                    
+                    let taskName = e.task || 'Công việc khác';
+                    if (taskName.toLowerCase().includes('thực hành') && !taskName.toLowerCase().includes('bệnh viện')) taskName = 'Thực hành';
+
+                    let gvs = e.gv ? e.gv.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
+                    gvs.forEach(gv => {
+                        allEvents.push({ gv, task: taskName, tiet });
+                    });
+                }
+            });
+
+            // 2. Quét Lịch Bệnh viện (clinical_schedules)
+            clinicalSchedules.forEach(c => {
+                let startStr = parseDate(c.start_date);
+                let endStr = parseDate(c.end_date);
+                if (!startStr) return;
+                
+                let cStart = new Date(startStr);
+                let cEnd = endStr ? new Date(endStr) : new Date(startStr);
+                let days = parseDays(c.days); 
+
+                for (let d = new Date(cStart); d <= cEnd; d.setDate(d.getDate() + 1)) {
+                    if (days.includes(d.getDay()) && d >= start && d <= end) {
+                        let tiet = c.shift.toLowerCase().includes('cả ngày') ? 8 : 4;
+                        let gvs = c.instructors ? c.instructors.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
+                        gvs.forEach(gv => {
+                            allEvents.push({ gv, task: 'Thực hành bệnh viện', tiet });
+                        });
+                    }
+                }
+            });
+
+            // Tổng hợp Dữ liệu cho Bảng
+            let gvStats = {};
+            allEvents.forEach(e => {
+                if (!gvStats[e.gv]) gvStats[e.gv] = {};
+                if (!gvStats[e.gv][e.task]) gvStats[e.gv][e.task] = 0;
+                gvStats[e.gv][e.task] += e.tiet;
+            });
+
+            // Xuất HTML
+            let tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            
+            if (Object.keys(gvStats).length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 30px; color:#64748b;">Không có dữ liệu giờ giảng trong khoảng thời gian này.</td></tr>`;
+                return;
+            }
+
+            // Sắp xếp GV theo bảng chữ cái
+            let sortedGVs = Object.keys(gvStats).sort((a,b) => a.localeCompare(b, 'vi'));
+
+            let stt = 1;
+            sortedGVs.forEach(gv => {
+                let type = usersMap[gv] ? "Cơ hữu" : (visitingMap[gv] ? "Thỉnh giảng" : "Chưa phân loại");
+                let badgeClass = usersMap[gv] ? "badge-cohuu" : "badge-thinhgiang";
+                
+                let realHtml = '<ul class="breakdown">';
+                let stdHtml = '<ul class="breakdown">';
+                let totalStd = 0;
+
+                for (let task in gvStats[gv]) {
+                    let rTiet = gvStats[gv][task];
+                    let coef = coefs[task] !== undefined ? coefs[task] : 1.0;
+                    let sTiet = rTiet * coef;
+                    totalStd += sTiet;
+
+                    realHtml += `<li><i class="fas fa-check" style="color:#10b981; margin-right:5px; font-size:0.8em;"></i> <b>${task}</b>: <span style="color:var(--primary); font-weight:bold;">${rTiet}</span> tiết</li>`;
+                    stdHtml += `<li><i class="fas fa-check" style="color:#10b981; margin-right:5px; font-size:0.8em;"></i> <b>${task}</b>: <span style="color:var(--primary); font-weight:bold;">${sTiet.toFixed(1)}</span> tiết <i style="color:#94a3b8; font-size:0.85em;">(x${coef})</i></li>`;
+                }
+                realHtml += '</ul>';
+                stdHtml += '</ul>';
+
+                tbody.innerHTML += `
+                    <tr style="transition:0.2s;" onmouseover="this.style.backgroundColor='#f8fafc'" onmouseout="this.style.backgroundColor='transparent'">
+                        <td style="text-align:center; font-weight:bold; color:#94a3b8;">${stt++}</td>
+                        <td class="td-gv-name">${gv}</td>
+                        <td style="text-align:center;"><span class="badge ${badgeClass}">${type}</span></td>
+                        <td>${realHtml}</td>
+                        <td>${stdHtml}</td>
+                        <td class="total-col">${totalStd.toFixed(1)}</td>
+                    </tr>
+                `;
+            });
+        };
+
+    </script>
+</body>
+</html>
