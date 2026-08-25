@@ -173,7 +173,7 @@
         .form-group select { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border); font-size: 1rem; outline: none; }
         .form-group select:focus { border-color: var(--primary); }
 
-        /* Modal Bệnh viện / Lớp học (Dùng chung modal-body) */
+        /* Modal Bệnh viện / Lớp học */
         #multiEventModal .modal-content { max-width: 750px; }
         .clin-card { margin-bottom: 15px; padding: 15px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; border-left: 4px solid #10b981; }
         .clin-card-title { font-weight: 700; color: var(--text-dark); font-size: 1.15rem; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; }
@@ -457,7 +457,7 @@
 
             deduplicatedNormalEventsMap.forEach((e) => {
                 let eStart = new Date(e.start);
-                let eEnd = e.end ? new Date(e.end) : new Date(eStart.getTime() + 4.5 * 3600000);
+                let eEnd = e.end ? new Date(e.end) : new Date(eStart.getTime() + 4.5 * 3600000); // 4.5 giờ mặc định
                 
                 if (eStart >= viewStart && eStart < viewEnd && eEnd <= now) {
                     if (e.class && e.class.toUpperCase().includes('THS')) {
@@ -846,7 +846,8 @@
                 slotMaxTime: '21:00:00',
                 allDaySlot: true, 
                 allDayText: 'BV', 
-                defaultTimedEventDuration: '04:30:00', // Sửa mặc định thành 4 tiếng rưỡi (5 tiết)
+                eventDurationEditable: false, // KHÓA ĐIỀU CHỈNH THỜI GIAN
+                defaultTimedEventDuration: '04:30:00', // ĐẶT MẶC ĐỊNH LÀ 4.5 GIỜ CỐ ĐỊNH
                 slotLabelFormat: { hour: 'numeric', minute: '2-digit', omitZeroMinute: false, meridiem: false, hour12: false },
                 eventTimeFormat: { hour: 'numeric', minute: '2-digit', meridiem: false, hour12: false },
                 editable: isCalendarAdmin, 
@@ -866,7 +867,7 @@
                         if (arg.event.end) {
                             eTime = arg.event.end.toLocaleTimeString('vi-VN', {hour: 'numeric', minute:'2-digit', hour12: false});
                         } else if (arg.event.start) {
-                            let eObj = new Date(arg.event.start.getTime() + 4.5 * 3600000); // Mặc định 4.5h
+                            let eObj = new Date(arg.event.start.getTime() + 4.5 * 3600000); 
                             eTime = eObj.toLocaleTimeString('vi-VN', {hour: 'numeric', minute:'2-digit', hour12: false});
                         }
                         const timeStr = `${sTime}–${eTime}`;
@@ -973,53 +974,6 @@
                     }
                 },
 
-                eventResize: async function(info) {
-                    if (!isCalendarAdmin) { info.revert(); return; }
-                    const props = info.event.extendedProps;
-                    
-                    if (props.type === 'clinical_summary') {
-                        info.revert(); return; 
-                    }
-                    
-                    if (props.type === 'grouped_normal') {
-                        const subEvents = props.events;
-                        
-                        for (let e of subEvents) {
-                            if (e.scheduledByEmail && e.scheduledByEmail !== currentUserEmail && currentUserEmail !== 'hoangtran1483@gmail.com') {
-                                showToast(`Lỗi: Không thể đổi thời lượng nhóm chứa môn do GV khác xếp!`, "danger");
-                                info.revert(); return;
-                            }
-                            if (!validateClinicalSchedule({start: info.event.start}, e.gv, e.subject)) {
-                                info.revert(); return;
-                            }
-                        }
-
-                        const groupIds = subEvents.map(ev => ev.id);
-                        for (let e of subEvents) {
-                            const overlapCheck = hasOverlap(info.event.start, info.event.end, e.gv, e.class, e.task, e.room, groupIds);
-                            if (overlapCheck.hasOverlap) {
-                                showToast(overlapCheck.reason, "danger");
-                                info.revert(); return;
-                            }
-                        }
-
-                        try {
-                            let promises = subEvents.map(e => {
-                                return setDoc(doc(db, "calendar_events", e.id), { 
-                                    start: info.event.startStr,
-                                    end: info.event.endStr || null,
-                                    allDay: info.event.allDay
-                                }, { merge: true });
-                            });
-                            await Promise.all(promises);
-                            showToast("Đã cập nhật thời lượng cho nhóm!");
-                        } catch(err) {
-                            showToast("Lỗi cập nhật thời lượng!", "danger");
-                            info.revert();
-                        }
-                    }
-                },
-
                 eventMouseEnter: function(info) {
                     const props = info.event.extendedProps;
                     const tooltip = document.getElementById('eventTooltip');
@@ -1034,8 +988,10 @@
                     } else if (props.type === 'grouped_normal') {
                         let html = `<strong><i class="fas fa-layer-group"></i> ${props.events.length} Lớp Học</strong><br>`;
                         props.events.forEach(e => {
+                            let cName = e.class === 'THS2025' ? 'THS2025' : 'THS2026';
+                            let gvDisplay = window.formatGvName(e.gv);
                             html += `<div style="margin-top:6px; border-top:1px dashed rgba(255,255,255,0.2); padding-top:6px; line-height: 1.4;">
-                                <span style="color:#fbbf24; font-weight:bold;">${e.room || '??'}</span> | <span style="color:#bae6fd;">[${e.class}] ${e.gv}</span><br>
+                                <span style="color:#fbbf24; font-weight:bold;">${e.room || '??'}</span> | <span style="color:#bae6fd;">[${cName}] ${gvDisplay}</span><br>
                                 <span style="font-size:0.85rem;">${e.subject}</span>
                             </div>`;
                         });
@@ -1127,13 +1083,15 @@
                                     </div>`;
                         
                         props.events.forEach(e => {
+                            let clsName = e.class === 'THS2025' ? 'THS2025' : (e.class === 'THS2026' ? 'THS2026' : e.class);
                             let canDelete = isCalendarAdmin && (!e.scheduledByEmail || e.scheduledByEmail === currentUserEmail || currentUserEmail === 'hoangtran1483@gmail.com');
+                            
                             let delBtn = canDelete ? `<button class="btn-danger" style="padding:4px 10px; font-size:0.8rem;" onclick="deleteSubEvent('${e.id}')"><i class="fas fa-trash"></i> Trả về kho</button>` : '';
 
                             html += `
                             <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:12px; margin-bottom:12px; position:relative;">
                                 <div style="position:absolute; right:12px; top:12px;">${delBtn}</div>
-                                <p style="margin:0 0 5px 0;"><strong>Khóa/Lớp:</strong> <span style="color:var(--primary); font-weight:bold;">${e.class}</span></p>
+                                <p style="margin:0 0 5px 0;"><strong>Khóa/Lớp:</strong> <span style="color:var(--primary); font-weight:bold;">${clsName}</span></p>
                                 <p style="margin:0 0 5px 0;"><strong>Phòng học:</strong> <span style="background:#fbbf24; color:#78350f; padding:2px 6px; border-radius:4px; font-weight:bold;">${e.room || 'Chưa XĐ'}</span></p>
                                 <p style="margin:0 0 5px 0; padding-right:85px;"><strong>Môn học:</strong> ${e.subject}</p>
                                 <p style="margin:0 0 5px 0;"><strong>Nhiệm vụ:</strong> ${e.task}</p>
