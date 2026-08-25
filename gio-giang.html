@@ -16,7 +16,7 @@
         #header-placeholder { flex-shrink: 0; }
         #footer-placeholder { display: none; }
 
-        main { max-width: 1400px; padding: 2rem 3%; margin: 0 auto; min-height: 75vh; width: 100%; box-sizing: border-box; }
+        main { max-width: 1500px; padding: 2rem 2%; margin: 0 auto; min-height: 75vh; width: 100%; box-sizing: border-box; }
         
         .header-title-box { text-align: center; margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid var(--border); overflow: hidden; }
         .header-title-box h2 { font-size: clamp(1rem, 3.5vw, 1.6rem); color: var(--text-dark); margin: 0; font-weight: 700; white-space: nowrap; text-overflow: ellipsis; }
@@ -38,8 +38,8 @@
         /* Bảng */
         .table-container { overflow-x: auto; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--surface); box-shadow: var(--shadow-sm); }
         table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
-        th, td { padding: 15px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
-        th { background-color: #f8fafc; font-weight: bold; color: var(--text-dark); text-transform: uppercase; font-size: 0.85rem; position: sticky; top: 0; z-index: 10; border-bottom: 2px solid #cbd5e1;}
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
+        th { background-color: #f8fafc; font-weight: bold; color: var(--text-dark); text-transform: uppercase; font-size: 0.85rem; position: sticky; top: 0; z-index: 10; border-bottom: 2px solid #cbd5e1; line-height: 1.4;}
         
         .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; white-space: nowrap; }
         .badge-cohuu { background: #dbeafe; color: #0369a1; border: 1px solid #7dd3fc;}
@@ -49,6 +49,13 @@
         .breakdown li { margin-bottom: 4px; }
         .total-col { font-weight: 900; color: var(--primary); font-size: 1.2rem; text-align: center; vertical-align: middle !important;}
         .td-gv-name { font-weight: bold; color: var(--text-dark); font-size: 1.05rem; }
+
+        /* Khối Đối chiếu Khung CT */
+        .cmp-card { font-size: 0.85rem; padding-bottom: 10px; border-bottom: 1px dashed #cbd5e1; margin-bottom: 10px; }
+        .cmp-card:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .cmp-card-title { color: var(--primary); font-weight: bold; margin-bottom: 4px; line-height: 1.3; }
+        .cmp-row { display: flex; justify-content: space-between; margin-bottom: 3px; }
+        .cmp-bg { background: #f1f5f9; padding: 4px 6px; border-radius: 4px; margin-top: 4px; border: 1px solid #e2e8f0; }
 
         /* Modal */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); display: flex; justify-content: center; align-items: center; z-index: 2000; padding: 10px; }
@@ -75,7 +82,7 @@
     <main>
         <div class="header-title-box">
             <h2>THỐNG KÊ GIỜ GIẢNG</h2>
-            <div class="subtitle">BẢNG QUY ĐỔI GIỜ CHUẨN THEO NHIỆM VỤ DỰA TRÊN LỊCH CÔNG TÁC</div>
+            <div class="subtitle">BẢNG QUY ĐỔI VÀ ĐỐI CHIẾU TIẾN ĐỘ KHUNG CHƯƠNG TRÌNH</div>
         </div>
 
         <div class="controls-wrapper">
@@ -97,15 +104,16 @@
                 <thead>
                     <tr>
                         <th style="width: 50px; text-align: center;">STT</th>
-                        <th style="width: 200px;">Tên Giảng Viên</th>
-                        <th style="width: 120px; text-align: center;">Phân Loại</th>
-                        <th>Giờ Giảng Dạy (Thực Tế)</th>
-                        <th>Giờ Chuẩn Giảng Dạy (Quy Đổi)</th>
-                        <th style="width: 120px; text-align: center;">Tổng Giờ Chuẩn</th>
+                        <th style="width: 180px;">Tên Giảng Viên</th>
+                        <th style="width: 100px; text-align: center;">Phân Loại</th>
+                        <th style="width: 180px;">Giờ Giảng Dạy<br><small>(Thực tế)</small></th>
+                        <th style="width: 200px;">Giờ Chuẩn Giảng Dạy<br><small>(Quy đổi theo hệ số)</small></th>
+                        <th style="min-width: 320px;">Đối chiếu Khung CT<br><small>(Tiến độ theo Từng Lớp)</small></th>
+                        <th style="width: 100px; text-align: center;">Tổng<br>Giờ Chuẩn</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody">
-                    <tr><td colspan="6" style="text-align:center; padding:30px;"><i class="fas fa-spinner fa-spin"></i> Đang tính toán dữ liệu...</td></tr>
+                    <tr><td colspan="7" style="text-align:center; padding:30px;"><i class="fas fa-spinner fa-spin"></i> Đang tính toán dữ liệu...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -145,14 +153,81 @@
             "Lý thuyết",
             "Thực hành",
             "Thực tế",
-            "Thực hành bệnh viện",
             "Ra đề thi",
             "Coi thi",
             "Chấm thi",
             "Soạn mới, sửa BG/GT",
-            "Hướng dẫn LV, LATS",
             "Công việc khác"
         ];
+
+        // MẢNG DỮ LIỆU TÍNH TOÁN KHUNG CT TỪ SỐ TÍN CHỈ
+        const subjectsData = [
+            { "id": "sub_1", "name": "Triết học", "credits": 3, "theory": 3, "practice": 0 },
+            { "id": "sub_2", "name": "Ngoại ngữ", "credits": 2, "theory": 2, "practice": 0 },
+            { "id": "sub_3", "name": "Sinh học phân tử", "credits": 2, "theory": 2, "practice": 0 },
+            { "id": "sub_4", "name": "Y đức - Xã hội học", "credits": 2, "theory": 2, "practice": 0 },
+            { "id": "sub_5", "name": "Phương pháp nghiên cứu khoa học", "credits": 2, "theory": 1, "practice": 1 },
+            { "id": "sub_6", "name": "Thống kê y học", "credits": 2, "theory": 1, "practice": 1 },
+            { "id": "sub_7", "name": "Phương pháp dạy & học PHCN", "credits": 2, "theory": 1, "practice": 1 },
+            { "id": "sub_8", "name": "Quản lý & lãnh đạo PHCN", "credits": 2, "theory": 1, "practice": 1 },
+            { "id": "sub_9", "name": "Kỹ năng hướng dẫn lâm sàng", "credits": 2, "theory": 1, "practice": 1 },
+            { "id": "sub_10", "name": "Thực hành dựa trên chứng cứ", "credits": 2, "theory": 1, "practice": 1 },
+            { "id": "sub_11", "name": "VLTL Nhi nâng cao", "credits": 3, "theory": 1, "practice": 2 },
+            { "id": "sub_12", "name": "VLTL Thần kinh cơ nâng cao", "credits": 2, "theory": 1, "practice": 1 },
+            { "id": "sub_13", "name": "VLTL Cơ xương nâng cao", "credits": 2, "theory": 1, "practice": 1 },
+            { "id": "sub_14", "name": "VLTL Tim mạch - Hô hấp nâng cao", "credits": 2, "theory": 1, "practice": 1 },
+            { "id": "sub_15", "name": "Thực hành lâm sàng VLTL nâng cao 1", "credits": 3, "theory": 0, "practice": 3 },
+            { "id": "sub_16", "name": "Thực hành lâm sàng VLTL nâng cao 2", "credits": 3, "theory": 0, "practice": 3 },
+            { "id": "sub_17", "name": "Lãnh đạo & quản lý trong HĐTL", "credits": 3, "theory": 1, "practice": 2 },
+            { "id": "sub_18", "name": "Thiết kế & đánh giá chương trình HĐTL", "credits": 3, "theory": 1, "practice": 2 },
+            { "id": "sub_19", "name": "HĐTL & quản lý chấn thương", "credits": 3, "theory": 1, "practice": 2 },
+            { "id": "sub_20", "name": "HĐTL trong sức khỏe tâm thần", "credits": 3, "theory": 1, "practice": 2 },
+            { "id": "sub_21", "name": "HĐTL trong lão khoa", "credits": 3, "theory": 1, "practice": 2 },
+            { "id": "sub_22", "name": "Rối loạn nuốt", "credits": 3, "theory": 2, "practice": 1 },
+            { "id": "sub_23", "name": "Rối loạn vận động tạo lời nói và nói lắp", "credits": 2, "theory": 1, "practice": 1 },
+            { "id": "sub_24", "name": "Thực hành lâm sàng rối loạn giọng", "credits": 2, "theory": 0, "practice": 2 },
+            { "id": "sub_25", "name": "Thực hành lâm sàng rối loạn ngôn ngữ thần kinh", "credits": 2, "theory": 0, "practice": 2 },
+            { "id": "sub_26", "name": "Thực hành lâm sàng người khuyết tật suốt đời", "credits": 2, "theory": 0, "practice": 2 },
+            { "id": "sub_27", "name": "Thực hành lâm sàng trẻ em rối loạn giao tiếp/nuốt", "credits": 2, "theory": 0, "practice": 2 },
+            { "id": "sub_28", "name": "Thực hành lâm sàng ca bệnh phức tạp", "credits": 2, "theory": 0, "practice": 2 },
+            { "id": "sub_29", "name": "Chuyên đề nâng cao PHCN 1", "credits": 3, "theory": 1, "practice": 2 },
+            { "id": "sub_30", "name": "Chuyên đề nâng cao PHCN 2", "credits": 3, "theory": 1, "practice": 2 },
+            { "id": "sub_31", "name": "Chuyên đề nâng cao PHCN 3", "credits": 3, "theory": 1, "practice": 2 },
+            { "id": "sub_32", "name": "Chuyên đề nâng cao PHCN 4", "credits": 3, "theory": 1, "practice": 2 },
+            { "id": "sub_33", "name": "Luận văn", "credits": 12, "theory": 0, "practice": 0 },
+            { "id": "sub_34", "name": "Thực hành hướng dẫn lâm sàng", "credits": 2, "theory": 1, "practice": 1 },
+            { "id": "sub_37", "name": "Ứng dụng công thái học trong VLTL", "credits": 4, "theory": 2, "practice": 2 },
+            { "id": "sub_40", "name": "Vấn đề chuyên môn trong HĐTL", "credits": 3, "theory": 1, "practice": 2 },
+            { "id": "sub_41", "name": "Thực hành HĐTL 1", "credits": 3, "theory": 0, "practice": 3 },
+            { "id": "sub_42", "name": "Thực hành HĐTL 2", "credits": 3, "theory": 0, "practice": 3 },
+            { "id": "sub_43", "name": "Thực hành HĐTL 3", "credits": 3, "theory": 0, "practice": 3 },
+            { "id": "sub_49", "name": "Thính lực học & PHCN thính giác", "credits": 2, "theory": 0, "practice": 2 },
+            { "id": "sub_50", "name": "Quản lý ca bệnh phức tạp", "credits": 2, "theory": 0, "practice": 2 },
+            { "id": "sub_56", "name": "Thực hành lâm sàng PHCN 1", "credits": 2, "theory": 0, "practice": 2 },
+            { "id": "sub_57", "name": "Thực hành lâm sàng PHCN 2", "credits": 2, "theory": 0, "practice": 2 },
+            { "id": "sub_58", "name": "Thực hành lâm sàng PHCN 3", "credits": 2, "theory": 0, "practice": 2 },
+            { "id": "sub_59", "name": "Đề án", "credits": 6, "theory": 0, "practice": 0 }
+        ];
+
+        // HÀM TÍNH SỐ TIẾT TỐI ĐA THEO KHUNG CHƯƠNG TRÌNH CHO MỘT MÔN
+        function getSubjectLimit(subName, task) {
+            let sub = subjectsData.find(s => s.name === subName);
+            if (!sub) return 0;
+            let theoryCredits = parseInt(sub.theory) || 0;
+            let practiceCredits = parseInt(sub.practice) || 0;
+            
+            let taskLower = task.toLowerCase();
+            if (taskLower.includes('lý thuyết')) {
+                return theoryCredits * 15; // 1 TC LT = 15 Tiết
+            } else if (taskLower.includes('thực hành') || taskLower.includes('thực tế') || taskLower.includes('lâm sàng')) {
+                if (sub.name.toLowerCase().includes('lâm sàng')) {
+                    return practiceCredits * 40; // 1 TC Lâm Sàng = 40 Tiết
+                } else {
+                    return practiceCredits * 30; // 1 TC TH/Lab = 30 Tiết
+                }
+            }
+            return 0; // Các nhiệm vụ khác (coi thi, ra đề) không có trần Khung CT cố định
+        }
 
         let calendarEvents = [];
         let coefs = {};
@@ -172,7 +247,6 @@
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                // Nạp Data Cán bộ
                 const snapUsers = await getDocs(collection(db, "users"));
                 snapUsers.forEach(doc => {
                     const d = doc.data();
@@ -194,7 +268,6 @@
                     }
                 }, 300);
 
-                // Lắng nghe cấu hình Hệ số
                 onSnapshot(doc(db, "settings", "teaching_coefficients"), (docSnap) => {
                     if (docSnap.exists()) {
                         coefs = docSnap.data();
@@ -205,7 +278,6 @@
                     window.renderTable();
                 });
 
-                // Lắng nghe Lịch Công Tác (Bỏ lắng nghe clinical_schedules)
                 onSnapshot(collection(db, "calendar_events"), (snapshot) => {
                     calendarEvents = [];
                     snapshot.forEach(doc => calendarEvents.push(doc.data()));
@@ -264,44 +336,59 @@
             end.setHours(23, 59, 59);
 
             let allEvents = [];
-            
-            // 1. Quét Lịch thường (calendar_events)
             let validCalEvents = calendarEvents.filter(e => e.status !== 'returned');
             
-            // Xóa trùng lặp lớp ghép (Trường hợp môn UD và NC học chung phòng chung giờ)
+            // Xóa trùng lặp lớp ghép (Để tính tổng tiến độ lớp)
             let deduplicatedCalMap = new Map();
             validCalEvents.forEach(e => {
-                let baseSubId = e.subject; 
+                let subObj = subjectsData.find(s => s.name === e.subject);
+                let baseSubId = subObj ? subObj.id : e.subject; 
                 let deduplicateKey = `${e.start}_${e.end}_${e.room}_${baseSubId}_${e.task}_${e.gv}`;
                 if (!deduplicatedCalMap.has(deduplicateKey)) {
                     deduplicatedCalMap.set(deduplicateKey, e);
                 }
             });
 
+            // Tổng hợp tiến độ của Lớp (Không bị nhân đôi nếu 2 GV xài chung phòng)
+            let classSubjectStats = {};
+            
             deduplicatedCalMap.forEach(e => {
                 let eStart = new Date(e.start);
                 let eEnd = e.end ? new Date(e.end) : new Date(eStart.getTime() + 4.5 * 3600000);
                 
                 if (eStart >= start && eStart <= end) {
                     let durationHours = (eEnd - eStart) / 3600000;
-                    let tiet = Math.round(durationHours / 0.9); // Quy đổi chuẩn 4.5h = 5 tiết
+                    let tiet = Math.round(durationHours / 0.9); // Quy đổi 4.5h = 5 tiết
                     
                     let taskName = e.task || 'Công việc khác';
-                    if (taskName.toLowerCase().includes('thực hành') && !taskName.toLowerCase().includes('bệnh viện')) taskName = 'Thực hành';
+                    
+                    let cKey = `${e.class}_${e.subject}_${taskName}`;
+                    if (!classSubjectStats[cKey]) classSubjectStats[cKey] = 0;
+                    classSubjectStats[cKey] += tiet;
 
+                    // Mảng cho Từng Giảng Viên
                     let gvs = e.gv ? e.gv.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
                     gvs.forEach(gv => {
-                        allEvents.push({ gv, task: taskName, tiet });
+                        allEvents.push({ gv, task: taskName, tiet, subject: e.subject, class: e.class });
                     });
                 }
             });
 
             // Tổng hợp Dữ liệu cho Bảng
-            let gvStats = {};
+            let gvStats = {};            // Tổng toàn cục theo Task cho Cột 4, 5
+            let gvClassSubjectStats = {}; // Tổng chi tiết cho Cột 6
+
             allEvents.forEach(e => {
+                // GV global
                 if (!gvStats[e.gv]) gvStats[e.gv] = {};
                 if (!gvStats[e.gv][e.task]) gvStats[e.gv][e.task] = 0;
                 gvStats[e.gv][e.task] += e.tiet;
+
+                // GV per class-subject
+                if (!gvClassSubjectStats[e.gv]) gvClassSubjectStats[e.gv] = {};
+                let cKey = `${e.class}_${e.subject}_${e.task}`;
+                if (!gvClassSubjectStats[e.gv][cKey]) gvClassSubjectStats[e.gv][cKey] = 0;
+                gvClassSubjectStats[e.gv][cKey] += e.tiet;
             });
 
             // Xuất HTML
@@ -309,14 +396,13 @@
             tbody.innerHTML = '';
             
             if (Object.keys(gvStats).length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 30px; color:#64748b;">Không có dữ liệu giờ giảng trong khoảng thời gian này.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 30px; color:#64748b;">Không có dữ liệu giờ giảng trong khoảng thời gian này.</td></tr>`;
                 return;
             }
 
-            // Sắp xếp GV theo bảng chữ cái
             let sortedGVs = Object.keys(gvStats).sort((a,b) => a.localeCompare(b, 'vi'));
-
             let stt = 1;
+
             sortedGVs.forEach(gv => {
                 let type = usersMap[gv] ? "Cơ hữu" : (visitingMap[gv] ? "Thỉnh giảng" : "Chưa phân loại");
                 let badgeClass = usersMap[gv] ? "badge-cohuu" : "badge-thinhgiang";
@@ -325,17 +411,64 @@
                 let stdHtml = '<ul class="breakdown">';
                 let totalStd = 0;
 
+                // CỘT 4 & CỘT 5
                 for (let task in gvStats[gv]) {
                     let rTiet = gvStats[gv][task];
                     let coef = coefs[task] !== undefined ? coefs[task] : 1.0;
-                    let sTiet = rTiet * coef;
-                    totalStd += sTiet;
+                    let sGio = rTiet * coef;
+                    totalStd += sGio;
 
                     realHtml += `<li><i class="fas fa-check" style="color:#10b981; margin-right:5px; font-size:0.8em;"></i> <b>${task}</b>: <span style="color:var(--primary); font-weight:bold;">${rTiet}</span> tiết</li>`;
-                    stdHtml += `<li><i class="fas fa-check" style="color:#10b981; margin-right:5px; font-size:0.8em;"></i> <b>${task}</b>: <span style="color:var(--primary); font-weight:bold;">${sTiet.toFixed(1)}</span> tiết <i style="color:#94a3b8; font-size:0.85em;">(x${coef})</i></li>`;
+                    stdHtml += `<li><i class="fas fa-check" style="color:#10b981; margin-right:5px; font-size:0.8em;"></i> <b>${task}</b>: <span style="color:var(--primary); font-weight:bold;">${sGio.toFixed(1)}</span> giờ <i style="color:#94a3b8; font-size:0.85em;">(x${coef})</i></li>`;
                 }
                 realHtml += '</ul>';
                 stdHtml += '</ul>';
+
+                // CỘT 6: SO SÁNH KHUNG CHƯƠNG TRÌNH
+                let cmpHtml = '';
+                if (gvClassSubjectStats[gv]) {
+                    for (let cKey in gvClassSubjectStats[gv]) {
+                        let parts = cKey.split('_');
+                        let cls = parts[0];
+                        let subName = parts[1];
+                        let task = parts[2];
+                        
+                        let gvTiet = gvClassSubjectStats[gv][cKey];
+                        let coef = coefs[task] || 1.0;
+                        let gvGio = gvTiet * coef;
+
+                        let totalClassTiet = classSubjectStats[cKey] || 0;
+                        let limitTiet = getSubjectLimit(subName, task);
+                        let limitGio = limitTiet * coef;
+
+                        let statusText = '';
+                        if (limitTiet > 0 && totalClassTiet > limitTiet) {
+                            statusText = `<span style="color:#ef4444; font-weight:bold; font-size:0.8rem;">(Vượt mức Khung CT!)</span>`;
+                        }
+
+                        let limitTietDisplay = limitTiet > 0 ? limitTiet : '?';
+                        let limitGioDisplay = limitGio > 0 ? limitGio.toFixed(1) : '?';
+
+                        cmpHtml += `
+                            <div class="cmp-card">
+                                <div class="cmp-card-title">[${cls}] ${subName}</div>
+                                <div style="color: #475569; margin-bottom: 3px;">Nhiệm vụ: <b style="color:var(--text-dark);">${task}</b></div>
+                                <div class="cmp-row">
+                                    <span>GV thực hiện:</span>
+                                    <span><b>${gvTiet}</b> tiết / <b>${gvGio.toFixed(1)}</b> giờ</span>
+                                </div>
+                                <div class="cmp-row cmp-bg">
+                                    <span>Tiến độ Lớp:</span>
+                                    <span style="text-align:right;">
+                                        <b>${totalClassTiet} / ${limitTietDisplay}</b> tiết<br>
+                                        <span style="color:var(--primary);"><b>${(totalClassTiet * coef).toFixed(1)} / ${limitGioDisplay}</b> giờ</span>
+                                    </span>
+                                </div>
+                                ${statusText ? `<div style="text-align:right; margin-top:2px;">${statusText}</div>` : ''}
+                            </div>
+                        `;
+                    }
+                }
 
                 tbody.innerHTML += `
                     <tr style="transition:0.2s;" onmouseover="this.style.backgroundColor='#f8fafc'" onmouseout="this.style.backgroundColor='transparent'">
@@ -344,6 +477,7 @@
                         <td style="text-align:center;"><span class="badge ${badgeClass}">${type}</span></td>
                         <td>${realHtml}</td>
                         <td>${stdHtml}</td>
+                        <td>${cmpHtml}</td>
                         <td class="total-col">${totalStd.toFixed(1)}</td>
                     </tr>
                 `;
