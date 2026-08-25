@@ -18,17 +18,27 @@
     <style>
         /* APP LAYOUT */
         html, body { min-height: 100vh; margin: 0; padding: 0; display: flex; flex-direction: column; background: var(--bg-page); }
-        #header-placeholder { flex-shrink: 0; }
+        
+        #header-placeholder { flex-shrink: 0; transition: 0.3s; }
+        /* Lớp ẩn Header khi cuộn chuột */
+        body.header-hidden #header-placeholder { display: none !important; }
+        
         #footer-placeholder { display: none; }
 
         /* Thanh công cụ gọn nhẹ trên cùng */
-        .top-toolbar { position: sticky; top: 0; z-index: 1000; display: flex; justify-content: space-between; align-items: center; padding: 10px 2%; background: var(--surface); border-bottom: 1px solid var(--border); margin-bottom: 15px; box-shadow: var(--shadow-sm); }
+        .top-toolbar { position: sticky; top: 0; z-index: 1000; display: flex; justify-content: space-between; align-items: center; padding: 10px 2%; background: var(--surface); border-bottom: 1px solid var(--border); margin-bottom: 15px; box-shadow: var(--shadow-sm); transition: 0.3s; }
         .top-toolbar h2 { margin: 0; font-size: 1.4rem; color: var(--text-dark); display: flex; align-items: center; gap: 8px; font-weight: 800; text-transform: uppercase; }
         
+        body.header-hidden .top-toolbar { box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+
         .controls-wrapper { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
         .filter-select { padding: 6px 12px; font-size: 0.95rem; font-weight: 600; border-radius: 6px; border: 1px solid var(--border); outline: none; cursor: pointer; color: var(--text-dark); }
         .btn-toggle { background: white; color: var(--primary); border: 1px solid var(--primary); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.2s; font-size: 0.9rem;}
         .btn-toggle:hover { background: var(--primary-light); }
+
+        /* Nút Xuất Word */
+        .btn-export { background: #2563eb; color: white; border: none; padding: 7px 15px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.2s; font-size: 0.95rem; display: flex; align-items: center; gap: 6px; }
+        .btn-export:hover { background: #1d4ed8; }
 
         /* Khu vực Lịch & Kho */
         main { flex: 1; max-width: 100%; width: 100%; padding: 0 1% 30px 1%; display: flex; gap: 15px; box-sizing: border-box; align-items: flex-start; }
@@ -37,9 +47,36 @@
         #external-events { position: sticky; top: 80px; width: 280px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 15px; box-shadow: var(--shadow-sm); flex-shrink: 0; display: none; flex-direction: column; max-height: calc(100vh - 100px); transition: 0.3s; }
         #external-events h4 { margin: 0 0 10px 0; color: var(--primary); border-bottom: 1px dashed var(--border); padding-bottom: 10px; font-size: 1.05rem; flex-shrink: 0; }
         
-        #event-pool { flex: 1; overflow-y: auto; padding-right: 5px; } 
-        #event-pool .fc-event { cursor: move; margin: 0 0 12px 0; padding: 12px; color: var(--text-dark); border: 1px solid var(--border); border-radius: 6px; text-align: left; transition: 0.2s; position: relative; }
+        #event-pool { flex: 1; overflow-y: auto; padding-right: 15px; padding-top: 5px; } 
+        #event-pool .fc-event { cursor: move; margin: 0 0 10px 0; padding: 10px 12px; color: var(--text-dark); border: 1px solid var(--border); border-radius: 6px; text-align: left; transition: 0.2s; position: relative; }
         
+        /* Box chứa Môn học trong Kho */
+        .pool-subject-group {
+            margin-bottom: 18px;
+            padding: 12px 10px 2px 10px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .pool-subject-title {
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: var(--text-dark);
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #f1f5f9;
+            line-height: 1.4;
+        }
+        .pool-subject-title i { color: var(--primary); margin-right: 5px; }
+
+        /* Huy hiệu đếm số sự kiện gộp */
+        .count-badge {
+            position: absolute; top: -10px; right: -10px; background-color: #ef4444; color: white;
+            border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+            font-size: 0.8rem; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2); border: 2px solid white; z-index: 10;
+        }
+
         /* Màu nền phân biệt Lớp trong Kho */
         #event-pool .fc-event.THS2025 { background-color: #f0f9ff; border-color: #bae6fd; }
         #event-pool .fc-event.THS2026 { background-color: #fefce8; border-color: #fde047; }
@@ -94,10 +131,10 @@
             padding: 2px 4px; border-radius: 3px; flex-shrink: 0; min-width: 22px; text-align: center; margin-top: 1px;
         }
         .evt-gv-name { 
-            font-size: 0.75rem; font-weight: 700; color: var(--text-dark); line-height: 1.3; word-break: break-word;
+            font-size: 0.75rem; font-weight: 700; color: var(--text-dark); line-height: 1.3; word-break: break-word; white-space: normal;
         }
         .evt-item-row2 { 
-            font-size: 0.75rem; color: var(--primary); padding-left: 28px; line-height: 1.3; word-break: break-word;
+            font-size: 0.75rem; color: var(--primary); padding-left: 28px; line-height: 1.3; word-break: break-word; white-space: normal;
         }
 
         /* Chấm Bệnh viện trên cùng (All-day) */
@@ -115,7 +152,7 @@
         .toast.show { transform: translateX(0); opacity: 1; }
         .toast.danger { border-left-color: #ef4444; }
 
-        /* Modal Chi tiết chung (Dùng chung cho xếp phòng, xem chi tiết gom nhóm, và xem chi tiết BV) */
+        /* Modal Chi tiết chung */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 2000; padding: 10px; }
         .modal-content { background: white; width: 95%; max-width: 600px; border-radius: 8px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); overflow: hidden; display: flex; flex-direction: column; }
         .modal-header { padding: 15px 20px; background: var(--primary); color: white; display: flex; justify-content: space-between; align-items: center; }
@@ -178,6 +215,10 @@
                 <option value="Học kỳ 3">Học kỳ 3</option>
                 <option value="Học kỳ 4">Học kỳ 4</option>
             </select>
+            <!-- NÚT XUẤT BÁO CÁO -->
+            <button class="btn-export" onclick="exportWeeklyReport()" title="Xuất báo cáo các lịch đã dạy trong tuần này ra Word">
+                <i class="fas fa-file-word"></i> Xuất BC Tuần
+            </button>
         </div>
     </div>
 
@@ -243,12 +284,21 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, collection, onSnapshot, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, collection, onSnapshot, setDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY", authDomain: "bmphcn-aa9c6.firebaseapp.com", projectId: "bmphcn-aa9c6", storageBucket: "bmphcn-aa9c6.firebasestorage.app", messagingSenderId: "749494392719", appId: "1:749494392719:web:f220c751ff541620045dfa" };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+
+        // HIỆU ỨNG ẨN HEADER KHI CUỘN CHUỘT XUỐNG
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 60) {
+                document.body.classList.add('header-hidden');
+            } else {
+                document.body.classList.remove('header-hidden');
+            }
+        });
 
         // CẤU HÌNH DANH SÁCH PHÒNG HỌC TẠI ĐÂY
         const ROOM_LIST = [
@@ -261,15 +311,68 @@
             "Khác..."
         ];
 
+        // MẢNG DỮ LIỆU MÔN HỌC CHUẨN ĐƯỢC CHÉP TỪ FILE EXCEL
         const subjectsData = [
-            {"id": "sub_1", "name": "Triết học"}, {"id": "sub_2", "name": "Ngoại ngữ"}, {"id": "sub_3", "name": "Sinh học phân tử"}, {"id": "sub_4", "name": "Y đức - Xã hội học"}, {"id": "sub_5", "name": "Phương pháp nghiên cứu khoa học"}, {"id": "sub_6", "name": "Thống kê y học"},
-            {"id": "sub_7", "name": "Phương pháp dạy và học trong phục hồi chức năng"}, {"id": "sub_8", "name": "Quản lý và lãnh đạo trong phục hồi chức năng"}, {"id": "sub_9", "name": "Kỹ năng hướng dẫn lâm sàng và lý luận lâm sàng trong PHCN"}, {"id": "sub_10", "name": "Thực hành kỹ năng hướng dẫn lâm sàng"}, {"id": "sub_11", "name": "Thực hành dựa trên chứng cứ"},
-            {"id": "sub_12", "name": "Rối loạn nuốt"}, {"id": "sub_13", "name": "Rối loạn vận động tạo lời nói và nói lắp"}, {"id": "sub_14", "name": "Những rối loạn giao tiếp & nhận thức có nguồn gốc thần kinh"}, {"id": "sub_15", "name": "Những rối loạn phát sinh từ khiếm khuyết/Phẫu thuật vùng đầu và cổ"}, {"id": "sub_16", "name": "Khuyết tật giao tiếp suốt đời và giao tiếp tăng cường và thay thế"}, {"id": "sub_17", "name": "Thính lực học và PHCN thính giác"}, {"id": "sub_18", "name": "Quản lý ca bệnh phức tạp"}, {"id": "sub_19", "name": "Thực hành lâm sàng cho rối loạn giọng"}, {"id": "sub_20", "name": "Thực hành lâm sàng cho vấn đề rối loạn ngôn ngữ có nguồn gốc thần kinh"}, {"id": "sub_21", "name": "Thực hành lâm sàng cho người khuyết tật suốt đời"}, {"id": "sub_22", "name": "Thực hành lâm sàng cho trẻ em có rối loạn giao tiếp và nuốt"}, {"id": "sub_23", "name": "Thực hành lâm sàng ca bệnh phức tạp ở người lớn và trẻ em"},
-            {"id": "sub_24", "name": "Vật lý trị liệu Nhi nâng cao"}, {"id": "sub_25", "name": "Vật lý trị liệu Thần kinh cơ nâng cao"}, {"id": "sub_26", "name": "Vật lý trị liệu Cơ xương nâng cao"}, {"id": "sub_27", "name": "Vật lý trị liệu Tim mạch – Hô hấp nâng cao"}, {"id": "sub_28", "name": "Vật lý trị liệu trong thể thao"}, {"id": "sub_29", "name": "Ứng dụng công thái học trong can thiệp Vật lý trị liệu"}, {"id": "sub_30", "name": "Thực hành lâm sàng Vật lý trị liệu nâng cao 1"}, {"id": "sub_31", "name": "Thực hành lâm sàng Vật lý trị liệu nâng cao 2"},
-            {"id": "sub_32", "name": "Những vấn đề chuyên môn trong Hoạt động trị liệu"}, {"id": "sub_33", "name": "Lãnh đạo và quản lý trong Hoạt động trị liệu"}, {"id": "sub_34", "name": "Thiết kế và đánh giá chương trình Hoạt động trị liệu"}, {"id": "sub_35", "name": "Hoạt động trị liệu và quản lý chấn thương"}, {"id": "sub_36", "name": "Hoạt động trị liệu trong thực hành sức khỏe tâm thần trong suốt quá trình phát triển"}, {"id": "sub_37", "name": "Hoạt động trị liệu trong lão khoa"}, {"id": "sub_38", "name": "Thực hành hoạt động trị liệu 1"}, {"id": "sub_39", "name": "Thực hành hoạt động trị liệu 2"}, {"id": "sub_40", "name": "Thực hành hoạt động trị liệu 3"},
-            {"id": "sub_41", "name": "Thực hành lâm sàng Kỹ thuật Phục hồi chức năng 1"}, {"id": "sub_42", "name": "Thực hành lâm sàng Kỹ thuật Phục hồi chức năng 2"}, {"id": "sub_43", "name": "Thực hành lâm sàng Kỹ thuật Phục hồi chức năng 3"},
-            {"id": "sub_44", "name": "Đề án tốt nghiệp"}, {"id": "sub_45", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 1"}, {"id": "sub_46", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 2"}, {"id": "sub_47", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 3"}, {"id": "sub_48", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 4"}, {"id": "sub_49", "name": "Luận văn"},
-            {"id": "sub_99", "name": "Công việc chuyên môn khác"}
+            { "id": "sub_1", "name": "Triết học", "credits": 3, "theory": 3, "practice": 0, "department": "BM KHXH-NV", "isPHCN": false, "orientations": [ "NC", "UD" ], "group": "1. Kiến thức chung" },
+            { "id": "sub_2", "name": "Ngoại ngữ", "credits": 2, "theory": 2, "practice": 0, "department": "BM Ngoại ngữ", "isPHCN": false, "orientations": [ "NC", "UD" ], "group": "1. Kiến thức chung" },
+            { "id": "sub_3", "name": "Sinh học phân tử", "credits": 2, "theory": 2, "practice": 0, "department": "TT Y sinh học phân tử", "isPHCN": false, "orientations": [ "NC", "UD" ], "group": "2. Kiến thức cơ sở" },
+            { "id": "sub_4", "name": "Y đức - Xã hội học", "credits": 2, "theory": 2, "practice": 0, "department": "BM Y đức", "isPHCN": false, "orientations": [ "NC", "UD" ], "group": "2. Kiến thức cơ sở" },
+            { "id": "sub_5", "name": "Phương pháp nghiên cứu khoa học", "credits": 2, "theory": 1, "practice": 1, "department": "TT GD Y học", "isPHCN": false, "orientations": [ "NC", "UD" ], "group": "2. Kiến thức cơ sở" },
+            { "id": "sub_6", "name": "Thống kê y học", "credits": 2, "theory": 1, "practice": 1, "department": "BM Thống kê Y học", "isPHCN": false, "orientations": [ "NC", "UD" ], "group": "2. Kiến thức cơ sở" },
+            { "id": "sub_7", "name": "Phương pháp dạy & học PHCN", "credits": 2, "theory": 1, "practice": 1, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC", "UD" ], "group": "3.1. Kiến thức ngành (bắt buộc)" },
+            { "id": "sub_8", "name": "Quản lý & lãnh đạo PHCN", "credits": 2, "theory": 1, "practice": 1, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC", "UD" ], "group": "3.1. Kiến thức ngành (bắt buộc)" },
+            { "id": "sub_9", "name": "Kỹ năng hướng dẫn lâm sàng", "credits": 2, "theory": 1, "practice": 1, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC", "UD" ], "group": "3.1. Kiến thức ngành (bắt buộc)" },
+            { "id": "sub_10", "name": "Thực hành dựa trên chứng cứ", "credits": 2, "theory": 1, "practice": 1, "department": "TT GD Y học", "isPHCN": false, "orientations": [ "NC", "UD" ], "group": "3.1. Kiến thức ngành (bắt buộc)" },
+            { "id": "sub_11", "name": "VLTL Nhi nâng cao", "credits": 3, "theory": 1, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC", "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Vật lý trị liệu)" },
+            { "id": "sub_12", "name": "VLTL Thần kinh cơ nâng cao", "credits": 2, "theory": 1, "practice": 1, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC", "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Vật lý trị liệu)" },
+            { "id": "sub_13", "name": "VLTL Cơ xương nâng cao", "credits": 2, "theory": 1, "practice": 1, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC", "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Vật lý trị liệu)" },
+            { "id": "sub_14", "name": "VLTL Tim mạch - Hô hấp nâng cao", "credits": 2, "theory": 1, "practice": 1, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC" ], "group": "3.2. Kiến thức ngành (tự chọn - Vật lý trị liệu)" },
+            { "id": "sub_15", "name": "Thực hành lâm sàng VLTL nâng cao 1", "credits": 3, "theory": 0, "practice": 3, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC" ], "group": "3.2. Kiến thức ngành (tự chọn - Vật lý trị liệu)" },
+            { "id": "sub_16", "name": "Thực hành lâm sàng VLTL nâng cao 2", "credits": 3, "theory": 0, "practice": 3, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC" ], "group": "3.2. Kiến thức ngành (tự chọn - Vật lý trị liệu)" },
+            { "id": "sub_17", "name": "Lãnh đạo & quản lý trong HĐTL", "credits": 3, "theory": 1, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC" ], "group": "3.2. Kiến thức ngành (tự chọn - Hoạt động trị liệu)" },
+            { "id": "sub_18", "name": "Thiết kế & đánh giá chương trình HĐTL", "credits": 3, "theory": 1, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC", "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Hoạt động trị liệu)" },
+            { "id": "sub_19", "name": "HĐTL & quản lý chấn thương", "credits": 3, "theory": 1, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC", "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Hoạt động trị liệu)" },
+            { "id": "sub_20", "name": "HĐTL trong sức khỏe tâm thần", "credits": 3, "theory": 1, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC", "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Hoạt động trị liệu)" },
+            { "id": "sub_21", "name": "HĐTL trong lão khoa", "credits": 3, "theory": 1, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC", "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Hoạt động trị liệu)" },
+            { "id": "sub_22", "name": "Rối loạn nuốt", "credits": 3, "theory": 2, "practice": 1, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC" ], "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)" },
+            { "id": "sub_23", "name": "Rối loạn vận động tạo lời nói và nói lắp", "credits": 2, "theory": 1, "practice": 1, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC" ], "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)" },
+            { "id": "sub_24", "name": "Thực hành lâm sàng rối loạn giọng", "credits": 2, "theory": 0, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC" ], "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)" },
+            { "id": "sub_25", "name": "Thực hành lâm sàng rối loạn ngôn ngữ thần kinh", "credits": 2, "theory": 0, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC" ], "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)" },
+            { "id": "sub_26", "name": "Thực hành lâm sàng người khuyết tật suốt đời", "credits": 2, "theory": 0, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC" ], "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)" },
+            { "id": "sub_27", "name": "Thực hành lâm sàng trẻ em rối loạn giao tiếp/nuốt", "credits": 2, "theory": 0, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC" ], "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)" },
+            { "id": "sub_28", "name": "Thực hành lâm sàng ca bệnh phức tạp", "credits": 2, "theory": 0, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC" ], "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)" },
+            { "id": "sub_29", "name": "Chuyên đề nâng cao PHCN 1", "credits": 3, "theory": 1, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC" ], "group": "4. Chuyên đề nghiên cứu" },
+            { "id": "sub_30", "name": "Chuyên đề nâng cao PHCN 2", "credits": 3, "theory": 1, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC" ], "group": "4. Chuyên đề nghiên cứu" },
+            { "id": "sub_31", "name": "Chuyên đề nâng cao PHCN 3", "credits": 3, "theory": 1, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC" ], "group": "4. Chuyên đề nghiên cứu" },
+            { "id": "sub_32", "name": "Chuyên đề nâng cao PHCN 4", "credits": 3, "theory": 1, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC" ], "group": "4. Chuyên đề nghiên cứu" },
+            { "id": "sub_33", "name": "Luận văn", "credits": 12, "theory": 0, "practice": 0, "department": "BM PHCN", "isPHCN": true, "orientations": [ "NC" ], "group": "5. Luận văn" },
+            { "id": "sub_34", "name": "Thực hành hướng dẫn lâm sàng", "credits": 2, "theory": 1, "practice": 1, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "3.1. Kiến thức ngành (bắt buộc)" },
+            { "id": "sub_35", "name": "VLTL Tim mạch - Hô hấp nâng cao", "credits": 3, "theory": 1, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Vật lý trị liệu)" },
+            { "id": "sub_36", "name": "VLTL trong thể thao", "credits": 3, "theory": 1, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Vật lý trị liệu)" },
+            { "id": "sub_37", "name": "Ứng dụng công thái học trong VLTL", "credits": 4, "theory": 2, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Vật lý trị liệu)" },
+            { "id": "sub_38", "name": "Thực hành lâm sàng VLTL nâng cao 1", "credits": 4, "theory": 0, "practice": 4, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Vật lý trị liệu)" },
+            { "id": "sub_39", "name": "Thực hành lâm sàng VLTL nâng cao 2", "credits": 4, "theory": 0, "practice": 4, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Vật lý trị liệu)" },
+            { "id": "sub_40", "name": "Vấn đề chuyên môn trong HĐTL", "credits": 3, "theory": 1, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Hoạt động trị liệu)" },
+            { "id": "sub_41", "name": "Thực hành HĐTL 1", "credits": 3, "theory": 0, "practice": 3, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Hoạt động trị liệu)" },
+            { "id": "sub_42", "name": "Thực hành HĐTL 2", "credits": 3, "theory": 0, "practice": 3, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Hoạt động trị liệu)" },
+            { "id": "sub_43", "name": "Thực hành HĐTL 3", "credits": 3, "theory": 0, "practice": 3, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Hoạt động trị liệu)" },
+            { "id": "sub_44", "name": "Rối loạn nuốt", "credits": 3, "theory": 2, "practice": 1, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)" },
+            { "id": "sub_45", "name": "Rối loạn vận động tạo lời nói và nói lắp", "credits": 2, "theory": 1, "practice": 1, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)" },
+            { "id": "sub_46", "name": "Rối loạn giao tiếp & nhận thức thần kinh", "credits": 2, "theory": 0, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)" },
+            { "id": "sub_47", "name": "Rối loạn từ khiếm khuyết/phẫu thuật đầu cổ", "credits": 2, "theory": 0, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)" },
+            { "id": "sub_48", "name": "Khuyết tật giao tiếp suốt đời & AAC", "credits": 2, "theory": 0, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)" },
+            { "id": "sub_49", "name": "Thính lực học & PHCN thính giác", "credits": 2, "theory": 0, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)" },
+            { "id": "sub_50", "name": "Quản lý ca bệnh phức tạp", "credits": 2, "theory": 0, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)" },
+            { "id": "sub_51", "name": "Thực hành lâm sàng rối loạn giọng", "credits": 2, "theory": 0, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)" },
+            { "id": "sub_52", "name": "Thực hành lâm sàng rối loạn ngôn ngữ thần kinh", "credits": 2, "theory": 0, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)" },
+            { "id": "sub_53", "name": "Thực hành lâm sàng người khuyết tật suốt đời", "credits": 2, "theory": 0, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)" },
+            { "id": "sub_54", "name": "Thực hành lâm sàng trẻ em rối loạn giao tiếp/nuốt", "credits": 2, "theory": 0, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)" },
+            { "id": "sub_55", "name": "Thực hành lâm sàng ca bệnh phức tạp", "credits": 2, "theory": 0, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)" },
+            { "id": "sub_56", "name": "Thực hành lâm sàng PHCN 1", "credits": 2, "theory": 0, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "4. Thực tập" },
+            { "id": "sub_57", "name": "Thực hành lâm sàng PHCN 2", "credits": 2, "theory": 0, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "4. Thực tập" },
+            { "id": "sub_58", "name": "Thực hành lâm sàng PHCN 3", "credits": 2, "theory": 0, "practice": 2, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "4. Thực tập" },
+            { "id": "sub_59", "name": "Đề án", "credits": 6, "theory": 0, "practice": 0, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD" ], "group": "5. Đề án" },
+            { "id": "sub_60", "name": "Công việc chuyên môn khác", "credits": 0, "theory": 0, "practice": 0, "department": "BM PHCN", "isPHCN": true, "orientations": [ "UD", "NC" ], "group": "6. Công việc khác" }
         ];
 
         let calendar;
@@ -284,7 +387,10 @@
         let clinicalSchedules = []; 
         let globalGroupedClinicals = {}; 
         
-        // Cần truy cập toàn cục khi xóa sự kiện từ bảng Modal
+        // TỪ ĐIỂN MAP TÊN ĐẦY ĐỦ -> TÊN NGẮN (Thầy X, Cô Y)
+        let gvShortNameMap = {};
+
+        // Xóa sự kiện
         window.deleteSubEvent = async (id) => {
             if(!id) return;
             if(confirm("Bạn có chắc muốn xóa sự kiện này khỏi lịch? (Sự kiện sẽ được trả về kho)")) {
@@ -309,6 +415,202 @@
             setTimeout(() => toast.classList.add('show'), 10);
             setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
         }
+
+        // HÀM FORMAT TÊN GIẢNG VIÊN THÔNG MINH (CHO GIAO DIỆN)
+        window.formatGvName = (gvString) => {
+            if (!gvString) return '';
+            let gvs = gvString.split(/,|&/).map(s => s.trim());
+            let shortGvs = gvs.map(gv => {
+                if (gvShortNameMap[gv]) return gvShortNameMap[gv];
+                
+                // Fallback nếu GV không có trong bảng users
+                let parts = gv.split(' ');
+                let firstName = parts[parts.length - 1];
+                return 'GV ' + firstName; 
+            });
+            return shortGvs.join(', ');
+        };
+
+        // HÀM XUẤT BÁO CÁO WORD
+        window.exportWeeklyReport = () => {
+            if (!calendar) return;
+            
+            let viewStart = calendar.view.activeStart;
+            let viewEnd = calendar.view.activeEnd;
+            let now = new Date();
+
+            let reportEvents = [];
+
+            // 1. Lọc dữ liệu Sự kiện Bình thường
+            let scheduledEventsNormal = scheduledEvents.filter(e => e.status !== 'returned');
+            
+            let deduplicatedNormalEventsMap = new Map();
+            scheduledEventsNormal.forEach(e => {
+                let subObj = subjectsData.find(s => s.name === e.subject);
+                let baseSubId = subObj ? subObj.id.replace('_NC', '').replace('_UD', '') : e.subject;
+                let deduplicateKey = `${e.start}_${e.end}_${e.room}_${baseSubId}_${e.task}_${e.gv}`;
+                
+                if (!deduplicatedNormalEventsMap.has(deduplicateKey)) {
+                    deduplicatedNormalEventsMap.set(deduplicateKey, e);
+                }
+            });
+
+            deduplicatedNormalEventsMap.forEach((e) => {
+                let eStart = new Date(e.start);
+                let eEnd = e.end ? new Date(e.end) : new Date(eStart.getTime() + 4.5 * 3600000);
+                
+                if (eStart >= viewStart && eStart < viewEnd && eEnd <= now) {
+                    if (e.class && e.class.toUpperCase().includes('THS')) {
+                        let durationHours = (eEnd - eStart) / 3600000;
+                        let tiet = Math.round(durationHours / 0.9); // Quy đổi 4.5h = 5 tiết
+                        
+                        let taskType = e.task;
+                        if (e.task.toLowerCase().includes('thực hành')) taskType = 'Thực hành lab';
+                        if (e.task.toLowerCase().includes('lý thuyết')) taskType = 'Lý thuyết';
+
+                        reportEvents.push({
+                            timeObj: eStart,
+                            timeStr: `${eStart.toLocaleDateString('vi-VN', {weekday:'short', day:'2-digit', month:'2-digit', year:'numeric'})}<br>${eStart.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'})} - ${eEnd.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'})}`,
+                            content: `[${e.class}] ${e.subject}<br><i>(${e.task})</i>`,
+                            gv: e.gv, // Dùng họ tên đầy đủ
+                            room: e.room || '',
+                            tiet: tiet,
+                            taskType: taskType
+                        });
+                    }
+                }
+            });
+
+            // 2. Lọc dữ liệu Bệnh viện (Clinicals)
+            for (let d = new Date(viewStart); d < viewEnd; d.setDate(d.getDate() + 1)) {
+                let y = d.getFullYear();
+                let m = String(d.getMonth() + 1).padStart(2, '0');
+                let day = String(d.getDate()).padStart(2, '0');
+                let dateStr = `${y}-${m}-${day}`;
+                
+                let eEnd = new Date(d);
+                eEnd.setHours(23, 59, 59);
+                
+                if (globalGroupedClinicals[dateStr] && eEnd <= now) {
+                    globalGroupedClinicals[dateStr].forEach(c => {
+                        if (c.class_id && c.class_id.toUpperCase().includes('THS')) {
+                            let tiet = c.shift.toLowerCase().includes('cả ngày') ? 8 : 4; 
+                            reportEvents.push({
+                                timeObj: new Date(d),
+                                timeStr: `${d.toLocaleDateString('vi-VN', {weekday:'short', day:'2-digit', month:'2-digit', year:'numeric'})}<br>${c.shift}`,
+                                content: `[${c.class_id}] Thực tập lâm sàng<br><i>(${c.specialty})</i>`,
+                                gv: c.instructors, // Dùng họ tên đầy đủ
+                                room: c.hospital,
+                                tiet: tiet,
+                                taskType: 'Thực hành bệnh viện'
+                            });
+                        }
+                    });
+                }
+            }
+
+            if (reportEvents.length === 0) {
+                showToast("Không có lịch công tác nào đã hoàn thành trong tuần đang chọn!", "danger");
+                return;
+            }
+
+            reportEvents.sort((a, b) => a.timeObj - b.timeObj);
+
+            // TỔNG HỢP TIẾT THEO GV VÀ NHIỆM VỤ
+            let gvTotals = {};
+            reportEvents.forEach(ev => {
+                let gvList = ev.gv.split(/,|&/).map(s => s.trim()).filter(s => s);
+                gvList.forEach(g => {
+                    if (!gvTotals[g]) gvTotals[g] = {};
+                    if (!gvTotals[g][ev.taskType]) gvTotals[g][ev.taskType] = 0;
+                    gvTotals[g][ev.taskType] += ev.tiet;
+                });
+            });
+
+            // TẠO HTML CHO BẢNG BÁO CÁO
+            let tableHtml = `
+                <h2 style="text-align: center; font-family: 'Times New Roman', serif;">BÁO CÁO LỊCH CÔNG TÁC ĐÃ HOÀN THÀNH</h2>
+                <h4 style="text-align: center; font-family: 'Times New Roman', serif; font-weight: normal; margin-bottom: 20px;">
+                    Từ ngày ${viewStart.toLocaleDateString('vi-VN')} đến ngày ${new Date(viewEnd.getTime() - 1).toLocaleDateString('vi-VN')}
+                </h4>
+                <table border="1" cellspacing="0" cellpadding="8" style="width: 100%; border-collapse: collapse; font-family: 'Times New Roman', serif; font-size: 12pt;">
+                    <thead>
+                        <tr style="background-color: #f2f2f2; font-weight: bold; text-align: center;">
+                            <th style="width: 5%;">STT</th>
+                            <th style="width: 15%;">Thời gian</th>
+                            <th style="width: 35%;">Nội dung</th>
+                            <th style="width: 15%;">Giảng viên</th>
+                            <th style="width: 20%;">Địa điểm học</th>
+                            <th style="width: 10%;">Số tiết</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            reportEvents.forEach((ev, idx) => {
+                tableHtml += `
+                    <tr>
+                        <td style="text-align: center;">${idx + 1}</td>
+                        <td style="text-align: center;">${ev.timeStr}</td>
+                        <td>${ev.content}</td>
+                        <td style="text-align: center;">${ev.gv}</td>
+                        <td style="text-align: center;">${ev.room}</td>
+                        <td style="text-align: center;">${ev.tiet}</td>
+                    </tr>
+                `;
+            });
+
+            tableHtml += `</tbody></table>`;
+
+            // BẢNG TỔNG KẾT GV
+            let summaryHtml = `
+                <br><br>
+                <h3 style="text-align: left; font-family: 'Times New Roman', serif;">TỔNG HỢP SỐ TIẾT THEO GIẢNG VIÊN</h3>
+                <table border="1" cellspacing="0" cellpadding="8" style="width: 100%; border-collapse: collapse; font-family: 'Times New Roman', serif; font-size: 12pt;">
+                    <thead>
+                        <tr style="background-color: #f2f2f2; font-weight: bold; text-align: center;">
+                            <th style="width: 10%;">STT</th>
+                            <th style="width: 40%;">Giảng viên</th>
+                            <th style="width: 50%;">Tổng số tiết quy đổi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            let stt = 1;
+            for (let g in gvTotals) {
+                let details = [];
+                for (let t in gvTotals[g]) {
+                    details.push(`<b>${gvTotals[g][t]}</b> tiết ${t.toLowerCase()}`);
+                }
+                summaryHtml += `
+                    <tr>
+                        <td style="text-align: center;">${stt++}</td>
+                        <td>${g}</td>
+                        <td>${details.join(' / ')}</td>
+                    </tr>
+                `;
+            }
+            summaryHtml += `</tbody></table>`;
+
+            // XUẤT THÀNH BLOB WORD VÀ TẢI XUỐNG
+            var preHtml = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Báo Cáo Lịch Công Tác</title></head><body>";
+            var postHtml = "</body></html>";
+            var html = preHtml + tableHtml + summaryHtml + postHtml;
+
+            let dateStartFormatted = viewStart.toLocaleDateString('vi-VN').split('/').join('-');
+            let dateEndFormatted = new Date(viewEnd.getTime() - 1).toLocaleDateString('vi-VN').split('/').join('-');
+
+            var blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+            var url = URL.createObjectURL(blob);
+            var downloadLink = document.createElement("a");
+            downloadLink.href = url;
+            downloadLink.download = `Bao_Cao_Lich_Cong_Tac_Tu_${dateStartFormatted}_den_${dateEndFormatted}.doc`;
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+            
+            showToast("Đã tải xuống file Word thành công!");
+        };
 
         function initRoomSelect() {
             const select = document.getElementById('roomSelect');
@@ -408,11 +710,10 @@
             return valid;
         }
 
-        // HÀM KIỂM TRA TRÙNG LỊCH & TRÙNG PHÒNG (Bỏ qua ID của thẻ đang thao tác để không tự cản chính mình)
         function hasOverlap(targetStart, targetEnd, gvStr, targetClass, targetTask, targetRoom, ignoreEventIds) {
             let ignoreList = Array.isArray(ignoreEventIds) ? ignoreEventIds : [ignoreEventIds];
             let tStart = targetStart.getTime();
-            let tEnd = targetEnd ? targetEnd.getTime() : tStart + 4 * 3600000;
+            let tEnd = targetEnd ? targetEnd.getTime() : tStart + 4.5 * 3600000;
             
             let allSubEvents = [];
             calendar.getEvents().forEach(e => {
@@ -438,22 +739,18 @@
             const blockingTasks = ['Lý thuyết', 'Thực hành', 'Thực tế', 'Coi thi'];
 
             for (let e of allSubEvents) {
-                if (ignoreList.includes(e.id)) continue; // Bỏ qua thẻ đang thao tác
+                if (ignoreList.includes(e.id)) continue; 
                 
                 let eStart = new Date(e.start).getTime();
-                let eEnd = e.end ? new Date(e.end).getTime() : eStart + 4 * 3600000;
+                let eEnd = e.end ? new Date(e.end).getTime() : eStart + 4.5 * 3600000;
                 
-                // NẾU TRÙNG GIỜ (Thời gian giao nhau)
                 if (tStart < eEnd && tEnd > eStart) {
-                    // 1. Kiểm tra TRÙNG PHÒNG
                     if (targetRoom && e.room && targetRoom !== 'Khác...' && e.room === targetRoom) {
-                        return { hasOverlap: true, reason: `${targetRoom} đã có lớp khác học vào khung giờ này!` };
+                        return { hasOverlap: true, reason: `Phòng ${targetRoom} đã có lớp khác học vào khung giờ này!` };
                     }
-                    // 2. Kiểm tra Trùng lịch Khóa học
                     if (e.class === targetClass && blockingTasks.includes(targetTask) && blockingTasks.includes(e.task)) {
                         return { hasOverlap: true, reason: `Lớp ${targetClass} đã có lịch học/thi vào khung giờ này!` };
                     }
-                    // 3. Kiểm tra Trùng lịch Giảng viên
                     let targetGVs = gvStr ? gvStr.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
                     let eGVs = e.gv ? e.gv.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
                     let hasCommonGV = targetGVs.some(gv => eGVs.includes(gv));
@@ -466,23 +763,29 @@
             return { hasOverlap: false };
         }
 
-        window.toggleSidebar = () => {
-            const panel = document.getElementById('external-events');
-            if (panel.style.display === 'none') {
-                panel.style.display = 'flex';
-                panel.removeAttribute('data-manually-hidden');
-            } else {
-                panel.style.display = 'none';
-                panel.setAttribute('data-manually-hidden', 'true'); 
-            }
-            setTimeout(() => { if(calendar) calendar.updateSize(); }, 100);
-        };
-
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUserEmail = user.email.toLowerCase();
                 const adminEmails = ['lethanhvan@ump.edu.vn', 'phanthenguyenpt@ump.edu.vn', 'thduypt@ump.edu.vn', 'hoangtran1483@gmail.com'];
                 if (adminEmails.includes(currentUserEmail)) isCalendarAdmin = true;
+
+                gvShortNameMap = {};
+                try {
+                    const snapUser = await getDocs(collection(db, "users"));
+                    snapUser.forEach(doc => {
+                        const d = doc.data();
+                        if(d.fullName) {
+                            let pref = d.degree === 'ThS' ? 'ThS. ' : (d.degree === 'TS' ? 'TS. ' : '');
+                            let savedName = `${pref}${d.fullName}`; 
+                            
+                            let nameParts = d.fullName.trim().split(' ');
+                            let firstName = nameParts[nameParts.length - 1]; 
+                            let genderPref = d.gender === 'm' ? 'Thầy ' : (d.gender === 'f' ? 'Cô ' : 'GV ');
+                            
+                            gvShortNameMap[savedName] = `${genderPref}${firstName}`;
+                        }
+                    });
+                } catch(e) {}
 
                 const userDoc = await getDoc(doc(db, "users", user.uid));
                 if (userDoc.exists()) {
@@ -499,7 +802,7 @@
                     }, 300);
                 }
                 
-                initRoomSelect(); // Đổ dữ liệu phòng học
+                initRoomSelect(); 
                 initCalendar();
                 listenToDatabase();
             } else {
@@ -543,7 +846,7 @@
                 slotMaxTime: '21:00:00',
                 allDaySlot: true, 
                 allDayText: 'BV', 
-                defaultTimedEventDuration: '04:00:00', 
+                defaultTimedEventDuration: '04:30:00', // Sửa mặc định thành 4 tiếng rưỡi (5 tiết)
                 slotLabelFormat: { hour: 'numeric', minute: '2-digit', omitZeroMinute: false, meridiem: false, hour12: false },
                 eventTimeFormat: { hour: 'numeric', minute: '2-digit', meridiem: false, hour12: false },
                 editable: isCalendarAdmin, 
@@ -554,19 +857,16 @@
                     const props = arg.event.extendedProps;
                     
                     if (props.type === 'clinical_summary') {
-                        return {
-                            html: `<div class="evt-clinical-dot" title="Click xem chi tiết Bệnh viện">BV</div>`
-                        };
+                        return { html: `<div class="evt-clinical-dot" title="Click xem chi tiết Bệnh viện">BV</div>` };
                     }
 
-                    // TÙY CHỈNH THẺ SỰ KIỆN GOM NHÓM (HIỂN THỊ DẠNG LIST NHƯ YÊU CẦU MỚI)
                     if (props.type === 'grouped_normal') {
                         let sTime = arg.event.start ? arg.event.start.toLocaleTimeString('vi-VN', {hour: 'numeric', minute:'2-digit', hour12: false}) : '';
                         let eTime = '';
                         if (arg.event.end) {
                             eTime = arg.event.end.toLocaleTimeString('vi-VN', {hour: 'numeric', minute:'2-digit', hour12: false});
                         } else if (arg.event.start) {
-                            let eObj = new Date(arg.event.start.getTime() + 4 * 60 * 60 * 1000);
+                            let eObj = new Date(arg.event.start.getTime() + 4.5 * 3600000); // Mặc định 4.5h
                             eTime = eObj.toLocaleTimeString('vi-VN', {hour: 'numeric', minute:'2-digit', hour12: false});
                         }
                         const timeStr = `${sTime}–${eTime}`;
@@ -577,7 +877,7 @@
                                           </div>`;
                         
                         let itemsHtml = props.events.map(e => {
-                            let gvFull = e.gv || '';
+                            let gvDisplay = window.formatGvName(e.gv);
                             let clsTag = e.class === 'THS2025' ? '<span style="color:#0369a1">[THS2025]</span>' : '<span style="color:#b45309">[THS2026]</span>';
                             
                             let shortRoom = '';
@@ -588,10 +888,10 @@
                             }
                             
                             return `
-                            <div class="evt-item">
+                            <div class="evt-item" style="margin-bottom: 8px; line-height: 1.3;">
                                 <div class="evt-item-row1">
                                     <span class="evt-room-badge">${shortRoom}</span>
-                                    <span class="evt-gv-name">${clsTag} ${gvFull}</span>
+                                    <span class="evt-gv-name" title="${e.gv}">${clsTag} ${gvDisplay}</span>
                                 </div>
                                 <div class="evt-item-row2" title="${e.subject}">${e.subject}</div>
                             </div>
@@ -626,7 +926,6 @@
                     document.getElementById('roomModal').classList.remove('hidden');
                 },
 
-                // DỜI LỊCH (KÉO THẢ NHÓM SANG KHUNG GIỜ KHÁC)
                 eventDrop: async function(info) {
                     if (!isCalendarAdmin) { info.revert(); return; }
                     const props = info.event.extendedProps;
@@ -638,7 +937,6 @@
                     if (props.type === 'grouped_normal') {
                         const subEvents = props.events;
                         
-                        // Kiểm tra quyền và logic cho từng sự kiện trong nhóm
                         for (let e of subEvents) {
                             if (e.scheduledByEmail && e.scheduledByEmail !== currentUserEmail && currentUserEmail !== 'hoangtran1483@gmail.com') {
                                 showToast(`Lỗi: Không thể dời lịch nhóm chứa môn do GV khác xếp!`, "danger");
@@ -649,7 +947,6 @@
                             }
                         }
 
-                        // Khi di chuyển cả nhóm, cần bỏ qua ID của TẤT CẢ các thẻ trong nhóm để tránh bị tự phát hiện trùng
                         const groupIds = subEvents.map(ev => ev.id);
                         for (let e of subEvents) {
                             const overlapCheck = hasOverlap(info.event.start, info.event.end, e.gv, e.class, e.task, e.room, groupIds);
@@ -676,7 +973,6 @@
                     }
                 },
 
-                // KÉO GIÃN THỜI GIAN NHÓM
                 eventResize: async function(info) {
                     if (!isCalendarAdmin) { info.revert(); return; }
                     const props = info.event.extendedProps;
@@ -738,9 +1034,8 @@
                     } else if (props.type === 'grouped_normal') {
                         let html = `<strong><i class="fas fa-layer-group"></i> ${props.events.length} Lớp Học</strong><br>`;
                         props.events.forEach(e => {
-                            let cName = e.class === 'THS2025' ? 'THS2025' : 'THS2026';
                             html += `<div style="margin-top:6px; border-top:1px dashed rgba(255,255,255,0.2); padding-top:6px; line-height: 1.4;">
-                                <span style="color:#fbbf24; font-weight:bold;">${e.room || '??'}</span> | <span style="color:#bae6fd;">[${cName}] ${e.gv}</span><br>
+                                <span style="color:#fbbf24; font-weight:bold;">${e.room || '??'}</span> | <span style="color:#bae6fd;">[${e.class}] ${e.gv}</span><br>
                                 <span style="font-size:0.85rem;">${e.subject}</span>
                             </div>`;
                         });
@@ -771,7 +1066,6 @@
                     }
                 },
 
-                // MODAL HIỂN THỊ CHI TIẾT
                 eventClick: function(info) {
                     const props = info.event.extendedProps;
                     const modal = document.getElementById('multiEventModal');
@@ -824,7 +1118,7 @@
                         let sTime = info.event.start ? info.event.start.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'}) : '';
                         let eTime = info.event.end ? info.event.end.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'}) : '';
                         if (!eTime && info.event.start) {
-                            eTime = new Date(info.event.start.getTime() + 4*3600000).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'});
+                            eTime = new Date(info.event.start.getTime() + 4.5*3600000).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'});
                         }
                         const dateStr = info.event.start ? info.event.start.toLocaleDateString('vi-VN', {weekday: 'long', day:'2-digit', month:'2-digit', year:'numeric'}) : '';
                         
@@ -833,15 +1127,13 @@
                                     </div>`;
                         
                         props.events.forEach(e => {
-                            let clsName = e.class === 'THS2025' ? 'THS2025' : (e.class === 'THS2026' ? 'THS2026' : e.class);
                             let canDelete = isCalendarAdmin && (!e.scheduledByEmail || e.scheduledByEmail === currentUserEmail || currentUserEmail === 'hoangtran1483@gmail.com');
-                            
                             let delBtn = canDelete ? `<button class="btn-danger" style="padding:4px 10px; font-size:0.8rem;" onclick="deleteSubEvent('${e.id}')"><i class="fas fa-trash"></i> Trả về kho</button>` : '';
 
                             html += `
                             <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:12px; margin-bottom:12px; position:relative;">
                                 <div style="position:absolute; right:12px; top:12px;">${delBtn}</div>
-                                <p style="margin:0 0 5px 0;"><strong>Khóa/Lớp:</strong> <span style="color:var(--primary); font-weight:bold;">${clsName}</span></p>
+                                <p style="margin:0 0 5px 0;"><strong>Khóa/Lớp:</strong> <span style="color:var(--primary); font-weight:bold;">${e.class}</span></p>
                                 <p style="margin:0 0 5px 0;"><strong>Phòng học:</strong> <span style="background:#fbbf24; color:#78350f; padding:2px 6px; border-radius:4px; font-weight:bold;">${e.room || 'Chưa XĐ'}</span></p>
                                 <p style="margin:0 0 5px 0; padding-right:85px;"><strong>Môn học:</strong> ${e.subject}</p>
                                 <p style="margin:0 0 5px 0;"><strong>Nhiệm vụ:</strong> ${e.task}</p>
@@ -870,7 +1162,6 @@
 
             document.getElementById('roomModal').classList.add('hidden');
 
-            // CẬP NHẬT: Thêm ID của sự kiện vừa kéo vào danh sách ignoreEventIds để không tự va chạm trùng lịch với chính nó!
             const overlapCheck = hasOverlap(info.event.start, info.event.end, props.gv, props.eventClass, props.task, selectedRoom, [info.event.id]);
             if (overlapCheck.hasOverlap) {
                 showToast(overlapCheck.reason, "danger");
@@ -948,13 +1239,25 @@
             poolDiv.innerHTML = '';
             let unscheduledCount = 0;
 
-            // BƯỚC GOM NHÓM (GROUPING): Tất cả các sự kiện cùng giờ được gộp làm 1 block
             let scheduledEventsNormal = scheduledEvents.filter(e => e.status !== 'returned');
+            
+            let deduplicatedEventsMap = new Map();
+            scheduledEventsNormal.forEach(e => {
+                let subObj = subjectsData.find(s => s.name === e.subject);
+                let baseSubId = subObj ? subObj.id.replace('_NC', '').replace('_UD', '') : e.subject;
+                let deduplicateKey = `${e.start}_${e.end}_${e.room}_${baseSubId}_${e.task}_${e.gv}`;
+                
+                if (!deduplicatedEventsMap.has(deduplicateKey)) {
+                    deduplicatedEventsMap.set(deduplicateKey, e);
+                }
+            });
+            let deduplicatedEvents = Array.from(deduplicatedEventsMap.values());
+
             let groupedEvents = {};
 
-            scheduledEventsNormal.forEach(e => {
+            deduplicatedEvents.forEach(e => {
                 let sTime = new Date(e.start).getTime();
-                let eTime = e.end ? new Date(e.end).getTime() : sTime + 4 * 3600 * 1000;
+                let eTime = e.end ? new Date(e.end).getTime() : sTime + 4.5 * 3600 * 1000;
                 let key = `${sTime}_${eTime}`;
                 
                 if (!groupedEvents[key]) {
@@ -972,7 +1275,6 @@
             for (let key in groupedEvents) {
                 let group = groupedEvents[key];
                 
-                // Set color to transparent so Custom HTML renders the full UI
                 currentClassEvents.push({
                     id: 'group_' + key,
                     start: group.start,
@@ -989,7 +1291,6 @@
             }
             calendar.addEventSource(currentClassEvents);
 
-            // Bệnh viện
             globalGroupedClinicals = getClinicalEventsMap(clinicalSchedules); 
             let clinicalEvents = [];
             for (let dateStr in globalGroupedClinicals) {
@@ -1010,7 +1311,6 @@
             }
             calendar.addEventSource(clinicalEvents);
 
-            // ĐẾM SỐ BUỔI ĐÃ XẾP 
             let scheduledCounts = {};
             scheduledEvents.forEach(e => {
                 if (e.status !== 'returned') {
@@ -1020,78 +1320,128 @@
                 }
             });
 
-            // TÁI TẠO KHO SỰ KIỆN TỪ TẤT CẢ CÁC KHÓA
-            managedClasses.forEach(cls => {
-                for (let subId in assignmentsData) {
+            let poolMap = new Map();
+            
+            let orderedSubjectNames = [];
+            let subjectGroups = {};
+
+            subjectsData.forEach(sub => {
+                if (!subjectGroups[sub.name]) {
+                    orderedSubjectNames.push(sub.name);
+                    subjectGroups[sub.name] = [];
+                }
+                subjectGroups[sub.name].push(sub.id);
+            });
+
+            orderedSubjectNames.forEach(subName => {
+                const subIds = subjectGroups[subName];
+                let subjectCardsMap = new Map();
+
+                subIds.forEach(subId => {
                     const subAsg = assignmentsData[subId];
-                    if (subAsg[cls] && subAsg[cls].allocations) {
-                        
-                        if (subAsg[cls].status === 'proposed') continue;
+                    if (!subAsg) return;
 
-                        const semester = subAsg[cls].semester || 'Chưa xác định';
-                        if (selectedSemester !== 'ALL' && semester !== selectedSemester) continue; 
-                        const subName = subjectsData.find(s => s.id === subId)?.name || 'Môn không xác định';
-                        
-                        subAsg[cls].allocations.forEach(a => {
-                            const totalAssigned = parseInt(a.assigned) || 0;
-                            const keyForCount = `${subName}_${a.gv}_${a.task}_${cls}`;
-                            const alreadyScheduled = scheduledCounts[keyForCount] || 0;
-                            
-                            let rejectedCardsOfThisTask = scheduledEvents.filter(e => e.class === cls && e.status === 'returned' && e.subject === subName && e.gv === a.gv && e.task === a.task);
+                    managedClasses.forEach(cls => {
+                        if (subAsg[cls] && subAsg[cls].allocations && subAsg[cls].status !== 'proposed') {
+                            const semester = subAsg[cls].semester || 'Chưa xác định';
+                            if (selectedSemester !== 'ALL' && semester !== selectedSemester) return; 
 
-                            let remaining = totalAssigned - alreadyScheduled;
-                            let remainingNormal = remaining - rejectedCardsOfThisTask.length; 
-                            
-                            const renderCard = (isRejected, rTask = null) => {
-                                unscheduledCount++;
-                                const eventDiv = document.createElement('div');
-                                eventDiv.className = `fc-event ${cls} ${isRejected ? 'rejected-task' : ''}`;
+                            subAsg[cls].allocations.forEach(a => {
+                                const totalAssigned = parseInt(a.assigned) || 0;
+                                const keyForCount = `${subName}_${a.gv}_${a.task}_${cls}`;
+                                const alreadyScheduled = scheduledCounts[keyForCount] || 0;
                                 
-                                eventDiv.setAttribute('data-id', keyForCount); 
-                                eventDiv.setAttribute('data-title', a.gv); 
-                                eventDiv.setAttribute('data-subject', subName);
-                                eventDiv.setAttribute('data-gv', a.gv);
-                                eventDiv.setAttribute('data-task', a.task);
-                                eventDiv.setAttribute('data-class', cls);
+                                let rejectedCardsOfThisTask = scheduledEvents.filter(e => e.class === cls && e.status === 'returned' && e.subject === subName && e.gv === a.gv && e.task === a.task);
+
+                                let remaining = totalAssigned - alreadyScheduled;
+                                let remainingNormal = remaining - rejectedCardsOfThisTask.length; 
                                 
-                                if (isRejected && rTask) {
-                                    eventDiv.setAttribute('data-original-id', rTask.id); 
+                                if (remainingNormal > 0) {
+                                    if (!subjectCardsMap.has(keyForCount)) {
+                                        subjectCardsMap.set(keyForCount, {
+                                            type: 'normal',
+                                            data: { subName, a, cls, keyForCount },
+                                            count: remainingNormal,
+                                            gv: a.gv
+                                        });
+                                    } else {
+                                        subjectCardsMap.get(keyForCount).count = Math.max(subjectCardsMap.get(keyForCount).count, remainingNormal);
+                                    }
                                 }
 
-                                let classTag = cls === 'THS2025' ? '<span class="class-tag THS2025">THS2025</span>' : '<span class="class-tag THS2026">THS2026</span>';
-
-                                let rejectHtml = '';
-                                if (isRejected && rTask) {
-                                    const rejectTimes = rTask.rejected || 1;
-                                    rejectHtml = `<span class="reject-badge"><i class="fas fa-exclamation-circle"></i> Bị từ chối (${rejectTimes} lần)</span>`;
-                                }
-
-                                eventDiv.innerHTML = `
-                                    ${classTag}
-                                    <div class="event-gv">${a.gv}</div>
-                                    <span class="event-info">[${a.task}]<br>${subName}</span>
-                                    ${rejectHtml}
-                                `;
-                                
-                                if (isRejected) {
-                                    poolDiv.prepend(eventDiv);
-                                } else {
-                                    poolDiv.appendChild(eventDiv);
-                                }
-                            };
-
-                            if (remainingNormal > 0) {
-                                for(let i=0; i<remainingNormal; i++) {
-                                    renderCard(false);
-                                }
-                            }
-
-                            rejectedCardsOfThisTask.forEach(rTask => {
-                                renderCard(true, rTask);
+                                rejectedCardsOfThisTask.forEach(rTask => {
+                                    let rKey = `reject_${rTask.id}`;
+                                    if (!subjectCardsMap.has(rKey)) {
+                                        subjectCardsMap.set(rKey, {
+                                            type: 'rejected',
+                                            data: { subName, a, cls, keyForCount, rTask },
+                                            count: 1,
+                                            gv: a.gv
+                                        });
+                                    }
+                                });
                             });
+                        }
+                    });
+                });
 
-                        });
-                    }
+                const cardsArray = Array.from(subjectCardsMap.values());
+                
+                if (cardsArray.length > 0) {
+                    cardsArray.sort((a, b) => a.gv.localeCompare(b.gv));
+
+                    let subjectContainer = document.createElement('div');
+                    subjectContainer.className = 'pool-subject-group';
+                    
+                    let subjectHeader = document.createElement('div');
+                    subjectHeader.className = 'pool-subject-title';
+                    subjectHeader.innerHTML = `<i class="fas fa-book"></i> ${subName}`;
+                    subjectContainer.appendChild(subjectHeader);
+
+                    cardsArray.forEach(item => {
+                        const isRejected = item.type === 'rejected';
+                        const count = item.count;
+                        const { a, cls, keyForCount, rTask } = item.data;
+                        
+                        unscheduledCount += count;
+                        
+                        const eventDiv = document.createElement('div');
+                        eventDiv.className = `fc-event ${cls} ${isRejected ? 'rejected-task' : ''}`;
+                        
+                        eventDiv.setAttribute('data-id', keyForCount); 
+                        eventDiv.setAttribute('data-title', a.gv); 
+                        eventDiv.setAttribute('data-subject', subName);
+                        eventDiv.setAttribute('data-gv', a.gv);
+                        eventDiv.setAttribute('data-task', a.task);
+                        eventDiv.setAttribute('data-class', cls);
+                        
+                        if (isRejected && rTask) {
+                            eventDiv.setAttribute('data-original-id', rTask.id); 
+                        }
+
+                        let classTag = cls === 'THS2025' ? '<span class="class-tag THS2025">THS2025</span>' : '<span class="class-tag THS2026">THS2026</span>';
+
+                        let rejectHtml = '';
+                        if (isRejected && rTask) {
+                            const rejectTimes = rTask.rejected || 1;
+                            rejectHtml = `<span class="reject-badge"><i class="fas fa-exclamation-circle"></i> Bị từ chối (${rejectTimes} lần)</span>`;
+                        }
+
+                        let countBadge = (!isRejected && count > 0) ? `<div class="count-badge">${count}</div>` : '';
+                        let gvDisplay = window.formatGvName(a.gv);
+
+                        eventDiv.innerHTML = `
+                            ${countBadge}
+                            ${classTag}
+                            <div class="event-gv" title="${a.gv}">${gvDisplay}</div>
+                            <span class="event-info">[${a.task}]</span>
+                            ${rejectHtml}
+                        `;
+                        
+                        subjectContainer.appendChild(eventDiv);
+                    });
+
+                    poolDiv.appendChild(subjectContainer);
                 }
             });
 
