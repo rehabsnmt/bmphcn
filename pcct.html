@@ -324,7 +324,7 @@
             </div>
             
             <div style="display: flex; gap: 10px;">
-                <button id="btnSubmitAssign" class="btn-primary" style="flex: 1; padding: 12px; font-size: 1rem;" onclick="saveAssignment()">Lưu phân công</button>
+                <button id="btnSubmitAssign" class="btn-primary" style="flex: 1; padding: 12px; font-size: 1rem;" onclick="saveAssignment()">Lưu</button>
             </div>
         </div>
     </div>
@@ -357,7 +357,7 @@
                 <div id="thesisAllocContainer"></div>
                 <button class="btn-outline" style="margin-top: 10px;" onclick="addStudentBlock()">+ Thêm Học viên</button>
             </div>
-            <button id="btnSubmitThesis" class="btn-primary" style="width: 100%; padding: 12px; font-size: 1rem;" onclick="saveThesisAssignment()">Lưu phân công HD</button>
+            <button id="btnSubmitThesis" class="btn-primary" style="width: 100%; padding: 12px; font-size: 1rem;" onclick="saveThesisAssignment()">Lưu</button>
         </div>
     </div>
 
@@ -486,16 +486,11 @@
                 subjectsData = [];
                 snapSubjects.forEach(doc => {
                     const d = doc.data();
-                    
-                    // QUAN TRỌNG: Ưu tiên lấy trường 'id' (sub_1, sub_2...) trong dữ liệu, nếu không có mới lấy doc.id của Firestore
                     d.id = d.id || doc.id;
-                    
-                    // Xử lý an toàn các kiểu dữ liệu nếu được import từ file Excel (tránh tình trạng String thay vì Number)
                     d.credits = parseInt(d.credits) || 0;
                     d.theory = parseInt(d.theory) || 0;
                     d.practice = parseInt(d.practice) || 0;
                     
-                    // Biến chuỗi orientations (VD: "NC,UD") thành mảng ["NC", "UD"] nếu cần thiết
                     if (typeof d.orientations === 'string') {
                         d.orientations = d.orientations.split(',').map(s => s.trim()).filter(s => s);
                     }
@@ -650,8 +645,8 @@
                 } catch(e) {}
 
                 const email = user.email.toLowerCase();
-                const adminEmails = ['lethanhvan@ump.edu.vn', 'hoangtran1483@gmail.com'];
-                const managerEmails = ['phanthenguyenpt@ump.edu.vn', 'thduypt@ump.edu.vn', 'minhngpt@ump.edu.vn'];
+                const adminEmails = ['lethanhvan@ump.edu.vn', 'hoangtran1483@gmail.com', 'nguyenngocminhpt@ump.edu.vn'];
+                const managerEmails = ['phanthenguyenpt@ump.edu.vn', 'thduypt@ump.edu.vn'];
                 
                 if (adminEmails.includes(email)) isHOD = true;
                 if (managerEmails.includes(email) || adminEmails.includes(email)) isManager = true;
@@ -966,16 +961,16 @@
                     document.getElementById('thesisCurrentApprovedContent').innerHTML = buildAllocationHTML(asg.allocations, false, sub.name, true) || '<i>Chưa có phân công nào.</i>';
                     
                     if (isHOD) {
-                        btnSave.innerText = "Duyệt & Lưu phân công";
+                        btnSave.innerText = "Duyệt";
                         btnSave.classList.replace('btn-primary', 'btn-success');
                     } else {
-                        btnSave.innerText = "Gửi đề xuất";
+                        btnSave.innerText = "Lưu";
                         btnSave.classList.replace('btn-success', 'btn-primary');
                     }
                 } else {
                     banner.classList.add('hidden');
                     document.getElementById('thesisCurrentApprovedSection').classList.add('hidden');
-                    btnSave.innerText = isManager ? "Gửi đề xuất" : "Lưu phân công";
+                    btnSave.innerText = "Lưu";
                     btnSave.classList.replace('btn-success', 'btn-primary');
                 }
 
@@ -1024,16 +1019,16 @@
                     document.getElementById('currentApprovedContent').innerHTML = buildAllocationHTML(asg.allocations, false, sub.name, false) || '<i>Chưa có phân công nào.</i>';
                     
                     if (isHOD) {
-                        btnSave.innerText = "Duyệt & Lưu phân công";
+                        btnSave.innerText = "Duyệt";
                         btnSave.classList.replace('btn-primary', 'btn-success');
                     } else {
-                        btnSave.innerText = "Gửi đề xuất";
+                        btnSave.innerText = "Lưu";
                         btnSave.classList.replace('btn-success', 'btn-primary');
                     }
                 } else {
                     banner.classList.add('hidden');
                     document.getElementById('currentApprovedSection').classList.add('hidden');
-                    btnSave.innerText = isManager ? "Gửi đề xuất" : "Lưu phân công";
+                    btnSave.innerText = "Lưu";
                     btnSave.classList.replace('btn-success', 'btn-primary');
                 }
 
