@@ -173,7 +173,7 @@
         .form-group select { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border); font-size: 1rem; outline: none; }
         .form-group select:focus { border-color: var(--primary); }
 
-        /* Modal Bệnh viện / Lớp học */
+        /* Modal Bệnh viện / Lớp học (Dùng chung modal-body) */
         #multiEventModal .modal-content { max-width: 750px; }
         .clin-card { margin-bottom: 15px; padding: 15px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; border-left: 4px solid #10b981; }
         .clin-card-title { font-weight: 700; color: var(--text-dark); font-size: 1.15rem; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; }
@@ -390,6 +390,23 @@
         // TỪ ĐIỂN MAP TÊN ĐẦY ĐỦ -> TÊN NGẮN (Thầy X, Cô Y, hoặc Full Name nếu Thỉnh giảng)
         let gvShortNameMap = {};
 
+        // SỬA LỖI NÚT KHO SỰ KIỆN KHÔNG HOẠT ĐỘNG
+        window.toggleSidebar = () => {
+            const panel = document.getElementById('external-events');
+            const isHidden = panel.style.display === 'none' || panel.classList.contains('hidden');
+            
+            if (isHidden) {
+                panel.style.display = 'flex';
+                panel.classList.remove('hidden');
+                panel.removeAttribute('data-manually-hidden');
+            } else {
+                panel.style.display = 'none';
+                panel.classList.add('hidden');
+                panel.setAttribute('data-manually-hidden', 'true'); 
+            }
+            setTimeout(() => { if(calendar) calendar.updateSize(); }, 100);
+        };
+
         // Xóa sự kiện
         window.deleteSubEvent = async (id) => {
             if(!id) return;
@@ -421,10 +438,10 @@
             if (!gvString) return '';
             let gvs = gvString.split(/,|&/).map(s => s.trim());
             let shortGvs = gvs.map(gv => {
-                // Nếu đã có trong Map (Cơ hữu hoặc Thỉnh giảng đã có thông tin) thì dùng
                 if (gvShortNameMap[gv]) return gvShortNameMap[gv];
-                // Trả về tên gốc đầy đủ nếu không quét ra thông tin
-                return gv; 
+                let parts = gv.split(' ');
+                let firstName = parts[parts.length - 1];
+                return 'GV ' + firstName; 
             });
             return shortGvs.join(', ');
         };
@@ -455,12 +472,12 @@
 
             deduplicatedNormalEventsMap.forEach((e) => {
                 let eStart = new Date(e.start);
-                let eEnd = e.end ? new Date(e.end) : new Date(eStart.getTime() + 4.5 * 3600000); // 4.5 giờ mặc định
+                let eEnd = e.end ? new Date(e.end) : new Date(eStart.getTime() + 4.5 * 3600000); 
                 
                 if (eStart >= viewStart && eStart < viewEnd && eEnd <= now) {
                     if (e.class && e.class.toUpperCase().includes('THS')) {
                         let durationHours = (eEnd - eStart) / 3600000;
-                        let tiet = Math.round(durationHours / 0.9); // Quy đổi 4.5h = 5 tiết
+                        let tiet = Math.round(durationHours / 0.9); 
                         
                         let taskType = e.task;
                         if (e.task.toLowerCase().includes('thực hành')) taskType = 'Thực hành lab';
@@ -470,7 +487,7 @@
                             timeObj: eStart,
                             timeStr: `${eStart.toLocaleDateString('vi-VN', {weekday:'short', day:'2-digit', month:'2-digit', year:'numeric'})}<br>${eStart.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'})} - ${eEnd.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'})}`,
                             content: `[${e.class}] ${e.subject}<br><i>(${e.task})</i>`,
-                            gv: e.gv, // Dùng họ tên đầy đủ
+                            gv: e.gv, 
                             room: e.room || '',
                             tiet: tiet,
                             taskType: taskType
@@ -497,7 +514,7 @@
                                 timeObj: new Date(d),
                                 timeStr: `${d.toLocaleDateString('vi-VN', {weekday:'short', day:'2-digit', month:'2-digit', year:'numeric'})}<br>${c.shift}`,
                                 content: `[${c.class_id}] Thực tập lâm sàng<br><i>(${c.specialty})</i>`,
-                                gv: c.instructors, // Dùng họ tên đầy đủ
+                                gv: c.instructors, 
                                 room: c.hospital,
                                 tiet: tiet,
                                 taskType: 'Thực hành bệnh viện'
@@ -569,7 +586,7 @@
                         <tr style="background-color: #f2f2f2; font-weight: bold; text-align: center;">
                             <th style="width: 10%;">STT</th>
                             <th style="width: 40%;">Giảng viên</th>
-                            <th style="width: 50%;">Tổng số tiết quy đổi</th>
+                            <th style="width: 50%;">Tổng số tiết theo nhiệm vụ</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1214,6 +1231,7 @@
 
             let scheduledEventsNormal = scheduledEvents.filter(e => e.status !== 'returned');
             
+            // Xử lý loại bỏ trùng lặp khi 2 hệ học chung
             let deduplicatedEventsMap = new Map();
             scheduledEventsNormal.forEach(e => {
                 let subObj = subjectsData.find(s => s.name === e.subject);
@@ -1295,6 +1313,7 @@
 
             let poolMap = new Map();
             
+            // XUẤT THEO ĐÚNG THỨ TỰ BẢNG MÔN HỌC (subjectsData)
             let orderedSubjectNames = [];
             let subjectGroups = {};
 
@@ -1361,6 +1380,7 @@
                 const cardsArray = Array.from(subjectCardsMap.values());
                 
                 if (cardsArray.length > 0) {
+                    // Sắp xếp Giảng viên theo Alphabet bên trong từng môn
                     cardsArray.sort((a, b) => a.gv.localeCompare(b.gv));
 
                     let subjectContainer = document.createElement('div');
