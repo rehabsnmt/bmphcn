@@ -486,7 +486,20 @@
                 subjectsData = [];
                 snapSubjects.forEach(doc => {
                     const d = doc.data();
-                    d.id = doc.id;
+                    
+                    // QUAN TRỌNG: Ưu tiên lấy trường 'id' (sub_1, sub_2...) trong dữ liệu, nếu không có mới lấy doc.id của Firestore
+                    d.id = d.id || doc.id;
+                    
+                    // Xử lý an toàn các kiểu dữ liệu nếu được import từ file Excel (tránh tình trạng String thay vì Number)
+                    d.credits = parseInt(d.credits) || 0;
+                    d.theory = parseInt(d.theory) || 0;
+                    d.practice = parseInt(d.practice) || 0;
+                    
+                    // Biến chuỗi orientations (VD: "NC,UD") thành mảng ["NC", "UD"] nếu cần thiết
+                    if (typeof d.orientations === 'string') {
+                        d.orientations = d.orientations.split(',').map(s => s.trim()).filter(s => s);
+                    }
+                    
                     subjectsData.push(d);
                 });
                 
