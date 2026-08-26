@@ -104,21 +104,20 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, collection, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY", authDomain: "bmphcn-aa9c6.firebaseapp.com", projectId: "bmphcn-aa9c6", storageBucket: "bmphcn-aa9c6.firebasestorage.app", messagingSenderId: "749494392719", appId: "1:749494392719:web:f220c751ff541620045dfa" };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        let subjectsMap = {}; // Lưu danh mục môn học dưới dạng Map { 'sub_1': { name: '...', credits: ... } }
-        let currentUserName = ''; 
-        let currentUserFullName = '';
+        let currentUserFullName = ''; // Tên gốc không có học vị (Ví dụ: Nguyễn Ngọc Minh)
+        let currentUserName = '';     // Tên đầy đủ có học vị (Ví dụ: TS. Nguyễn Ngọc Minh)
         let currentUserUid = '';
         
         let assignmentsData = {};
         let calendarEventsDB = [];
-        let isDataLoaded = { sub: false, asg: false, cal: false };
+        let isDataLoaded = { asg: false, cal: false }; // Bỏ theo dõi bảng subjects
 
         // Hàm Đánh dấu Đã đọc vào Trình duyệt (LocalStorage)
         window.markAsRead = (subId, cls) => {
@@ -159,6 +158,7 @@
                     if (userDoc.exists()) {
                         const data = userDoc.data();
                         let prefix = data.degree === 'ThS' ? 'ThS. ' : (data.degree === 'TS' ? 'TS. ' : '');
+                        
                         currentUserFullName = data.fullName.trim();
                         currentUserName = `${prefix}${currentUserFullName}`;
                         
@@ -181,23 +181,7 @@
         });
 
         async function fetchExternalData() {
-            try {
-                // Tải trực tiếp danh sách môn học từ collection 'subjects'
-                const snapSubjects = await getDocs(collection(db, "subjects"));
-                subjectsMap = {};
-                snapSubjects.forEach(doc => {
-                    const d = doc.data();
-                    let subId = d.id || doc.id; 
-                    subjectsMap[subId] = d; 
-                });
-                
-                isDataLoaded.sub = true;
-                checkAndRender();
-            } catch(e) {
-                console.error("Lỗi tải subjects: ", e);
-            }
-
-            // Lắng nghe Phân công
+            // 1. Lắng nghe trực tiếp bảng Phân công (assignments)
             onSnapshot(collection(db, "assignments"), (snapshot) => {
                 assignmentsData = {};
                 snapshot.forEach(doc => { assignmentsData[doc.id] = doc.data(); });
@@ -205,7 +189,7 @@
                 checkAndRender();
             });
 
-            // Lắng nghe Lịch công tác
+            // 2. Lắng nghe Lịch công tác
             onSnapshot(collection(db, "calendar_events"), (snapshot) => {
                 calendarEventsDB = [];
                 snapshot.forEach(doc => { calendarEventsDB.push(doc.data()); });
@@ -215,7 +199,8 @@
         }
         
         function checkAndRender() {
-            if(isDataLoaded.sub && isDataLoaded.asg && isDataLoaded.cal) {
+            // Chỉ hiển thị thông báo khi đã tải đủ dữ liệu Assignments và Lịch
+            if(isDataLoaded.asg && isDataLoaded.cal) {
                 renderNotifs();
             }
         }
@@ -225,45 +210,43 @@
             let history = JSON.parse(localStorage.getItem('notif_history_' + currentUserUid)) || {};
             let currentTasks = [];
             
-            // LUỒNG DÒ TÌM MỚI: Quét từng Document trong Bảng Assignments
+            // 1. Trích xuất TẤT CẢ từ document của bảng assignments
             for (let docId in assignmentsData) {
-                // docId chính là sub_1, sub_2...
-                const asgClassData = assignmentsData[docId];
+                const data = assignmentsData[docId];
                 
-                // Dùng docId tra ngược lại bảng subjects để lấy tên môn & tín chỉ
-                const subObj = subjectsMap[docId] || {};
-                const subName = subObj.name || `Môn học ẩn (ID: ${docId})`;
-                const subCredits = subObj.credits || 0;
-                const subTheory = subObj.theory || 0;
-                const subPractice = subObj.practice || 0;
+                // Lấy thông tin môn học TRỰC TIẾP TỪ BẢN GHI ASSIGNMENTS
+                const subId = data.id || docId;
+                const subName = data.name || 'Môn học chưa xác định';
+                const subCredits = parseInt(data.credits) || 0;
+                const subTheory = parseInt(data.theory) || 0;
+                const subPractice = parseInt(data.practice) || 0;
 
                 ['THS2025', 'THS2026'].forEach(cls => {
-                    if (asgClassData[cls] && asgClassData[cls].status === 'approved' && Array.isArray(asgClassData[cls].allocations)) {
-                        
-                        asgClassData[cls].allocations.forEach(a => {
-                            // Dò xem Giảng viên này có phải là User đang đăng nhập không
-                            // Quét cả tên gốc (không học vị) và tên có học vị
+                    if (data[cls] && data[cls].status === 'approved' && Array.isArray(data[cls].allocations)) {
+                        data[cls].allocations.forEach(a => {
+                            
+                            // KIỂM TRA ĐÚNG GIẢNG VIÊN (Quét tên gốc không học vị lẫn tên có học vị)
                             let gvStr = a.gv || "";
-                            if (gvStr.includes(currentUserFullName) || gvStr.includes(currentUserName)) {
+                            if (currentUserFullName && (gvStr.includes(currentUserFullName) || gvStr === currentUserName)) {
                                 
-                                // Có tên -> Bắt đầu tính số buổi hoàn thành
+                                // Gọi hàm đồng bộ Đã hoàn thành từ Lịch công tác
                                 let autoCompleted = window.getCompletedSessions(cls, subName, a.gv, a.task);
                                 
                                 currentTasks.push({
-                                    key: `${docId}_${cls}_${a.task}_${a.student || ''}`, // Tạo khóa duy nhất
-                                    subId: docId,
+                                    key: `${subId}_${cls}_${a.task}_${a.student || ''}`, // Tạo khóa duy nhất cho công việc này
+                                    subId: subId,
                                     subName: subName,
                                     credits: subCredits,
                                     theory: subTheory,
                                     practice: subPractice,
                                     cls: cls,
-                                    semester: asgClassData[cls].semester || 'Chưa XĐ',
-                                    assigned: a.assigned,
-                                    note: a.note,
-                                    role: a.role,
-                                    task: a.task,
-                                    student: a.student,
-                                    completed: autoCompleted
+                                    semester: data[cls].semester || 'Chưa XĐ',
+                                    assigned: parseInt(a.assigned) || 0,
+                                    note: a.note || '',
+                                    role: a.role || '',
+                                    task: a.task || '',
+                                    student: a.student || '',
+                                    completed: autoCompleted // Cập nhật bằng dữ liệu mới nhất
                                 });
                             }
                         });
@@ -286,6 +269,7 @@
                     if (isSignificantChange) {
                         h = { ...task, read: false, changeType: 'UPDATED', oldData: { assigned: h.assigned, note: h.note, role: h.role, semester: h.semester } };
                     } else {
+                        // Cập nhật số buổi hoàn thành và data mới nhất mà không kích hoạt cờ Thay đổi
                         h.completed = task.completed;
                         h.credits = task.credits;
                         h.theory = task.theory;
@@ -343,7 +327,7 @@
             let groupCount = Object.keys(groups).length;
 
             if (groupCount === 0) {
-                asgContainer.innerHTML = `<div class="empty-state">Bạn chưa có nhiệm vụ phân công giảng dạy nào được duyệt.</div>`;
+                asgContainer.innerHTML = `<div class="empty-state">Bạn chưa có nhiệm vụ phân công giảng dạy nào được duyệt trên hệ thống.</div>`;
                 return;
             }
 
