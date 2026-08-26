@@ -12,7 +12,6 @@
     <style>
         main { max-width: 1200px; padding: 2rem 3%; margin: 0 auto; min-height: 75vh; }
         
-        /* ĐIỀU CHỈNH TIÊU ĐỀ: KHÔNG XUỐNG DÒNG */
         .header-title-box { text-align: center; margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid var(--border); overflow: hidden; }
         .header-title-box h2 { font-size: clamp(1rem, 3.5vw, 1.6rem); color: var(--text-dark); margin: 0; font-weight: 700; white-space: nowrap; text-overflow: ellipsis; }
         .header-title-box .subtitle { font-size: clamp(0.65rem, 2.2vw, 1rem); color: var(--text-body); font-weight: 600; margin-top: 5px; white-space: nowrap; text-overflow: ellipsis; }
@@ -49,8 +48,8 @@
         .badge-orient { font-size: 0.75rem; padding: 3px 8px; border-radius: 4px; margin-left: 8px; white-space: nowrap; font-weight: bold; }
         .badge-ud { background-color: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; }
         .badge-nc { background-color: #fef08a; color: #b45309; border: 1px solid #fde047; }
+        .badge-credits { background-color: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; margin-left: 8px; white-space: nowrap; }
         
-        /* Hiệu ứng đề xuất */
         .proposal-box { background: #fefce8; padding: 10px; border-radius: 6px; border: 1px dashed #facc15; margin-top: 10px; }
         .proposal-badge { background-color: #fef08a; color: #b45309; border: 1px solid #fde047; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; margin-left: 5px; animation: pulse 2s infinite; display: inline-block; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
@@ -86,7 +85,7 @@
 
         /* Modals */
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 2000; padding: 20px; }
-        .modal-content { background: var(--surface); padding: 30px; border-radius: var(--radius-md); width: 100%; box-shadow: var(--shadow-hover); position: relative; }
+        .modal-content { background: var(--surface); padding: 30px; border-radius: var(--radius-md); width: 100%; box-shadow: var(--shadow-hover); position: relative; max-height: 95vh; overflow-y: auto; }
         .modal-close { position: absolute; top: 15px; right: 15px; background: var(--bg-page); border: 1px solid var(--border); width: 35px; height: 35px; border-radius: 50%; cursor: pointer; color: var(--text-body); display: flex; align-items: center; justify-content: center; transition: var(--transition); }
         .modal-close:hover { background: var(--border); color: var(--text-dark); }
         #subjectModal .modal-content { max-width: 750px; text-align: justify; line-height: 1.6; }
@@ -101,10 +100,14 @@
         .fab-dashboard { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; background-color: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; cursor: pointer; box-shadow: 0 4px 15px rgba(2, 132, 199, 0.4); z-index: 999; transition: 0.3s; }
         .fab-dashboard:hover { transform: scale(1.1); background-color: var(--primary-hover); }
         
-        #miniDashboardModal .modal-content { max-width: 800px; }
-        .dash-stat-box { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 15px; text-align: center; }
-        .dash-stat-box h4 { margin: 0 0 10px 0; color: var(--primary); border-bottom: 1px dashed #cbd5e1; padding-bottom: 5px; }
-        .dash-val { font-size: 1.1rem; font-weight: 600; color: var(--text-dark); margin: 5px 0; }
+        #miniDashboardModal .modal-content { max-width: 700px; padding: 35px 25px; }
+        
+        /* Dashboard Stats Rows dọc */
+        .dash-stat-row { display: flex; align-items: center; justify-content: space-between; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px 15px; margin-bottom: 12px; }
+        .dash-stat-label { font-weight: 600; width: 120px; text-align: left; font-size: 1.05rem; }
+        .dash-stat-bar-container { flex: 1; height: 14px; background: #e2e8f0; border-radius: 8px; margin: 0 15px; overflow: hidden; }
+        .dash-stat-bar { height: 100%; border-radius: 8px; transition: width 0.5s ease-out; }
+        .dash-stat-val { font-weight: bold; width: 80px; text-align: right; font-size: 1.1rem; }
 
         /* GIAO DIỆN MOBILE - THU GỌN BẢNG */
         .mobile-toggle-btn { display: none; }
@@ -122,22 +125,23 @@
             .subject-row td:last-child { border-bottom: none; }
             
             .subject-row.expanded td { display: block; }
-            .subject-row td:nth-child(1) { display: none !important; } /* Ẩn luôn STT */
-            
-            /* Tên môn luôn hiện */
+            .subject-row td:nth-child(1) { display: none !important; }
             .subject-row td:nth-child(2) { display: block; padding-right: 50px; border-bottom: none; font-size: 1.05rem; }
             .subject-row.expanded td:nth-child(2) { border-bottom: 1px dashed var(--border); }
             
             .subject-row td:nth-child(3)::before { content: "Học kỳ: "; font-weight: bold; color: var(--primary); display: block; margin-bottom: 5px; }
             .subject-row td:nth-child(4)::before { content: "Phân công: "; font-weight: bold; color: var(--primary); display: block; margin-bottom: 5px; }
             .subject-row td:nth-child(5)::before { content: "Tiến độ: "; font-weight: bold; color: var(--primary); display: block; margin-bottom: 5px; }
-            .subject-row td:nth-child(6) { display: flex !important; justify-content: flex-end; } /* Action Button */
+            .subject-row td:nth-child(6) { display: flex !important; justify-content: flex-end; }
             
             .task-row { flex-wrap: wrap; }
             .task-row > div { flex: 1 1 100%; width: 100%; }
             .modal-grid { grid-template-columns: 1fr; }
             
             .fab-dashboard { bottom: 20px; right: 20px; width: 50px; height: 50px; font-size: 1.2rem; }
+            .dash-stat-label { width: 90px; font-size: 0.95rem; }
+            .dash-stat-val { width: 60px; font-size: 1rem; }
+            .dash-stat-bar-container { margin: 0 10px; }
         }
     </style>
 </head>
@@ -148,7 +152,6 @@
 
     <datalist id="gv-list"></datalist>
 
-    <!-- LOADING SCREEN -->
     <div id="loadingScreen" style="text-align: center; padding: 5rem 0; color: var(--primary); font-weight: 600; font-size: 1.2rem;">
         <i class="fas fa-spinner fa-spin fa-2x"></i><br>Đang tải dữ liệu phân công...
     </div>
@@ -159,24 +162,18 @@
             <div class="subtitle">CHƯƠNG TRÌNH THẠC SĨ KỸ THUẬT PHỤC HỒI CHỨC NĂNG</div>
         </div>
 
-        <!-- BẢNG ĐIỀU KHIỂN TRÊN CÙNG -->
         <div class="controls-wrapper">
             <div class="tabs-header" style="margin: 0; border: none;">
-                <button class="tab-btn active" data-class="THS2025" onclick="switchClass('THS2025')">Khóa 2025-2027</button>
-                <button class="tab-btn" data-class="THS2026" onclick="switchClass('THS2026')">Khóa 2026-2028</button>
+                <button class="tab-btn active" data-class="THS2025" onclick="switchClass('THS2025')">Lớp THS2025</button>
+                <button class="tab-btn" data-class="THS2026" onclick="switchClass('THS2026')">Lớp THS2026</button>
             </div>
             <div class="filter-controls">
-                <!-- Lọc Theo Nhóm Chuyên Ngành -->
                 <select id="filterMajor" onchange="window.renderTable()">
-                    <option value="ALL">-- Tất cả chuyên ngành --</option>
-                    <option value="Vật lý trị liệu">Vật lý trị liệu</option>
-                    <option value="Hoạt động trị liệu">Hoạt động trị liệu</option>
-                    <!-- ĐÃ ẨN NGÔN NGỮ TRỊ LIỆU -->
+                    <option value="ALL">-- Chọn chuyên ngành --</option>
                 </select>
                 
-                <!-- Lọc Theo Định Hướng -->
                 <select id="filterOrient" class="hidden" onchange="window.renderTable()">
-                    <option value="ALL">-- Tất cả Định hướng --</option>
+                    <option value="ALL">-- Chọn Định hướng --</option>
                     <option value="UD">Hướng Ứng dụng</option>
                     <option value="NC">Hướng Nghiên cứu</option>
                 </select>
@@ -216,15 +213,15 @@
     <div id="miniDashboardModal" class="modal-overlay hidden" style="z-index: 3000;">
         <div class="modal-content">
             <button class="modal-close" onclick="document.getElementById('miniDashboardModal').classList.add('hidden')">X</button>
-            <h3 style="color: var(--primary); margin-top: 0; text-align: center;">TỔNG QUAN TÍN CHỈ</h3>
-            <div style="text-align: center; font-weight: bold; color: #d97706; margin-bottom: 20px; font-size: 0.95rem;" id="dashClassName"></div>
+            <h3 style="color: var(--primary); margin-top: 0; text-align: center; text-transform: uppercase;">Tiến độ & Cân đối Tín chỉ</h3>
+            <div style="text-align: center; font-weight: bold; color: #d97706; margin-bottom: 25px; font-size: 0.95rem; border-bottom: 1px dashed var(--border); padding-bottom: 10px;" id="dashClassName"></div>
             
-            <div id="dashboardGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-top: 10px;">
+            <div id="dashboardGrid" style="display: flex; flex-direction: column; gap: 15px;">
                 <!-- JS Đổ dữ liệu vào đây -->
             </div>
             
-            <div style="text-align: center; margin-top: 20px; font-weight: bold; font-size: 1.1rem; color: #b45309; padding-top: 15px; border-top: 1px dashed var(--border);">
-                TỔNG CỘNG TOÀN KHÓA: <span id="dashTotalCredits">0</span> Tín chỉ
+            <div style="text-align: center; margin-top: 30px; font-weight: 800; font-size: 1.3rem; color: #be123c; padding-top: 15px; border-top: 2px solid #cbd5e1;">
+                TỔNG CỘNG TOÀN KHÓA: <span id="dashTotalCredits">0</span> TC
             </div>
         </div>
     </div>
@@ -239,7 +236,7 @@
                 <div>
                     <p><strong>Môn học:</strong> <span id="detName"></span></p>
                     <p><strong>Nhóm:</strong> <span id="detGroup" style="color: #64748b;"></span></p>
-                    <p><strong>Bộ môn phụ trách:</strong> <span id="detDept"></span></p>
+                    <p><strong>Đơn vị phụ trách:</strong> <span id="detDept"></span></p>
                     <p><strong>Số tín chỉ:</strong> <span id="detCredits"></span> TC</p>
                 </div>
                 <div>
@@ -271,7 +268,7 @@
         </div>
     </div>
 
-    <!-- MODAL CHỌN HỌC KỲ CHO MÔN NGOÀI BM -->
+    <!-- MODAL CHỌN HỌC KỲ CHO ĐƠN VỊ KHÁC -->
     <div id="semesterModal" class="modal-overlay hidden">
         <div class="modal-content" style="max-width: 400px; text-align: center;">
             <button class="modal-close" onclick="document.getElementById('semesterModal').classList.add('hidden')">X</button>
@@ -289,9 +286,9 @@
         </div>
     </div>
 
-    <!-- MODAL PHÂN CÔNG (MÔN THƯỜNG VÀ CÔNG VIỆC KHÁC) -->
+    <!-- MODAL PHÂN CÔNG MÔN THƯỜNG -->
     <div id="assignModal" class="modal-overlay hidden">
-        <div class="modal-content" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
+        <div class="modal-content" style="max-width: 900px;">
             <button class="modal-close" onclick="document.getElementById('assignModal').classList.add('hidden')">X</button>
             <h3 style="color: var(--primary); margin-top: 0;" id="asgModalTitle">Phân công giảng dạy</h3>
             <p style="font-weight: bold; color: var(--text-dark); margin-bottom: 15px; text-align: justify;" id="asgName">Tên môn học</p>
@@ -332,9 +329,9 @@
         </div>
     </div>
 
-    <!-- MODAL PHÂN CÔNG THEO HỌC VIÊN ĐỐI VỚI LUẬN VĂN / ĐỀ ÁN (ĐÃ ĐẢO LOGIC) -->
+    <!-- MODAL PHÂN CÔNG ĐỀ ÁN / LUẬN VĂN -->
     <div id="thesisAssignModal" class="modal-overlay hidden">
-        <div class="modal-content" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
+        <div class="modal-content" style="max-width: 900px;">
             <button class="modal-close" onclick="document.getElementById('thesisAssignModal').classList.add('hidden')">X</button>
             <h3 style="color: var(--primary); margin-top: 0;">Phân công Hướng dẫn</h3>
             <p style="font-weight: bold; color: var(--text-dark); margin-bottom: 15px; text-align: justify;" id="tasgName">Tên môn học</p>
@@ -377,58 +374,19 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // DATA ĐỂ AUTO-SEED VÀO FIREBASE NẾU BẢNG TRỐNG
-        const defaultSubjectsData = [
-            {"id": "sub_1", "name": "Triết học", "credits": 3, "theory": 3, "practice": 0, "department": "BM KHXH-NV", "isPHCN": false, "orientations": ["UD", "NC"], "group": "1. PHẦN KIẾN THỨC CHUNG", "schedule": "Thứ 3 (Chiều)<br>Tuần 1 - Tuần 9 (07/9 - 06/11)<br><i>Địa điểm: Giảng đường 7A, Đại giảng đường Trường Dược, Giảng đường 7B.</i>"},
-            {"id": "sub_2", "name": "Ngoại ngữ", "credits": 2, "theory": 2, "practice": 0, "department": "BM ngoại ngữ", "isPHCN": false, "orientations": ["UD", "NC"], "group": "1. PHẦN KIẾN THỨC CHUNG"},
-            {"id": "sub_3", "name": "Sinh học phân tử", "credits": 2, "theory": 0, "practice": 2, "department": "TT Y sinh học phân tử", "isPHCN": false, "orientations": ["UD", "NC"], "group": "2. PHẦN KIẾN THỨC CƠ SỞ"},
-            {"id": "sub_4", "name": "Y đức - Xã hội học", "credits": 2, "theory": 0, "practice": 2, "department": "BM Y đức", "isPHCN": false, "orientations": ["UD", "NC"], "group": "2. PHẦN KIẾN THỨC CƠ SỞ"},
-            {"id": "sub_5", "name": "Phương pháp nghiên cứu khoa học", "credits": 2, "theory": 1, "practice": 1, "department": "TT Giáo dục y học", "isPHCN": false, "orientations": ["UD", "NC"], "group": "2. PHẦN KIẾN THỨC CƠ SỞ"},
-            {"id": "sub_6", "name": "Thống kê y học", "credits": 2, "theory": 1, "practice": 1, "department": "BM Thống kê Y học", "isPHCN": false, "orientations": ["UD", "NC"], "group": "2. PHẦN KIẾN THỨC CƠ SỞ"},
-            {"id": "sub_7", "name": "Phương pháp dạy và học trong phục hồi chức năng", "credits": 2, "theory": 1, "practice": 1, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD", "NC"], "group": "3. KIẾN THỨC NGÀNH - BẮT BUỘC"},
-            {"id": "sub_8", "name": "Quản lý và lãnh đạo trong phục hồi chức năng", "credits": 2, "theory": 1, "practice": 1, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD", "NC"], "group": "3. KIẾN THỨC NGÀNH - BẮT BUỘC"},
-            {"id": "sub_9", "name": "Kỹ năng hướng dẫn lâm sàng và lý luận lâm sàng trong PHCN", "credits": 2, "theory": 1, "practice": 1, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD", "NC"], "group": "3. KIẾN THỨC NGÀNH - BẮT BUỘC"},
-            {"id": "sub_10", "name": "Thực hành kỹ năng hướng dẫn lâm sàng", "credits": 2, "theory": 1, "practice": 1, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD"], "group": "3. KIẾN THỨC NGÀNH - BẮT BUỘC"},
-            {"id": "sub_11", "name": "Thực hành dựa trên chứng cứ", "credits": 2, "theory": 1, "practice": 1, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD", "NC"], "group": "3. KIẾN THỨC NGÀNH - BẮT BUỘC"},
-            {"id": "sub_12", "name": "Rối loạn nuốt", "credits": 3, "theory": 2, "practice": 1, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD", "NC"], "group": "3. NGÀNH - TỰ CHỌN (Ngôn ngữ trị liệu)"},
-            {"id": "sub_13", "name": "Rối loạn vận động tạo lời nói và nói lắp", "credits": 2, "theory": 1, "practice": 1, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD", "NC"], "group": "3. NGÀNH - TỰ CHỌN (Ngôn ngữ trị liệu)"},
-            {"id": "sub_14", "name": "Những rối loạn giao tiếp & nhận thức có nguồn gốc thần kinh", "credits": 3, "theory": 2, "practice": 1, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD"], "group": "3. NGÀNH - TỰ CHỌN (Ngôn ngữ trị liệu)"},
-            {"id": "sub_15", "name": "Những rối loạn phát sinh từ khiếm khuyết/Phẫu thuật vùng đầu và cổ", "credits": 2, "theory": 0, "practice": 2, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD"], "group": "3. NGÀNH - TỰ CHỌN (Ngôn ngữ trị liệu)"},
-            {"id": "sub_16", "name": "Khuyết tật giao tiếp suốt đời và giao tiếp tăng cường và thay thế", "credits": 2, "theory": 0, "practice": 2, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD"], "group": "3. NGÀNH - TỰ CHỌN (Ngôn ngữ trị liệu)"},
-            {"id": "sub_17", "name": "Thính lực học và PHCN thính giác", "credits": 2, "theory": 0, "practice": 2, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD"], "group": "3. NGÀNH - TỰ CHỌN (Ngôn ngữ trị liệu)"},
-            {"id": "sub_18", "name": "Quản lý ca bệnh phức tạp", "credits": 2, "theory": 0, "practice": 2, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD"], "group": "3. NGÀNH - TỰ CHỌN (Ngôn ngữ trị liệu)"},
-            {"id": "sub_19", "name": "Thực hành lâm sàng cho rối loạn giọng", "credits": 2, "theory": 0, "practice": 2, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD", "NC"], "group": "3. NGÀNH - TỰ CHỌN (Ngôn ngữ trị liệu)"},
-            {"id": "sub_20", "name": "Thực hành lâm sàng cho vấn đề rối loạn ngôn ngữ có nguồn gốc thần kinh", "credits": 2, "theory": 0, "practice": 2, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD", "NC"], "group": "3. NGÀNH - TỰ CHỌN (Ngôn ngữ trị liệu)"},
-            {"id": "sub_21", "name": "Thực hành lâm sàng cho người khuyết tật suốt đời", "credits": 2, "theory": 0, "practice": 2, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD", "NC"], "group": "3. NGÀNH - TỰ CHỌN (Ngôn ngữ trị liệu)"},
-            {"id": "sub_22", "name": "Thực hành lâm sàng cho trẻ em có rối loạn giao tiếp và nuốt", "credits": 2, "theory": 0, "practice": 2, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD", "NC"], "group": "3. NGÀNH - TỰ CHỌN (Ngôn ngữ trị liệu)"},
-            {"id": "sub_23", "name": "Thực hành lâm sàng ca bệnh phức tạp ở người lớn và trẻ em", "credits": 2, "theory": 0, "practice": 2, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD", "NC"], "group": "3. NGÀNH - TỰ CHỌN (Ngôn ngữ trị liệu)"},
-            {"id": "sub_24", "name": "Vật lý trị liệu Nhi nâng cao", "credits": 3, "theory": 1, "practice": 2, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD", "NC"], "group": "3. NGÀNH - TỰ CHỌN (Vật lý trị liệu)"},
-            {"id": "sub_25", "name": "Vật lý trị liệu Thần kinh cơ nâng cao", "credits": 2, "theory": 1, "practice": 1, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD", "NC"], "group": "3. NGÀNH - TỰ CHỌN (Vật lý trị liệu)"},
-            {"id": "sub_26", "name": "Vật lý trị liệu Cơ xương nâng cao", "credits": 2, "theory": 1, "practice": 1, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD", "NC"], "group": "3. NGÀNH - TỰ CHỌN (Vật lý trị liệu)"},
-            {"id": "sub_27", "name": "Vật lý trị liệu Tim mạch – Hô hấp nâng cao", "credits": 3, "theory": 1, "practice": 2, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD", "NC"], "group": "3. NGÀNH - TỰ CHỌN (Vật lý trị liệu)"},
-            {"id": "sub_28", "name": "Vật lý trị liệu trong thể thao", "credits": 3, "theory": 1, "practice": 2, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD"], "group": "3. NGÀNH - TỰ CHỌN (Vật lý trị liệu)"},
-            {"id": "sub_29", "name": "Ứng dụng công thái học trong can thiệp Vật lý trị liệu", "credits": 4, "theory": 2, "practice": 2, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD"], "group": "3. NGÀNH - TỰ CHỌN (Vật lý trị liệu)"},
-            {"id": "sub_30", "name": "Thực hành lâm sàng Vật lý trị liệu nâng cao 1", "credits": 4, "theory": 0, "practice": 4, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD", "NC"], "group": "3. NGÀNH - TỰ CHỌN (Vật lý trị liệu)"},
-            {"id": "sub_31", "name": "Thực hành lâm sàng Vật lý trị liệu nâng cao 2", "credits": 4, "theory": 0, "practice": 4, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD", "NC"], "group": "3. NGÀNH - TỰ CHỌN (Vật lý trị liệu)"},
-            {"id": "sub_32", "name": "Những vấn đề chuyên môn trong Hoạt động trị liệu", "credits": 3, "theory": 1, "practice": 2, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD"], "group": "3. NGÀNH - TỰ CHỌN (Hoạt động trị liệu)"},
-            {"id": "sub_33", "name": "Lãnh đạo và quản lý trong Hoạt động trị liệu", "credits": 3, "theory": 1, "practice": 2, "department": "BMPHCN", "isPHCN": true, "orientations": ["NC"], "group": "3. NGÀNH - TỰ CHỌN (Hoạt động trị liệu)"},
-            {"id": "sub_34", "name": "Thiết kế và đánh giá chương trình Hoạt động trị liệu", "credits": 3, "theory": 1, "practice": 2, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD", "NC"], "group": "3. NGÀNH - TỰ CHỌN (Hoạt động trị liệu)"},
-            {"id": "sub_35", "name": "Hoạt động trị liệu và quản lý chấn thương", "credits": 3, "theory": 1, "practice": 2, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD", "NC"], "group": "3. NGÀNH - TỰ CHỌN (Hoạt động trị liệu)"},
-            {"id": "sub_36", "name": "Hoạt động trị liệu trong thực hành sức khỏe tâm thần trong suốt quá trình phát triển", "credits": 3, "theory": 1, "practice": 2, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD", "NC"], "group": "3. NGÀNH - TỰ CHỌN (Hoạt động trị liệu)"},
-            {"id": "sub_37", "name": "Hoạt động trị liệu trong lão khoa", "credits": 3, "theory": 1, "practice": 2, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD", "NC"], "group": "3. NGÀNH - TỰ CHỌN (Hoạt động trị liệu)"},
-            {"id": "sub_38", "name": "Thực hành hoạt động trị liệu 1", "credits": 3, "theory": 0, "practice": 3, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD"], "group": "3. NGÀNH - TỰ CHỌN (Hoạt động trị liệu)"},
-            {"id": "sub_39", "name": "Thực hành hoạt động trị liệu 2", "credits": 3, "theory": 0, "practice": 3, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD"], "group": "3. NGÀNH - TỰ CHỌN (Hoạt động trị liệu)"},
-            {"id": "sub_40", "name": "Thực hành hoạt động trị liệu 3", "credits": 3, "theory": 0, "practice": 3, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD"], "group": "3. NGÀNH - TỰ CHỌN (Hoạt động trị liệu)"},
-            {"id": "sub_41", "name": "Thực hành lâm sàng Kỹ thuật Phục hồi chức năng 1", "credits": 2, "theory": 0, "practice": 2, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD"], "group": "4. PHẦN THỰC TẬP"},
-            {"id": "sub_42", "name": "Thực hành lâm sàng Kỹ thuật Phục hồi chức năng 2", "credits": 2, "theory": 0, "practice": 2, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD"], "group": "4. PHẦN THỰC TẬP"},
-            {"id": "sub_43", "name": "Thực hành lâm sàng Kỹ thuật Phục hồi chức năng 3", "credits": 2, "theory": 0, "practice": 2, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD"], "group": "4. PHẦN THỰC TẬP"},
-            {"id": "sub_44", "name": "Đề án tốt nghiệp", "credits": 6, "theory": 0, "practice": 6, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD"], "group": "5. ĐỀ ÁN"},
-            {"id": "sub_45", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 1", "credits": 3, "theory": 1, "practice": 2, "department": "BMPHCN", "isPHCN": true, "orientations": ["NC"], "group": "4. PHẦN CHUYÊN ĐỀ NGHIÊN CỨU"},
-            {"id": "sub_46", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 2", "credits": 3, "theory": 1, "practice": 2, "department": "BMPHCN", "isPHCN": true, "orientations": ["NC"], "group": "4. PHẦN CHUYÊN ĐỀ NGHIÊN CỨU"},
-            {"id": "sub_47", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 3", "credits": 3, "theory": 1, "practice": 2, "department": "BMPHCN", "isPHCN": true, "orientations": ["NC"], "group": "4. PHẦN CHUYÊN ĐỀ NGHIÊN CỨU"},
-            {"id": "sub_48", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 4", "credits": 3, "theory": 1, "practice": 2, "department": "BMPHCN", "isPHCN": true, "orientations": ["NC"], "group": "4. PHẦN CHUYÊN ĐỀ NGHIÊN CỨU"},
-            {"id": "sub_49", "name": "Luận văn", "credits": 12, "theory": 0, "practice": 12, "department": "BMPHCN", "isPHCN": true, "orientations": ["NC"], "group": "5. LUẬN VĂN"},
-            {"id": "sub_99", "name": "Công việc chuyên môn khác", "credits": 0, "theory": 0, "practice": 0, "department": "BMPHCN", "isPHCN": true, "orientations": ["UD", "NC"], "group": "6. CÔNG VIỆC KHÁC"}
+        // THỨ TỰ NHÓM CỐ ĐỊNH CHUẨN XÁC
+        const GROUP_ORDER = [
+            "1. Kiến thức chung",
+            "2. Kiến thức cơ sở",
+            "3.1. Kiến thức ngành (bắt buộc)",
+            "3.2. Kiến thức ngành (tự chọn - Vật lý trị liệu)",
+            "3.2. Kiến thức ngành (tự chọn - Hoạt động trị liệu)",
+            "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)",
+            "4. Chuyên đề nghiên cứu",
+            "4. Thực tập",
+            "5. Đề án",
+            "5. Luận văn",
+            "6. Công việc khác"
         ];
 
         let internalLecturers = []; 
@@ -457,6 +415,30 @@
             setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
         }
 
+        window.updateMajorDropdown = () => {
+            let uniqueMajors = new Set();
+            subjectsData.forEach(s => {
+                if (currentClass === 'THS2025' && (!s.orientations || !s.orientations.includes("NC"))) return;
+                if (s.majorTag && s.majorTag !== 'ALL') {
+                    uniqueMajors.add(s.majorTag);
+                }
+            });
+
+            const filterMajor = document.getElementById('filterMajor');
+            const currentVal = filterMajor.value;
+            filterMajor.innerHTML = '<option value="ALL">-- Chọn chuyên ngành --</option>';
+            
+            Array.from(uniqueMajors).sort().forEach(major => {
+                filterMajor.innerHTML += `<option value="${major}">${major}</option>`;
+            });
+            
+            if (uniqueMajors.has(currentVal)) {
+                filterMajor.value = currentVal;
+            } else {
+                filterMajor.value = 'ALL';
+            }
+        };
+
         window.switchClass = (cls) => {
             currentClass = cls;
             document.querySelectorAll('.tab-btn').forEach(b => {
@@ -471,7 +453,8 @@
             } else {
                 filterOrient.classList.remove('hidden');
             }
-
+            
+            window.updateMajorDropdown();
             window.renderTable();
         };
 
@@ -499,48 +482,48 @@
 
         async function fetchExternalData() {
             try {
-                let snapSubjects = await getDocs(collection(db, "subjects"));
-                let loadedSubs = [];
-                if (snapSubjects.empty) {
-                    showToast("Đang tự động khởi tạo dữ liệu Môn học lần đầu lên hệ thống...", "success");
-                    for (let sub of defaultSubjectsData) {
-                        try { await setDoc(doc(db, "subjects", sub.id), sub); } catch(e) {}
-                        loadedSubs.push(sub);
-                    }
-                } else {
-                    snapSubjects.forEach(doc => {
-                        let sub = doc.data();
-                        sub.id = doc.id;
-                        loadedSubs.push(sub);
-                    });
-                }
-                
-                subjectsData = loadedSubs.sort((a, b) => {
-                    let numA = parseInt(a.id.replace('sub_', '')) || 0;
-                    let numB = parseInt(b.id.replace('sub_', '')) || 0;
-                    return numA - numB;
+                const snapSubjects = await getDocs(collection(db, "subjects"));
+                subjectsData = [];
+                snapSubjects.forEach(doc => {
+                    const d = doc.data();
+                    d.id = doc.id;
+                    subjectsData.push(d);
                 });
-
+                
+                // TÍNH TOÁN QUY ĐỔI SỐ BUỔI VÀ GÁN TAG CHUYÊN NGÀNH
                 subjectsData.forEach(sub => {
                     sub.theorySessions = (sub.theory || 0) * 3; 
-                    if (sub.name.toLowerCase().includes("thực hành kỹ năng hướng dẫn lâm sàng")) {
-                        sub.practiceSessions = (sub.practice || 0) * 6;
-                    } else if (sub.name.toLowerCase().includes("lâm sàng")) {
-                        sub.practiceSessions = (sub.practice || 0) * 8;
+                    
+                    if (sub.name && sub.name.toLowerCase().includes("thực hành lâm sàng")) {
+                        sub.practiceSessions = (sub.practice || 0) * 8; 
                     } else {
-                        sub.practiceSessions = (sub.practice || 0) * 6;
+                        sub.practiceSessions = (sub.practice || 0) * 6; 
                     }
                     sub.totalSessions = sub.theorySessions + sub.practiceSessions;
                     
                     let grp = sub.group || '';
-                    if (grp.includes("Vật lý trị liệu")) sub.majorTag = "Vật lý trị liệu";
-                    else if (grp.includes("Hoạt động trị liệu")) sub.majorTag = "Hoạt động trị liệu";
-                    else if (grp.includes("Ngôn ngữ trị liệu")) sub.majorTag = "Ngôn ngữ trị liệu";
-                    else sub.majorTag = "ALL";
-
-                    if (typeof sub.orientations === 'string') {
-                        sub.orientations = sub.orientations.split(',').map(s => s.trim());
+                    let match = grp.match(/\(([^)]+)\)/);
+                    if (grp.includes("TỰ CHỌN") && match) {
+                        sub.majorTag = match[1].trim();
+                    } else if (grp.includes("Vật lý trị liệu")) {
+                        sub.majorTag = "Vật lý trị liệu";
+                    } else if (grp.includes("Hoạt động trị liệu")) {
+                        sub.majorTag = "Hoạt động trị liệu";
+                    } else if (grp.includes("Ngôn ngữ trị liệu")) {
+                        sub.majorTag = "Ngôn ngữ trị liệu";
+                    } else {
+                        sub.majorTag = "ALL";
                     }
+                });
+
+                // Sắp xếp môn học theo cấu trúc Khung chương trình
+                subjectsData.sort((a, b) => {
+                    let idxA = GROUP_ORDER.indexOf(a.group);
+                    let idxB = GROUP_ORDER.indexOf(b.group);
+                    if (idxA === -1) idxA = 999;
+                    if (idxB === -1) idxB = 999;
+                    if (idxA !== idxB) return idxA - idxB;
+                    return a.name.localeCompare(b.name, 'vi');
                 });
 
                 const snapUser = await getDocs(collection(db, "users"));
@@ -571,7 +554,7 @@
 
             } catch (e) { 
                 console.error("Lỗi tải Data", e); 
-                showToast("Lỗi mạng: Không tải được dữ liệu!", "danger"); 
+                showToast("Lỗi mạng: Không tải được danh sách môn học!", "danger"); 
             }
         }
 
@@ -581,9 +564,7 @@
             calendarEventsDB.forEach(e => {
                 if (e.class === cls && e.subject === subName && e.gv === gv && e.task === task) {
                     let eventEnd = e.end ? new Date(e.end) : new Date(new Date(e.start).getTime() + 4 * 3600000);
-                    if (eventEnd < now) {
-                        count++;
-                    }
+                    if (eventEnd < now) { count++; }
                 }
             });
             return count;
@@ -656,36 +637,37 @@
                 } catch(e) {}
 
                 const email = user.email.toLowerCase();
-                const adminEmails = ['lethanhvan@ump.edu.vn', 'hoangtran1483@gmail.com'];
+                const adminEmails = ['lethanhvan@ump.edu.vn', 'hoangtran1483@gmail.com', 'minhngpt@ump.edu.vn'];
                 const managerEmails = ['phanthenguyenpt@ump.edu.vn', 'thduypt@ump.edu.vn'];
                 
                 if (adminEmails.includes(email)) isHOD = true;
-                if (managerEmails.includes(email)) isManager = true;
+                if (managerEmails.includes(email) || adminEmails.includes(email)) isManager = true;
 
                 if (isHOD || isManager) {
                     document.querySelector('.col-action').classList.remove('hidden');
                 }
                 
                 await fetchExternalData(); 
+                window.updateMajorDropdown();
+
+                if (subjectsData.length === 0) {
+                    document.getElementById('loadingScreen').innerHTML = "<i class='fas fa-exclamation-triangle'></i><br>Chưa có dữ liệu Danh sách Môn học trên hệ thống.";
+                    return;
+                }
 
                 document.getElementById('loadingScreen').classList.add('hidden');
                 document.getElementById('mainContent').classList.remove('hidden');
                 
-                let isAsgLoaded = false;
-                let isCalLoaded = false;
-
                 onSnapshot(collection(db, "assignments"), (snapshot) => {
                     assignmentsDB = {};
                     snapshot.forEach(doc => { assignmentsDB[doc.id] = doc.data(); });
-                    isAsgLoaded = true;
-                    if(isCalLoaded) window.renderTable(); 
+                    window.renderTable(); 
                 });
 
                 onSnapshot(collection(db, "calendar_events"), (snapshot) => {
                     calendarEventsDB = [];
                     snapshot.forEach(doc => { calendarEventsDB.push(doc.data()); });
-                    isCalLoaded = true;
-                    if(isAsgLoaded) window.renderTable();
+                    window.renderTable();
                 });
 
             } else {
@@ -718,44 +700,57 @@
             const fMajor = document.getElementById('filterMajor').value;
             const fOrient = document.getElementById('filterOrient').value;
             
-            // LỌC MÔN HỌC (LOẠI BỎ HOÀN TOÀN MÔN THUỘC NGÔN NGỮ TRỊ LIỆU)
             let filteredSubs = subjectsData.filter(s => {
-                if (s.majorTag === 'Ngôn ngữ trị liệu') return false;
-
                 if (currentClass === 'THS2025' && (!s.orientations || !s.orientations.includes("NC"))) return false;
                 if (fMajor !== 'ALL' && s.majorTag !== 'ALL' && s.majorTag !== fMajor) return false;
-                if (currentClass === 'THS2026' && fOrient !== 'ALL' && (!s.orientations || !s.orientations.includes(fOrient)) && s.id !== 'sub_99') return false;
-
+                if (currentClass === 'THS2026' && fOrient !== 'ALL' && (!s.orientations || !s.orientations.includes(fOrient)) && s.id !== 'sub_60') return false; 
                 return true;
             });
 
             if (viewMode === 'STRUCT') {
-                const groupedData = {};
+                const groupedMap = new Map();
                 filteredSubs.forEach(s => {
                     let gName = s.group || 'Chưa phân nhóm';
-                    if(!groupedData[gName]) groupedData[gName] = [];
-                    groupedData[gName].push(s);
+                    if(!groupedMap.has(gName)) groupedMap.set(gName, []);
+                    groupedMap.get(gName).push(s);
                 });
 
                 let stt = 1;
-                Object.keys(groupedData).sort().forEach((groupName, gIdx) => {
+                let gIdx = 0;
+                groupedMap.forEach((subsInGroup, groupName) => {
                     const gClass = `grp-${gIdx}`;
-                    tbody.innerHTML += `<tr class="group-header" onclick="toggleGroup('${gClass}', 'icon-${gIdx}')"><td colspan="6" class="group-title"><i id="icon-${gIdx}" class="fas fa-chevron-down group-icon"></i> ${groupName}</td></tr>`;
-                    groupedData[groupName].forEach(sub => { appendSubjectRow(tbody, sub, gClass, stt++); });
+                    let groupTotal = 0;
+                    subsInGroup.forEach(s => groupTotal += (s.credits || 0));
+                    
+                    tbody.innerHTML += `<tr class="group-header" onclick="toggleGroup('${gClass}', 'icon-${gIdx}')"><td colspan="6" class="group-title"><i id="icon-${gIdx}" class="fas fa-chevron-down group-icon"></i> ${groupName} <span style="color:#b45309; font-size:0.9rem; margin-left: 10px;">(Tổng: ${groupTotal} TC)</span></td></tr>`;
+                    subsInGroup.forEach(sub => { appendSubjectRow(tbody, sub, gClass, stt++); });
+                    gIdx++;
                 });
             } else {
                 const semData = {};
                 filteredSubs.forEach(sub => {
                     const asg = (assignmentsDB[sub.id] && assignmentsDB[sub.id][currentClass]) || { semester: 'Chưa phân bổ', allocations: [] };
-                    const sem = sub.id === 'sub_99' ? 'Các Công Việc Khác' : (asg.semester || 'Chưa phân bổ');
+                    const sem = sub.id === 'sub_60' ? 'Các Công Việc Khác' : (asg.semester || 'Chưa phân bổ');
                     if(!semData[sem]) semData[sem] = [];
                     semData[sem].push(sub);
                 });
 
+                const semOrder = ['Học kỳ 1', 'Học kỳ 2', 'Học kỳ 3', 'Học kỳ 4', 'Chưa phân bổ', 'Các Công Việc Khác'];
+                const semKeys = Object.keys(semData).sort((a, b) => {
+                    let idxA = semOrder.indexOf(a);
+                    let idxB = semOrder.indexOf(b);
+                    if(idxA === -1) idxA = 99;
+                    if(idxB === -1) idxB = 99;
+                    return idxA - idxB;
+                });
+
                 let stt = 1;
-                Object.keys(semData).sort().forEach((semName, gIdx) => {
+                semKeys.forEach((semName, gIdx) => {
                     const gClass = `sem-${gIdx}`;
-                    tbody.innerHTML += `<tr class="group-header" onclick="toggleGroup('${gClass}', 'icon-sem-${gIdx}')"><td colspan="6" class="group-title"><i id="icon-sem-${gIdx}" class="fas fa-chevron-down group-icon"></i> ${semName}</td></tr>`;
+                    let semTotal = 0;
+                    semData[semName].forEach(s => semTotal += (s.credits || 0));
+                    
+                    tbody.innerHTML += `<tr class="group-header" onclick="toggleGroup('${gClass}', 'icon-sem-${gIdx}')"><td colspan="6" class="group-title"><i id="icon-sem-${gIdx}" class="fas fa-chevron-down group-icon"></i> ${semName} <span style="color:#b45309; font-size:0.9rem; margin-left: 10px;">(Tổng: ${semTotal} TC)</span></td></tr>`;
                     semData[semName].forEach(sub => { appendSubjectRow(tbody, sub, gClass, stt++); });
                 });
             }
@@ -764,16 +759,19 @@
         function appendSubjectRow(tbody, sub, gClass, sttIndex) {
             const asgDoc = assignmentsDB[sub.id] || {};
             const asg = asgDoc[currentClass] || { semester: '', allocations: [], proposed_allocations: [] };
-            const isThesis = sub.name.includes("Luận văn") || sub.name.includes("Đề án");
+            const isThesis = sub.name && (sub.name.includes("Luận văn") || sub.name.includes("Đề án"));
             
             let isProposed = asg.status === 'proposed';
             let statusBadge = isProposed ? `<span class="proposal-badge" title="Đang chờ Trưởng BM duyệt">Chờ duyệt</span>` : '';
             
-            let badgeHtml = '';
-            if (currentClass === 'THS2026' && sub.orientations && sub.orientations.length === 1 && sub.id !== 'sub_99') {
+            let orientTag = '';
+            // Gắn tag nếu môn bị tách nhánh
+            if (sub.orientations && sub.orientations.length === 1 && !sub.name.toLowerCase().includes("công việc chuyên môn khác")) {
                 const isUD = sub.orientations[0] === 'UD';
-                badgeHtml = `<span class="badge-orient ${isUD ? 'badge-ud' : 'badge-nc'}">[Chỉ ${isUD ? 'Ứng dụng' : 'Nghiên cứu'}]</span>`;
+                orientTag = `<span class="badge-orient ${isUD ? 'badge-ud' : 'badge-nc'}">[Hệ ${isUD ? 'Ứng dụng' : 'Nghiên cứu'}]</span>`;
             }
+            
+            let creditsBadge = `<span class="badge-credits">${sub.credits || 0} TC</span>`;
             
             let gvHtml = '';
             let progressHtml = '';
@@ -806,12 +804,13 @@
                 }
                 
                 if (!isThesis) {
-                    if (sub.id === 'sub_99') {
+                    if (sub.id === 'sub_60') {
                         progressHtml = `<span style="color:#94a3b8; font-size:0.85rem;">Công việc khác</span>`;
                     } else {
-                        const pct = sub.totalSessions > 0 ? Math.min(100, Math.round((completedLT_TH / sub.totalSessions) * 100)) : 100;
+                        let displayCompleted = Math.min(completedLT_TH, sub.totalSessions);
+                        const pct = sub.totalSessions > 0 ? Math.min(100, Math.round((displayCompleted / sub.totalSessions) * 100)) : 100;
                         let pColor = '#16a34a'; if (pct < 50) pColor = '#f59e0b'; if (pct === 0) pColor = '#e2e8f0';
-                        progressHtml = `<div class="progress-container"><div class="progress-bar" style="width: ${pct}%; background-color: ${pColor};"></div></div><span class="progress-text">${completedLT_TH} / ${sub.totalSessions} buổi (${pct}%)</span>`;
+                        progressHtml = `<div class="progress-container"><div class="progress-bar" style="width: ${pct}%; background-color: ${pColor};"></div></div><span class="progress-text">${displayCompleted} / ${sub.totalSessions} buổi (${pct}%)</span>`;
                     }
                 }
             } else {
@@ -836,11 +835,11 @@
                     <td align="center" style="font-weight:bold; color:#94a3b8;">${sttIndex}</td>
                     <td>
                         <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div class="subject-link" onclick="openSubjectModal('${sub.id}')">${sub.name} ${badgeHtml} ${statusBadge}</div>
+                            <div class="subject-link" onclick="openSubjectModal('${sub.id}')">${sub.name} ${orientTag} ${creditsBadge} ${statusBadge}</div>
                             <div class="mobile-toggle-btn" onclick="toggleMobileRow(this)"><i class="fas fa-chevron-down"></i></div>
                         </div>
                     </td>
-                    <td style="font-weight:600; color:var(--text-dark);">${sub.id === 'sub_99' ? '—' : (asg.semester || '—')}</td>
+                    <td style="font-weight:600; color:var(--text-dark);">${sub.id === 'sub_60' ? '—' : (asg.semester || '—')}</td>
                     <td>${gvHtml}</td>
                     <td>${progressHtml}</td>
                     ${colActionDisplay}
@@ -850,7 +849,14 @@
 
         window.openSubjectModal = (id) => {
             const sub = subjectsData.find(s => s.id === id);
-            document.getElementById('detName').innerText = sub.name;
+            
+            let displayName = sub.name;
+            if (sub.orientations && sub.orientations.length === 1 && !sub.name.toLowerCase().includes("công việc chuyên môn khác")) {
+                const isUD = sub.orientations[0] === 'UD';
+                displayName += isUD ? ' (Hệ Ứng dụng)' : ' (Hệ Nghiên cứu)';
+            }
+
+            document.getElementById('detName').innerText = displayName;
             document.getElementById('detGroup').innerText = sub.group || 'Chưa có';
             document.getElementById('detDept').innerText = sub.department || 'Chưa có';
             document.getElementById('detCredits').innerText = sub.credits || 0;
@@ -860,12 +866,10 @@
             document.getElementById('detPracticeSessions').innerText = sub.practiceSessions;
             
             const noteEl = document.getElementById('detPracticeNote');
-            if (sub.name.toLowerCase().includes("thực hành kỹ năng hướng dẫn lâm sàng")) {
-                noteEl.innerText = "(Quy đổi Kỹ năng: 1 TC = 30 tiết = 6 buổi)";
-            } else if (sub.name.toLowerCase().includes("lâm sàng")) {
+            if (sub.name && sub.name.toLowerCase().includes("thực hành lâm sàng")) {
                 noteEl.innerText = "(Quy đổi Lâm sàng: 1 TC = 40 tiết = 8 buổi)";
             } else if ((sub.practice || 0) > 0) {
-                noteEl.innerText = "(Quy đổi Thực hành Lab: 1 TC = 30 tiết = 6 buổi)";
+                noteEl.innerText = "(Quy đổi Thực hành Lab/Kỹ năng: 1 TC = 30 tiết = 6 buổi)";
             } else {
                 noteEl.innerText = "";
             }
@@ -883,11 +887,23 @@
         };
 
         window.openSemesterModal = (id) => {
+            const fMajor = document.getElementById('filterMajor').value;
+            const fOrient = document.getElementById('filterOrient').value;
+            
+            if (fMajor === 'ALL') {
+                showToast("Vui lòng Chọn cụ thể CHUYÊN NGÀNH trên thanh công cụ trước khi chọn học kỳ!", "danger");
+                return;
+            }
+            if (currentClass === 'THS2026' && fOrient === 'ALL') {
+                showToast("Vui lòng Chọn cụ thể ĐỊNH HƯỚNG trên thanh công cụ trước khi chọn học kỳ!", "danger");
+                return;
+            }
+
             currentEditingSubId = id;
             const sub = subjectsData.find(s => s.id === id);
             const asg = (assignmentsDB[id] && assignmentsDB[id][currentClass]) || { semester: '' };
             
-            document.getElementById('semName').innerText = `${sub.name} (${currentClass})`;
+            document.getElementById('semName').innerText = `${sub.name} (Lớp: ${currentClass})`;
             document.getElementById('semSemester').value = asg.semester;
             document.getElementById('semesterModal').classList.remove('hidden');
         };
@@ -904,13 +920,25 @@
         }
 
         window.openAssignModal = (id) => {
+            const fMajor = document.getElementById('filterMajor').value;
+            const fOrient = document.getElementById('filterOrient').value;
+            
+            if (fMajor === 'ALL') {
+                showToast("Vui lòng Chọn cụ thể CHUYÊN NGÀNH trên thanh công cụ trước khi phân công!", "danger");
+                return;
+            }
+            if (currentClass === 'THS2026' && fOrient === 'ALL') {
+                showToast("Vui lòng Chọn cụ thể ĐỊNH HƯỚNG trên thanh công cụ trước khi phân công!", "danger");
+                return;
+            }
+
             currentEditingSubId = id;
             const sub = subjectsData.find(s => s.id === id);
             const asg = (assignmentsDB[id] && assignmentsDB[id][currentClass]) || { semester: '', allocations: [], proposed_allocations: [], status: 'approved' };
             const isProposed = asg.status === 'proposed';
 
-            if(sub.name.includes("Luận văn") || sub.name.includes("Đề án")) {
-                document.getElementById('tasgName').innerText = `${sub.name} (Khóa: ${currentClass})`;
+            if(sub.name && (sub.name.includes("Luận văn") || sub.name.includes("Đề án"))) {
+                document.getElementById('tasgName').innerText = `${sub.name} (Lớp: ${currentClass})`;
                 document.getElementById('tasgSemester').value = asg.semester || 'Học kỳ 4';
                 document.getElementById('thesisAllocContainer').innerHTML = '';
                 
@@ -957,11 +985,11 @@
                 document.getElementById('thesisAssignModal').classList.remove('hidden');
 
             } else {
-                document.getElementById('asgName').innerText = `${sub.name} (Khóa: ${currentClass})`;
+                document.getElementById('asgName').innerText = `${sub.name} (Lớp: ${currentClass})`;
                 document.getElementById('asgLT').innerText = sub.theorySessions;
                 document.getElementById('asgTH').innerText = sub.practiceSessions;
                 
-                if (sub.id === 'sub_99') {
+                if (sub.name.toLowerCase().includes("công việc chuyên môn khác")) {
                     document.getElementById('asgLimits').classList.add('hidden');
                     document.getElementById('asgSemesterContainer').classList.add('hidden');
                 } else {
@@ -1108,7 +1136,7 @@
 
         window.saveAssignment = async () => {
             const currentSub = subjectsData.find(s => s.id === currentEditingSubId);
-            const semester = currentSub.id === 'sub_99' ? 'Tất cả' : document.getElementById('asgSemester').value;
+            const semester = currentSub.name.toLowerCase().includes("công việc chuyên môn khác") ? 'Tất cả' : document.getElementById('asgSemester').value;
             
             const blocks = document.querySelectorAll('#allocContainer .gv-block');
             let allocations = [];
@@ -1148,7 +1176,7 @@
             }
 
             if (hasError) { showToast("Dữ liệu nhập không hợp lệ!", "danger"); return; }
-            if (currentSub.id !== 'sub_99') {
+            if (!currentSub.name.toLowerCase().includes("công việc chuyên môn khác")) {
                 if (sumLT > currentSub.theorySessions) { showToast(`Số buổi Lý thuyết (${sumLT}) vượt quá tối đa (${currentSub.theorySessions})!`, "danger"); return; }
                 if (sumTH > currentSub.practiceSessions) { showToast(`Số buổi Thực hành (${sumTH}) vượt quá tối đa (${currentSub.practiceSessions})!`, "danger"); return; }
             }
@@ -1164,8 +1192,39 @@
                 updateData.proposed_allocations = allocations;
             }
 
+            let promises = [];
+            promises.push(setDoc(doc(db, "assignments", currentEditingSubId), { [currentClass]: updateData }, { merge: true }));
+
+            // TỰ ĐỘNG ĐỒNG BỘ MÔN TRÙNG TÊN (VD: UD VÀ NC) DỰA THEO TỶ LỆ
+            const twinSub = subjectsData.find(s => s.name === currentSub.name && s.id !== currentSub.id);
+            if (twinSub) {
+                let twinAllocations = [];
+                allocations.forEach(a => {
+                    let twinAssigned = a.assigned;
+                    if (a.task === 'Lý thuyết') {
+                        let ratio = currentSub.theorySessions > 0 ? (a.assigned / currentSub.theorySessions) : 0;
+                        twinAssigned = Math.round(ratio * twinSub.theorySessions);
+                    } else if (['Thực hành', 'Thực tế'].includes(a.task)) {
+                        let ratio = currentSub.practiceSessions > 0 ? (a.assigned / currentSub.practiceSessions) : 0;
+                        twinAssigned = Math.round(ratio * twinSub.practiceSessions);
+                    }
+                    if (twinAssigned > 0) {
+                        twinAllocations.push({ gv: a.gv, task: a.task, assigned: twinAssigned, completed: a.completed, note: a.note });
+                    }
+                });
+
+                let twinUpdateData = { semester: semester, status: assignStatus };
+                if (isHOD) {
+                    twinUpdateData.allocations = twinAllocations;
+                    twinUpdateData.proposed_allocations = [];
+                } else {
+                    twinUpdateData.proposed_allocations = twinAllocations;
+                }
+                promises.push(setDoc(doc(db, "assignments", twinSub.id), { [currentClass]: twinUpdateData }, { merge: true }));
+            }
+
             try {
-                await setDoc(doc(db, "assignments", currentEditingSubId), { [currentClass]: updateData }, { merge: true });
+                await Promise.all(promises);
                 document.getElementById('assignModal').classList.add('hidden');
                 showToast(isHOD ? "Lưu phân công thành công!" : "Đã gửi đề xuất thành công!");
             } catch (e) { showToast("Lỗi khi lưu: " + e.message, "danger"); }
@@ -1311,12 +1370,21 @@
             } catch (e) { showToast("Lỗi khi lưu: " + e.message, "danger"); }
         };
 
-        // --- DASHBOARD THỐNG KÊ (MINI) ---
+        // --- DASHBOARD THỐNG KÊ LẤY TỪ DB THỰC TẾ ---
         window.openMiniDashboard = () => {
             const fMajor = document.getElementById('filterMajor').value;
             const fOrient = document.getElementById('filterOrient').value;
             
-            let filterDesc = currentClass === 'THS2025' ? 'Khóa 25-27' : 'Khóa 26-28';
+            if (fMajor === 'ALL') {
+                showToast("Vui lòng Chọn cụ thể CHUYÊN NGÀNH để xem Dashboard chính xác!", "danger");
+                return;
+            }
+            if (currentClass === 'THS2026' && fOrient === 'ALL') {
+                showToast("Vui lòng Chọn cụ thể ĐỊNH HƯỚNG để xem Dashboard chính xác!", "danger");
+                return;
+            }
+
+            let filterDesc = currentClass === 'THS2025' ? 'Lớp THS2025' : 'Lớp THS2026';
             if (fMajor !== 'ALL') filterDesc += ` - ${fMajor}`;
             if (currentClass === 'THS2026' && fOrient !== 'ALL') {
                 filterDesc += ` - Hướng ${fOrient === 'UD' ? 'Ứng dụng' : 'Nghiên cứu'}`;
@@ -1329,16 +1397,15 @@
             let stats = { "Học kỳ 1": 0, "Học kỳ 2": 0, "Học kỳ 3": 0, "Học kỳ 4": 0, "Chưa phân bổ": 0 };
             
             let filteredSubs = subjectsData.filter(s => {
-                if (s.majorTag === 'Ngôn ngữ trị liệu') return false;
                 if (currentClass === 'THS2025' && (!s.orientations || !s.orientations.includes("NC"))) return false;
                 if (fMajor !== 'ALL' && s.majorTag !== 'ALL' && s.majorTag !== fMajor) return false;
-                if (currentClass === 'THS2026' && fOrient !== 'ALL' && (!s.orientations || !s.orientations.includes(fOrient)) && s.id !== 'sub_99') return false;
+                if (currentClass === 'THS2026' && fOrient !== 'ALL' && (!s.orientations || !s.orientations.includes(fOrient)) && s.id !== 'sub_60') return false; 
                 return true;
             });
 
             let total = 0;
             filteredSubs.forEach(sub => {
-                if (sub.id !== 'sub_99') {
+                if (sub.id !== 'sub_60') {
                     const asg = (assignmentsDB[sub.id] && assignmentsDB[sub.id][currentClass]) || {};
                     const sem = asg.semester || 'Chưa phân bổ';
                     if(stats[sem] !== undefined) {
@@ -1353,12 +1420,32 @@
             const grid = document.getElementById('dashboardGrid');
             grid.innerHTML = '';
             
+            const colors = {
+                'Học kỳ 1': '#3b82f6',
+                'Học kỳ 2': '#10b981',
+                'Học kỳ 3': '#f59e0b',
+                'Học kỳ 4': '#8b5cf6',
+                'Chưa phân bổ': '#94a3b8'
+            };
+
+            let targetTotal = total > 0 ? total : 1; 
+
             ['Học kỳ 1', 'Học kỳ 2', 'Học kỳ 3', 'Học kỳ 4', 'Chưa phân bổ'].forEach(sem => {
-                let sClass = stats[sem] > 0 ? 'color: var(--primary);' : 'color: #94a3b8;';
+                let val = stats[sem] || 0;
+                let pct = (val / targetTotal) * 100;
+                if (pct > 100) pct = 100; 
+                
+                let sColor = colors[sem];
+                
                 grid.innerHTML += `
-                    <div class="dash-stat-box">
-                        <h4>${sem}</h4>
-                        <div class="dash-val" style="${sClass}">${stats[sem]} TC</div>
+                    <div style="margin-bottom: 8px;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 6px;">
+                            <span style="font-weight: 700; color: ${val > 0 ? sColor : '#94a3b8'}; font-size: 1.05rem;">${sem}</span>
+                            <span style="font-weight: 800; color: ${val > 0 ? sColor : '#94a3b8'}; font-size: 1.15rem;">${val} TC</span>
+                        </div>
+                        <div style="width: 100%; height: 12px; background: #e2e8f0; border-radius: 6px; overflow: hidden; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);">
+                            <div style="height: 100%; width: ${pct}%; background-color: ${sColor}; border-radius: 6px; transition: width 0.6s ease-out;"></div>
+                        </div>
                     </div>
                 `;
             });
