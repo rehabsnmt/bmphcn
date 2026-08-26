@@ -33,7 +33,7 @@
         .notif-item.read { border-left-color: #cbd5e1; opacity: 0.85; background: #f8fafc; }
         .notif-item.read .btn-read { display: none; }
         .notif-item.read .unread-dot { display: none; }
-        .notif-item.read .task-badge { display: none; }
+        .notif-item.read .task-badge { display: none; } /* Ẩn thẻ MỚI/CẬP NHẬT khi đã đọc */
 
         .notif-content { flex: 1; }
         .notif-title { font-size: 1.1rem; font-weight: 700; color: var(--text-dark); margin-bottom: 8px; line-height: 1.4; display: flex; align-items: center; }
@@ -111,9 +111,9 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        let subjectsMap = {}; // Đổi thành Map (Dictionary) để truy xuất dữ liệu theo ID cực nhanh
-        let currentUserFullName = ''; // Tên gốc không có học vị (Ví dụ: Lê Thanh Vân)
-        let currentUserName = '';     // Tên đầy đủ có học vị (Ví dụ: TS. Lê Thanh Vân)
+        let subjectsMap = {}; // Lưu danh mục môn học dưới dạng Map { 'sub_1': { name: '...', credits: ... } }
+        let currentUserName = ''; 
+        let currentUserFullName = '';
         let currentUserUid = '';
         
         let assignmentsData = {};
@@ -141,7 +141,7 @@
             const now = new Date();
             let count = 0;
             calendarEventsDB.forEach(e => {
-                if (e.class === cls && e.subject === subName && e.gv === gv && e.task === task) {
+                if (e.class === cls && e.subject === subName && e.gv && e.gv.includes(gv) && e.task === task) {
                     let eventEnd = e.end ? new Date(e.end) : new Date(new Date(e.start).getTime() + 4 * 3600000);
                     if (eventEnd < now) {
                         count++;
@@ -159,7 +159,6 @@
                     if (userDoc.exists()) {
                         const data = userDoc.data();
                         let prefix = data.degree === 'ThS' ? 'ThS. ' : (data.degree === 'TS' ? 'TS. ' : '');
-                        
                         currentUserFullName = data.fullName.trim();
                         currentUserName = `${prefix}${currentUserFullName}`;
                         
@@ -183,13 +182,13 @@
 
         async function fetchExternalData() {
             try {
-                // Tải trực tiếp danh sách môn học từ collection 'subjects' và lưu thành Map theo ID
+                // Tải trực tiếp danh sách môn học từ collection 'subjects'
                 const snapSubjects = await getDocs(collection(db, "subjects"));
                 subjectsMap = {};
                 snapSubjects.forEach(doc => {
                     const d = doc.data();
-                    let sId = d.id || doc.id; // Lấy ID chuẩn (VD: sub_22)
-                    subjectsMap[sId] = d;     // Lưu vào Dictionary để gọi trực tiếp
+                    let subId = d.id || doc.id; 
+                    subjectsMap[subId] = d; 
                 });
                 
                 isDataLoaded.sub = true;
@@ -216,7 +215,6 @@
         }
         
         function checkAndRender() {
-            // Chỉ hiển thị thông báo khi đã tải đủ dữ liệu 3 bảng
             if(isDataLoaded.sub && isDataLoaded.asg && isDataLoaded.cal) {
                 renderNotifs();
             }
@@ -227,43 +225,45 @@
             let history = JSON.parse(localStorage.getItem('notif_history_' + currentUserUid)) || {};
             let currentTasks = [];
             
-            // 1. Trích xuất tất cả nhiệm vụ HIỆN TẠI của User
-            for (let subId in assignmentsData) {
-                const data = assignmentsData[subId];
+            // LUỒNG DÒ TÌM MỚI: Quét từng Document trong Bảng Assignments
+            for (let docId in assignmentsData) {
+                // docId chính là sub_1, sub_2...
+                const asgClassData = assignmentsData[docId];
                 
-                // Lấy thông tin Môn học từ subjectsMap dựa trên subId (VD: sub_22)
-                const subObj = subjectsMap[subId] || {};
-                const subName = subObj.name || `Môn học ID: ${subId}`;
+                // Dùng docId tra ngược lại bảng subjects để lấy tên môn & tín chỉ
+                const subObj = subjectsMap[docId] || {};
+                const subName = subObj.name || `Môn học ẩn (ID: ${docId})`;
                 const subCredits = subObj.credits || 0;
                 const subTheory = subObj.theory || 0;
                 const subPractice = subObj.practice || 0;
 
                 ['THS2025', 'THS2026'].forEach(cls => {
-                    if (data[cls] && data[cls].status === 'approved' && Array.isArray(data[cls].allocations)) {
-                        data[cls].allocations.forEach(a => {
-                            
-                            // KIỂM TRA ĐÚNG GIẢNG VIÊN (Quét cả tên gốc không học vị lẫn tên có học vị)
+                    if (asgClassData[cls] && asgClassData[cls].status === 'approved' && Array.isArray(asgClassData[cls].allocations)) {
+                        
+                        asgClassData[cls].allocations.forEach(a => {
+                            // Dò xem Giảng viên này có phải là User đang đăng nhập không
+                            // Quét cả tên gốc (không học vị) và tên có học vị
                             let gvStr = a.gv || "";
                             if (gvStr.includes(currentUserFullName) || gvStr.includes(currentUserName)) {
                                 
-                                // Gọi hàm đồng bộ Đã hoàn thành từ Lịch công tác
+                                // Có tên -> Bắt đầu tính số buổi hoàn thành
                                 let autoCompleted = window.getCompletedSessions(cls, subName, a.gv, a.task);
                                 
                                 currentTasks.push({
-                                    key: `${subId}_${cls}_${a.task}_${a.student || ''}`,
-                                    subId: subId,
+                                    key: `${docId}_${cls}_${a.task}_${a.student || ''}`, // Tạo khóa duy nhất
+                                    subId: docId,
                                     subName: subName,
                                     credits: subCredits,
                                     theory: subTheory,
                                     practice: subPractice,
                                     cls: cls,
-                                    semester: data[cls].semester || 'Chưa phân bổ',
+                                    semester: asgClassData[cls].semester || 'Chưa XĐ',
                                     assigned: a.assigned,
                                     note: a.note,
                                     role: a.role,
                                     task: a.task,
                                     student: a.student,
-                                    completed: autoCompleted // Cập nhật bằng dữ liệu mới nhất
+                                    completed: autoCompleted
                                 });
                             }
                         });
@@ -286,10 +286,7 @@
                     if (isSignificantChange) {
                         h = { ...task, read: false, changeType: 'UPDATED', oldData: { assigned: h.assigned, note: h.note, role: h.role, semester: h.semester } };
                     } else {
-                        // Cập nhật số buổi hoàn thành (không kích hoạt cờ Thay đổi quan trọng)
                         h.completed = task.completed;
-                        
-                        // Cập nhật thông tin môn học đề phòng Firestore có thay đổi (Tín chỉ)
                         h.credits = task.credits;
                         h.theory = task.theory;
                         h.practice = task.practice;
@@ -346,7 +343,7 @@
             let groupCount = Object.keys(groups).length;
 
             if (groupCount === 0) {
-                asgContainer.innerHTML = `<div class="empty-state">Bạn chưa có nhiệm vụ phân công giảng dạy nào được ghi nhận.</div>`;
+                asgContainer.innerHTML = `<div class="empty-state">Bạn chưa có nhiệm vụ phân công giảng dạy nào được duyệt.</div>`;
                 return;
             }
 
@@ -375,7 +372,6 @@
                     else {
                         let noteStr = a.note ? ` <span style="color:#64748b; font-style: italic;">(${a.note})</span>` : '';
                         
-                        // Nếu cập nhật số buổi, hiển thị số cũ bị gạch ngang
                         let oldAssignedStr = (a.changeType === 'UPDATED' && a.oldData && a.oldData.assigned !== a.assigned) ? `<span style="text-decoration:line-through; color:#94a3b8; margin-right:4px;">${a.oldData.assigned}</span>` : '';
                         
                         taskListHtml += `<li>Nhiệm vụ: <b>${a.task}</b> - Được giao: <b>${oldAssignedStr}${a.assigned} buổi</b> - Đã hoàn thành: <b style="color: #16a34a;">${a.completed || 0} buổi</b>${noteStr} ${badgeHtml}</li>`;
