@@ -104,30 +104,20 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, collection, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY", authDomain: "bmphcn-aa9c6.firebaseapp.com", projectId: "bmphcn-aa9c6", storageBucket: "bmphcn-aa9c6.firebasestorage.app", messagingSenderId: "749494392719", appId: "1:749494392719:web:f220c751ff541620045dfa" };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        const subjectsData = [
-            {"id": "sub_1", "name": "Triết học"}, {"id": "sub_2", "name": "Ngoại ngữ"}, {"id": "sub_3", "name": "Sinh học phân tử"}, {"id": "sub_4", "name": "Y đức - Xã hội học"}, {"id": "sub_5", "name": "Phương pháp nghiên cứu khoa học"}, {"id": "sub_6", "name": "Thống kê y học"},
-            {"id": "sub_7", "name": "Phương pháp dạy và học trong phục hồi chức năng"}, {"id": "sub_8", "name": "Quản lý và lãnh đạo trong phục hồi chức năng"}, {"id": "sub_9", "name": "Kỹ năng hướng dẫn lâm sàng và lý luận lâm sàng trong PHCN"}, {"id": "sub_10", "name": "Thực hành kỹ năng hướng dẫn lâm sàng"}, {"id": "sub_11", "name": "Thực hành dựa trên chứng cứ"},
-            {"id": "sub_12", "name": "Rối loạn nuốt"}, {"id": "sub_13", "name": "Rối loạn vận động tạo lời nói và nói lắp"}, {"id": "sub_14", "name": "Những rối loạn giao tiếp & nhận thức có nguồn gốc thần kinh"}, {"id": "sub_15", "name": "Những rối loạn phát sinh từ khiếm khuyết/Phẫu thuật vùng đầu và cổ"}, {"id": "sub_16", "name": "Khuyết tật giao tiếp suốt đời và giao tiếp tăng cường và thay thế"}, {"id": "sub_17", "name": "Thính lực học và PHCN thính giác"}, {"id": "sub_18", "name": "Quản lý ca bệnh phức tạp"}, {"id": "sub_19", "name": "Thực hành lâm sàng cho rối loạn giọng"}, {"id": "sub_20", "name": "Thực hành lâm sàng cho vấn đề rối loạn ngôn ngữ có nguồn gốc thần kinh"}, {"id": "sub_21", "name": "Thực hành lâm sàng cho người khuyết tật suốt đời"}, {"id": "sub_22", "name": "Thực hành lâm sàng cho trẻ em có rối loạn giao tiếp và nuốt"}, {"id": "sub_23", "name": "Thực hành lâm sàng ca bệnh phức tạp ở người lớn và trẻ em"},
-            {"id": "sub_24", "name": "Vật lý trị liệu Nhi nâng cao"}, {"id": "sub_25", "name": "Vật lý trị liệu Thần kinh cơ nâng cao"}, {"id": "sub_26", "name": "Vật lý trị liệu Cơ xương nâng cao"}, {"id": "sub_27", "name": "Vật lý trị liệu Tim mạch – Hô hấp nâng cao"}, {"id": "sub_28", "name": "Vật lý trị liệu trong thể thao"}, {"id": "sub_29", "name": "Ứng dụng công thái học trong can thiệp Vật lý trị liệu"}, {"id": "sub_30", "name": "Thực hành lâm sàng Vật lý trị liệu nâng cao 1"}, {"id": "sub_31", "name": "Thực hành lâm sàng Vật lý trị liệu nâng cao 2"},
-            {"id": "sub_32", "name": "Những vấn đề chuyên môn trong Hoạt động trị liệu"}, {"id": "sub_33", "name": "Lãnh đạo và quản lý trong Hoạt động trị liệu"}, {"id": "sub_34", "name": "Thiết kế và đánh giá chương trình Hoạt động trị liệu"}, {"id": "sub_35", "name": "Hoạt động trị liệu và quản lý chấn thương"}, {"id": "sub_36", "name": "Hoạt động trị liệu trong thực hành sức khỏe tâm thần trong suốt quá trình phát triển"}, {"id": "sub_37", "name": "Hoạt động trị liệu trong lão khoa"}, {"id": "sub_38", "name": "Thực hành hoạt động trị liệu 1"}, {"id": "sub_39", "name": "Thực hành hoạt động trị liệu 2"}, {"id": "sub_40", "name": "Thực hành hoạt động trị liệu 3"},
-            {"id": "sub_41", "name": "Thực hành lâm sàng Kỹ thuật Phục hồi chức năng 1"}, {"id": "sub_42", "name": "Thực hành lâm sàng Kỹ thuật Phục hồi chức năng 2"}, {"id": "sub_43", "name": "Thực hành lâm sàng Kỹ thuật Phục hồi chức năng 3"},
-            {"id": "sub_44", "name": "Đề án tốt nghiệp"}, {"id": "sub_45", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 1"}, {"id": "sub_46", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 2"}, {"id": "sub_47", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 3"}, {"id": "sub_48", "name": "Chuyên đề nâng cao trong Phục hồi chức năng 4"}, {"id": "sub_49", "name": "Luận văn"},
-            {"id": "sub_99", "name": "Công việc chuyên môn khác"}
-        ];
-
+        let subjectsData = [];
         let currentUserName = '';
         let currentUserUid = '';
         
         let assignmentsData = {};
         let calendarEventsDB = [];
-        let isDataLoaded = { asg: false, cal: false };
+        let isDataLoaded = { sub: false, asg: false, cal: false };
 
         // Hàm Đánh dấu Đã đọc vào Trình duyệt (LocalStorage)
         window.markAsRead = (subId, cls) => {
@@ -178,7 +168,7 @@
                             }
                         }, 300);
 
-                        fetchNotifications();
+                        fetchExternalData();
                     } else {
                         window.location.href = "login.html";
                     }
@@ -188,13 +178,28 @@
             }
         });
 
-        function fetchNotifications() {
+        async function fetchExternalData() {
+            try {
+                const snapSubjects = await getDocs(collection(db, "subjects"));
+                subjectsData = [];
+                snapSubjects.forEach(doc => {
+                    const d = doc.data();
+                    d.id = d.id || doc.id;
+                    subjectsData.push(d);
+                });
+                
+                isDataLoaded.sub = true;
+                checkAndRender();
+            } catch(e) {
+                console.error("Lỗi tải subjects: ", e);
+            }
+
             // Lắng nghe Phân công
             onSnapshot(collection(db, "assignments"), (snapshot) => {
                 assignmentsData = {};
                 snapshot.forEach(doc => { assignmentsData[doc.id] = doc.data(); });
                 isDataLoaded.asg = true;
-                if(isDataLoaded.cal) renderNotifs();
+                checkAndRender();
             });
 
             // Lắng nghe Lịch công tác
@@ -202,8 +207,14 @@
                 calendarEventsDB = [];
                 snapshot.forEach(doc => { calendarEventsDB.push(doc.data()); });
                 isDataLoaded.cal = true;
-                if(isDataLoaded.asg) renderNotifs();
+                checkAndRender();
             });
+        }
+        
+        function checkAndRender() {
+            if(isDataLoaded.sub && isDataLoaded.asg && isDataLoaded.cal) {
+                renderNotifs();
+            }
         }
 
         function renderNotifs() {
@@ -214,7 +225,8 @@
             // 1. Trích xuất tất cả nhiệm vụ HIỆN TẠI của User
             for (let subId in assignmentsData) {
                 const data = assignmentsData[subId];
-                const subName = subjectsData.find(s => s.id === subId)?.name || 'Môn học';
+                const subObj = subjectsData.find(s => s.id === subId);
+                const subName = subObj ? subObj.name : 'Môn học ẩn';
 
                 ['THS2025', 'THS2026'].forEach(cls => {
                     if (data[cls] && data[cls].status === 'approved' && data[cls].allocations) {
