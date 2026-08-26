@@ -166,7 +166,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 <a href="luan-van.html" class="nav-item" data-path="luan-van.html">Luận văn & Khóa luận</a>
                 <a href="tai-nguyen.html" class="nav-item" data-path="tai-nguyen.html">Tài nguyên</a>
                 <a href="thong-bao.html" class="nav-item" data-path="thong-bao.html">Thông báo</a>
-                <a href="#" class="btn-login" id="btnAuthNav">Đăng nhập giảng viên</a>
+                <a href="#" class="btn-login" id="btnAuthNav">Đăng nhập</a>
             </nav>
         </header>
     `;
