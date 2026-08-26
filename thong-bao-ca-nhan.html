@@ -111,6 +111,7 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // Chuyển subjectsData thành mảng rỗng để tự động tải từ Database
         let subjectsData = [];
         let currentUserName = '';
         let currentUserUid = '';
@@ -180,10 +181,12 @@
 
         async function fetchExternalData() {
             try {
+                // Tải trực tiếp danh sách môn học từ collection 'subjects'
                 const snapSubjects = await getDocs(collection(db, "subjects"));
                 subjectsData = [];
                 snapSubjects.forEach(doc => {
                     const d = doc.data();
+                    // Đảm bảo lấy đúng id "sub_..." từ dữ liệu của file CSV nếu có
                     d.id = d.id || doc.id;
                     subjectsData.push(d);
                 });
@@ -212,6 +215,7 @@
         }
         
         function checkAndRender() {
+            // Chỉ hiển thị thông báo khi đã tải đủ dữ liệu 3 bảng: Subjects, Assignments, Lịch
             if(isDataLoaded.sub && isDataLoaded.asg && isDataLoaded.cal) {
                 renderNotifs();
             }
@@ -226,7 +230,7 @@
             for (let subId in assignmentsData) {
                 const data = assignmentsData[subId];
                 const subObj = subjectsData.find(s => s.id === subId);
-                const subName = subObj ? subObj.name : 'Môn học ẩn';
+                const subName = subObj ? subObj.name : 'Môn học chưa xác định';
 
                 ['THS2025', 'THS2026'].forEach(cls => {
                     if (data[cls] && data[cls].status === 'approved' && data[cls].allocations) {
@@ -258,7 +262,7 @@
             let currentKeys = new Set(currentTasks.map(t => t.key));
             let displayList = [];
 
-            // 2. So sánh Nhiệm vụ HIỆN TẠI với LỊCH SỬ (Đế phát hiện MỚI / CẬP NHẬT)
+            // 2. So sánh Nhiệm vụ HIỆN TẠI với LỊCH SỬ (Để phát hiện MỚI / CẬP NHẬT)
             currentTasks.forEach(task => {
                 let h = history[task.key];
                 if (!h) {
