@@ -33,7 +33,7 @@
         .notif-item.read { border-left-color: #cbd5e1; opacity: 0.85; background: #f8fafc; }
         .notif-item.read .btn-read { display: none; }
         .notif-item.read .unread-dot { display: none; }
-        .notif-item.read .task-badge { display: none; } /* Ẩn thẻ MỚI/CẬP NHẬT khi đã đọc */
+        .notif-item.read .task-badge { display: none; } 
 
         .notif-content { flex: 1; }
         .notif-title { font-size: 1.1rem; font-weight: 700; color: var(--text-dark); margin-bottom: 8px; line-height: 1.4; display: flex; align-items: center; }
@@ -56,7 +56,6 @@
         .task-badge { font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 8px; vertical-align: middle; display: inline-block; }
         .badge-new { background-color: #dcfce7; color: #16a34a; border: 1px solid #86efac; }
         .badge-updated { background-color: #fef9c3; color: #d97706; border: 1px solid #fde047; }
-        .badge-deleted { background-color: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }
 
         .notif-action { flex-shrink: 0; align-self: center; }
         .btn-read { background: white; color: #10b981; border: 1px solid #10b981; padding: 8px 15px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 5px; }
@@ -104,20 +103,21 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, collection, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY", authDomain: "bmphcn-aa9c6.firebaseapp.com", projectId: "bmphcn-aa9c6", storageBucket: "bmphcn-aa9c6.firebasestorage.app", messagingSenderId: "749494392719", appId: "1:749494392719:web:f220c751ff541620045dfa" };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        let currentUserFullName = ''; // Tên gốc không có học vị (Ví dụ: Nguyễn Ngọc Minh)
-        let currentUserName = '';     // Tên đầy đủ có học vị (Ví dụ: TS. Nguyễn Ngọc Minh)
+        let subjectsMap = {}; 
+        let currentUserFullName = ''; 
+        let currentUserName = '';     
         let currentUserUid = '';
         
         let assignmentsData = {};
         let calendarEventsDB = [];
-        let isDataLoaded = { asg: false, cal: false }; // Bỏ theo dõi bảng subjects
+        let isDataLoaded = { sub: false, asg: false, cal: false };
 
         // Hàm Đánh dấu Đã đọc vào Trình duyệt (LocalStorage)
         window.markAsRead = (subId, cls) => {
@@ -181,7 +181,33 @@
         });
 
         async function fetchExternalData() {
-            // 1. Lắng nghe trực tiếp bảng Phân công (assignments)
+            try {
+                // Tải trực tiếp danh sách môn học từ collection 'subjects'
+                const snapSubjects = await getDocs(collection(db, "subjects"));
+                subjectsMap = {};
+                snapSubjects.forEach(doc => {
+                    const d = doc.data();
+                    // Nhận dạng linh hoạt ID, Name, Credits (Hỗ trợ đọc file CSV có header in hoa)
+                    let sId = d.id || d.ID || d.Id || doc.id; 
+                    d.name = d.name || d.Name || d.NAME;
+                    d.credits = parseInt(d.credits || d.Credits) || 0;
+                    d.theory = parseInt(d.theory || d.Theory) || 0;
+                    d.practice = parseInt(d.practice || d.Practice) || 0;
+                    
+                    subjectsMap[sId] = d; 
+                    
+                    if (doc.id !== sId) {
+                        subjectsMap[doc.id] = d; // Lưu backup id hệ thống
+                    }
+                });
+                
+                isDataLoaded.sub = true;
+                checkAndRender();
+            } catch(e) {
+                console.error("Lỗi tải subjects: ", e);
+            }
+
+            // Lắng nghe Phân công
             onSnapshot(collection(db, "assignments"), (snapshot) => {
                 assignmentsData = {};
                 snapshot.forEach(doc => { assignmentsData[doc.id] = doc.data(); });
@@ -189,7 +215,7 @@
                 checkAndRender();
             });
 
-            // 2. Lắng nghe Lịch công tác
+            // Lắng nghe Lịch công tác
             onSnapshot(collection(db, "calendar_events"), (snapshot) => {
                 calendarEventsDB = [];
                 snapshot.forEach(doc => { calendarEventsDB.push(doc.data()); });
@@ -199,8 +225,7 @@
         }
         
         function checkAndRender() {
-            // Chỉ hiển thị thông báo khi đã tải đủ dữ liệu Assignments và Lịch
-            if(isDataLoaded.asg && isDataLoaded.cal) {
+            if(isDataLoaded.sub && isDataLoaded.asg && isDataLoaded.cal) {
                 renderNotifs();
             }
         }
@@ -214,18 +239,20 @@
             for (let docId in assignmentsData) {
                 const data = assignmentsData[docId];
                 
-                // Lấy thông tin môn học TRỰC TIẾP TỪ BẢN GHI ASSIGNMENTS
-                const subId = data.id || docId;
-                const subName = data.name || 'Môn học chưa xác định';
-                const subCredits = parseInt(data.credits) || 0;
-                const subTheory = parseInt(data.theory) || 0;
-                const subPractice = parseInt(data.practice) || 0;
+                // Lấy thông tin Môn học từ map (Bảo mật 2 lớp: id trong data hoặc theo key dictionary)
+                let subIdToUse = data.id || docId;
+                const subObj = subjectsMap[subIdToUse] || subjectsMap[docId] || {};
+                
+                const subName = subObj.name || `Môn học (Mã: ${docId})`;
+                const subCredits = subObj.credits || 0;
+                const subTheory = subObj.theory || 0;
+                const subPractice = subObj.practice || 0;
 
                 ['THS2025', 'THS2026'].forEach(cls => {
                     if (data[cls] && data[cls].status === 'approved' && Array.isArray(data[cls].allocations)) {
                         data[cls].allocations.forEach(a => {
                             
-                            // KIỂM TRA ĐÚNG GIẢNG VIÊN (Quét tên gốc không học vị lẫn tên có học vị)
+                            // KIỂM TRA ĐÚNG GIẢNG VIÊN (Trùng lặp tên, danh xưng)
                             let gvStr = a.gv || "";
                             if (currentUserFullName && (gvStr.includes(currentUserFullName) || gvStr === currentUserName)) {
                                 
@@ -233,20 +260,20 @@
                                 let autoCompleted = window.getCompletedSessions(cls, subName, a.gv, a.task);
                                 
                                 currentTasks.push({
-                                    key: `${subId}_${cls}_${a.task}_${a.student || ''}`, // Tạo khóa duy nhất cho công việc này
-                                    subId: subId,
+                                    key: `${docId}_${cls}_${a.task}_${a.student || ''}`, 
+                                    subId: docId,
                                     subName: subName,
                                     credits: subCredits,
                                     theory: subTheory,
                                     practice: subPractice,
                                     cls: cls,
-                                    semester: data[cls].semester || 'Chưa XĐ',
+                                    semester: data[cls].semester || 'Chưa phân bổ',
                                     assigned: parseInt(a.assigned) || 0,
                                     note: a.note || '',
                                     role: a.role || '',
                                     task: a.task || '',
                                     student: a.student || '',
-                                    completed: autoCompleted // Cập nhật bằng dữ liệu mới nhất
+                                    completed: autoCompleted 
                                 });
                             }
                         });
@@ -254,51 +281,36 @@
                 });
             }
 
-            let currentKeys = new Set(currentTasks.map(t => t.key));
+            let newHistory = {};
             let displayList = [];
 
             // 2. So sánh Nhiệm vụ HIỆN TẠI với LỊCH SỬ (Để phát hiện MỚI / CẬP NHẬT)
+            // LƯU Ý: Không quét để sinh ra các trạng thái "ĐÃ XÓA" nữa, nếu bị thu hồi phân công thì xóa luôn khỏi màn hình.
             currentTasks.forEach(task => {
                 let h = history[task.key];
                 if (!h) {
                     h = { ...task, read: false, changeType: 'NEW' };
-                } else if (h.isDeleted) {
-                    h = { ...task, read: false, changeType: 'NEW', isDeleted: false };
                 } else {
                     let isSignificantChange = (h.assigned !== task.assigned || h.note !== task.note || h.role !== task.role || h.semester !== task.semester);
                     if (isSignificantChange) {
                         h = { ...task, read: false, changeType: 'UPDATED', oldData: { assigned: h.assigned, note: h.note, role: h.role, semester: h.semester } };
                     } else {
-                        // Cập nhật số buổi hoàn thành và data mới nhất mà không kích hoạt cờ Thay đổi
+                        // Cập nhật số liệu mới nhất nhưng giữ nguyên trạng thái read
                         h.completed = task.completed;
                         h.credits = task.credits;
                         h.theory = task.theory;
                         h.practice = task.practice;
+                        h.subName = task.subName;
                     }
                 }
-                history[task.key] = h;
+                newHistory[task.key] = h;
                 displayList.push(h);
             });
 
-            // 3. Quét ngược lại Lịch sử để tìm Nhiệm vụ BỊ XÓA
-            for (let key in history) {
-                if (!currentKeys.has(key)) {
-                    let h = history[key];
-                    if (!h.isDeleted) {
-                        h.isDeleted = true;
-                        h.read = false;
-                        h.changeType = 'DELETED';
-                    }
-                    if (!h.read) {
-                        displayList.push(h);
-                    }
-                }
-            }
+            // Ghi đè lịch sử mới, tự động xóa sạch rác (các môn cũ bị thu hồi)
+            localStorage.setItem('notif_history_' + currentUserUid, JSON.stringify(newHistory));
 
-            // Lưu lại Lịch sử
-            localStorage.setItem('notif_history_' + currentUserUid, JSON.stringify(history));
-
-            // 4. GOM NHÓM lại theo Môn Học & Lớp để hiển thị
+            // 3. GOM NHÓM lại theo Môn Học & Lớp để hiển thị
             let groups = {};
             displayList.forEach(item => {
                 let groupKey = `${item.subId}_${item.cls}`;
@@ -319,7 +331,7 @@
                 if (!item.read) groups[groupKey].hasUnread = true;
             });
 
-            // 5. RENDER RA MÀN HÌNH
+            // 4. RENDER RA MÀN HÌNH
             document.getElementById('loadingScreen').classList.add('hidden');
             document.getElementById('contentWrapper').classList.remove('hidden');
             asgContainer.innerHTML = '';
@@ -331,6 +343,7 @@
                 return;
             }
 
+            // Render từng nhóm
             for (let gKey in groups) {
                 let g = groups[gKey];
                 let clsName = g.cls === 'THS2025' ? 'THS2025' : 'THS2026';
@@ -343,19 +356,15 @@
                     if (!a.read) {
                         if (a.changeType === 'NEW') badgeHtml = '<span class="task-badge badge-new">MỚI</span>';
                         if (a.changeType === 'UPDATED') badgeHtml = '<span class="task-badge badge-updated">CẬP NHẬT</span>';
-                        if (a.changeType === 'DELETED') badgeHtml = '<span class="task-badge badge-deleted">ĐÃ HỦY/XÓA</span>';
                     }
 
-                    if (a.changeType === 'DELETED') {
-                        let text = a.task === 'Hướng dẫn LV, LATS' ? `Hướng dẫn HV: <b>${a.student}</b>` : `Nhiệm vụ: <b>${a.task}</b>`;
-                        taskListHtml += `<li style="opacity: 0.5; text-decoration: line-through;">${text} ${badgeHtml}</li>`;
-                    } 
-                    else if (a.task === 'Hướng dẫn LV, LATS') {
+                    if (a.task === 'Hướng dẫn LV, LATS') {
                         taskListHtml += `<li>Hướng dẫn HV: <b>${a.student}</b> <span style="color:#64748b">(${a.role})</span> ${badgeHtml}</li>`;
                     } 
                     else {
                         let noteStr = a.note ? ` <span style="color:#64748b; font-style: italic;">(${a.note})</span>` : '';
                         
+                        // Nếu cập nhật số buổi, hiển thị số cũ bị gạch ngang
                         let oldAssignedStr = (a.changeType === 'UPDATED' && a.oldData && a.oldData.assigned !== a.assigned) ? `<span style="text-decoration:line-through; color:#94a3b8; margin-right:4px;">${a.oldData.assigned}</span>` : '';
                         
                         taskListHtml += `<li>Nhiệm vụ: <b>${a.task}</b> - Được giao: <b>${oldAssignedStr}${a.assigned} buổi</b> - Đã hoàn thành: <b style="color: #16a34a;">${a.completed || 0} buổi</b>${noteStr} ${badgeHtml}</li>`;
