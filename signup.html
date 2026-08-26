@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Khu vực đăng nhập dành cho giảng viên Bộ môn Phục hồi chức năng.">
+    <title>Xác thực Giảng viên - Bộ môn Phục hồi chức năng</title>
+    
+    <link rel="icon" href="images/logo_Bộ môn.png" type="image/png">
+    <link rel="apple-touch-icon" href="images/logo_Bộ môn.png">
+    
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* --- CSS RIÊNG CHO KHU VỰC ĐĂNG NHẬP --- */
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: var(--bg-page, #f8fafc);
+            margin: 0;
+        }
+
+        .login-wrapper {
+            width: 100%;
+            padding: 2rem 1rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .login-card {
+            background: var(--surface, #ffffff);
+            width: 100%;
+            max-width: 420px;
+            padding: 3.5rem 2.5rem;
+            border-radius: var(--radius-md, 16px);
+            box-shadow: var(--shadow-hover, 0 12px 30px rgba(2, 132, 199, 0.08));
+            border: 1px solid var(--border, #e2e8f0);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-card img.login-logo {
+            width: 90px;
+            height: auto;
+            margin-bottom: 1.5rem;
+            object-fit: contain;
+        }
+
+        .login-card h2 {
+            color: var(--text-dark, #0f172a);
+            margin-bottom: 2rem;
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        /* --- FORM --- */
+        .input-group {
+            margin-bottom: 1.2rem;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 5px;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 0.9rem;
+            border: 1px solid var(--border, #e2e8f0);
+            border-radius: var(--radius-sm, 8px);
+            font-size: 0.95rem;
+            outline: none;
+            transition: var(--transition, all 0.3s ease);
+            background-color: var(--bg-page, #f8fafc);
+            color: var(--text-dark, #0f172a);
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            border-color: var(--primary, #0284c7);
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+            background-color: var(--surface, #ffffff);
+        }
+
+        /* --- CÁC TIỆN ÍCH LIÊN KẾT --- */
+        .form-options {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: -0.5rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .text-link {
+            font-size: 0.85rem;
+            color: var(--primary, #0284c7);
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .text-link:hover {
+            text-decoration: underline;
+            color: var(--primary-hover, #0369a1);
+        }
+
+        .switch-form-text {
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+            color: var(--text-body);
+        }
+
+        /* --- NÚT BẤM --- */
+        .btn-submit {
+            width: 100%;
+            padding: 0.9rem;
+            background-color: var(--primary, #0284c7);
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm, 8px);
+            font-size: 1.05rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition, all 0.3s ease);
+            box-shadow: var(--shadow-sm, 0 1px 2px rgba(2, 132, 199, 0.05));
+            margin-top: 0.5rem;
+        }
+
+        .btn-submit:hover {
+            background-color: var(--primary-hover, #0369a1);
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.2);
+        }
+        
+        .btn-submit:disabled {
+            background-color: #94a3b8;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .back-home {
+            display: inline-block;
+            margin-top: 1.5rem;
+            color: var(--text-body, #475569);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: var(--transition, all 0.3s ease);
+        }
+        
+        .back-home:hover {
+            color: var(--primary, #0284c7);
+        }
+
+        /* --- THÔNG BÁO --- */
+        .message-box {
+            font-size: 0.85rem;
+            margin-top: 1.2rem;
+            display: none; 
+            padding: 0.8rem;
+            border-radius: var(--radius-sm, 8px);
+            text-align: left;
+            line-height: 1.5;
+        }
+        .msg-error {
+            color: var(--accent, #e11d48);
+            background: var(--accent-light, #fff1f2);
+            border: 1px solid rgba(225, 29, 72, 0.2);
+        }
+        .msg-success {
+            color: #15803d;
+            background: #f0fdf4;
+            border: 1px solid rgba(21, 128, 61, 0.2);
+        }
+
+        .hidden { display: none !important; }
+
+        @media (max-width: 768px) {
+            .login-card { padding: 2.5rem 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <main class="login-wrapper">
+        <div class="login-card">
+            <img src="images/logo_Bộ môn.png" alt="Logo Bộ môn Phục hồi chức năng" class="login-logo">
+            
+            <!-- THÔNG BÁO CHUNG -->
+            <div id="messageBox" class="message-box"></div>
+
+            <!-- FORM ĐĂNG NHẬP -->
+            <div id="loginView">
+                <h2>Đăng nhập</h2>
+                <form id="formLogin" onsubmit="return false;">
+                    <div class="input-group">
+                        <input type="email" id="loginEmail" placeholder="Email (@ump.edu.vn)" required>
+                    </div>
+                    <div class="input-group" style="margin-bottom: 0.5rem;">
+                        <input type="password" id="loginPassword" placeholder="Mật khẩu" required>
+                    </div>
+                    
+                    <div class="form-options">
+                        <a id="btnForgotPassword" class="text-link">Quên mật khẩu?</a>
+                    </div>
+
+                    <button type="submit" id="btnLoginSubmit" class="btn-submit">Đăng nhập</button>
+                </form>
+                
+                <div class="switch-form-text">
+                    Chưa có tài khoản? <a id="btnSwitchToRegister" class="text-link">Đăng ký tài khoản</a>
+                </div>
+            </div>
+
+            <!-- FORM ĐĂNG KÝ -->
+            <div id="registerView" class="hidden">
+                <h2>Đăng ký tài khoản</h2>
+                <form id="formRegister" onsubmit="return false;">
+                    <div class="input-group">
+                        <label> Thông tin giảng viên *</label>
+                        <select id="regFacultyIdentity" required>
+                            <option value="">-- Tôi là --</option>
+                            <!-- Dữ liệu GV sẽ được đổ vào đây bằng JS -->
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <input type="email" id="regEmail" placeholder="Email liên kết" required>
+                    </div>
+                    <div class="input-group">
+                        <input type="password" id="regPassword" placeholder="Mật khẩu (Tối thiểu 6 ký tự)" required minlength="6">
+                    </div>
+                    <div class="input-group">
+                        <input type="password" id="regConfirmPassword" placeholder="Xác nhận mật khẩu" required minlength="6">
+                    </div>
+
+                    <button type="submit" id="btnRegisterSubmit" class="btn-submit">Đăng ký</button>
+                </form>
+                
+                <div class="switch-form-text">
+                    Đã có tài khoản? <a id="btnSwitchToLogin" class="text-link">Quay lại đăng nhập</a>
+                </div>
+            </div>
+
+            <a href="index.html" class="back-home"><i class="fas fa-arrow-left"></i> Về Trang chủ</a>
+        </div>
+    </main>
+
+    <!-- FIREBASE -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="js/firebase-config.js"></script>
+
+    <!-- SCRIPT XỬ LÝ -->
+    <script>
+        // --- 1. DỮ LIỆU GIẢNG VIÊN ĐỂ ĐĂNG KÝ ---
+        const facultyList = [
+    { id: "gv1", degree: "Tiến sĩ", name: "Lê Thanh Vân", position: "Trưởng Bộ môn", image: "images/TS. Lê Thanh Vân.jpg" },
+    { id: "gv2", degree: "Tiến sĩ", name: "Nguyễn Thanh Duy", position: "Giảng viên", image: "images/TS. Nguyễn Thanh Duy.jpg" },
+    { id: "gv3", degree: "Thạc sĩ", name: "Phan Thế Nguyên", position: "Giáo vụ", image: "images/ThS. Phan Thế Nguyên.jpg" },
+    { id: "gv5", degree: "Thạc sĩ", name: "Trần Hữu Đức", position: "Giảng viên", image: "images/ThS. Trần Hữu Đức.jpg" },
+    { id: "gv4", degree: "Thạc sĩ", name: "Nguyễn Mai Ngọc Đoan", position: "Giảng viên", image: "images/ThS. Nguyễn Mai Ngọc Đoan.jpg" },
+    { id: "gv13", degree: "Thạc sĩ", name: "Cao Minh Hạnh", position: "Giảng viên", image: "images/ThS. Cao Minh Hạnh.jpg" },
+    { id: "gv6", degree: "Thạc sĩ", name: "Huỳnh Chung", position: "Giảng viên", image: "images/ThS. Huỳnh Chung.jpg" },
+    { id: "gv7", degree: "Thạc sĩ", name: "Nguyễn Minh Sang", position: "Giảng viên", image: "images/ThS. Nguyễn Minh Sang.jpg" },
+    { id: "gv8", degree: "Thạc sĩ", name: "Trần Thị Bích Hạnh", position: "Giảng viên", image: "images/ThS. Trần Thị Bích Hạnh.jpg" },
+    { id: "gv9", degree: "Tiến sĩ", name: "Nguyễn Ngọc Minh", position: "Giảng viên", image: "images/TS. Nguyễn Ngọc Minh.jpg" },
+    { id: "gv14", degree: "Thạc sĩ", name: "Phạm Ngọc Đạt", position: "Giảng viên", image: "images/ThS. Phạm Ngọc Đạt.jpg" },
+    { id: "gv12", degree: "Thạc sĩ", name: "Nguyễn Huỳnh Ngọc Mai Trâm", position: "Giảng viên", image: "images/ThS. Nguyễn Huỳnh Ngọc Mai Trâm.jpg" },
+    { id: "gv10", degree: "Thạc sĩ", name: "Nguyễn Đức Sinh", position: "Giảng viên", image: "images/ThS. Nguyễn Đức Sinh.jpg" },
+    { id: "gv11", degree: "Thạc sĩ", name: "Trần Long Biên", position: "Giảng viên", image: "images/ThS. Trần Long Biên.jpg" }
+];
+
+        // Đổ dữ liệu vào Select Box
+        const regSelect = document.getElementById('regFacultyIdentity');
+        facultyList.forEach(f => {
+            const option = document.createElement('option');
+            option.value = f.id;
+            option.textContent = `${f.degree}. ${f.name} - ${f.position}`;
+            regSelect.appendChild(option);
+        });
+
+        // --- 2. CÁC PHẦN TỬ DOM ---
+        const loginView = document.getElementById('loginView');
+        const registerView = document.getElementById('registerView');
+        const msgBox = document.getElementById('messageBox');
+
+        const btnSwitchToRegister = document.getElementById('btnSwitchToRegister');
+        const btnSwitchToLogin = document.getElementById('btnSwitchToLogin');
+        
+        // --- 3. HÀM HIỂN THỊ THÔNG BÁO ---
+        function showMessage(msg, isSuccess = false) {
+            msgBox.style.display = "block";
+            msgBox.className = "message-box " + (isSuccess ? "msg-success" : "msg-error");
+            msgBox.innerText = msg;
+        }
+        function hideMessage() { msgBox.style.display = "none"; }
+
+        // --- 4. CHUYỂN ĐỔI FORM ---
+        btnSwitchToRegister.addEventListener('click', () => {
+            hideMessage();
+            loginView.classList.add('hidden');
+            registerView.classList.remove('hidden');
+        });
+
+        btnSwitchToLogin.addEventListener('click', () => {
+            hideMessage();
+            registerView.classList.add('hidden');
+            loginView.classList.remove('hidden');
+        });
+
+        // Tự chuyển hướng nếu ĐÃ ĐĂNG NHẬP VÀ ĐÃ XÁC MINH EMAIL
+        firebase.auth().onAuthStateChanged((user) => {
+            if (user && user.emailVerified) {
+                window.location.href = "dashboard.html"; 
+            }
+        });
+
+        // --- 5. LOGIC ĐĂNG NHẬP ---
+        document.getElementById('btnLoginSubmit').addEventListener('click', () => {
+            const email = document.getElementById('loginEmail').value.trim();
+            const pass = document.getElementById('loginPassword').value;
+            if (!email || !pass) return showMessage("Vui lòng nhập Email và Mật khẩu.");
+            
+            hideMessage();
+            const btnSubmit = document.getElementById('btnLoginSubmit');
+            btnSubmit.disabled = true;
+            btnSubmit.innerText = "Đang xử lý...";
+
+            firebase.auth().signInWithEmailAndPassword(email, pass)
+                .then((userCredential) => {
+                    const user = userCredential.user;
+                    
+                   // Đã bỏ kiểm tra trạng thái xác minh email, chuyển hướng thẳng sang dashboard
+                    window.location.href = "dashboard.html";
+                })
+                .catch((error) => {
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerText = "Đăng nhập";
+                    
+                    if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                        showMessage("Tài khoản hoặc mật khẩu không chính xác.");
+                    } else if (error.code === 'auth/too-many-requests') {
+                        showMessage("Bạn đã nhập sai quá nhiều lần. Vui lòng thử lại sau.");
+                    } else {
+                        showMessage("Lỗi: " + error.message);
+                    }
+                });
+        });
+        // --- 6. LOGIC ĐĂNG KÝ VÀ LƯU HỒ SƠ ---
+        document.getElementById('btnRegisterSubmit').addEventListener('click', () => {
+            const facultyId = regSelect.value;
+            const email = document.getElementById('regEmail').value.trim();
+            const pass = document.getElementById('regPassword').value;
+            const confirmPass = document.getElementById('regConfirmPassword').value;
+
+            if (!facultyId || !email || !pass || !confirmPass) return showMessage("Vui lòng điền đầy đủ các trường.");
+            if (pass.length < 6) return showMessage("Mật khẩu phải từ 6 ký tự trở lên.");
+            if (pass !== confirmPass) return showMessage("Mật khẩu xác nhận không khớp.");
+
+            const selectedFaculty = facultyList.find(f => f.id === facultyId);
+
+            hideMessage();
+            const btnReg = document.getElementById('btnRegisterSubmit');
+            btnReg.disabled = true;
+            btnReg.innerText = "Đang tạo tài khoản...";
+
+            // 1. Tạo tài khoản Auth
+            firebase.auth().createUserWithEmailAndPassword(email, pass)
+                .then((userCredential) => {
+                    const user = userCredential.user;
+                    
+                    // 2. Tạo Document trong bảng `users` với ID là uid của người dùng
+                    return db.collection('users').doc(user.uid).set({
+                        uid: user.uid,
+                        email: email,
+                        fullName: selectedFaculty.name,
+                        degree: selectedFaculty.degree,
+                        position: selectedFaculty.position,
+                        avatar: selectedFaculty.image,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    }).then(() => user); // Truyền đối tượng user sang then() tiếp theo
+                })
+                .then((user) => {
+                    // 3. Gửi email xác minh
+                    return user.sendEmailVerification();
+                })
+                .then(() => {
+                    // 4. Đăng xuất ngay lập tức để chặn truy cập chưa xác minh
+                    return firebase.auth().signOut();
+                })
+                .then(() => {
+                    // 5. Khôi phục trạng thái nút, chuyển form và báo thành công
+                    btnReg.disabled = false;
+                    btnReg.innerText = "Đăng ký";
+                    
+                    // Reset nội dung form đăng ký
+                    document.getElementById('formRegister').reset();
+                    
+                    // Chuyển về màn hình đăng nhập
+                    registerView.classList.add('hidden');
+                    loginView.classList.remove('hidden');
+                    
+                    // Điền sẵn email cho người dùng
+                    document.getElementById('loginEmail').value = email;
+                    
+                    showMessage("Đăng ký thành công! Một email xác minh đã được gửi đến " + email + ". Vui lòng kiểm tra hộp thư (kể cả thư rác) để xác minh tài khoản trước khi đăng nhập.", true);
+                })
+                .catch((error) => {
+                    btnReg.disabled = false;
+                    btnReg.innerText = "Đăng ký";
+                    if (error.code === 'auth/email-already-in-use') {
+                        showMessage("Email này đã được sử dụng. Vui lòng đăng nhập.");
+                    } else {
+                        showMessage("Lỗi đăng ký: " + error.message);
+                    }
+                });
+        });
+
+        // --- 7. QUÊN MẬT KHẨU ---
+        document.getElementById('btnForgotPassword').addEventListener('click', () => {
+            const email = document.getElementById('loginEmail').value.trim();
+            if (!email) {
+                showMessage("Vui lòng nhập Email của bạn vào ô bên trên trước khi bấm 'Quên mật khẩu'.");
+                document.getElementById('loginEmail').focus();
+                return;
+            }
+
+            hideMessage();
+            firebase.auth().sendPasswordResetEmail(email)
+                .then(() => {
+                    showMessage("Liên kết đặt lại mật khẩu đã được gửi đến " + email + ". Vui lòng kiểm tra hộp thư (kể cả thư rác).", true);
+                })
+                .catch((error) => {
+                    if (error.code === 'auth/user-not-found') {
+                        showMessage("Không tìm thấy tài khoản với email này.");
+                    } else {
+                        showMessage("Lỗi: " + error.message);
+                    }
+                });
+        });
+    </script>
+</body>
+</html>
