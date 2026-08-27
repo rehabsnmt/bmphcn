@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thời khóa biểu - Bộ môn Phục hồi chức năng.">
     <title>Thời khóa biểu - Bộ môn Phục hồi chức năng</title>
 
@@ -45,10 +45,9 @@
 
         /* Khung bên trái (Kho Sự Kiện) */
         #external-events { position: sticky; top: 80px; width: 280px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 15px; box-shadow: var(--shadow-sm); flex-shrink: 0; display: none; flex-direction: column; max-height: calc(100vh - 100px); transition: 0.3s; }
-        #external-events h4 { margin: 0 0 5px 0; color: var(--primary); border-bottom: 1px dashed var(--border); padding-bottom: 8px; font-size: 1.05rem; flex-shrink: 0; display: flex; flex-direction: column; gap: 5px; }
+        #external-events h4 { margin: 0 0 10px 0; color: var(--primary); border-bottom: 1px dashed var(--border); padding-bottom: 10px; font-size: 1.05rem; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; }
         
-        .pool-filter-container { display: flex; gap: 5px; margin-top: 5px; }
-        .pool-filter { padding: 4px; font-size: 0.8rem; border-radius: 4px; border: 1px solid var(--border); outline: none; cursor: pointer; color: var(--text-dark); background: white; flex: 1; min-width: 0; }
+        .pool-filter { padding: 4px 8px; font-size: 0.8rem; font-weight: bold; border-radius: 4px; border: 1px solid var(--border); outline: none; cursor: pointer; color: var(--text-dark); background: white; max-width: 110px; }
 
         #event-pool { flex: 1; overflow-y: auto; padding-right: 10px; padding-top: 5px; } 
         #event-pool .fc-event { cursor: move; margin: 0 0 10px 0; padding: 10px 12px; color: var(--text-dark); border: 1px solid var(--border); border-radius: 6px; text-align: left; transition: 0.2s; position: relative; }
@@ -252,7 +251,7 @@
                 <option value="Học kỳ 4">Học kỳ 4</option>
             </select>
             <!-- NÚT XUẤT BÁO CÁO -->
-            <button class="btn-export" onclick="exportWeeklyReport()" title="Xuất báo cáo các lịch đã dạy trong tuần này ra Word">
+            <button id="btnExportTop" class="btn-export hidden" onclick="exportWeeklyReport()" title="Xuất báo cáo các lịch đã dạy trong tuần này ra Word">
                 <i class="fas fa-file-word"></i> Xuất BC Tuần
             </button>
         </div>
@@ -261,18 +260,12 @@
     <main>
         <!-- KHO SỰ KIỆN -->
         <div id="external-events">
-            <h4>
-                <div>Chưa lên lịch</div>
-                <div class="pool-filter-container">
-                    <select id="poolClassFilter" class="pool-filter" onchange="processAndRenderEvents()">
-                        <option value="ALL">Tất cả Lớp</option>
-                        <option value="THS2025">THS2025</option>
-                        <option value="THS2026">THS2026</option>
-                    </select>
-                    <select id="poolSubjectFilter" class="pool-filter" onchange="processAndRenderEvents()">
-                        <option value="ALL">Tất cả Môn</option>
-                    </select>
-                </div>
+            <h4>Chưa lên lịch 
+                <select id="poolClassFilter" class="pool-filter" onchange="processAndRenderEvents()">
+                    <option value="ALL">Tất cả Lớp</option>
+                    <option value="THS2025">THS2025</option>
+                    <option value="THS2026">THS2026</option>
+                </select>
             </h4>
             <div style="font-size: 0.85rem; color: #64748b; margin-bottom: 15px; font-style: italic; line-height: 1.4;">
                 Kéo thẻ phân công thả vào khung giờ bên phải.
@@ -419,25 +412,6 @@
                 return gv; 
             });
             return shortGvs.join(', ');
-        };
-
-        window.updatePoolSubjectFilter = () => {
-            const select = document.getElementById('poolSubjectFilter');
-            if (!select) return;
-            const currentVal = select.value;
-            select.innerHTML = '<option value="ALL">Tất cả Môn</option>';
-            
-            // Lấy danh sách tên môn không trùng lặp
-            const uniqueSubjects = [...new Set(subjectsData.map(s => s.name))].sort((a,b) => a.localeCompare(b, 'vi'));
-            
-            uniqueSubjects.forEach(name => {
-                select.innerHTML += `<option value="${name}">${name}</option>`;
-            });
-            if (uniqueSubjects.includes(currentVal)) {
-                select.value = currentVal;
-            } else {
-                select.value = 'ALL';
-            }
         };
 
         window.exportWeeklyReport = () => {
@@ -768,7 +742,6 @@
         const isMobile = window.innerWidth <= 768;
         const initialCalendarView = isMobile ? 'listWeek' : 'timeGridWeek';
 
-        // TIẾN TRÌNH XÁC THỰC VÀ KHỞI TẠO TẢI TRANG
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 isLoggedIn = true;
@@ -790,7 +763,6 @@
                             d.id = d.id || doc.id;
                             subjectsData.push(d);
                         });
-                        window.updatePoolSubjectFilter(); // Khởi tạo bộ lọc sau khi có môn
 
                         const snapUser = await getDocs(collection(db, "users"));
                         snapUser.forEach(doc => {
@@ -855,24 +827,7 @@
                 initCalendar();
                 listenToDatabase();
             } else {
-                // CHƯA ĐĂNG NHẬP: KHÔNG CHẶN NỮA, CHO PHÉP XEM
-                isLoggedIn = false;
-                isCalendarAdmin = false;
-                
-                try {
-                    const snapSubjects = await getDocs(collection(db, "subjects"));
-                    subjectsData = [];
-                    snapSubjects.forEach(doc => {
-                        const d = doc.data();
-                        d.id = d.id || doc.id;
-                        subjectsData.push(d);
-                    });
-                    window.updatePoolSubjectFilter(); // Khởi tạo bộ lọc sau khi có môn
-                } catch(e){}
-
-                initRoomSelect();
-                initCalendar();
-                listenToDatabase();
+                window.location.href = "thong-bao.html";
             }
         });
 
@@ -1100,6 +1055,11 @@
                 },
 
                 eventClick: function(info) {
+                    if (!isLoggedIn) {
+                        showToast("Vui lòng đăng nhập để xem chi tiết lịch!", "danger");
+                        return;
+                    }
+
                     const props = info.event.extendedProps;
                     const modal = document.getElementById('multiEventModal');
                     const modalBody = document.getElementById('multiEventModalBody');
@@ -1268,30 +1228,11 @@
             }
         }
 
-        window.updatePoolSubjectFilter = () => {
-            const select = document.getElementById('poolSubjectFilter');
-            if (!select) return;
-            const currentVal = select.value;
-            select.innerHTML = '<option value="ALL">Tất cả Môn</option>';
-            
-            const uniqueSubjects = [...new Set(subjectsData.map(s => s.name))].sort((a,b) => a.localeCompare(b, 'vi'));
-            
-            uniqueSubjects.forEach(name => {
-                select.innerHTML += `<option value="${name}">${name}</option>`;
-            });
-            if (uniqueSubjects.includes(currentVal)) {
-                select.value = currentVal;
-            } else {
-                select.value = 'ALL';
-            }
-        };
-
         window.processAndRenderEvents = () => {
             if (!calendar) return;
             
             const selectedSemester = isLoggedIn ? document.getElementById('semesterSelect').value : 'ALL';
             const poolClassFilter = document.getElementById('poolClassFilter').value; 
-            const poolSubjectFilter = document.getElementById('poolSubjectFilter') ? document.getElementById('poolSubjectFilter').value : 'ALL';
 
             calendar.removeAllEvents();
             const poolDiv = document.getElementById('event-pool');
@@ -1300,6 +1241,7 @@
 
             let scheduledEventsNormal = scheduledEvents.filter(e => e.status !== 'returned');
 
+            // Xử lý loại bỏ trùng lặp khi 2 hệ học chung
             let deduplicatedEventsMap = new Map();
             scheduledEventsNormal.forEach(e => {
                 let subObj = subjectsData.find(s => s.name === e.subject);
@@ -1312,6 +1254,7 @@
             });
             let deduplicatedEvents = Array.from(deduplicatedEventsMap.values());
 
+            // LỌC DỮ LIỆU CHO HỌC VIÊN LỚP THS2026
             if (currentUserEmail === 'ths.phcn26@ump.edu.vn') {
                 deduplicatedEvents = deduplicatedEvents.filter(e => e.class === 'THS2026');
             }
@@ -1354,6 +1297,7 @@
             }
             calendar.addEventSource(currentClassEvents);
 
+            // Xử lý Bệnh viện
             if (currentUserEmail !== 'ths.phcn26@ump.edu.vn') {
                 globalGroupedClinicals = getClinicalEventsMap(clinicalSchedules); 
                 let clinicalEvents = [];
@@ -1380,6 +1324,7 @@
                 calendar.addEventSource(clinicalEvents);
             }
 
+            // KHO SỰ KIỆN CHỈ DÀNH CHO ADMIN
             if (currentUserEmail !== 'ths.phcn26@ump.edu.vn') {
                 let scheduledCounts = {};
                 scheduledEvents.forEach(e => {
@@ -1404,8 +1349,6 @@
                 });
 
                 orderedSubjectNames.forEach(subName => {
-                    if (poolSubjectFilter !== 'ALL' && subName !== poolSubjectFilter) return; // BỘ LỌC THEO MÔN
-
                     const subIds = subjectGroups[subName];
                     let subjectCardsMap = new Map();
 
