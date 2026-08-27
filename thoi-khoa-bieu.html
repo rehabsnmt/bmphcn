@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Lịch công tác - Bộ môn Phục hồi chức năng.">
+    <meta name="description" content="Thời khóa biểu - Bộ môn Phục hồi chức năng.">
     <title>Thời Khóa Biểu - Bộ môn Phục hồi chức năng</title>
 
     <link rel="icon" href="images/logo_Bộ môn.png" type="image/png">
@@ -46,7 +46,7 @@
         #external-events { position: sticky; top: 80px; width: 280px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 15px; box-shadow: var(--shadow-sm); flex-shrink: 0; display: none; flex-direction: column; max-height: calc(100vh - 100px); transition: 0.3s; }
         #external-events h4 { margin: 0 0 10px 0; color: var(--primary); border-bottom: 1px dashed var(--border); padding-bottom: 10px; font-size: 1.05rem; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; }
         
-        .pool-filter { padding: 4px 8px; font-size: 0.8rem; font-weight: bold; border-radius: 4px; border: 1px solid var(--border); outline: none; cursor: pointer; color: var(--text-dark); background: white; }
+        .pool-filter { padding: 4px 8px; font-size: 0.8rem; font-weight: bold; border-radius: 4px; border: 1px solid var(--border); outline: none; cursor: pointer; color: var(--text-dark); background: white; max-width: 110px; }
 
         #event-pool { flex: 1; overflow-y: auto; padding-right: 10px; padding-top: 5px; } 
         #event-pool .fc-event { cursor: move; margin: 0 0 10px 0; padding: 10px 12px; color: var(--text-dark); border: 1px solid var(--border); border-radius: 6px; text-align: left; transition: 0.2s; position: relative; }
@@ -179,18 +179,70 @@
         .clin-card { margin-bottom: 15px; padding: 15px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; border-left: 4px solid #10b981; }
         .clin-card-title { font-weight: 700; color: var(--text-dark); font-size: 1.15rem; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; }
 
+        /* Dành riêng cho Dạng danh sách trên Mobile */
+        .mobile-list-item { padding: 6px 4px; border-bottom: 1px dashed #e2e8f0; }
+
         /* Responsive Điện thoại */
-        @media (max-width: 900px) {
+        @media (max-width: 768px) {
             main { flex-direction: column; }
             #external-events { position: relative; width: 100%; top: 0; max-height: 350px; }
             .top-toolbar { flex-direction: column; gap: 10px; align-items: stretch; }
-
-            .fc-toolbar-title { font-size: 1.1rem !important; }
-            .fc-button-primary { padding: 4px 10px !important; font-size: 0.8rem !important; }
-
-            /* ẨN TOÀN BỘ CỘT THỜI GIAN ĐỂ GIẢI PHÓNG DIỆN TÍCH CHO ĐIỆN THOẠI */
+            
+            /* Điều chỉnh tiêu đề và nút chức năng */
+            .fc-toolbar-title { font-size: clamp(1rem, 3vw, 1.2rem) !important; }
+            .fc-button-primary { padding: 4px 8px !important; font-size: 0.75rem !important; }
+            
+            /* Ẩn cột thời gian trong lịch tuần (giải phóng không gian) */
             .fc .fc-timegrid-axis, .fc .fc-timegrid-slot-label { width: 0 !important; padding: 0 !important; border: none !important; }
             .fc .fc-timegrid-slot-label-cushion, .fc .fc-timegrid-axis-cushion { display: none !important; }
+
+            /* --- CỐT LÕI TÙY CHỈNH THU NHỎ FONT VÀ CẤM RỚT DÒNG --- */
+            .fc-event-main, .fc-list-event-title {
+                white-space: nowrap !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+            }
+            .evt-item { gap: 0; }
+            .evt-item-row1 {
+                flex-wrap: nowrap;
+                overflow: hidden;
+                min-width: 0;
+            }
+            /* Thu nhỏ cỡ chữ linh động theo vw */
+            .evt-gv-name { 
+                font-size: clamp(0.55rem, 2vw, 0.75rem) !important; 
+                white-space: nowrap !important; 
+                overflow: hidden; 
+                text-overflow: ellipsis; 
+                min-width: 0;
+                display: block;
+            }
+            .evt-item-row2 { 
+                font-size: clamp(0.55rem, 2vw, 0.75rem) !important; 
+                white-space: nowrap !important; 
+                overflow: hidden; 
+                text-overflow: ellipsis; 
+                padding-left: 22px;
+                display: block;
+            }
+            .evt-room-badge { 
+                font-size: clamp(0.5rem, 1.8vw, 0.65rem) !important; 
+                min-width: auto; 
+                padding: 1px 4px;
+            }
+            .evt-group-header {
+                font-size: clamp(0.6rem, 2vw, 0.75rem) !important;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            /* Style cho dạng List */
+            .mobile-list-item {
+                font-size: clamp(0.6rem, 2.2vw, 0.85rem);
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
         }
     </style>
 </head>
@@ -200,9 +252,10 @@
     <div id="toastContainer" class="toast-container"></div>
     <div id="eventTooltip"></div>
 
+    <!-- THANH CÔNG CỤ COMPACT TRÊN CÙNG -->
     <div class="top-toolbar">
         <div>
-            <h2>LỊCH CÔNG TÁC</h2>
+            <h2>THỜI KHÓA BIỂU</h2>
         </div>
         <div class="controls-wrapper">
             <button id="btnToggleSidebar" class="btn-toggle hidden" onclick="toggleSidebar()" title="Thu gọn/Mở rộng Kho sự kiện">
@@ -215,6 +268,7 @@
                 <option value="Học kỳ 3">Học kỳ 3</option>
                 <option value="Học kỳ 4">Học kỳ 4</option>
             </select>
+            <!-- NÚT XUẤT BÁO CÁO -->
             <button class="btn-export" onclick="exportWeeklyReport()" title="Xuất báo cáo các lịch đã dạy trong tuần này ra Word">
                 <i class="fas fa-file-word"></i> Xuất BC Tuần
             </button>
@@ -222,6 +276,7 @@
     </div>
 
     <main>
+        <!-- KHO SỰ KIỆN -->
         <div id="external-events">
             <h4>Chưa lên lịch 
                 <select id="poolClassFilter" class="pool-filter" onchange="processAndRenderEvents()">
@@ -238,11 +293,13 @@
             </div>
         </div>
 
+        <!-- KHUNG LỊCH CHÍNH -->
         <div id="calendar-container">
             <div id="calendar"></div>
         </div>
     </main>
 
+    <!-- MODAL CHỌN PHÒNG HỌC -->
     <div id="roomModal" class="modal-overlay hidden">
         <div class="modal-content" style="max-width: 400px;">
             <div class="modal-header">
@@ -252,7 +309,8 @@
                 <div class="form-group">
                     <label for="roomSelect">Phòng / Địa điểm:</label>
                     <select id="roomSelect">
-                        </select>
+                        <!-- Đổ dữ liệu từ JS vào đây -->
+                    </select>
                 </div>
             </div>
             <div class="modal-footer">
@@ -262,6 +320,7 @@
         </div>
     </div>
 
+    <!-- MODAL CHI TIẾT TỔ HỢP SỰ KIỆN -->
     <div id="multiEventModal" class="modal-overlay hidden">
         <div class="modal-content">
             <div class="modal-header" id="multiEventModalHeader" style="background: var(--primary);">
@@ -269,7 +328,8 @@
                 <span style="cursor: pointer; font-weight: bold; font-size: 1.2rem;" onclick="document.getElementById('multiEventModal').classList.add('hidden')">X</span>
             </div>
             <div class="modal-body" id="multiEventModalBody">
-                </div>
+                <!-- Nội dung được đổ bằng JS -->
+            </div>
             <div class="modal-footer">
                 <button class="btn-secondary" onclick="document.getElementById('multiEventModal').classList.add('hidden')">Đóng</button>
             </div>
@@ -301,23 +361,12 @@
 
         // CẤU HÌNH DANH SÁCH PHÒNG HỌC
         const ROOM_LIST = [
-            "Phòng 3",
-            "Phòng 4",
-            "Phòng ST",
-            "Phòng OT",
-            "Phòng 12",
-            "GĐ7A",
-            "GĐ7B",
-            "ĐGĐ-ĐD",
-            "ĐGĐ-Dược",
-            "GĐ6A",
-            "GĐ6B",
-            "ĐGĐ-Y",
-            "Khác..."
+            "Phòng 3", "Phòng 4", "Phòng ST", "Phòng OT", "Phòng 12", "Hội trường", "Khác..."
         ];
 
         let calendar;
         let isCalendarAdmin = false;
+        let isLoggedIn = false;
         let currentUserEmail = '';
         let currentUserName = '';
 
@@ -329,10 +378,9 @@
         let globalGroupedClinicals = {}; 
         let subjectsData = [];
 
-        // TỪ ĐIỂN MAP TÊN ĐẦY ĐỦ -> TÊN NGẮN (Thầy X, Cô Y, hoặc Full Name nếu Thỉnh giảng)
+        // TỪ ĐIỂN MAP TÊN ĐẦY ĐỦ -> TÊN NGẮN
         let gvShortNameMap = {};
 
-        // SỬA LỖI NÚT KHO SỰ KIỆN KHÔNG HOẠT ĐỘNG
         window.toggleSidebar = () => {
             const panel = document.getElementById('external-events');
             const isHidden = panel.style.display === 'none' || panel.classList.contains('hidden');
@@ -349,7 +397,6 @@
             setTimeout(() => { if(calendar) calendar.updateSize(); }, 100);
         };
 
-        // Xóa sự kiện
         window.deleteSubEvent = async (id) => {
             if(!id) return;
             if(confirm("Bạn có chắc muốn xóa sự kiện này khỏi lịch? (Sự kiện sẽ được trả về kho)")) {
@@ -375,19 +422,16 @@
             setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
         }
 
-        // HÀM FORMAT TÊN GIẢNG VIÊN THÔNG MINH (CHO GIAO DIỆN)
         window.formatGvName = (gvString) => {
             if (!gvString) return '';
             let gvs = gvString.split(/,|&/).map(s => s.trim());
             let shortGvs = gvs.map(gv => {
                 if (gvShortNameMap[gv]) return gvShortNameMap[gv];
-                // Trả về tên gốc đầy đủ nếu không quét ra thông tin
                 return gv; 
             });
             return shortGvs.join(', ');
         };
 
-        // HÀM XUẤT BÁO CÁO WORD
         window.exportWeeklyReport = () => {
             if (!calendar) return;
 
@@ -396,8 +440,6 @@
             let now = new Date();
 
             let reportEvents = [];
-
-            // 1. Lọc dữ liệu Sự kiện Bình thường
             let scheduledEventsNormal = scheduledEvents.filter(e => e.status !== 'returned');
 
             let deduplicatedNormalEventsMap = new Map();
@@ -413,12 +455,12 @@
 
             deduplicatedNormalEventsMap.forEach((e) => {
                 let eStart = new Date(e.start);
-                let eEnd = e.end ? new Date(e.end) : new Date(eStart.getTime() + 4.5 * 3600000); // 4.5 giờ mặc định
+                let eEnd = e.end ? new Date(e.end) : new Date(eStart.getTime() + 4.5 * 3600000);
 
                 if (eStart >= viewStart && eStart < viewEnd && eEnd <= now) {
                     if (e.class && e.class.toUpperCase().includes('THS')) {
                         let durationHours = (eEnd - eStart) / 3600000;
-                        let tiet = Math.round(durationHours / 0.9); // Quy đổi 4.5h = 5 tiết
+                        let tiet = Math.round(durationHours / 0.9); 
 
                         let taskType = e.task;
                         if (e.task.toLowerCase().includes('thực hành')) taskType = 'Thực hành lab';
@@ -428,7 +470,7 @@
                             timeObj: eStart,
                             timeStr: `${eStart.toLocaleDateString('vi-VN', {weekday:'short', day:'2-digit', month:'2-digit', year:'numeric'})}<br>${eStart.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'})} - ${eEnd.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'})}`,
                             content: `[${e.class}] ${e.subject}<br><i>(${e.task})</i>`,
-                            gv: e.gv, // Dùng họ tên đầy đủ
+                            gv: e.gv, 
                             room: e.room || '',
                             tiet: tiet,
                             taskType: taskType
@@ -437,7 +479,6 @@
                 }
             });
 
-            // 2. Lọc dữ liệu Bệnh viện (Clinicals)
             for (let d = new Date(viewStart); d < viewEnd; d.setDate(d.getDate() + 1)) {
                 let y = d.getFullYear();
                 let m = String(d.getMonth() + 1).padStart(2, '0');
@@ -455,7 +496,7 @@
                                 timeObj: new Date(d),
                                 timeStr: `${d.toLocaleDateString('vi-VN', {weekday:'short', day:'2-digit', month:'2-digit', year:'numeric'})}<br>${c.shift}`,
                                 content: `[${c.class_id}] Thực tập lâm sàng<br><i>(${c.specialty})</i>`,
-                                gv: c.instructors, // Dùng họ tên đầy đủ
+                                gv: c.instructors, 
                                 room: c.hospital,
                                 tiet: tiet,
                                 taskType: 'Thực hành bệnh viện'
@@ -472,7 +513,6 @@
 
             reportEvents.sort((a, b) => a.timeObj - b.timeObj);
 
-            // TỔNG HỢP TIẾT THEO GV VÀ NHIỆM VỤ
             let gvTotals = {};
             reportEvents.forEach(ev => {
                 let gvList = ev.gv.split(/,|&/).map(s => s.trim()).filter(s => s);
@@ -483,7 +523,6 @@
                 });
             });
 
-            // TẠO HTML CHO BẢNG BÁO CÁO
             let tableHtml = `
                 <h2 style="text-align: center; font-family: 'Times New Roman', serif;">BÁO CÁO LỊCH CÔNG TÁC ĐÃ HOÀN THÀNH</h2>
                 <h4 style="text-align: center; font-family: 'Times New Roman', serif; font-weight: normal; margin-bottom: 20px;">
@@ -515,10 +554,8 @@
                     </tr>
                 `;
             });
-
             tableHtml += `</tbody></table>`;
 
-            // BẢNG TỔNG KẾT GV
             let summaryHtml = `
                 <br><br>
                 <h3 style="text-align: left; font-family: 'Times New Roman', serif;">TỔNG HỢP SỐ TIẾT THEO GIẢNG VIÊN</h3>
@@ -548,7 +585,6 @@
             }
             summaryHtml += `</tbody></table>`;
 
-            // XUẤT THÀNH BLOB WORD VÀ TẢI XUỐNG
             var preHtml = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Báo Cáo Lịch Công Tác</title></head><body>";
             var postHtml = "</body></html>";
             var html = preHtml + tableHtml + summaryHtml + postHtml;
@@ -719,15 +755,23 @@
             return { hasOverlap: false };
         }
 
+        // TỰ ĐỘNG CHỌN VIEW LIST NẾU LÀ MOBILE
+        const isMobile = window.innerWidth <= 768;
+        const initialCalendarView = isMobile ? 'listWeek' : 'timeGridWeek';
+
         onAuthStateChanged(auth, async (user) => {
             if (user) {
+                isLoggedIn = true;
                 currentUserEmail = user.email.toLowerCase();
                 const adminEmails = ['lethanhvan@ump.edu.vn', 'phanthenguyenpt@ump.edu.vn', 'thduypt@ump.edu.vn', 'hoangtran1483@gmail.com', 'minhngpt@ump.edu.vn'];
                 if (adminEmails.includes(currentUserEmail)) isCalendarAdmin = true;
 
+                if(isCalendarAdmin) {
+                    document.getElementById('btnExportTop').classList.remove('hidden');
+                }
+
                 gvShortNameMap = {};
                 try {
-                    // Quét Danh mục Môn học TỪ FIRESTORE
                     const snapSubjects = await getDocs(collection(db, "subjects"));
                     subjectsData = [];
                     snapSubjects.forEach(doc => {
@@ -736,7 +780,6 @@
                         subjectsData.push(d);
                     });
 
-                    // Quét GV Cơ Hữu
                     const snapUser = await getDocs(collection(db, "users"));
                     snapUser.forEach(doc => {
                         const d = doc.data();
@@ -752,7 +795,6 @@
                         }
                     });
 
-                    // Quét GV Thỉnh Giảng
                     const snapVisiting = await getDocs(collection(db, "visiting_lecturers"));
                     snapVisiting.forEach(doc => {
                         const d = doc.data();
@@ -760,17 +802,13 @@
                             let nameParts = d.name.trim().split(' ');
                             let firstName = nameParts[nameParts.length - 1]; 
                             let genderPref = d.gender === 'm' ? 'Thầy ' : (d.gender === 'f' ? 'Cô ' : 'GV ');
-
-                            // Gắn Map Tên ngắn cho Thỉnh giảng
-                            gvShortNameMap[d.name] = `${d.name}`; // HIỂN THỊ FULL NAME CHO THỈNH GIẢNG
+                            gvShortNameMap[d.name] = `${d.name}`; 
                         } else if (d.name) {
-                            gvShortNameMap[d.name] = `${d.name}`; // NẾU KHÔNG CÓ GIỚI TÍNH CŨNG HIỂN THỊ FULL
+                            gvShortNameMap[d.name] = `${d.name}`; 
                         }
                     });
 
-                } catch(e) {
-                    console.error("Lỗi lấy dữ liệu:", e);
-                }
+                } catch(e) { console.error("Lỗi lấy dữ liệu:", e); }
 
                 const userDoc = await getDoc(doc(db, "users", user.uid));
                 if (userDoc.exists()) {
@@ -791,7 +829,22 @@
                 initCalendar();
                 listenToDatabase();
             } else {
-                window.location.href = "login.html";
+                // CHƯA ĐĂNG NHẬP
+                isLoggedIn = false;
+                isCalendarAdmin = false;
+                
+                try {
+                    const snapSubjects = await getDocs(collection(db, "subjects"));
+                    subjectsData = [];
+                    snapSubjects.forEach(doc => {
+                        const d = doc.data();
+                        d.id = d.id || doc.id;
+                        subjectsData.push(d);
+                    });
+                } catch(e){}
+
+                initCalendar();
+                listenToDatabase();
             }
         });
 
@@ -821,11 +874,11 @@
             calendar = new FullCalendar.Calendar(calendarEl, {
                 locale: 'vi',
                 height: 'auto', 
-                initialView: 'timeGridWeek', 
+                initialView: initialCalendarView, // ListWeek trên điện thoại
                 headerToolbar: {
                     left: 'prev,next today',
                     center: 'title',
-                    right: 'timeGridWeek,timeGridDay,dayGridMonth'
+                    right: 'timeGridWeek,timeGridDay,listWeek'
                 },
                 slotMinTime: '07:00:00',
                 slotMaxTime: '21:00:00',
@@ -858,6 +911,17 @@
                         const timeStr = `${sTime}–${eTime}`;
                         const count = props.events.length;
 
+                        // Chế độ xem LIST WEEK
+                        if (arg.view.type === 'listWeek' || arg.view.type === 'listDay') {
+                            let listHtml = props.events.map(e => {
+                                let gvDisplay = window.formatGvName(e.gv);
+                                let clsTag = e.class === 'THS2025' ? '<span style="color:#0369a1">[THS2025]</span>' : '<span style="color:#b45309">[THS2026]</span>';
+                                return `<div class="mobile-list-item"><b>${e.subject}</b> - ${e.room} - ${clsTag} ${gvDisplay}</div>`;
+                            }).join('');
+                            return { html: `<div>${listHtml}</div>` };
+                        }
+
+                        // Chế độ xem TIME GRID
                         let headerHtml = `<div class="evt-group-header">
                                             <span>${timeStr} &nbsp;&bull;&nbsp; ${count} lớp</span>
                                           </div>`;
@@ -934,7 +998,6 @@
                             }
                         }
 
-                        // Khi di chuyển cả nhóm, cần bỏ qua ID của TẤT CẢ các thẻ trong nhóm để tránh bị tự phát hiện trùng
                         const groupIds = subEvents.map(ev => ev.id);
                         for (let e of subEvents) {
                             const overlapCheck = hasOverlap(info.event.start, info.event.end, e.gv, e.class, e.task, e.room, groupIds);
@@ -1010,6 +1073,12 @@
                 },
 
                 eventClick: function(info) {
+                    // YÊU CẦU: Nếu chưa đăng nhập, KHÔNG được xem chi tiết Lịch
+                    if (!isLoggedIn) {
+                        showToast("Vui lòng đăng nhập để xem chi tiết lịch!", "danger");
+                        return;
+                    }
+
                     const props = info.event.extendedProps;
                     const modal = document.getElementById('multiEventModal');
                     const modalBody = document.getElementById('multiEventModalBody');
@@ -1178,8 +1247,10 @@
 
         window.processAndRenderEvents = () => {
             if (!calendar) return;
-            const selectedSemester = document.getElementById('semesterSelect').value;
-            const poolClassFilter = document.getElementById('poolClassFilter').value; // BỘ LỌC KHO SỰ KIỆN
+            
+            // Nếu chưa đăng nhập, ép cứng hiển thị lớp THS2026
+            const selectedSemester = isLoggedIn ? document.getElementById('semesterSelect').value : 'ALL';
+            const poolClassFilter = document.getElementById('poolClassFilter').value; 
 
             calendar.removeAllEvents();
             const poolDiv = document.getElementById('event-pool');
@@ -1200,6 +1271,11 @@
                 }
             });
             let deduplicatedEvents = Array.from(deduplicatedEventsMap.values());
+
+            // YÊU CẦU: Nếu CHƯA ĐĂNG NHẬP -> CHỈ HIỂN THỊ LỊCH CỦA THS2026
+            if (!isLoggedIn) {
+                deduplicatedEvents = deduplicatedEvents.filter(e => e.class === 'THS2026');
+            }
 
             let groupedEvents = {};
 
@@ -1239,26 +1315,41 @@
             }
             calendar.addEventSource(currentClassEvents);
 
+            // Xử lý Bệnh viện (Tương tự, lọc THS2026 nếu chưa đăng nhập)
             globalGroupedClinicals = getClinicalEventsMap(clinicalSchedules); 
             let clinicalEvents = [];
             for (let dateStr in globalGroupedClinicals) {
-                clinicalEvents.push({
-                    id: 'clin_sum_' + dateStr,
-                    title: 'BV',
-                    start: dateStr, 
-                    allDay: true,
-                    backgroundColor: 'transparent',
-                    borderColor: 'transparent',
-                    editable: false, 
-                    extendedProps: {
-                        type: 'clinical_summary',
-                        details: globalGroupedClinicals[dateStr],
-                        dateStr: dateStr
-                    }
-                });
+                let clinList = globalGroupedClinicals[dateStr];
+                if (!isLoggedIn) {
+                    clinList = clinList.filter(c => c.class_id && c.class_id.toUpperCase().includes('THS2026'));
+                }
+                
+                if (clinList.length > 0) {
+                    clinicalEvents.push({
+                        id: 'clin_sum_' + dateStr,
+                        title: 'BV',
+                        start: dateStr, 
+                        allDay: true,
+                        backgroundColor: 'transparent',
+                        borderColor: 'transparent',
+                        editable: false, 
+                        extendedProps: {
+                            type: 'clinical_summary',
+                            details: clinList,
+                            dateStr: dateStr
+                        }
+                    });
+                }
             }
             calendar.addEventSource(clinicalEvents);
 
+            // NẾU CHƯA ĐĂNG NHẬP THÌ DỪNG LUÔN, KHÔNG HIỂN THỊ KHO SỰ KIỆN NỮA
+            if (!isLoggedIn) {
+                setTimeout(() => { calendar.updateSize(); }, 50);
+                return;
+            }
+
+            // KHO SỰ KIỆN CHỈ DÀNH CHO ADMIN
             let scheduledCounts = {};
             scheduledEvents.forEach(e => {
                 if (e.status !== 'returned') {
@@ -1270,7 +1361,6 @@
 
             let poolMap = new Map();
 
-            // XUẤT THEO ĐÚNG THỨ TỰ BẢNG MÔN HỌC (subjectsData)
             let orderedSubjectNames = [];
             let subjectGroups = {};
 
@@ -1340,7 +1430,6 @@
                 const cardsArray = Array.from(subjectCardsMap.values());
 
                 if (cardsArray.length > 0) {
-                    // Sắp xếp Giảng viên theo Alphabet bên trong từng môn
                     cardsArray.sort((a, b) => a.gv.localeCompare(b.gv));
 
                     let subjectContainer = document.createElement('div');
