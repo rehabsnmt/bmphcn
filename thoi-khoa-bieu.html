@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="description" content="Thời khóa biểu - Bộ môn Phục hồi chức năng.">
-    <title>Thời khóa biểu - Bộ môn Phục hồi chức năng</title>
+    <title>Thời Khóa Biểu - Bộ môn Phục hồi chức năng</title>
 
     <link rel="icon" href="images/logo_Bộ môn.png" type="image/png">
     <link rel="stylesheet" href="css/style.css">
@@ -19,32 +19,17 @@
         /* APP LAYOUT */
         html, body { min-height: 100vh; margin: 0; padding: 0; display: flex; flex-direction: column; background: var(--bg-page); }
 
-        #header-placeholder { flex-shrink: 0; transition: 0.3s; z-index: 1001; position: relative; }
+        #header-placeholder { flex-shrink: 0; transition: 0.3s; position: relative; z-index: 1001; }
         /* Lớp ẩn Header khi cuộn chuột */
         body.header-hidden #header-placeholder { display: none !important; }
 
         #footer-placeholder { display: none; }
 
-        /* Thanh công cụ gọn nhẹ trên cùng - Cố định (Sticky) ngay bên dưới Header */
-        .top-toolbar { 
-            position: sticky; 
-            top: 75px; /* Khoảng cách bám sát bên dưới Header chuẩn */
-            z-index: 990; /* Nằm dưới z-index của Header để không đè lên menu dropdown */
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            padding: 12px 2%; 
-            background: var(--surface); 
-            border-bottom: 1px solid var(--border); 
-            margin-bottom: 15px; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
-            transition: top 0.3s; 
-        }
-
-        /* Khi header ẩn, kéo Toolbar lên đỉnh màn hình */
-        body.header-hidden .top-toolbar { top: 0; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
-
+        /* Thanh công cụ gọn nhẹ trên cùng */
+        .top-toolbar { position: sticky; top: 75px; z-index: 990; display: flex; justify-content: space-between; align-items: center; padding: 10px 2%; background: var(--surface); border-bottom: 1px solid var(--border); margin-bottom: 15px; box-shadow: var(--shadow-sm); transition: top 0.3s; }
         .top-toolbar h2 { margin: 0; font-size: clamp(1.1rem, 3vw, 1.4rem); color: var(--text-dark); display: flex; align-items: center; gap: 8px; font-weight: 800; text-transform: uppercase; white-space: nowrap; }
+
+        body.header-hidden .top-toolbar { top: 0; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
 
         .controls-wrapper { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
         .filter-select { padding: 6px 12px; font-size: 0.95rem; font-weight: 600; border-radius: 6px; border: 1px solid var(--border); outline: none; cursor: pointer; color: var(--text-dark); max-width: 100%; }
@@ -59,20 +44,18 @@
         main { flex: 1; max-width: 100%; width: 100%; padding: 0 1% 30px 1%; display: flex; gap: 15px; box-sizing: border-box; align-items: flex-start; }
 
         /* Khung bên trái (Kho Sự Kiện) */
-        #external-events { position: sticky; top: 140px; width: 280px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 15px; box-shadow: var(--shadow-sm); flex-shrink: 0; display: none; flex-direction: column; max-height: calc(100vh - 150px); transition: 0.3s; }
-        #external-events h4 { margin: 0 0 5px 0; color: var(--primary); border-bottom: 1px dashed var(--border); padding-bottom: 8px; font-size: 1.05rem; flex-shrink: 0; display: flex; flex-direction: column; gap: 5px; }
+        #external-events { position: sticky; top: 80px; width: 280px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 15px; box-shadow: var(--shadow-sm); flex-shrink: 0; display: none; flex-direction: column; max-height: calc(100vh - 100px); transition: 0.3s; }
+        #external-events h4 { margin: 0 0 10px 0; color: var(--primary); border-bottom: 1px dashed var(--border); padding-bottom: 10px; font-size: 1.05rem; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; }
         
-        .pool-filter-container { display: flex; gap: 5px; margin-top: 5px; }
-        .pool-filter { padding: 4px; font-size: 0.8rem; border-radius: 4px; border: 1px solid var(--border); outline: none; cursor: pointer; color: var(--text-dark); background: white; flex: 1; min-width: 0; }
+        .pool-filter { padding: 4px 8px; font-size: 0.8rem; font-weight: bold; border-radius: 4px; border: 1px solid var(--border); outline: none; cursor: pointer; color: var(--text-dark); background: white; max-width: 110px; }
 
         #event-pool { flex: 1; overflow-y: auto; padding-right: 10px; padding-top: 5px; } 
         #event-pool .fc-event { cursor: move; margin: 0 0 10px 0; padding: 10px 12px; color: var(--text-dark); border: 1px solid var(--border); border-radius: 6px; text-align: left; transition: 0.2s; position: relative; }
 
         /* Box chứa Môn học trong Kho */
-        .pool-subject-group { margin-bottom: 10px; background: white; border-radius: 8px; border: 1px solid #cbd5e1; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        .pool-subject-title { font-size: 0.9rem; font-weight: 800; color: var(--text-dark); padding: 12px 10px; line-height: 1.4; transition: background 0.2s; border-radius: 8px; user-select: none; }
-        .pool-subject-title:hover { background: #f8fafc; }
-        .pool-cards-container { padding: 0 10px 10px 10px; }
+        .pool-subject-group { margin-bottom: 18px; padding: 12px 10px 2px 10px; background: white; border-radius: 8px; border: 1px solid #cbd5e1; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .pool-subject-title { font-size: 0.9rem; font-weight: 800; color: var(--text-dark); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #f1f5f9; line-height: 1.4; }
+        .pool-subject-title i { color: var(--primary); margin-right: 5px; }
 
         /* Huy hiệu đếm số sự kiện gộp */
         .count-badge { position: absolute; top: -10px; right: -10px; background-color: #ef4444; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2); border: 2px solid white; z-index: 10; }
@@ -124,6 +107,22 @@
             flex: 1; overflow-y: auto; overflow-x: hidden;
             display: flex; flex-direction: column; gap: 8px;
         }
+        .evt-item { display: flex; flex-direction: column; gap: 2px; margin-bottom: 4px; }
+        .evt-item-row1 { display: flex; gap: 6px; align-items: flex-start; }
+        .evt-room-badge { 
+            background: #fbbf24; color: #78350f; font-weight: 800; font-size: 0.7rem; 
+            padding: 2px 4px; border-radius: 3px; flex-shrink: 0; min-width: 22px; text-align: center; margin-top: 1px;
+        }
+        .evt-gv-name { 
+            font-size: 0.75rem; font-weight: 700; color: var(--text-dark); line-height: 1.3; word-break: break-word; white-space: normal;
+        }
+        .evt-item-row2 { 
+            font-size: 0.75rem; color: var(--primary); padding-left: 28px; line-height: 1.3; word-break: break-word; white-space: normal;
+        }
+
+        /* Chấm Bệnh viện trên cùng (All-day) */
+        .evt-clinical-dot { background-color: #10b981; color: white; border-radius: 4px; padding: 2px 0; text-align: center; font-weight: 700; font-size: 0.85rem; cursor: pointer; display: block; box-shadow: 0 2px 5px rgba(16, 185, 129, 0.4); transition: 0.2s; }
+        .evt-clinical-dot:hover { background-color: #059669; transform: scale(1.02); }
 
         .hidden { display: none !important; }
 
@@ -141,7 +140,7 @@
         .modal-content { background: white; width: 95%; max-width: 600px; border-radius: 8px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); overflow: hidden; display: flex; flex-direction: column; }
         .modal-header { padding: 15px 20px; background: var(--primary); color: white; display: flex; justify-content: space-between; align-items: center; }
         .modal-header h3 { margin: 0; font-size: 1.1rem; }
-        .modal-body { padding: 20px; line-height: 1.8; text-align: left; overflow-y: auto; max-height: 70vh;}
+        .modal-body { padding: 20px; line-height: 1.8; text-align: justify; overflow-y: auto; max-height: 70vh;}
         .modal-footer { padding: 15px 20px; background: #f1f5f9; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border); }
 
         .btn-danger { background: var(--accent); color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s;}
@@ -157,17 +156,19 @@
         .form-group select { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border); font-size: 1rem; outline: none; }
         .form-group select:focus { border-color: var(--primary); }
 
-        /* Modal Bệnh viện / Lớp học (Dùng chung modal-body) */
+        /* Modal Bệnh viện / Lớp học */
         #multiEventModal .modal-content { max-width: 750px; }
+        .clin-card { margin-bottom: 15px; padding: 15px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; border-left: 4px solid #10b981; }
+        .clin-card-title { font-weight: 700; color: var(--text-dark); font-size: 1.15rem; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; }
 
         /* Dành riêng cho Dạng danh sách trên Mobile */
-        .mobile-list-item { padding: 8px 6px; border-bottom: 1px dashed #e2e8f0; text-align: left; line-height: 1.5; }
+        .mobile-list-item { padding: 6px 4px; border-bottom: 1px dashed #e2e8f0; }
 
         /* TỐI ƯU HIỂN THỊ ĐIỆN THOẠI (Mobile Responsive) */
         @media (max-width: 768px) {
             main { flex-direction: column; }
             #external-events { position: relative; width: 100%; top: 0; max-height: 350px; }
-            .top-toolbar { top: 60px; flex-direction: column; gap: 10px; align-items: stretch; }
+            .top-toolbar { flex-direction: column; gap: 10px; align-items: stretch; top: 60px; }
             
             /* Điều chỉnh tiêu đề và nút chức năng */
             .fc-toolbar-title { font-size: clamp(1rem, 3vw, 1.2rem) !important; }
@@ -183,8 +184,43 @@
                 overflow: hidden !important;
                 text-overflow: ellipsis !important;
             }
+            .evt-item { gap: 0; }
+            .evt-item-row1 {
+                flex-wrap: nowrap;
+                overflow: hidden;
+                min-width: 0;
+            }
+            /* Thu nhỏ cỡ chữ linh động theo vw */
+            .evt-gv-name { 
+                font-size: clamp(0.55rem, 2vw, 0.75rem) !important; 
+                white-space: nowrap !important; 
+                overflow: hidden; 
+                text-overflow: ellipsis; 
+                min-width: 0;
+                display: block;
+            }
+            .evt-item-row2 { 
+                font-size: clamp(0.55rem, 2vw, 0.75rem) !important; 
+                white-space: nowrap !important; 
+                overflow: hidden; 
+                text-overflow: ellipsis; 
+                padding-left: 22px;
+                display: block;
+            }
+            .evt-room-badge { 
+                font-size: clamp(0.5rem, 1.8vw, 0.65rem) !important; 
+                min-width: auto; 
+                padding: 1px 4px;
+            }
             .evt-group-header {
                 font-size: clamp(0.6rem, 2vw, 0.75rem) !important;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            /* Style cho dạng List */
+            .mobile-list-item {
+                font-size: clamp(0.6rem, 2.2vw, 0.85rem);
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -216,7 +252,7 @@
             </select>
             <!-- NÚT XUẤT BÁO CÁO -->
             <button id="btnExportTop" class="btn-export hidden" onclick="exportWeeklyReport()" title="Xuất báo cáo các lịch đã dạy trong tuần này ra Word">
-                <i class="fas fa-file-word"></i> Xuất BC Tuần
+                <i class="fas fa-file-word"></i> Xuất BC
             </button>
         </div>
     </div>
@@ -326,6 +362,8 @@
 
         let assignmentsData = {};
         let scheduledEvents = [];
+        let clinicalSchedules = []; 
+        let globalGroupedClinicals = {}; 
         let subjectsData = [];
 
         // TỪ ĐIỂN MAP TÊN ĐẦY ĐỦ -> TÊN NGẮN
@@ -388,6 +426,7 @@
             const currentVal = select.value;
             select.innerHTML = '<option value="ALL">Tất cả Môn</option>';
             
+            // Lấy danh sách tên môn không trùng lặp
             const uniqueSubjects = [...new Set(subjectsData.map(s => s.name))].sort((a,b) => a.localeCompare(b, 'vi'));
             
             uniqueSubjects.forEach(name => {
@@ -446,6 +485,33 @@
                     }
                 }
             });
+
+            for (let d = new Date(viewStart); d < viewEnd; d.setDate(d.getDate() + 1)) {
+                let y = d.getFullYear();
+                let m = String(d.getMonth() + 1).padStart(2, '0');
+                let day = String(d.getDate()).padStart(2, '0');
+                let dateStr = `${y}-${m}-${day}`;
+
+                let eEnd = new Date(d);
+                eEnd.setHours(23, 59, 59);
+
+                if (globalGroupedClinicals[dateStr] && eEnd <= now) {
+                    globalGroupedClinicals[dateStr].forEach(c => {
+                        if (c.class_id && c.class_id.toUpperCase().includes('THS')) {
+                            let tiet = c.shift.toLowerCase().includes('cả ngày') ? 8 : 4; 
+                            reportEvents.push({
+                                timeObj: new Date(d),
+                                timeStr: `${d.toLocaleDateString('vi-VN', {weekday:'short', day:'2-digit', month:'2-digit', year:'numeric'})}<br>${c.shift}`,
+                                content: `[${c.class_id}] Thực tập lâm sàng<br><i>(${c.specialty})</i>`,
+                                gv: c.instructors, 
+                                room: c.hospital,
+                                tiet: tiet,
+                                taskType: 'Thực hành bệnh viện'
+                            });
+                        }
+                    });
+                }
+            }
 
             if (reportEvents.length === 0) {
                 showToast("Không có lịch công tác nào đã hoàn thành trong tuần đang chọn!", "danger");
@@ -554,6 +620,96 @@
             });
         }
 
+        function parseDate(dateStr) {
+            if (!dateStr) return null;
+            if (dateStr.includes('/')) {
+                const parts = dateStr.split('/');
+                return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+            }
+            return dateStr;
+        }
+
+        function parseDays(daysStr) {
+            if (!daysStr) return [1,2,3,4,5];
+            let str = daysStr.toLowerCase();
+            if (str.includes('t2 - t6') || str.includes('thứ 2 đến thứ 6') || str.includes('cả tuần')) return [1,2,3,4,5];
+            let days = [];
+            if (str.includes('t2') || str.includes('thứ 2')) days.push(1);
+            if (str.includes('t3') || str.includes('thứ 3')) days.push(2);
+            if (str.includes('t4') || str.includes('thứ 4')) days.push(3);
+            if (str.includes('t5') || str.includes('thứ 5')) days.push(4);
+            if (str.includes('t6') || str.includes('thứ 6')) days.push(5);
+            if (str.includes('t7') || str.includes('thứ 7')) days.push(6);
+            if (str.includes('cn') || str.includes('chủ nhật')) days.push(0);
+            return days.length > 0 ? days : [1,2,3,4,5];
+        }
+
+        function getClinicalEventsMap(schedules) {
+            let map = {};
+            schedules.forEach(c => {
+                let startStr = parseDate(c.start_date);
+                let endStr = parseDate(c.end_date);
+                if (!startStr) return;
+
+                let start = new Date(startStr);
+                let end = endStr ? new Date(endStr) : new Date(startStr);
+                let days = parseDays(c.days); 
+
+                let maxDays = 365; 
+                for (let d = new Date(start); d <= end && maxDays > 0; d.setDate(d.getDate() + 1), maxDays--) {
+                    if (days.includes(d.getDay())) {
+                        let y = d.getFullYear();
+                        let m = String(d.getMonth() + 1).padStart(2, '0');
+                        let day = String(d.getDate()).padStart(2, '0');
+                        let dateStr = `${y}-${m}-${day}`;
+
+                        if (!map[dateStr]) map[dateStr] = [];
+                        map[dateStr].push(c);
+                    }
+                }
+            });
+            return map;
+        }
+
+        function validateClinicalSchedule(eventObj, gvStr, subject) {
+            if (!subject.toLowerCase().includes('thực hành lâm sàng')) return true; 
+
+            const droppedDate = eventObj.start;
+            const y = droppedDate.getFullYear();
+            const m = String(droppedDate.getMonth() + 1).padStart(2, '0');
+            const d = String(droppedDate.getDate()).padStart(2, '0');
+            const dateStr = `${y}-${m}-${d}`;
+
+            const dailyClinicals = globalGroupedClinicals[dateStr] || [];
+            let targetGVs = gvStr ? gvStr.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
+
+            let valid = true;
+            for (let gv of targetGVs) {
+                const teacherClinicals = dailyClinicals.filter(c => c.instructors && c.instructors.includes(gv));
+
+                if (teacherClinicals.length === 0) {
+                    showToast(`Lỗi: Giảng viên ${gv} không có lịch trực Bệnh viện vào ngày này!`, "danger");
+                    valid = false; break;
+                }
+
+                const startHour = droppedDate.getHours();
+                const isMorningDrop = startHour < 12; 
+
+                const hasMorningShift = teacherClinicals.some(c => c.shift.toLowerCase().includes('sáng') || c.shift.toLowerCase().includes('cả ngày'));
+                const hasAfternoonShift = teacherClinicals.some(c => c.shift.toLowerCase().includes('chiều') || c.shift.toLowerCase().includes('cả ngày'));
+
+                if (isMorningDrop && !hasMorningShift) {
+                    showToast(`Lỗi: Lịch Bệnh viện của GV ${gv} ngày này chỉ có ca Sáng!`, "danger");
+                    valid = false; break;
+                }
+                if (!isMorningDrop && !hasAfternoonShift) {
+                    showToast(`Lỗi: Lịch Bệnh viện của GV ${gv} ngày này chỉ có ca Sáng!`, "danger");
+                    valid = false; break;
+                }
+            }
+            return valid;
+        }
+
         function hasOverlap(targetStart, targetEnd, gvStr, targetClass, targetTask, targetRoom, ignoreEventIds) {
             let ignoreList = Array.isArray(ignoreEventIds) ? ignoreEventIds : [ignoreEventIds];
             let tStart = targetStart.getTime();
@@ -624,56 +780,71 @@
                 }
 
                 gvShortNameMap = {};
+                if (currentUserEmail !== 'ths.phcn26@ump.edu.vn') {
+                    try {
+                        const snapSubjects = await getDocs(collection(db, "subjects"));
+                        subjectsData = [];
+                        snapSubjects.forEach(doc => {
+                            const d = doc.data();
+                            d.id = d.id || doc.id;
+                            subjectsData.push(d);
+                        });
+                        window.updatePoolSubjectFilter(); // Khởi tạo bộ lọc sau khi có môn
+
+                        const snapUser = await getDocs(collection(db, "users"));
+                        snapUser.forEach(doc => {
+                            const d = doc.data();
+                            if(d.fullName) {
+                                let pref = d.degree === 'ThS' ? 'ThS. ' : (d.degree === 'TS' ? 'TS. ' : '');
+                                let savedName = `${pref}${d.fullName}`; 
+
+                                let nameParts = d.fullName.trim().split(' ');
+                                let firstName = nameParts[nameParts.length - 1]; 
+                                let genderPref = d.gender === 'm' ? 'Thầy ' : (d.gender === 'f' ? 'Cô ' : 'GV ');
+
+                                gvShortNameMap[savedName] = `${genderPref}${firstName}`;
+                            }
+                        });
+
+                        const snapVisiting = await getDocs(collection(db, "visiting_lecturers"));
+                        snapVisiting.forEach(doc => {
+                            const d = doc.data();
+                            if (d.name && d.gender) {
+                                let nameParts = d.name.trim().split(' ');
+                                let firstName = nameParts[nameParts.length - 1]; 
+                                let genderPref = d.gender === 'm' ? 'Thầy ' : (d.gender === 'f' ? 'Cô ' : 'GV ');
+                                gvShortNameMap[d.name] = `${d.name}`; 
+                            } else if (d.name) {
+                                gvShortNameMap[d.name] = `${d.name}`; 
+                            }
+                        });
+
+                    } catch(e) { console.error("Lỗi lấy dữ liệu:", e); }
+                }
+
                 try {
-                    const snapSubjects = await getDocs(collection(db, "subjects"));
-                    subjectsData = [];
-                    snapSubjects.forEach(doc => {
-                        const d = doc.data();
-                        d.id = doc.id;
-                        subjectsData.push(d);
-                    });
-                    window.updatePoolSubjectFilter();
+                    if (currentUserEmail !== 'ths.phcn26@ump.edu.vn') {
+                        const userDoc = await getDoc(doc(db, "users", user.uid));
+                        if (userDoc.exists()) {
+                            const data = userDoc.data();
+                            let prefix = data.degree === 'ThS' ? 'ThS. ' : (data.degree === 'TS' ? 'TS. ' : '');
+                            currentUserName = `${prefix}${data.fullName}`;
 
-                    const snapUser = await getDocs(collection(db, "users"));
-                    snapUser.forEach(doc => {
-                        const d = doc.data();
-                        if(d.fullName) {
-                            let pref = d.degree === 'ThS' ? 'ThS. ' : (d.degree === 'TS' ? 'TS. ' : '');
-                            let savedName = `${pref}${d.fullName}`; 
-                            let nameParts = d.fullName.trim().split(' ');
-                            let firstName = nameParts[nameParts.length - 1]; 
-                            let genderPref = d.gender === 'm' ? 'Thầy ' : (d.gender === 'f' ? 'Cô ' : 'GV ');
-                            gvShortNameMap[savedName] = `${genderPref}${firstName}`;
+                            setTimeout(() => {
+                                const btnAuthNav = document.getElementById('btnAuthNav');
+                                if (btnAuthNav) {
+                                    btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right:5px;"></i> ${currentUserName}`;
+                                    btnAuthNav.href = "dashboard.html";
+                                }
+                            }, 300);
                         }
-                    });
-
-                    const snapVisiting = await getDocs(collection(db, "visiting_lecturers"));
-                    snapVisiting.forEach(doc => {
-                        const d = doc.data();
-                        if (d.name && d.gender) {
-                            let nameParts = d.name.trim().split(' ');
-                            let firstName = nameParts[nameParts.length - 1]; 
-                            let genderPref = d.gender === 'm' ? 'Thầy ' : (d.gender === 'f' ? 'Cô ' : 'GV ');
-                            gvShortNameMap[d.name] = `${d.name}`; 
-                        } else if (d.name) {
-                            gvShortNameMap[d.name] = `${d.name}`; 
-                        }
-                    });
-
-                } catch(e) { console.error("Lỗi lấy dữ liệu phụ:", e); }
-
-                try {
-                    const userDoc = await getDoc(doc(db, "users", user.uid));
-                    if (userDoc.exists()) {
-                        const data = userDoc.data();
-                        let prefix = data.degree === 'ThS' ? 'ThS. ' : (data.degree === 'TS' ? 'TS. ' : '');
-                        currentUserName = `${prefix}${data.fullName}`;
-
+                    } else {
+                        currentUserName = "Lớp Thạc sĩ 2026";
                         setTimeout(() => {
                             const btnAuthNav = document.getElementById('btnAuthNav');
                             if (btnAuthNav) {
                                 btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right:5px;"></i> ${currentUserName}`;
-                                btnAuthNav.href = "dashboard.html";
+                                btnAuthNav.href = "#"; 
                             }
                         }, 300);
                     }
@@ -683,7 +854,7 @@
                 initCalendar();
                 listenToDatabase();
             } else {
-                // CHƯA ĐĂNG NHẬP: VẪN CHO PHÉP XEM (KHÔNG REDIRECT NỮA)
+                // CHƯA ĐĂNG NHẬP: KHÔNG CHẶN NỮA, CHO PHÉP XEM
                 isLoggedIn = false;
                 isCalendarAdmin = false;
                 
@@ -692,13 +863,13 @@
                     subjectsData = [];
                     snapSubjects.forEach(doc => {
                         const d = doc.data();
-                        d.id = doc.id;
+                        d.id = d.id || doc.id;
                         subjectsData.push(d);
                     });
-                    window.updatePoolSubjectFilter();
+                    window.updatePoolSubjectFilter(); // Khởi tạo bộ lọc sau khi có môn
                 } catch(e){}
 
-                initRoomSelect(); 
+                initRoomSelect();
                 initCalendar();
                 listenToDatabase();
             }
@@ -730,7 +901,7 @@
             calendar = new FullCalendar.Calendar(calendarEl, {
                 locale: 'vi',
                 height: 'auto', 
-                initialView: initialCalendarView, 
+                initialView: initialCalendarView, // ListWeek trên điện thoại
                 headerToolbar: {
                     left: 'prev,next today',
                     center: 'title',
@@ -738,7 +909,10 @@
                 },
                 slotMinTime: '07:00:00',
                 slotMaxTime: '21:00:00',
-                allDaySlot: false, 
+                allDaySlot: true, 
+                allDayText: 'BV', 
+                eventDurationEditable: false, 
+                defaultTimedEventDuration: '04:30:00', 
                 slotLabelFormat: { hour: 'numeric', minute: '2-digit', omitZeroMinute: false, meridiem: false, hour12: false },
                 eventTimeFormat: { hour: 'numeric', minute: '2-digit', meridiem: false, hour12: false },
                 editable: isCalendarAdmin, 
@@ -747,6 +921,10 @@
 
                 eventContent: function(arg) {
                     const props = arg.event.extendedProps;
+
+                    if (props.type === 'clinical_summary') {
+                        return { html: `<div class="evt-clinical-dot" title="Click xem chi tiết Bệnh viện">BV</div>` };
+                    }
 
                     if (props.type === 'grouped_normal') {
                         let sTime = arg.event.start ? arg.event.start.toLocaleTimeString('vi-VN', {hour: 'numeric', minute:'2-digit', hour12: false}) : '';
@@ -758,44 +936,52 @@
                             eTime = eObj.toLocaleTimeString('vi-VN', {hour: 'numeric', minute:'2-digit', hour12: false});
                         }
                         const timeStr = `${sTime}–${eTime}`;
+                        const count = props.events.length;
 
-                        // Chế độ xem LIST WEEK (Điện thoại mặc định)
+                        // Chế độ xem LIST WEEK
                         if (arg.view.type === 'listWeek' || arg.view.type === 'listDay') {
                             let listHtml = props.events.map(e => {
                                 let gvDisplay = window.formatGvName(e.gv);
                                 let clsTag = e.class === 'THS2025' ? '<span style="color:#0369a1">[THS2025]</span>' : '<span style="color:#b45309">[THS2026]</span>';
-                                let shortRoom = e.room ? e.room.replace('Phòng ', 'P').replace('Hội trường', 'HT') : '??';
-                                return `
-                                <div class="mobile-list-item">
-                                    <div style="font-weight: bold; color: #b45309;"><i class="fas fa-map-marker-alt"></i> ${shortRoom}</div>
-                                    <div style="font-weight: 700; color: var(--text-dark); margin-top: 2px;">${clsTag} ${gvDisplay}</div>
-                                    <div style="color: var(--primary); margin-top: 2px; white-space: normal; font-weight: 600;">${e.subject}</div>
-                                </div>
-                                `;
+                                return `<div class="mobile-list-item"><b>${e.subject}</b> - ${e.room} - ${clsTag} ${gvDisplay}</div>`;
                             }).join('');
                             return { html: `<div>${listHtml}</div>` };
                         }
 
-                        // Chế độ xem TIME GRID (Máy tính)
-                        let headerHtml = `<div class="evt-group-header"><span>${timeStr}</span></div>`;
+                        // Chế độ xem TIME GRID
+                        let headerHtml = `<div class="evt-group-header">
+                                            <span>${timeStr} &nbsp;&bull;&nbsp; ${count} lớp</span>
+                                          </div>`;
 
                         let itemsHtml = props.events.map(e => {
                             let gvDisplay = window.formatGvName(e.gv);
                             let clsTag = e.class === 'THS2025' ? '<span style="color:#0369a1">[THS2025]</span>' : '<span style="color:#b45309">[THS2026]</span>';
-                            let shortRoom = e.room && e.room !== 'Khác...' ? e.room.replace('Phòng ', 'P').replace('Hội trường', 'HT') : '??';
+
+                            let shortRoom = '';
+                            if (e.room && e.room !== 'Khác...') {
+                                shortRoom = e.room.replace('Phòng ', 'P').replace('Hội trường', 'HT');
+                            } else {
+                                shortRoom = '??';
+                            }
 
                             return `
-                            <div class="evt-item" style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed rgba(2, 132, 199, 0.2); text-align: left; line-height: 1.4;">
-                                <div style="font-size: 0.75rem; font-weight: 800; color: #b45309;"><i class="fas fa-map-marker-alt"></i> ${shortRoom}</div>
-                                <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-dark); margin-top: 2px;">${clsTag} ${gvDisplay}</div>
-                                <div style="font-size: 0.75rem; color: var(--primary); margin-top: 2px; white-space: normal; word-break: break-word; font-weight: 600;">${e.subject}</div>
+                            <div class="evt-item" style="margin-bottom: 8px; line-height: 1.3;">
+                                <div class="evt-item-row1">
+                                    <span class="evt-room-badge">${shortRoom}</span>
+                                    <span class="evt-gv-name" title="${e.gv}">${clsTag} ${gvDisplay}</span>
+                                </div>
+                                <div class="evt-item-row2" title="${e.subject}">${e.subject}</div>
                             </div>
                             `;
                         }).join('');
 
+                        let isMyEvent = props.events.some(e => e.gv && currentUserName && e.gv.includes(currentUserName));
+                        let borderLeftColor = isMyEvent ? '#ea580c' : 'var(--primary)';
+                        let bgColor = isMyEvent ? '#fff7ed' : 'white';
+
                         return {
                             html: `
-                            <div class="evt-group-container">
+                            <div class="evt-group-container" style="background: ${bgColor}; border-left-color: ${borderLeftColor};">
                                 ${headerHtml}
                                 <div class="evt-items-list">${itemsHtml}</div>
                             </div>
@@ -804,16 +990,85 @@
                     }
                 },
 
+                eventReceive: function(info) {
+                    if (!isCalendarAdmin) { info.revert(); return; }
+
+                    const props = info.event.extendedProps;
+                    if (!validateClinicalSchedule(info.event, props.gv, props.subject)) {
+                        info.revert(); return;
+                    }
+
+                    pendingDropInfo = info;
+                    document.getElementById('roomSelect').value = ROOM_LIST[0]; 
+                    document.getElementById('roomModal').classList.remove('hidden');
+                },
+
+                eventDrop: async function(info) {
+                    if (!isCalendarAdmin) { info.revert(); return; }
+                    const props = info.event.extendedProps;
+
+                    if (props.type === 'clinical_summary') {
+                        info.revert(); return; 
+                    }
+
+                    if (props.type === 'grouped_normal') {
+                        const subEvents = props.events;
+
+                        // Kiểm tra quyền và logic cho từng sự kiện trong nhóm
+                        for (let e of subEvents) {
+                            if (e.scheduledByEmail && e.scheduledByEmail !== currentUserEmail && currentUserEmail !== 'hoangtran1483@gmail.com') {
+                                showToast(`Lỗi: Không thể dời lịch nhóm chứa môn do GV khác xếp!`, "danger");
+                                info.revert(); return;
+                            }
+                            if (!validateClinicalSchedule({start: info.event.start}, e.gv, e.subject)) {
+                                info.revert(); return;
+                            }
+                        }
+
+                        // Khi di chuyển cả nhóm, cần bỏ qua ID của TẤT CẢ các thẻ trong nhóm để tránh bị tự phát hiện trùng
+                        const groupIds = subEvents.map(ev => ev.id);
+                        for (let e of subEvents) {
+                            const overlapCheck = hasOverlap(info.event.start, info.event.end, e.gv, e.class, e.task, e.room, groupIds);
+                            if (overlapCheck.hasOverlap) {
+                                showToast(overlapCheck.reason, "danger");
+                                info.revert(); return;
+                            }
+                        }
+
+                        try {
+                            let promises = subEvents.map(e => {
+                                return setDoc(doc(db, "calendar_events", e.id), { 
+                                    start: info.event.startStr,
+                                    end: info.event.endStr || null,
+                                    allDay: info.event.allDay
+                                }, { merge: true });
+                            });
+                            await Promise.all(promises);
+                            showToast("Đã dời toàn bộ lịch trong nhóm thành công!");
+                        } catch(err) {
+                            showToast("Lỗi dời lịch!", "danger");
+                            info.revert();
+                        }
+                    }
+                },
+
                 eventMouseEnter: function(info) {
                     const props = info.event.extendedProps;
                     const tooltip = document.getElementById('eventTooltip');
 
-                    if (props.type === 'grouped_normal') {
-                        let html = `<strong><i class="fas fa-layer-group"></i> Lịch học chi tiết</strong><br>`;
+                    if (props.type === 'clinical_summary') {
+                        const count = props.details ? props.details.length : 0;
+                        tooltip.innerHTML = `
+                            <strong><i class="fas fa-hospital-user"></i> Lịch Đi Bệnh Viện</strong><br>
+                            Có <b>${count}</b> nhóm sinh viên đi thực tập trong ngày hôm nay.<br>
+                            <span class="tooltip-scheduler" style="color: #bae6fd; font-weight: normal; font-size: 0.8rem;"><i class="fas fa-hand-pointer"></i> Click để xem chi tiết từng Bệnh viện</span>
+                        `;
+                    } else if (props.type === 'grouped_normal') {
+                        let html = `<strong><i class="fas fa-layer-group"></i> ${props.events.length} Lớp Học</strong><br>`;
                         props.events.forEach(e => {
                             let cName = e.class === 'THS2025' ? 'THS2025' : 'THS2026';
                             let gvDisplay = window.formatGvName(e.gv);
-                            html += `<div style="margin-top:6px; border-top:1px dashed rgba(255,255,255,0.2); padding-top:6px; line-height: 1.4; text-align: left;">
+                            html += `<div style="margin-top:6px; border-top:1px dashed rgba(255,255,255,0.2); padding-top:6px; line-height: 1.4;">
                                 <span style="color:#fbbf24; font-weight:bold;">${e.room || '??'}</span> | <span style="color:#bae6fd;">[${cName}] ${gvDisplay}</span><br>
                                 <span style="font-size:0.85rem;">${e.subject}</span>
                             </div>`;
@@ -846,9 +1101,58 @@
                 },
 
                 eventClick: function(info) {
+                    // YÊU CẦU: Nếu chưa đăng nhập, KHÔNG được xem chi tiết Lịch
+                    if (!isLoggedIn) {
+                        showToast("Vui lòng đăng nhập để xem chi tiết lịch!", "danger");
+                        return;
+                    }
+
                     const props = info.event.extendedProps;
                     const modal = document.getElementById('multiEventModal');
                     const modalBody = document.getElementById('multiEventModalBody');
+                    const modalTitle = document.getElementById('multiEventModalTitle');
+                    const modalHeader = document.getElementById('multiEventModalHeader');
+
+                    if (props.type === 'clinical_summary') {
+                        let dateObj = new Date(props.dateStr);
+                        let dateVN = dateObj.toLocaleDateString('vi-VN', {weekday: 'long', day:'2-digit', month:'2-digit', year:'numeric'});
+
+                        let hospitalGroups = {};
+                        props.details.forEach(c => {
+                            if(!hospitalGroups[c.hospital]) hospitalGroups[c.hospital] = [];
+                            hospitalGroups[c.hospital].push(c);
+                        });
+
+                        let html = `<div style="color: #10b981; font-weight:bold; font-size:1.1rem; margin-bottom:15px; border-bottom: 2px solid var(--border); padding-bottom:10px;">
+                                        Ngày ${dateVN}
+                                    </div>`;
+
+                        for (let hosp in hospitalGroups) {
+                            html += `
+                            <div class="clin-card">
+                                <div class="clin-card-title">${hosp}</div>
+                            `;
+
+                            hospitalGroups[hosp].forEach((c, index) => {
+                                const borderStyle = index < hospitalGroups[hosp].length - 1 ? 'border-bottom: 1px dashed #cbd5e1; margin-bottom: 10px; padding-bottom: 10px;' : '';
+                                html += `
+                                <div style="font-size: 0.95rem; color: var(--text-dark); line-height: 1.6; ${borderStyle}">
+                                    <b>Khóa/Lớp:</b> <span style="color: #b45309; font-weight: 600;">${c.class_id || 'N/A'}</span><br>
+                                    <b>Chuyên ngành:</b> <span style="color: var(--primary); font-weight: 600;">${c.specialty}</span> (${c.number_students || '?'} SV)<br>
+                                    <b>Ca trực:</b> ${c.shift}<br>
+                                    <b>Giảng viên nhận việc:</b> <span>${c.instructors}</span>
+                                </div>`;
+                            });
+
+                            html += `</div>`;
+                        }
+
+                        modalBody.innerHTML = html;
+                        modalTitle.innerText = "Chi tiết Lịch Bệnh viện";
+                        modalHeader.style.background = "#10b981";
+                        modal.classList.remove('hidden');
+                        return;
+                    }
 
                     if (props.type === 'grouped_normal') {
                         let sTime = info.event.start ? info.event.start.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'}) : '';
@@ -859,22 +1163,31 @@
                         const dateStr = info.event.start ? info.event.start.toLocaleDateString('vi-VN', {weekday: 'long', day:'2-digit', month:'2-digit', year:'numeric'}) : '';
 
                         let html = `<div style="color: var(--primary); font-weight:bold; font-size:1.1rem; margin-bottom:15px; border-bottom: 2px solid var(--border); padding-bottom:10px;">
-                                        <i class="far fa-clock"></i> ${sTime} - ${eTime} (${dateStr})
+                                        ${sTime} - ${eTime} (${dateStr})
                                     </div>`;
 
                         props.events.forEach(e => {
-                            let clsName = e.class === 'THS2025' ? 'THS2025' : 'THS2026';
+                            let clsName = e.class === 'THS2025' ? 'THS2025' : (e.class === 'THS2026' ? 'THS2026' : e.class);
+                            let canDelete = isCalendarAdmin && (!e.scheduledByEmail || e.scheduledByEmail === currentUserEmail || currentUserEmail === 'hoangtran1483@gmail.com');
+
+                            let delBtn = canDelete ? `<button class="btn-danger" style="padding:4px 10px; font-size:0.8rem;" onclick="deleteSubEvent('${e.id}')"><i class="fas fa-trash"></i> Trả về kho</button>` : '';
+
                             html += `
-                            <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px; padding:15px; margin-bottom:12px; text-align: left; line-height: 1.6;">
-                                <p style="margin:0 0 5px 0; font-size: 0.9rem; font-weight: bold; color: #b45309;">Lớp: ${clsName}</p>
-                                <p style="margin:0 0 5px 0; font-size: 1.05rem; font-weight: 700; color: var(--primary);">${e.subject}</p>
-                                <p style="margin:0 0 5px 0; color: var(--text-dark);"><strong>Phòng học:</strong> <span style="background:#fbbf24; color:#78350f; padding:2px 8px; border-radius:4px; font-weight:bold;">${e.room || 'Chưa XĐ'}</span></p>
-                                <p style="margin:0; color: var(--text-dark);"><strong>Giảng viên:</strong> <span style="font-weight:bold;">${e.gv}</span></p>
+                            <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:12px; margin-bottom:12px; position:relative;">
+                                <div style="position:absolute; right:12px; top:12px;">${delBtn}</div>
+                                <p style="margin:0 0 5px 0;"><strong>Khóa/Lớp:</strong> <span style="color:var(--primary); font-weight:bold;">${clsName}</span></p>
+                                <p style="margin:0 0 5px 0;"><strong>Phòng học:</strong> <span style="background:#fbbf24; color:#78350f; padding:2px 6px; border-radius:4px; font-weight:bold;">${e.room || 'Chưa XĐ'}</span></p>
+                                <p style="margin:0 0 5px 0; padding-right:85px;"><strong>Môn học:</strong> ${e.subject}</p>
+                                <p style="margin:0 0 5px 0;"><strong>Nhiệm vụ:</strong> ${e.task}</p>
+                                <p style="margin:0 0 5px 0;"><strong>Giảng viên:</strong> <span style="color:var(--primary); font-weight:bold;">${e.gv}</span></p>
+                                <p style="margin:0; font-size:0.85rem; color:#64748b;"><i class="fas fa-user-edit"></i> Xếp bởi: ${e.scheduledByName || 'Admin'}</p>
                             </div>
                             `;
                         });
 
                         modalBody.innerHTML = html;
+                        modalTitle.innerText = "Chi tiết Tổ hợp Lịch dạy";
+                        modalHeader.style.background = "var(--primary)";
                         modal.classList.remove('hidden');
                     }
                 }
@@ -882,24 +1195,118 @@
             calendar.render();
         }
 
-        function processAndRenderEvents() {
+        window.confirmRoomSelection = async () => {
+            if (!pendingDropInfo) return;
+
+            const selectedRoom = document.getElementById('roomSelect').value;
+            const info = pendingDropInfo;
+            const props = info.event.extendedProps;
+
+            document.getElementById('roomModal').classList.add('hidden');
+
+            const overlapCheck = hasOverlap(info.event.start, info.event.end, props.gv, props.eventClass, props.task, selectedRoom, [info.event.id]);
+            if (overlapCheck.hasOverlap) {
+                showToast(overlapCheck.reason, "danger");
+                info.revert();
+                pendingDropInfo = null;
+                return;
+            }
+
+            const newUniqueId = props.originalId + '_' + Date.now();
+
+            const eventData = {
+                id: newUniqueId, 
+                title: info.event.title,
+                start: info.event.startStr,
+                end: info.event.endStr || null,
+                allDay: info.event.allDay,
+                class: props.eventClass, 
+                subject: props.subject,
+                gv: props.gv,
+                task: props.task,
+                room: selectedRoom, 
+                scheduledByEmail: currentUserEmail,
+                scheduledByName: currentUserName,
+                status: 'scheduled'
+            };
+
+            try {
+                await setDoc(doc(db, "calendar_events", eventData.id), eventData);
+                showToast(`Đã xếp lịch thành công (${selectedRoom})!`);
+                info.event.remove(); 
+            } catch(e) {
+                showToast("Lỗi khi lưu lịch: " + e.message, "danger");
+                info.revert(); 
+            }
+            pendingDropInfo = null;
+        };
+
+        window.cancelRoomSelection = () => {
+            if (pendingDropInfo) {
+                pendingDropInfo.revert();
+                pendingDropInfo = null;
+            }
+            document.getElementById('roomModal').classList.add('hidden');
+        };
+
+        function listenToDatabase() {
+            onSnapshot(collection(db, "calendar_events"), (snapshot) => {
+                scheduledEvents = [];
+                snapshot.forEach(doc => { scheduledEvents.push(doc.data()); });
+                window.processAndRenderEvents();
+            }, (error) => console.error("Lỗi lấy lịch:", error));
+
+            if (currentUserEmail !== 'ths.phcn26@ump.edu.vn') {
+                onSnapshot(collection(db, "assignments"), (snapshot) => {
+                    assignmentsData = {};
+                    snapshot.forEach(doc => { assignmentsData[doc.id] = doc.data(); });
+                    window.processAndRenderEvents();
+                }, (error) => console.error(error));
+
+                onSnapshot(collection(db, "clinical_schedules"), (snapshot) => {
+                    clinicalSchedules = [];
+                    snapshot.forEach(doc => { 
+                        const data = doc.data();
+                        data.id = doc.id;
+                        clinicalSchedules.push(data); 
+                    });
+                    window.processAndRenderEvents();
+                }, (error) => console.error(error));
+            }
+        }
+
+        window.processAndRenderEvents = () => {
             if (!calendar) return;
+            
+            const selectedSemester = isLoggedIn ? document.getElementById('semesterSelect').value : 'ALL';
+            const poolClassFilter = document.getElementById('poolClassFilter').value; 
+            const poolSubjectFilter = document.getElementById('poolSubjectFilter') ? document.getElementById('poolSubjectFilter').value : 'ALL';
 
             calendar.removeAllEvents();
-            
+            const poolDiv = document.getElementById('event-pool');
+            poolDiv.innerHTML = '';
+            let unscheduledCount = 0;
+
             let scheduledEventsNormal = scheduledEvents.filter(e => e.status !== 'returned');
 
+            // Xử lý loại bỏ trùng lặp khi 2 hệ học chung
             let deduplicatedEventsMap = new Map();
             scheduledEventsNormal.forEach(e => {
                 let subObj = subjectsData.find(s => s.name === e.subject);
                 let baseSubId = subObj ? subObj.id : e.subject; 
-                let deduplicateKey = `${e.start}_${e.end}_${e.room}_${baseSubId}_${e.task}_${e.gv}_${e.class}`;
+                let deduplicateKey = `${e.start}_${e.end}_${e.room}_${baseSubId}_${e.task}_${e.gv}`;
 
                 if (!deduplicatedEventsMap.has(deduplicateKey)) {
                     deduplicatedEventsMap.set(deduplicateKey, e);
                 }
             });
             let deduplicatedEvents = Array.from(deduplicatedEventsMap.values());
+
+            // YÊU CẦU ĐẶC BIỆT MỚI: NẾU CHƯA ĐĂNG NHẬP THÌ CHO XEM THS2026, CÒN NẾU ĐĂNG NHẬP THÌ XEM TẤT CẢ
+            if (!isLoggedIn) {
+                // DO NOTHING: Đoạn này đã được loại bỏ logic ép xem THS2026
+                // Để thay vào đó là tính năng nếu chưa đăng nhập sẽ redirect về thong-bao.html (Đã xử lý ở trên onAuthStateChanged)
+            }
 
             let groupedEvents = {};
 
@@ -922,6 +1329,7 @@
             let currentClassEvents = [];
             for (let key in groupedEvents) {
                 let group = groupedEvents[key];
+
                 currentClassEvents.push({
                     id: 'group_' + key,
                     start: group.start,
@@ -937,11 +1345,217 @@
                 });
             }
             calendar.addEventSource(currentClassEvents);
-        }
 
-        // Khởi động
-        loadInitialData();
+            // Xử lý Bệnh viện
+            if (currentUserEmail !== 'ths.phcn26@ump.edu.vn') {
+                globalGroupedClinicals = getClinicalEventsMap(clinicalSchedules); 
+                let clinicalEvents = [];
+                for (let dateStr in globalGroupedClinicals) {
+                    let clinList = globalGroupedClinicals[dateStr];
+                    
+                    if (clinList.length > 0) {
+                        clinicalEvents.push({
+                            id: 'clin_sum_' + dateStr,
+                            title: 'BV',
+                            start: dateStr, 
+                            allDay: true,
+                            backgroundColor: 'transparent',
+                            borderColor: 'transparent',
+                            editable: false, 
+                            extendedProps: {
+                                type: 'clinical_summary',
+                                details: clinList,
+                                dateStr: dateStr
+                            }
+                        });
+                    }
+                }
+                calendar.addEventSource(clinicalEvents);
+            }
+
+            // KHO SỰ KIỆN CHỈ DÀNH CHO ADMIN
+            if (currentUserEmail !== 'ths.phcn26@ump.edu.vn') {
+                let scheduledCounts = {};
+                scheduledEvents.forEach(e => {
+                    if (e.status !== 'returned') {
+                        const key = `${e.subject}_${e.gv}_${e.task}_${e.class}`;
+                        if(!scheduledCounts[key]) scheduledCounts[key] = 0;
+                        scheduledCounts[key]++;
+                    }
+                });
+
+                let poolMap = new Map();
+
+                let orderedSubjectNames = [];
+                let subjectGroups = {};
+
+                subjectsData.forEach(sub => {
+                    if (!subjectGroups[sub.name]) {
+                        orderedSubjectNames.push(sub.name);
+                        subjectGroups[sub.name] = [];
+                    }
+                    subjectGroups[sub.name].push(sub.id);
+                });
+
+                orderedSubjectNames.forEach(subName => {
+                    if (poolSubjectFilter !== 'ALL' && subName !== poolSubjectFilter) return; // BỘ LỌC THEO MÔN
+
+                    const subIds = subjectGroups[subName];
+                    let subjectCardsMap = new Map();
+
+                    subIds.forEach(subId => {
+                        const subAsg = assignmentsData[subId];
+                        if (!subAsg) return;
+
+                        managedClasses.forEach(cls => {
+                            if (poolClassFilter !== 'ALL' && cls !== poolClassFilter) return;
+
+                            if (subAsg[cls] && subAsg[cls].allocations && subAsg[cls].status !== 'proposed') {
+                                const semester = subAsg[cls].semester || 'Chưa xác định';
+                                if (selectedSemester !== 'ALL' && semester !== selectedSemester) return; 
+
+                                subAsg[cls].allocations.forEach(a => {
+                                    const totalAssigned = parseInt(a.assigned) || 0;
+                                    const keyForCount = `${subName}_${a.gv}_${a.task}_${cls}`;
+                                    const alreadyScheduled = scheduledCounts[keyForCount] || 0;
+
+                                    let rejectedCardsOfThisTask = scheduledEvents.filter(e => e.class === cls && e.status === 'returned' && e.subject === subName && e.gv === a.gv && e.task === a.task);
+
+                                    let remaining = totalAssigned - alreadyScheduled;
+                                    let remainingNormal = remaining - rejectedCardsOfThisTask.length; 
+
+                                    if (remainingNormal > 0) {
+                                        if (!subjectCardsMap.has(keyForCount)) {
+                                            subjectCardsMap.set(keyForCount, {
+                                                type: 'normal',
+                                                data: { subName, a, cls, keyForCount },
+                                                count: remainingNormal,
+                                                gv: a.gv
+                                            });
+                                        } else {
+                                            subjectCardsMap.get(keyForCount).count = Math.max(subjectCardsMap.get(keyForCount).count, remainingNormal);
+                                        }
+                                    }
+
+                                    rejectedCardsOfThisTask.forEach(rTask => {
+                                        let rKey = `reject_${rTask.id}`;
+                                        if (!subjectCardsMap.has(rKey)) {
+                                            subjectCardsMap.set(rKey, {
+                                                type: 'rejected',
+                                                data: { subName, a, cls, keyForCount, rTask },
+                                                count: 1,
+                                                gv: a.gv
+                                            });
+                                        }
+                                    });
+                                });
+                            }
+                        });
+                    });
+
+                    const cardsArray = Array.from(subjectCardsMap.values());
+
+                    if (cardsArray.length > 0) {
+                        cardsArray.sort((a, b) => a.gv.localeCompare(b.gv));
+
+                        let subjectContainer = document.createElement('div');
+                        subjectContainer.className = 'pool-subject-group';
+
+                        let subjectHeader = document.createElement('div');
+                        subjectHeader.className = 'pool-subject-title';
+                        subjectHeader.style.cursor = 'pointer';
+                        subjectHeader.style.display = 'flex';
+                        subjectHeader.style.justifyContent = 'space-between';
+                        subjectHeader.style.alignItems = 'center';
+                        subjectHeader.innerHTML = `<span><i class="fas fa-book"></i> ${subName}</span> <i class="fas fa-chevron-down toggle-icon" style="color: #64748b;"></i>`;
+                        subjectContainer.appendChild(subjectHeader);
+
+                        let cardsContainer = document.createElement('div');
+                        cardsContainer.className = 'pool-cards-container hidden'; // Mặc định thu gọn
+
+                        cardsArray.forEach(item => {
+                            const isRejected = item.type === 'rejected';
+                            const count = item.count;
+                            const { a, cls, keyForCount, rTask } = item.data;
+
+                            unscheduledCount += count;
+
+                            const eventDiv = document.createElement('div');
+                            eventDiv.className = `fc-event ${cls} ${isRejected ? 'rejected-task' : ''}`;
+
+                            eventDiv.setAttribute('data-id', keyForCount); 
+                            eventDiv.setAttribute('data-title', a.gv); 
+                            eventDiv.setAttribute('data-subject', subName);
+                            eventDiv.setAttribute('data-gv', a.gv);
+                            eventDiv.setAttribute('data-task', a.task);
+                            eventDiv.setAttribute('data-class', cls);
+
+                            if (isRejected && rTask) {
+                                eventDiv.setAttribute('data-original-id', rTask.id); 
+                            }
+
+                            let classTag = cls === 'THS2025' ? '<span class="class-tag THS2025">THS2025</span>' : '<span class="class-tag THS2026">THS2026</span>';
+
+                            let rejectHtml = '';
+                            if (isRejected && rTask) {
+                                const rejectTimes = rTask.rejected || 1;
+                                rejectHtml = `<span class="reject-badge"><i class="fas fa-exclamation-circle"></i> Bị từ chối (${rejectTimes} lần)</span>`;
+                            }
+
+                            let countBadge = (!isRejected && count > 0) ? `<div class="count-badge">${count}</div>` : '';
+                            let gvDisplay = window.formatGvName(a.gv);
+
+                            eventDiv.innerHTML = `
+                                ${countBadge}
+                                ${classTag}
+                                <div class="event-gv" title="${a.gv}">${gvDisplay}</div>
+                                <span class="event-info">[${a.task}]</span>
+                                ${rejectHtml}
+                            `;
+
+                            cardsContainer.appendChild(eventDiv);
+                        });
+
+                        subjectContainer.appendChild(cardsContainer);
+
+                        // Xử lý thu gọn/xổ xuống
+                        subjectHeader.onclick = () => {
+                            cardsContainer.classList.toggle('hidden');
+                            let icon = subjectHeader.querySelector('.toggle-icon');
+                            if (cardsContainer.classList.contains('hidden')) {
+                                icon.classList.remove('fa-chevron-up');
+                                icon.classList.add('fa-chevron-down');
+                            } else {
+                                icon.classList.remove('fa-chevron-down');
+                                icon.classList.add('fa-chevron-up');
+                            }
+                        };
+
+                        poolDiv.appendChild(subjectContainer);
+                    }
+                });
+            }
+
+            const extEventsPanel = document.getElementById('external-events');
+            const btnToggle = document.getElementById('btnToggleSidebar');
+
+            if (isCalendarAdmin) {
+                btnToggle.classList.remove('hidden'); 
+                if (unscheduledCount === 0) {
+                    extEventsPanel.style.display = 'none';
+                } else {
+                    if (!extEventsPanel.hasAttribute('data-manually-hidden')) {
+                        extEventsPanel.style.display = 'flex';
+                    }
+                }
+            } else {
+                extEventsPanel.style.display = 'none';
+                btnToggle.classList.add('hidden');
+            }
+            setTimeout(() => { calendar.updateSize(); }, 50);
+        };
 
     </script>
 </body>
 </html>
+ở file này tôi muốn sửa lại là chỉ hiển thị cho người xem lịch học, không cần quyền thao tác. nếu chưa đăng nhập thì xem lịch trống (ko hiển thị nội dung), nếu đã đăng nhập thì chỉ xem các lịch của lớp THS2026.
