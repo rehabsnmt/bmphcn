@@ -2,15 +2,14 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="description" content="Thời khóa biểu Thạc sĩ 2026 - Bộ môn Phục hồi chức năng.">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Thời khóa biểu - Bộ môn Phục hồi chức năng.">
     <title>Thời Khóa Biểu - Bộ môn Phục hồi chức năng</title>
 
     <link rel="icon" href="images/logo_Bộ môn.png" type="image/png">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- FullCalendar CSS & JS -->
     <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/vi.js'></script>
@@ -53,12 +52,31 @@
         #event-pool .fc-event { cursor: move; margin: 0 0 10px 0; padding: 10px 12px; color: var(--text-dark); border: 1px solid var(--border); border-radius: 6px; text-align: left; transition: 0.2s; position: relative; }
 
         /* Box chứa Môn học trong Kho */
-        .pool-subject-group { margin-bottom: 18px; padding: 12px 10px 2px 10px; background: white; border-radius: 8px; border: 1px solid #cbd5e1; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        .pool-subject-title { font-size: 0.9rem; font-weight: 800; color: var(--text-dark); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #f1f5f9; line-height: 1.4; }
+        .pool-subject-group {
+            margin-bottom: 18px;
+            padding: 12px 10px 2px 10px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .pool-subject-title {
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: var(--text-dark);
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #f1f5f9;
+            line-height: 1.4;
+        }
         .pool-subject-title i { color: var(--primary); margin-right: 5px; }
 
         /* Huy hiệu đếm số sự kiện gộp */
-        .count-badge { position: absolute; top: -10px; right: -10px; background-color: #ef4444; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2); border: 2px solid white; z-index: 10; }
+        .count-badge {
+            position: absolute; top: -10px; right: -10px; background-color: #ef4444; color: white;
+            border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+            font-size: 0.8rem; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2); border: 2px solid white; z-index: 10;
+        }
 
         /* Màu nền phân biệt Lớp trong Kho */
         #event-pool .fc-event.THS2025 { background-color: #f0f9ff; border-color: #bae6fd; }
@@ -73,6 +91,12 @@
         #event-pool .event-gv { font-weight: 700; font-size: 1rem; margin-bottom: 4px; color: var(--primary); }
         #event-pool .event-info { display: block; font-size: 0.85rem; color: var(--text-body); line-height: 1.4; }
 
+        /* Cảnh báo sự kiện bị GV từ chối trả về */
+        #event-pool .fc-event.rejected-task { border-left: 4px solid #ef4444 !important; border-color: #ef4444 !important; background-color: #fef2f2 !important; }
+        #event-pool .fc-event.rejected-task .event-gv { color: #b91c1c; }
+        #event-pool .fc-event.rejected-task .reject-badge { display: block; font-size: 0.75rem; color: #ef4444; font-weight: bold; margin-top: 5px; animation: blink 1.5s infinite; }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
         /* Khung Lịch */
         #calendar-container { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 15px; box-shadow: var(--shadow-sm); min-width: 0; transition: 0.3s; }
 
@@ -84,14 +108,35 @@
         /* TÙY CHỈNH THẺ SỰ KIỆN GOM NHÓM (GROUPED EVENT) TRÊN LỊCH */
         .fc-event-main { padding: 0 !important; }
 
-        .evt-group-container { background: white; border: 1px solid #cbd5e1; border-radius: 4px; padding: 6px; box-sizing: border-box; height: 100%; display: flex; flex-direction: column; overflow: hidden; border-left: 4px solid var(--primary); color: var(--text-dark); box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        .evt-group-header { font-size: 0.8rem; font-weight: 700; color: #64748b; margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: flex-start; }
-        .evt-items-list { flex: 1; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; gap: 8px; }
+        .evt-group-container {
+            background: white; border: 1px solid #cbd5e1;
+            border-radius: 4px; padding: 6px; box-sizing: border-box;
+            height: 100%; display: flex; flex-direction: column;
+            overflow: hidden; border-left: 4px solid var(--primary);
+            color: var(--text-dark); box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .evt-group-header {
+            font-size: 0.8rem; font-weight: 700; color: #64748b;
+            margin-bottom: 6px; padding-bottom: 4px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex; align-items: center; justify-content: flex-start;
+        }
+        .evt-items-list {
+            flex: 1; overflow-y: auto; overflow-x: hidden;
+            display: flex; flex-direction: column; gap: 8px;
+        }
         .evt-item { display: flex; flex-direction: column; gap: 2px; margin-bottom: 4px; }
         .evt-item-row1 { display: flex; gap: 6px; align-items: flex-start; }
-        .evt-room-badge { background: #fbbf24; color: #78350f; font-weight: 800; font-size: 0.7rem; padding: 2px 4px; border-radius: 3px; flex-shrink: 0; min-width: 22px; text-align: center; margin-top: 1px; }
-        .evt-gv-name { font-size: 0.75rem; font-weight: 700; color: var(--text-dark); line-height: 1.3; word-break: break-word; white-space: normal; }
-        .evt-item-row2 { font-size: 0.75rem; color: var(--primary); padding-left: 28px; line-height: 1.3; word-break: break-word; white-space: normal; }
+        .evt-room-badge { 
+            background: #fbbf24; color: #78350f; font-weight: 800; font-size: 0.7rem; 
+            padding: 2px 4px; border-radius: 3px; flex-shrink: 0; min-width: 22px; text-align: center; margin-top: 1px;
+        }
+        .evt-gv-name { 
+            font-size: 0.75rem; font-weight: 700; color: var(--text-dark); line-height: 1.3; word-break: break-word; white-space: normal;
+        }
+        .evt-item-row2 { 
+            font-size: 0.75rem; color: var(--primary); padding-left: 28px; line-height: 1.3; word-break: break-word; white-space: normal;
+        }
 
         /* Chấm Bệnh viện trên cùng (All-day) */
         .evt-clinical-dot { background-color: #10b981; color: white; border-radius: 4px; padding: 2px 0; text-align: center; font-weight: 700; font-size: 0.85rem; cursor: pointer; display: block; box-shadow: 0 2px 5px rgba(16, 185, 129, 0.4); transition: 0.2s; }
@@ -134,21 +179,70 @@
         .clin-card { margin-bottom: 15px; padding: 15px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; border-left: 4px solid #10b981; }
         .clin-card-title { font-weight: 700; color: var(--text-dark); font-size: 1.15rem; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; }
 
+        /* Dành riêng cho Dạng danh sách trên Mobile */
+        .mobile-list-item { padding: 6px 4px; border-bottom: 1px dashed #e2e8f0; }
+
         /* TỐI ƯU HIỂN THỊ ĐIỆN THOẠI (Mobile Responsive) */
         @media (max-width: 768px) {
-            .top-toolbar { flex-wrap: wrap; gap: 10px; }
-            .controls-wrapper { width: 100%; justify-content: space-between; }
-            .filter-select { flex: 1; }
+            main { flex-direction: column; }
+            #external-events { position: relative; width: 100%; top: 0; max-height: 350px; }
+            .top-toolbar { flex-direction: column; gap: 10px; align-items: stretch; }
             
-            /* Điều chỉnh các nút FullCalendar cho nhỏ lại */
-            .fc-button-primary { padding: 4px 8px !important; font-size: 0.8rem !important; }
-            .fc-toolbar-chunk { display: flex; gap: 3px; }
+            /* Điều chỉnh tiêu đề và nút chức năng */
+            .fc-toolbar-title { font-size: clamp(1rem, 3vw, 1.2rem) !important; }
+            .fc-button-primary { padding: 4px 8px !important; font-size: 0.75rem !important; }
             
-            #calendar-container { padding: 10px; }
-            .evt-group-container { padding: 3px; }
-            .evt-group-header { font-size: 0.7rem; margin-bottom: 3px; padding-bottom: 2px; }
-            .evt-room-badge { min-width: 18px; font-size: 0.65rem; padding: 1px 3px; }
-            .evt-gv-name, .evt-item-row2 { font-size: 0.7rem; }
+            /* Ẩn cột thời gian trong lịch tuần (giải phóng không gian) */
+            .fc .fc-timegrid-axis, .fc .fc-timegrid-slot-label { width: 0 !important; padding: 0 !important; border: none !important; }
+            .fc .fc-timegrid-slot-label-cushion, .fc .fc-timegrid-axis-cushion { display: none !important; }
+
+            /* --- CỐT LÕI TÙY CHỈNH THU NHỎ FONT VÀ CẤM RỚT DÒNG --- */
+            .fc-event-main, .fc-list-event-title {
+                white-space: nowrap !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+            }
+            .evt-item { gap: 0; }
+            .evt-item-row1 {
+                flex-wrap: nowrap;
+                overflow: hidden;
+                min-width: 0;
+            }
+            /* Thu nhỏ cỡ chữ linh động theo vw */
+            .evt-gv-name { 
+                font-size: clamp(0.55rem, 2vw, 0.75rem) !important; 
+                white-space: nowrap !important; 
+                overflow: hidden; 
+                text-overflow: ellipsis; 
+                min-width: 0;
+                display: block;
+            }
+            .evt-item-row2 { 
+                font-size: clamp(0.55rem, 2vw, 0.75rem) !important; 
+                white-space: nowrap !important; 
+                overflow: hidden; 
+                text-overflow: ellipsis; 
+                padding-left: 22px;
+                display: block;
+            }
+            .evt-room-badge { 
+                font-size: clamp(0.5rem, 1.8vw, 0.65rem) !important; 
+                min-width: auto; 
+                padding: 1px 4px;
+            }
+            .evt-group-header {
+                font-size: clamp(0.6rem, 2vw, 0.75rem) !important;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            /* Style cho dạng List */
+            .mobile-list-item {
+                font-size: clamp(0.6rem, 2.2vw, 0.85rem);
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
         }
     </style>
 </head>
@@ -287,7 +381,6 @@
         // TỪ ĐIỂN MAP TÊN ĐẦY ĐỦ -> TÊN NGẮN
         let gvShortNameMap = {};
 
-        // SỬA LỖI NÚT KHO SỰ KIỆN KHÔNG HOẠT ĐỘNG
         window.toggleSidebar = () => {
             const panel = document.getElementById('external-events');
             const isHidden = panel.style.display === 'none' || panel.classList.contains('hidden');
@@ -304,7 +397,6 @@
             setTimeout(() => { if(calendar) calendar.updateSize(); }, 100);
         };
 
-        // Xóa sự kiện
         window.deleteSubEvent = async (id) => {
             if(!id) return;
             if(confirm("Bạn có chắc muốn xóa sự kiện này khỏi lịch? (Sự kiện sẽ được trả về kho)")) {
@@ -330,7 +422,6 @@
             setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
         }
 
-        // HÀM FORMAT TÊN GIẢNG VIÊN THÔNG MINH
         window.formatGvName = (gvString) => {
             if (!gvString) return '';
             let gvs = gvString.split(/,|&/).map(s => s.trim());
@@ -341,7 +432,6 @@
             return shortGvs.join(', ');
         };
 
-        // HÀM XUẤT BÁO CÁO WORD
         window.exportWeeklyReport = () => {
             if (!calendar) return;
 
@@ -350,7 +440,6 @@
             let now = new Date();
 
             let reportEvents = [];
-
             let scheduledEventsNormal = scheduledEvents.filter(e => e.status !== 'returned');
 
             let deduplicatedNormalEventsMap = new Map();
@@ -671,6 +760,7 @@
         const isMobile = window.innerWidth <= 768;
         const initialCalendarView = isMobile ? 'listWeek' : 'timeGridWeek';
 
+        // TIẾN TRÌNH XÁC THỰC VÀ KHỞI TẠO TẢI TRANG
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 isLoggedIn = true;
@@ -741,22 +831,8 @@
                 initCalendar();
                 listenToDatabase();
             } else {
-                // CHƯA ĐĂNG NHẬP
-                isLoggedIn = false;
-                isCalendarAdmin = false;
-                
-                try {
-                    const snapSubjects = await getDocs(collection(db, "subjects"));
-                    subjectsData = [];
-                    snapSubjects.forEach(doc => {
-                        const d = doc.data();
-                        d.id = d.id || doc.id;
-                        subjectsData.push(d);
-                    });
-                } catch(e){}
-
-                initCalendar();
-                listenToDatabase();
+                // CHƯA ĐĂNG NHẬP: ÉP TRỞ VỀ TRANG THÔNG BÁO NGAY LẬP TỨC
+                window.location.href = "thong-bao.html";
             }
         });
 
@@ -828,7 +904,7 @@
                             let listHtml = props.events.map(e => {
                                 let gvDisplay = window.formatGvName(e.gv);
                                 let clsTag = e.class === 'THS2025' ? '<span style="color:#0369a1">[THS2025]</span>' : '<span style="color:#b45309">[THS2026]</span>';
-                                return `<div style="padding: 5px; border-bottom: 1px dashed #e2e8f0;"><b>${e.subject}</b> - ${e.room} - ${clsTag} ${gvDisplay}</div>`;
+                                return `<div class="mobile-list-item"><b>${e.subject}</b> - ${e.room} - ${clsTag} ${gvDisplay}</div>`;
                             }).join('');
                             return { html: `<div>${listHtml}</div>` };
                         }
@@ -899,7 +975,6 @@
                     if (props.type === 'grouped_normal') {
                         const subEvents = props.events;
 
-                        // Kiểm tra quyền và logic cho từng sự kiện trong nhóm
                         for (let e of subEvents) {
                             if (e.scheduledByEmail && e.scheduledByEmail !== currentUserEmail && currentUserEmail !== 'hoangtran1483@gmail.com') {
                                 showToast(`Lỗi: Không thể dời lịch nhóm chứa môn do GV khác xếp!`, "danger");
@@ -985,7 +1060,6 @@
                 },
 
                 eventClick: function(info) {
-                    // YÊU CẦU: Nếu chưa đăng nhập, KHÔNG được xem chi tiết Lịch
                     if (!isLoggedIn) {
                         showToast("Vui lòng đăng nhập để xem chi tiết lịch!", "danger");
                         return;
@@ -1160,7 +1234,6 @@
         window.processAndRenderEvents = () => {
             if (!calendar) return;
             
-            // Nếu chưa đăng nhập, ép cứng hiển thị lớp THS2026
             const selectedSemester = isLoggedIn ? document.getElementById('semesterSelect').value : 'ALL';
             const poolClassFilter = document.getElementById('poolClassFilter').value; 
 
@@ -1184,9 +1257,10 @@
             });
             let deduplicatedEvents = Array.from(deduplicatedEventsMap.values());
 
-            // YÊU CẦU: Nếu CHƯA ĐĂNG NHẬP -> CHỈ HIỂN THỊ LỊCH CỦA THS2026
+            // YÊU CẦU ĐẶC BIỆT MỚI: NẾU CHƯA ĐĂNG NHẬP THÌ CHO XEM THS2026, CÒN NẾU ĐĂNG NHẬP THÌ XEM TẤT CẢ
             if (!isLoggedIn) {
-                deduplicatedEvents = deduplicatedEvents.filter(e => e.class === 'THS2026');
+                // DO NOTHING: Đoạn này đã được loại bỏ logic ép xem THS2026
+                // Để thay vào đó là tính năng nếu chưa đăng nhập sẽ redirect về thong-bao.html (Đã xử lý ở trên onAuthStateChanged)
             }
 
             let groupedEvents = {};
@@ -1227,14 +1301,11 @@
             }
             calendar.addEventSource(currentClassEvents);
 
-            // Xử lý Bệnh viện (Tương tự, lọc THS2026 nếu chưa đăng nhập)
+            // Xử lý Bệnh viện
             globalGroupedClinicals = getClinicalEventsMap(clinicalSchedules); 
             let clinicalEvents = [];
             for (let dateStr in globalGroupedClinicals) {
                 let clinList = globalGroupedClinicals[dateStr];
-                if (!isLoggedIn) {
-                    clinList = clinList.filter(c => c.class_id && c.class_id.toUpperCase().includes('THS2026'));
-                }
                 
                 if (clinList.length > 0) {
                     clinicalEvents.push({
@@ -1255,13 +1326,11 @@
             }
             calendar.addEventSource(clinicalEvents);
 
-            // NẾU CHƯA ĐĂNG NHẬP THÌ DỪNG LUÔN, KHÔNG HIỂN THỊ KHO SỰ KIỆN NỮA
             if (!isLoggedIn) {
                 setTimeout(() => { calendar.updateSize(); }, 50);
                 return;
             }
 
-            // KHO SỰ KIỆN CHỈ DÀNH CHO ADMIN
             let scheduledCounts = {};
             scheduledEvents.forEach(e => {
                 if (e.status !== 'returned') {
