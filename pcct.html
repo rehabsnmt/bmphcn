@@ -268,24 +268,6 @@
         </div>
     </div>
 
-    <!-- MODAL CHỌN HỌC KỲ CHO ĐƠN VỊ KHÁC -->
-    <div id="semesterModal" class="modal-overlay hidden">
-        <div class="modal-content" style="max-width: 400px; text-align: center;">
-            <button class="modal-close" onclick="document.getElementById('semesterModal').classList.add('hidden')">X</button>
-            <h3 style="color: var(--primary); margin-top: 0;">Cập nhật Học kỳ</h3>
-            <p style="font-weight: bold; color: var(--text-dark); margin-bottom: 20px;" id="semName">Tên môn học</p>
-            
-            <select id="semSemester" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border); margin-bottom: 20px; outline: none;">
-                <option value="">-- Chưa xác định --</option>
-                <option value="Học kỳ 1">Học kỳ 1</option>
-                <option value="Học kỳ 2">Học kỳ 2</option>
-                <option value="Học kỳ 3">Học kỳ 3</option>
-                <option value="Học kỳ 4">Học kỳ 4</option>
-            </select>
-            <button class="btn-primary" style="width: 100%;" onclick="saveSemesterOnly()">Cập nhật</button>
-        </div>
-    </div>
-
     <!-- MODAL PHÂN CÔNG MÔN THƯỜNG -->
     <div id="assignModal" class="modal-overlay hidden">
         <div class="modal-content" style="max-width: 900px;">
@@ -486,6 +468,7 @@
                 subjectsData = [];
                 snapSubjects.forEach(doc => {
                     const d = doc.data();
+                    // Đảm bảo lấy đúng id "sub_..." từ dữ liệu của file CSV nếu có
                     d.id = d.id || doc.id;
                     d.credits = parseInt(d.credits) || 0;
                     d.theory = parseInt(d.theory) || 0;
@@ -570,7 +553,7 @@
             const now = new Date();
             let count = 0;
             calendarEventsDB.forEach(e => {
-                if (e.class === cls && e.subject === subName && e.gv === gv && e.task === task) {
+                if (e.class === cls && e.subject === subName && e.gv && e.gv.includes(gv) && e.task === task) {
                     let eventEnd = e.end ? new Date(e.end) : new Date(new Date(e.start).getTime() + 4 * 3600000);
                     if (eventEnd < now) { count++; }
                 }
@@ -645,8 +628,8 @@
                 } catch(e) {}
 
                 const email = user.email.toLowerCase();
-                const adminEmails = ['lethanhvan@ump.edu.vn', 'hoangtran1483@gmail.com'];
-                const managerEmails = ['phanthenguyenpt@ump.edu.vn', 'thduypt@ump.edu.vn', 'minhngpt@ump.edu.vn'];
+                const adminEmails = ['lethanhvan@ump.edu.vn', 'hoangtran1483@gmail.com', 'nguyenngocminhpt@ump.edu.vn'];
+                const managerEmails = ['phanthenguyenpt@ump.edu.vn', 'thduypt@ump.edu.vn'];
                 
                 if (adminEmails.includes(email)) isHOD = true;
                 if (managerEmails.includes(email) || adminEmails.includes(email)) isManager = true;
@@ -785,56 +768,45 @@
             let progressHtml = '';
             let completedLT_TH = 0;
 
-            let isBM = (sub.isPHCN === true || sub.isPHCN === "true" || sub.isPHCN === "TRUE");
+            let approvedHtml = buildAllocationHTML(asg.allocations, false, sub.name, isThesis);
+            let proposedHtml = '';
+            if (isProposed && asg.proposed_allocations && asg.proposed_allocations.length > 0) {
+                proposedHtml = buildAllocationHTML(asg.proposed_allocations, true, sub.name, isThesis);
+            }
+            
+            gvHtml = approvedHtml + proposedHtml;
+            if (!gvHtml) gvHtml = '<span style="color:#94a3b8; font-style:italic;">Chưa phân công</span>';
 
-            if (isBM) {
-                let approvedHtml = buildAllocationHTML(asg.allocations, false, sub.name, isThesis);
-                let proposedHtml = '';
-                if (isProposed && asg.proposed_allocations && asg.proposed_allocations.length > 0) {
-                    proposedHtml = buildAllocationHTML(asg.proposed_allocations, true, sub.name, isThesis);
+            if (asg.allocations && asg.allocations.length > 0) {
+                if (isThesis) {
+                    let totalStudents = new Set();
+                    asg.allocations.forEach(a => totalStudents.add(a.student));
+                    progressHtml = `<span class="progress-text" style="color:var(--primary);">Đã phân công ${totalStudents.size} Học viên</span>`;
+                } else {
+                    asg.allocations.forEach(t => {
+                        if (t.task === 'Lý thuyết' || t.task === 'Thực hành' || t.task === 'Thực tế') {
+                            completedLT_TH += window.getCompletedSessions(currentClass, sub.name, t.gv, t.task);
+                        }
+                    });
                 }
-                
-                gvHtml = approvedHtml + proposedHtml;
-                if (!gvHtml) gvHtml = '<span style="color:#94a3b8; font-style:italic;">Chưa phân công</span>';
-
-                if (asg.allocations && asg.allocations.length > 0) {
-                    if (isThesis) {
-                        let totalStudents = new Set();
-                        asg.allocations.forEach(a => totalStudents.add(a.student));
-                        progressHtml = `<span class="progress-text" style="color:var(--primary);">Đã phân công ${totalStudents.size} Học viên</span>`;
-                    } else {
-                        asg.allocations.forEach(t => {
-                            if (t.task === 'Lý thuyết' || t.task === 'Thực hành' || t.task === 'Thực tế') {
-                                completedLT_TH += window.getCompletedSessions(currentClass, sub.name, t.gv, t.task);
-                            }
-                        });
-                    }
+            }
+            
+            if (!isThesis) {
+                if (sub.name.toLowerCase().includes("công việc chuyên môn khác")) {
+                    progressHtml = `<span style="color:#94a3b8; font-size:0.85rem;">Công việc khác</span>`;
+                } else {
+                    let displayCompleted = Math.min(completedLT_TH, sub.totalSessions);
+                    const pct = sub.totalSessions > 0 ? Math.min(100, Math.round((displayCompleted / sub.totalSessions) * 100)) : 100;
+                    let pColor = '#16a34a'; if (pct < 50) pColor = '#f59e0b'; if (pct === 0) pColor = '#e2e8f0';
+                    progressHtml = `<div class="progress-container"><div class="progress-bar" style="width: ${pct}%; background-color: ${pColor};"></div></div><span class="progress-text">${displayCompleted} / ${sub.totalSessions} buổi (${pct}%)</span>`;
                 }
-                
-                if (!isThesis) {
-                    if (sub.id === 'sub_60') {
-                        progressHtml = `<span style="color:#94a3b8; font-size:0.85rem;">Công việc khác</span>`;
-                    } else {
-                        let displayCompleted = Math.min(completedLT_TH, sub.totalSessions);
-                        const pct = sub.totalSessions > 0 ? Math.min(100, Math.round((displayCompleted / sub.totalSessions) * 100)) : 100;
-                        let pColor = '#16a34a'; if (pct < 50) pColor = '#f59e0b'; if (pct === 0) pColor = '#e2e8f0';
-                        progressHtml = `<div class="progress-container"><div class="progress-bar" style="width: ${pct}%; background-color: ${pColor};"></div></div><span class="progress-text">${displayCompleted} / ${sub.totalSessions} buổi (${pct}%)</span>`;
-                    }
-                }
-            } else {
-                gvHtml = `<span style="color:#64748b; font-weight: 600;">${sub.department || 'Đơn vị khác'}</span>`;
-                progressHtml = `<span style="color:#94a3b8; font-size:0.85rem;">Đơn vị khác</span>`;
             }
 
             let actionHtml = '';
             if (isHOD || isManager) {
-                if (isBM) {
-                    let btnText = isHOD && isProposed ? 'Duyệt' : 'Phân công';
-                    let btnClass = isHOD && isProposed ? 'btn-success' : 'btn-outline';
-                    actionHtml = `<button class="${btnClass}" onclick="openAssignModal('${sub.id}')">${btnText}</button>`;
-                } else {
-                    actionHtml = `<button class="btn-outline" style="border-color:#94a3b8; color:#64748b;" onclick="openSemesterModal('${sub.id}')">Học kỳ</button>`;
-                }
+                let btnText = isHOD && isProposed ? 'Duyệt' : 'Phân công';
+                let btnClass = isHOD && isProposed ? 'btn-success' : 'btn-outline';
+                actionHtml = `<button class="${btnClass}" onclick="openAssignModal('${sub.id}')">${btnText}</button>`;
             }
             let colActionDisplay = (isHOD || isManager) ? `<td align="center">${actionHtml}</td>` : '';
 
@@ -893,39 +865,6 @@
 
             document.getElementById('subjectModal').classList.remove('hidden');
         };
-
-        window.openSemesterModal = (id) => {
-            const fMajor = document.getElementById('filterMajor').value;
-            const fOrient = document.getElementById('filterOrient').value;
-            
-            if (fMajor === 'ALL') {
-                showToast("Vui lòng Chọn cụ thể CHUYÊN NGÀNH trên thanh công cụ trước khi chọn học kỳ!", "danger");
-                return;
-            }
-            if (currentClass === 'THS2026' && fOrient === 'ALL') {
-                showToast("Vui lòng Chọn cụ thể ĐỊNH HƯỚNG trên thanh công cụ trước khi chọn học kỳ!", "danger");
-                return;
-            }
-
-            currentEditingSubId = id;
-            const sub = subjectsData.find(s => s.id === id);
-            const asg = (assignmentsDB[id] && assignmentsDB[id][currentClass]) || { semester: '' };
-            
-            document.getElementById('semName').innerText = `${sub.name} (Lớp: ${currentClass})`;
-            document.getElementById('semSemester').value = asg.semester;
-            document.getElementById('semesterModal').classList.remove('hidden');
-        };
-
-        window.saveSemesterOnly = async () => {
-            const semester = document.getElementById('semSemester').value;
-            try {
-                await setDoc(doc(db, "assignments", currentEditingSubId), { 
-                    [currentClass]: { semester: semester, allocations: [], proposed_allocations: [], status: 'approved' } 
-                }, { merge: true });
-                document.getElementById('semesterModal').classList.add('hidden');
-                showToast("Cập nhật học kỳ thành công!");
-            } catch (e) { showToast("Lỗi: " + e.message, "danger"); }
-        }
 
         window.openAssignModal = (id) => {
             const fMajor = document.getElementById('filterMajor').value;
@@ -1465,3 +1404,4 @@
     </script>
 </body>
 </html>
+sửa lỗi các môn thực hành và thực tế có hệ số tiến độ không đúng. quy định: 1 TC thực hành/lâm sàng = 8 buổi, 1 TC thực hành phòng kỹ năng/lab = 6 buổi
