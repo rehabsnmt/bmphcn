@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="description" content="Thời khóa biểu Lớp Thạc sĩ 2026 - Bộ môn Phục hồi chức năng.">
-    <title>Thời khóa biểu THS2026 - Bộ môn Phục hồi chức năng</title>
+    <meta name="description" content="Thời khóa biểu Thạc sĩ 2026 - Bộ môn Phục hồi chức năng.">
+    <title>Thời khóa biểu Thạc sĩ 2026 - Bộ môn Phục hồi chức năng</title>
 
     <link rel="icon" href="images/logo_Bộ môn.png" type="image/png">
     <link rel="stylesheet" href="css/style.css">
@@ -18,19 +18,33 @@
     <style>
         /* APP LAYOUT */
         html, body { min-height: 100vh; margin: 0; padding: 0; display: flex; flex-direction: column; background: var(--bg-page); }
-        #header-placeholder { flex-shrink: 0; transition: 0.3s; }
+
+        #header-placeholder { flex-shrink: 0; transition: 0.3s; z-index: 1001; position: relative;}
+        /* Lớp ẩn Header khi cuộn chuột */
         body.header-hidden #header-placeholder { display: none !important; }
+
         #footer-placeholder { display: none; }
 
-        /* Tiêu đề gọn nhẹ */
+        /* Tiêu đề gọn nhẹ, luôn bám sát trên cùng (Sticky) */
         .top-toolbar { 
-            position: sticky; top: 0; z-index: 1000; display: flex; justify-content: center; align-items: center; 
-            padding: 15px 2%; background: var(--surface); border-bottom: 1px solid var(--border); 
-            margin-bottom: 15px; box-shadow: var(--shadow-sm); transition: 0.3s; 
+            position: sticky; 
+            top: 75px; /* Chiều cao tương đương của Header */
+            z-index: 990; /* Nằm dưới z-index của Header để không đè lên menu dropdown */
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            padding: 15px 2%; 
+            background: var(--surface); 
+            border-bottom: 1px solid var(--border); 
+            margin-bottom: 15px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
+            transition: top 0.3s; 
         }
-        .top-toolbar h2 { margin: 0; font-size: clamp(1.2rem, 3.5vw, 1.5rem); color: var(--text-dark); font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        /* Khi header ẩn, kéo Toolbar lên đỉnh màn hình */
+        body.header-hidden .top-toolbar { top: 0; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
 
-        body.header-hidden .top-toolbar { box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        .top-toolbar h2 { margin: 0; font-size: clamp(1.2rem, 3.5vw, 1.5rem); color: var(--text-dark); font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
 
         /* Khu vực Lịch */
         main { flex: 1; max-width: 1000px; width: 100%; margin: 0 auto; padding: 0 3% 30px 3%; box-sizing: border-box; }
@@ -102,7 +116,8 @@
         /* TỐI ƯU HIỂN THỊ ĐIỆN THOẠI (Mobile Responsive) */
         @media (max-width: 768px) {
             #calendar-container { padding: 10px 5px; border-radius: 8px; border: none; box-shadow: none; }
-            
+            .top-toolbar { top: 60px; } /* Header mobile thường mỏng hơn một chút */
+
             /* Tái cấu trúc thanh Toolbar của FullCalendar trên Mobile */
             .fc-toolbar { flex-direction: column; gap: 8px; }
             .fc-toolbar-chunk:nth-child(1) { order: 2; width: 100%; justify-content: space-between; } /* Prev/Next/Today */
