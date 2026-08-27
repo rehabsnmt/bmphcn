@@ -22,12 +22,12 @@
         .section-title p { color: var(--text-body); font-size: 1.05rem; max-width: 600px; margin: 0 auto; line-height: 1.6; }
         .section-divider { width: 60px; height: 4px; background: var(--primary); margin: 15px auto; border-radius: 2px; }
 
-        /* --- PHẦN LỊCH SỬ HÌNH THÀNH (ĐOẠN VĂN MỚI) --- */
+        /* --- PHẦN LỊCH SỬ HÌNH THÀNH (ĐÃ THU NHỎ CỠ CHỮ) --- */
         .history-wrapper { 
             background: var(--surface); 
             border: 1px solid var(--border); 
             border-radius: var(--radius-md); 
-            padding: 3rem; 
+            padding: 2.5rem; 
             margin-bottom: 4rem; 
             box-shadow: var(--shadow-sm); 
             position: relative;
@@ -51,10 +51,17 @@
         .history-content {
             position: relative;
             z-index: 1;
-            font-size: 1.15rem;
-            line-height: 1.9;
+            font-size: 0.95rem; /* Đã thu nhỏ chữ từ 1.15rem xuống 0.95rem cho gọn gàng */
+            line-height: 1.75;    /* Thu hẹp khoảng cách dòng cho cân đối */
             color: var(--text-dark);
             text-align: justify;
+        }
+
+        .history-content p {
+            margin-bottom: 1rem;
+        }
+        .history-content p:last-child {
+            margin-bottom: 0;
         }
         
         .history-content span.highlight {
@@ -124,7 +131,7 @@
         @media (max-width: 900px) {
             .faculty-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
             .history-wrapper { padding: 2rem; }
-            .history-content { font-size: 1.05rem; }
+            .history-content { font-size: 0.9rem; }
         }
         @media (max-width: 600px) {
             .faculty-grid { grid-template-columns: repeat(1, minmax(0, 1fr)); }
@@ -146,7 +153,7 @@
 
             <div class="history-wrapper">
                 <div class="history-content">
-                    <p>Bộ môn được thành lập năm <span class="highlight">1972</span>, tiền thân là <b>Trường Cán sự Vật lý trị liệu</b> – trường đào tạo vật lý trị liệu đầu tiên tại Việt Nam, đặt nền móng cho quá trình đào tạo nhân lực vật lý trị liệu trong nước. Năm <span class="highlight">1975</span>, đơn vị được hợp nhất thành <b>Ngành Vật lý trị liệu</b> thuộc Trường Kỹ thuật Y tế Trung ương 3; đến năm <span class="highlight">1998</span>, trở thành <b>Bộ môn Vật lý trị liệu</b> thuộc Khoa Điều dưỡng - Kỹ thuật Y học, Đại học Y Dược Thành phố Hồ Chí Minh.</p>
+                    <p>Bộ môn được thành lập năm <span class="highlight">1972</span>, tiền thân là <b>Trường Cán sự Vật lý trị liệu</b> - trường đào tạo vật lý trị liệu đầu tiên tại Việt Nam, đặt nền móng cho quá trình đào tạo nhân lực vật lý trị liệu trong nước. Năm <span class="highlight">1975</span>, đơn vị được hợp nhất thành <b>Ngành Vật lý trị liệu</b> thuộc Trường Kỹ thuật Y tế Trung ương 3; đến năm <span class="highlight">1998</span>, trở thành <b>Bộ môn Vật lý trị liệu</b> thuộc Khoa Điều dưỡng - Kỹ thuật Y học, Đại học Y Dược Thành phố Hồ Chí Minh.</p>
                     
                     <p>Trải qua hơn 50 năm hình thành và phát triển, Bộ môn từng bước mở rộng quy mô đào tạo từ hệ Trung cấp đến Đại học và Sau đại học. Hiện nay, Bộ môn Phục hồi chức năng thuộc Trường Điều dưỡng - Kỹ thuật Y học, Đại học Y Dược Thành phố Hồ Chí Minh triển khai đào tạo hệ Đại học chính quy và Sau đại học bậc <b>Thạc sĩ ngành Kỹ thuật Phục hồi chức năng</b>, với các chuyên ngành <span class="highlight">Vật lý trị liệu</span>, <span class="highlight">Hoạt động trị liệu</span> và <span class="highlight">Ngôn ngữ trị liệu</span>, góp phần đào tạo nguồn nhân lực chất lượng cao đáp ứng nhu cầu chăm sóc sức khỏe cộng đồng.</p>
                 </div>
@@ -235,9 +242,7 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Lắng nghe trạng thái đăng nhập để đổi tên nút Auth
         onAuthStateChanged(auth, async (user) => {
-            // Chờ layout.js chèn Header xong mới lấy element
             setTimeout(async () => {
                 const btnAuthNav = document.getElementById('btnAuthNav');
                 if (!btnAuthNav) return;
