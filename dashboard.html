@@ -181,6 +181,12 @@
 
             onAuthStateChanged(auth, async (user) => {
                 if (user) {
+                    // CẤM TRUY CẬP NẾU LÀ TÀI KHOẢN LỚP (Sinh viên/Học viên)
+                    if (user.email.toLowerCase() === 'ths.phcn26@ump.edu.vn') {
+                        window.location.href = "thong-bao.html";
+                        return;
+                    }
+
                     currentUserUid = user.uid; // Lấy UID để tra cứu Local Storage
                     try {
                         const userDoc = await getDoc(doc(db, "users", user.uid));
