@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Import Lịch Công Tác từ Excel</title>
+    
+    <link rel="icon" href="images/logo_Bộ môn.png" type="image/png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #0284c7;
+            --primary-hover: #0369a1;
+            --surface: #ffffff;
+            --bg-page: #f1f5f9;
+            --border: #cbd5e1;
+            --text-dark: #0f172a;
+            --text-body: #475569;
+            --accent: #e11d48;
+        }
+
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: var(--bg-page); color: var(--text-dark); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+
+        .container { background: var(--surface); max-width: 1200px; width: 100%; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); padding: 30px; box-sizing: border-box; }
+
+        h2 { margin-top: 0; color: var(--primary); display: flex; align-items: center; gap: 10px; }
+        
+        .instructions { background: #e0f2fe; border-left: 4px solid var(--primary); padding: 15px; border-radius: 6px; margin-bottom: 20px; font-size: 0.95rem; line-height: 1.6; color: #0369a1; }
+
+        .toolbar { display: flex; justify-content: space-between; margin-bottom: 15px; }
+
+        /* Nút bấm */
+        .btn { padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s; border: none; font-size: 0.95rem; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-outline { background: white; color: var(--text-dark); border: 1px solid var(--border); }
+        .btn-outline:hover { background: #f8fafc; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-primary:disabled { background: #94a3b8; cursor: not-allowed; }
+        .btn-danger { background: white; color: var(--accent); border: 1px solid var(--accent); padding: 4px 8px; font-size: 0.8rem; }
+        .btn-danger:hover { background: var(--accent); color: white; }
+
+        /* Bảng nhập liệu (Excel-like) */
+        .table-wrapper { overflow-x: auto; border: 1px solid var(--border); border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+        th { background: #f8fafc; padding: 12px; text-align: left; border-bottom: 2px solid var(--border); color: var(--text-dark); position: sticky; top: 0; white-space: nowrap; }
+        td { padding: 0; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); position: relative; }
+        td:last-child { border-right: none; text-align: center; padding: 5px; }
+        
+        /* Ô nhập liệu */
+        .cell-input { width: 100%; height: 100%; min-height: 40px; padding: 10px; box-sizing: border-box; border: none; outline: none; background: transparent; font-family: inherit; font-size: inherit; }
+        .cell-input:focus { background: #f0f9ff; box-shadow: inset 0 0 0 2px var(--primary); }
+
+        /* Toast Thông báo */
+        .toast-container { position: fixed; top: 30px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+        .toast { min-width: 250px; background-color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: 0.4s; font-weight: 600; border-left: 5px solid #22c55e; opacity: 0; }
+        .toast.show { transform: translateX(0); opacity: 1; }
+        .toast.danger { border-left-color: #ef4444; }
+    </style>
+</head>
+<body>
+
+    <div id="toastContainer" class="toast-container"></div>
+
+    <div class="container">
+        <h2><i class="fas fa-file-excel"></i> Nhập Lịch Công Tác (Hàng loạt)</h2>
+        
+        <div class="instructions">
+            <b>Cách sử dụng:</b><br>
+            1. Tại file Excel của bạn, hãy sắp xếp các cột theo đúng thứ tự: <b>Ngày | Giờ | Lớp | Môn học | Nhiệm vụ | Giảng viên | Phòng</b>.<br>
+            2. Bôi đen toàn bộ dữ liệu trong Excel và nhấn <b>Ctrl + C</b>.<br>
+            3. Bấm chuột vào ô nhập liệu đầu tiên của bảng dưới đây và nhấn <b>Ctrl + V</b>.<br>
+            <i>Lưu ý: Định dạng ngày có thể là YYYY-MM-DD hoặc DD/MM/YYYY. Hệ thống sẽ tự động ghép với giờ để tạo ISO String.</i>
+        </div>
+
+        <div class="toolbar">
+            <button class="btn btn-outline" onclick="addRow()"><i class="fas fa-plus"></i> Thêm dòng trống</button>
+            <button class="btn btn-outline" onclick="clearTable()"><i class="fas fa-eraser"></i> Xóa bảng</button>
+        </div>
+
+        <div class="table-wrapper">
+            <table id="excelTable">
+                <thead>
+                    <tr>
+                        <th style="width: 120px;">Ngày (DD/MM/YYYY)</th>
+                        <th style="width: 100px;">Giờ bắt đầu</th>
+                        <th style="width: 120px;">Lớp (class)</th>
+                        <th style="width: 250px;">Môn học (subject)</th>
+                        <th style="width: 150px;">Nhiệm vụ (task)</th>
+                        <th style="width: 200px;">Giảng viên (gv)</th>
+                        <th style="width: 150px;">Phòng (room)</th>
+                        <th style="width: 60px;">Xóa</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    </tbody>
+            </table>
+        </div>
+
+        <div style="margin-top: 20px; text-align: right;">
+            <button id="btnSave" class="btn btn-primary" onclick="saveToDatabase()"><i class="fas fa-cloud-upload-alt"></i> Lưu vào Database</button>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore-compat.js"></script>
+
+    <script>
+        // 1. CẤU HÌNH FIREBASE
+        const firebaseConfig = {
+            apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY",
+            authDomain: "bmphcn-aa9c6.firebaseapp.com",
+            projectId: "bmphcn-aa9c6",
+            storageBucket: "bmphcn-aa9c6.firebasestorage.app",
+            messagingSenderId: "749494392719",
+            appId: "1:749494392719:web:f220c751ff541620045dfa"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        let currentEmail = "hoangtran1483@gmail.com";
+        let currentName = "";
+
+        // Lấy thông tin user hiện tại nếu đã đăng nhập
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentEmail = user.email;
+                db.collection("users").doc(user.uid).get().then(doc => {
+                    if (doc.exists) currentName = doc.data().fullName || "";
+                });
+            }
+        });
+
+        // 2. CÁC HÀM UI & TIỆN ÍCH
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = type === 'success' ? `<i class="fas fa-check-circle" style="color:#22c55e;"></i> ${message}` : `<i class="fas fa-exclamation-triangle" style="color:#ef4444;"></i> ${message}`;
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 4000);
+        }
+
+        function createRow(data = ['', '', '', '', '', '', '']) {
+            const tr = document.createElement('tr');
+            
+            for (let i = 0; i < 7; i++) {
+                const td = document.createElement('td');
+                const input = document.createElement('input');
+                input.className = 'cell-input';
+                input.type = 'text';
+                input.value = data[i] ? data[i].trim() : '';
+                td.appendChild(input);
+                tr.appendChild(td);
+            }
+
+            const tdAction = document.createElement('td');
+            tdAction.innerHTML = `<button class="btn btn-danger" onclick="this.closest('tr').remove()"><i class="fas fa-times"></i></button>`;
+            tr.appendChild(tdAction);
+
+            return tr;
+        }
+
+        function addRow() {
+            document.getElementById('tableBody').appendChild(createRow());
+        }
+
+        function clearTable() {
+            if(confirm("Bạn có chắc muốn xóa toàn bộ dữ liệu trên bảng?")) {
+                document.getElementById('tableBody').innerHTML = '';
+                addRow();
+            }
+        }
+
+        // Xử lý chuẩn hóa ngày tháng (từ DD/MM/YYYY sang YYYY-MM-DD)
+        function formatISOStart(dateStr, timeStr) {
+            let yyyy, mm, dd;
+            if (dateStr.includes('/')) {
+                let parts = dateStr.split('/');
+                if (parts[2].length === 4) {
+                    yyyy = parts[2]; mm = parts[1].padStart(2, '0'); dd = parts[0].padStart(2, '0');
+                } else if (parts[0].length === 4) {
+                    yyyy = parts[0]; mm = parts[1].padStart(2, '0'); dd = parts[2].padStart(2, '0');
+                }
+            } else if (dateStr.includes('-')) {
+                let parts = dateStr.split('-');
+                if (parts[2].length === 4) {
+                    yyyy = parts[2]; mm = parts[1].padStart(2, '0'); dd = parts[0].padStart(2, '0');
+                } else {
+                    yyyy = parts[0]; mm = parts[1].padStart(2, '0'); dd = parts[2].padStart(2, '0');
+                }
+            } else {
+                return null; // Định dạng không hợp lệ
+            }
+            
+            // Xử lý Giờ
+            let hh = "00", min = "00";
+            if (timeStr && timeStr.includes(':')) {
+                let tParts = timeStr.split(':');
+                hh = tParts[0].padStart(2, '0');
+                min = tParts[1].padStart(2, '0');
+            }
+
+            // Trả về ISO 8601 kèm múi giờ +07:00
+            return `${yyyy}-${mm}-${dd}T${hh}:${min}:00+07:00`;
+        }
+
+        // 3. XỬ LÝ SỰ KIỆN COPY PASTE TỪ EXCEL
+        document.getElementById('tableBody').addEventListener('paste', function(e) {
+            e.preventDefault();
+            
+            // Lấy dữ liệu Text từ Clipboard
+            let pasteData = (e.clipboardData || window.clipboardData).getData('text/plain');
+            if (!pasteData) return;
+
+            let rows = pasteData.split(/\r\n|\n|\r/).filter(row => row.trim() !== '');
+            const tbody = document.getElementById('tableBody');
+            
+            // Lấy input hiện tại đang được focus
+            const targetInput = e.target;
+            const targetCell = targetInput.closest('td');
+            const targetRow = targetInput.closest('tr');
+            
+            // Tính toán index dòng và cột hiện tại
+            let startRowIndex = Array.from(tbody.children).indexOf(targetRow);
+            let startColIndex = Array.from(targetRow.children).indexOf(targetCell);
+
+            // Đổ dữ liệu
+            rows.forEach((rowString, i) => {
+                let currentRowIndex = startRowIndex + i;
+                let tr = tbody.children[currentRowIndex];
+                
+                // Nếu thiếu dòng thì tự tạo thêm
+                if (!tr) {
+                    tr = createRow();
+                    tbody.appendChild(tr);
+                }
+
+                let cols = rowString.split('\t');
+                cols.forEach((colString, j) => {
+                    let currentColIndex = startColIndex + j;
+                    // Bỏ qua cột Action (cột 7)
+                    if (currentColIndex < 7) {
+                        let input = tr.children[currentColIndex].querySelector('.cell-input');
+                        if (input) {
+                            input.value = colString.trim().replace(/^"|"$/g, ''); // Bỏ dấu nháy kép của Excel nếu có
+                        }
+                    }
+                });
+            });
+            
+            showToast(`Đã paste thành công ${rows.length} dòng dữ liệu.`);
+        });
+
+        // Khởi tạo 1 dòng trống ban đầu
+        addRow();
+
+        // 4. LƯU DỮ LIỆU LÊN FIRESTORE
+        async function saveToDatabase() {
+            const btn = document.getElementById('btnSave');
+            const tbody = document.getElementById('tableBody');
+            const rows = tbody.querySelectorAll('tr');
+            
+            let dataToSave = [];
+            let hasError = false;
+
+            rows.forEach((tr, index) => {
+                let inputs = tr.querySelectorAll('.cell-input');
+                let dateVal = inputs[0].value.trim();
+                let timeVal = inputs[1].value.trim();
+                let classVal = inputs[2].value.trim();
+                let subjectVal = inputs[3].value.trim();
+                let taskVal = inputs[4].value.trim();
+                let gvVal = inputs[5].value.trim();
+                let roomVal = inputs[6].value.trim();
+
+                // Bỏ qua dòng trống hoàn toàn
+                if (!dateVal && !subjectVal && !gvVal) return;
+
+                if (!dateVal || !subjectVal || !gvVal || !classVal) {
+                    showToast(`Dòng ${index + 1} thiếu thông tin bắt buộc (Ngày, Lớp, Môn, GV).`, "danger");
+                    hasError = true;
+                    return;
+                }
+
+                let isoStart = formatISOStart(dateVal, timeVal);
+                if (!isoStart) {
+                    showToast(`Dòng ${index + 1}: Ngày không hợp lệ.`, "danger");
+                    hasError = true;
+                    return;
+                }
+
+                // Cấu trúc ID: {subject}_{gv}_{task}_{class}_{timestamp}_{random}
+                let randomStr = Math.floor(Math.random() * 10000);
+                let docId = `${subjectVal}_${gvVal}_${taskVal}_${classVal}_${Date.now()}_${randomStr}`;
+
+                let eventObj = {
+                    allDay: false,
+                    class: classVal,
+                    end: null,
+                    gv: gvVal,
+                    id: docId,
+                    room: roomVal,
+                    scheduledByEmail: currentEmail,
+                    scheduledByName: currentName,
+                    start: isoStart,
+                    status: "scheduled",
+                    subject: subjectVal,
+                    task: taskVal,
+                    title: gvVal
+                };
+
+                dataToSave.push(eventObj);
+            });
+
+            if (hasError) return;
+            if (dataToSave.length === 0) {
+                showToast("Không có dữ liệu hợp lệ để lưu.", "danger");
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Đang lưu...`;
+
+            try {
+                // Batch write or Promise.all
+                const batch = db.batch();
+                dataToSave.forEach(data => {
+                    let docRef = db.collection("calendar_events").doc(data.id);
+                    batch.set(docRef, data);
+                });
+
+                await batch.commit();
+                
+                showToast(`Tuyệt vời! Đã lưu thành công ${dataToSave.length} sự kiện vào Database.`);
+                document.getElementById('tableBody').innerHTML = '';
+                addRow();
+                
+            } catch (error) {
+                console.error("Lỗi khi lưu:", error);
+                showToast("Lỗi: " + error.message, "danger");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fas fa-cloud-upload-alt"></i> Lưu vào Database`;
+            }
+        }
+    </script>
+</body>
+</html>
