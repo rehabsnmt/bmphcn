@@ -220,21 +220,23 @@
                 <h3>Thông số Lịch học mới</h3>
             </div>
             <div class="modal-body">
-                <!-- KHỐI CHỌN ĐỊNH HƯỚNG SẼ HIỆN NẾU MÔN NÀY LÀ MÔN CHIA NHÁNH -->
-                <div class="form-group hidden" id="orientGroup">
-                    <label for="modalOrientSelect" style="color: #b45309;"><i class="fas fa-code-branch"></i> Môn có chia nhánh. Áp dụng cho:</label>
-                    <select id="modalOrientSelect" style="border-color: #b45309; background-color: #fffbeb; font-weight: bold; color: #b45309;">
+                
+                <div class="form-group" id="orientGroup">
+                    <label for="modalOrientSelect"><i class="fas fa-compass"></i> Định hướng / Hệ đào tạo:</label>
+                    <select id="modalOrientSelect">
                         <option value="Cả hai">Học chung (Cả 2 hệ NC & UD)</option>
                         <option value="Nghiên cứu">Chỉ hướng Nghiên cứu (NC)</option>
                         <option value="Ứng dụng">Chỉ hướng Ứng dụng (UD)</option>
+                        <option value="">Không phân định hướng (Môn chung)</option>
                     </select>
                 </div>
 
                 <div class="form-group">
                     <label for="roomSelect"><i class="fas fa-map-marker-alt"></i> Phòng / Địa điểm:</label>
-                    <select id="roomSelect">
+                    <select id="roomSelect" onchange="checkCustomRoom(this, 'customRoomInput')">
                         <!-- Đổ dữ liệu từ JS -->
                     </select>
+                    <input type="text" id="customRoomInput" class="hidden" placeholder="Nhập tên phòng/địa điểm..." style="margin-top: 5px; width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border); box-sizing: border-box;">
                 </div>
 
                 <div class="form-group" style="background: #f1f5f9; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1;">
@@ -275,16 +277,16 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, collection, onSnapshot, setDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, collection, onSnapshot, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY", authDomain: "bmphcn-aa9c6.firebaseapp.com", projectId: "bmphcn-aa9c6", storageBucket: "bmphcn-aa9c6.firebasestorage.app", messagingSenderId: "749494392719", appId: "1:749494392719:web:f220c751ff541620045dfa" };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // CẤU HÌNH DANH SÁCH PHÒNG HỌC
+        // CẤU HÌNH DANH SÁCH PHÒNG HỌC (Thêm Khác...)
         const ROOM_LIST = [
-            "Phòng 3", "Phòng 4", "Phòng ST", "Phòng OT", "Phòng 12", "Hội trường", "Khác..."
+            "Phòng 3", "Phòng 4", "Phòng OT", "Phòng ST"
         ];
 
         let calendar;
@@ -296,7 +298,7 @@
         const managedClasses = ['THS2025', 'THS2026'];
 
         let assignmentsData = {};
-        let scheduledEventsDB = []; // Tất cả sự kiện trên lịch
+        let scheduledEventsDB = []; 
         let subjectsData = [];
         let gvShortNameMap = {};
         let pendingDropInfo = null;
@@ -353,12 +355,20 @@
             const select = document.getElementById('roomSelect');
             select.innerHTML = '';
             ROOM_LIST.forEach(room => { select.innerHTML += `<option value="${room}">${room}</option>`; });
+            select.innerHTML += `<option value="OTHER">Khác...</option>`;
         }
 
+        window.checkCustomRoom = (selectEl, inputId) => {
+            const inputEl = document.getElementById(inputId);
+            if (selectEl.value === 'Khác...' || selectEl.value === 'OTHER') {
+                inputEl.classList.remove('hidden');
+                inputEl.focus();
+            } else {
+                inputEl.classList.add('hidden');
+            }
+        };
+
         // HÀM ĐẾM SỐ BUỔI ĐÃ XẾP LỊCH THÔNG MINH
-        // Nếu orient === 'NC', đếm các lịch là NC hoặc Cả hai
-        // Nếu orient === 'UD', đếm các lịch là UD hoặc Cả hai
-        // Nếu orient === '', đếm các lịch không có phân hướng
         window.getScheduledCount = (cls, targetOrientCode, subName, gv, task) => {
             let count = 0;
             let orientName = targetOrientCode === 'NC' ? 'Nghiên cứu' : (targetOrientCode === 'UD' ? 'Ứng dụng' : '');
@@ -368,7 +378,6 @@
                 
                 let matchOrient = true;
                 if (cls.toUpperCase().includes('THS') && orientName !== '') {
-                    // Chìa khóa: Môn chia nhánh thì khi lịch báo 'Cả hai' sẽ được tính cho cả NC và UD
                     matchOrient = (!e.orientation || e.orientation === 'Cả hai' || e.orientation === orientName || e.orientation.trim() === '');
                 }
 
@@ -381,7 +390,7 @@
             return count;
         };
 
-        // Hàm cập nhật dropdown Lọc môn học trong Kho
+        // Cập nhật dropdown Lọc môn học trong Kho
         window.updatePoolSubjectFilter = () => {
             const select = document.getElementById('poolSubjectFilter');
             if (!select) return;
@@ -394,11 +403,8 @@
             subjectsData.forEach(sub => {
                 const asgObj = assignmentsData[sub.id];
                 if (asgObj) {
-                    // Duyệt qua tất cả các key (THS2025, THS2026_NC, THS2026_UD,...)
                     Object.keys(asgObj).forEach(dbKey => {
-                        // Nếu đang lọc theo lớp cụ thể thì dbKey phải chứa tên lớp đó
                         if (currentPoolClass !== 'ALL' && !dbKey.includes(currentPoolClass)) return;
-                        
                         const asgData = asgObj[dbKey];
                         if (asgData && asgData.allocations && asgData.allocations.length > 0 && asgData.status !== 'proposed') {
                             assignedSubjectNames.add(sub.name);
@@ -437,7 +443,7 @@
 
                 if (tStart < eEnd && tEnd > eStart) {
                     // Cùng phòng
-                    if (targetRoom && e.room && targetRoom !== 'Khác...' && e.room === targetRoom) {
+                    if (targetRoom && e.room && targetRoom !== 'Khác...' && targetRoom !== 'OTHER' && e.room === targetRoom) {
                         return { hasOverlap: true, reason: `Phòng ${targetRoom} đã có lịch học vào khung giờ này!` };
                     }
                     // Cùng lớp
@@ -460,7 +466,22 @@
         const isMobile = window.innerWidth <= 768;
         const initialCalendarView = isMobile ? 'listWeek' : 'timeGridWeek';
 
+        // -------------------------------------------------------------
+        // HÀM HELPER ĐỂ ĐỊNH DẠNG NGÀY CHO FIREBASE (ISO String local time)
+        // -------------------------------------------------------------
+        function toLocalISOString(date) {
+            const pad = (n) => (n < 10 ? '0' + n : n);
+            return date.getFullYear() + '-' +
+                   pad(date.getMonth() + 1) + '-' +
+                   pad(date.getDate()) + 'T' +
+                   pad(date.getHours()) + ':' +
+                   pad(date.getMinutes()) + ':' +
+                   pad(date.getSeconds());
+        }
+
         // XÁC THỰC VÀ TẢI DỮ LIỆU
+        import { getDocs } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 isLoggedIn = true;
@@ -471,7 +492,6 @@
                 if(isCalendarAdmin) {
                     document.getElementById('btnToggleSidebar').classList.remove('hidden');
                 } else {
-                    // Nếu là học viên vào trang này -> đá về trang xem lịch bình thường
                     window.location.href = "tkb-ths2026.html";
                     return;
                 }
@@ -513,7 +533,6 @@
                         }
                     });
 
-                    // Lấy tên Admin đang login
                     const userDoc = await getDoc(doc(db, "users", user.uid));
                     if (userDoc.exists()) {
                         const data = userDoc.data();
@@ -532,7 +551,6 @@
                 initRoomSelect(); 
                 initCalendar();
 
-                // Lắng nghe Phân công và Lịch học
                 onSnapshot(collection(db, "assignments"), (snapshot) => {
                     assignmentsData = {};
                     snapshot.forEach(doc => { assignmentsData[doc.id] = doc.data(); });
@@ -551,19 +569,6 @@
             }
         });
 
-        // -------------------------------------------------------------
-        // HÀM HELPER ĐỂ ĐỊNH DẠNG NGÀY CHO FIREBASE (ISO String local time)
-        // -------------------------------------------------------------
-        function toLocalISOString(date) {
-            const pad = (n) => (n < 10 ? '0' + n : n);
-            return date.getFullYear() + '-' +
-                   pad(date.getMonth() + 1) + '-' +
-                   pad(date.getDate()) + 'T' +
-                   pad(date.getHours()) + ':' +
-                   pad(date.getMinutes()) + ':' +
-                   pad(date.getSeconds());
-        }
-
         function initCalendar() {
             const containerEl = document.getElementById('external-events');
             new FullCalendar.Draggable(containerEl, {
@@ -578,9 +583,9 @@
                             task: eventEl.getAttribute('data-task'),
                             originalId: eventEl.getAttribute('data-original-id') || eventEl.getAttribute('data-id'),
                             eventClass: eventEl.getAttribute('data-class'),
-                            orientations: eventEl.getAttribute('data-orientations'), // Thuộc tính gốc của Môn (VD: 'NC,UD')
+                            orientations: eventEl.getAttribute('data-orientations'), // Thuộc tính gốc của Môn
                             semester: eventEl.getAttribute('data-semester'),
-                            type: 'normal' // Thẻ kéo từ kho ra coi như là thẻ chưa gộp
+                            type: 'normal' 
                         }
                     };
                 }
@@ -622,13 +627,12 @@
 
                         let itemsHtml = props.events.map(e => {
                             let gvDisplay = window.formatGvName(e.gv);
-                            let shortRoom = e.room && e.room !== 'Khác...' ? e.room.replace('Phòng ', 'P').replace('Hội trường', 'HT') : '??';
+                            let shortRoom = e.room && e.room !== 'Khác...' && e.room !== 'OTHER' ? e.room.replace('Phòng ', 'P').replace('Hội trường', 'HT') : e.room;
                             
-                            // Hiển thị định hướng trên thẻ
                             let orientHtml = '';
                             if (e.orientation) {
                                 if (e.orientation === 'Cả hai') {
-                                    orientHtml = `<div style="font-size: 0.7rem; color: #d97706; margin-top: 2px; font-weight:bold;"><i class="fas fa-users"></i> Dạy chung (Cả 2 hệ)</div>`;
+                                    orientHtml = `<div style="font-size: 0.7rem; color: #d97706; margin-top: 2px; font-weight:bold;"><i class="fas fa-users"></i> Dạy chung (NC & UD)</div>`;
                                 } else {
                                     orientHtml = `<div style="font-size: 0.7rem; color: #64748b; margin-top: 2px; font-style: italic;"><i class="fas fa-compass"></i> Hệ: ${e.orientation}</div>`;
                                 }
@@ -651,7 +655,7 @@
                         return {
                             html: `
                             <div class="evt-group-container" style="background: ${bgColor}; border-left-color: ${borderLeftColor};">
-                                <div class="evt-group-header"><span>${timeStr} &nbsp;&bull;&nbsp; ${count} thẻ</span></div>
+                                <div class="evt-group-header"><span>${timeStr}</span></div>
                                 <div class="evt-items-list">${itemsHtml}</div>
                             </div>
                             `
@@ -664,23 +668,22 @@
                     const props = info.event.extendedProps;
                     const orientationsAttr = props.orientations || '';
 
-                    // Bật popup hỏi định hướng nếu môn chia nhánh
-                    const orientGroup = document.getElementById('orientGroup');
                     const orientSelect = document.getElementById('modalOrientSelect');
 
                     if (orientationsAttr.includes('NC') && orientationsAttr.includes('UD')) {
-                        orientGroup.classList.remove('hidden');
-                        orientSelect.value = 'Cả hai'; // Mặc định là dạy chung
+                        orientSelect.value = 'Cả hai'; 
+                    } else if (orientationsAttr === 'NC') {
+                        orientSelect.value = 'Nghiên cứu';
+                    } else if (orientationsAttr === 'UD') {
+                        orientSelect.value = 'Ứng dụng';
                     } else {
-                        orientGroup.classList.add('hidden');
-                        if (orientationsAttr === 'NC') orientSelect.value = 'Nghiên cứu';
-                        else if (orientationsAttr === 'UD') orientSelect.value = 'Ứng dụng';
-                        else orientSelect.value = ''; // Môn chung không thuộc PHCN
+                        orientSelect.value = ''; 
                     }
 
                     pendingDropInfo = info;
-                    document.getElementById('repeatWeeks').value = 1; // Reset số tuần
+                    document.getElementById('repeatWeeks').value = 1; 
                     document.getElementById('roomSelect').value = ROOM_LIST[0]; 
+                    document.getElementById('customRoomInput').classList.add('hidden');
                     document.getElementById('roomModal').classList.remove('hidden');
                 },
 
@@ -693,15 +696,15 @@
                         const subEvents = props.events;
                         const groupIds = subEvents.map(ev => ev.id);
 
-                        // Kiểm tra quyền
+                        // KIỂM TRA QUYỀN
                         for (let e of subEvents) {
-                            if (e.scheduledByEmail && e.scheduledByEmail !== currentUserEmail && currentUserEmail !== 'hoangtran1483@gmail.com') {
+                            let canEdit = (e.scheduledByEmail === currentUserEmail || currentUserEmail === 'hoangtran1483@gmail.com');
+                            if (!canEdit) {
                                 showToast(`Bạn không có quyền dời lịch do GV khác xếp!`, "danger");
                                 info.revert(); return;
                             }
                         }
 
-                        // Kiểm tra trùng lặp thời gian mới
                         let newStartStr = toLocalISOString(info.event.start);
                         let newEndStr = info.event.end ? toLocalISOString(info.event.end) : null;
                         
@@ -713,7 +716,6 @@
                             }
                         }
 
-                        // Lưu lên Firebase
                         try {
                             let promises = subEvents.map(e => {
                                 return setDoc(doc(db, "calendar_events", e.id), { 
@@ -740,15 +742,15 @@
                         const subEvents = props.events;
                         const groupIds = subEvents.map(ev => ev.id);
 
-                        // Kiểm tra quyền
+                        // KIỂM TRA QUYỀN
                         for (let e of subEvents) {
-                            if (e.scheduledByEmail && e.scheduledByEmail !== currentUserEmail && currentUserEmail !== 'hoangtran1483@gmail.com') {
+                            let canEdit = (e.scheduledByEmail === currentUserEmail || currentUserEmail === 'hoangtran1483@gmail.com');
+                            if (!canEdit) {
                                 showToast(`Bạn không có quyền sửa lịch do GV khác xếp!`, "danger");
                                 info.revert(); return;
                             }
                         }
 
-                        // Kiểm tra trùng lặp
                         let newStartStr = toLocalISOString(info.event.start);
                         let newEndStr = info.event.end ? toLocalISOString(info.event.end) : null;
 
@@ -760,7 +762,6 @@
                             }
                         }
 
-                        // Cập nhật Firebase
                         try {
                             let promises = subEvents.map(e => {
                                 return setDoc(doc(db, "calendar_events", e.id), { 
@@ -783,7 +784,6 @@
                     const modalBody = document.getElementById('multiEventModalBody');
 
                     if (props.type === 'grouped_normal') {
-                        // Tính toán thời gian
                         let startObj = info.event.start;
                         let endObj = info.event.end ? info.event.end : new Date(startObj.getTime() + 4.5*3600000);
                         
@@ -793,58 +793,71 @@
 
                         let dateInputVal = startObj.getFullYear() + '-' + String(startObj.getMonth()+1).padStart(2,'0') + '-' + String(startObj.getDate()).padStart(2,'0');
 
+                        // KIỂM TRA XEM CÓ QUYỀN SỬA/XÓA KHÔNG (Chỉ cần 1 sự kiện là của mình thì đc bấm Form Edit)
+                        let hasEditRight = false;
+                        props.events.forEach(e => {
+                            if (e.scheduledByEmail === currentUserEmail || currentUserEmail === 'hoangtran1483@gmail.com') {
+                                hasEditRight = true;
+                            }
+                        });
+
                         let html = `
                             <div style="color: var(--primary); font-weight:bold; font-size:1.1rem; margin-bottom:15px; border-bottom: 2px solid var(--border); padding-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
                                 <span><i class="far fa-clock"></i> ${sTime} - ${eTime} (${dateStr})</span>
-                                <button class="btn-info btn-sm" id="btnToggleInlineEdit"><i class="fas fa-edit"></i> Chỉnh sửa</button>
+                                ${hasEditRight ? `<button class="btn-info btn-sm" id="btnToggleInlineEdit"><i class="fas fa-edit"></i> Chỉnh sửa</button>` : ''}
                             </div>
                         `;
 
                         // FORM CHỈNH SỬA ẨN MẶC ĐỊNH
                         let roomOptions = ROOM_LIST.map(r => `<option value="${r}">${r}</option>`).join('');
+                        roomOptions += `<option value="OTHER">Khác...</option>`;
+
                         let groupIds = props.events.map(e => e.id).join(',');
 
-                        html += `
-                            <div id="inlineEditForm" class="inline-edit-form hidden">
-                                <input type="hidden" id="editGroupIds" value="${groupIds}">
-                                <div class="form-row">
-                                    <div>
-                                        <label>Ngày học</label>
-                                        <input type="date" id="editDate" value="${dateInputVal}" style="width:100%; padding:8px; border-radius:4px; border:1px solid var(--border);">
+                        if (hasEditRight) {
+                            html += `
+                                <div id="inlineEditForm" class="inline-edit-form hidden">
+                                    <input type="hidden" id="editGroupIds" value="${groupIds}">
+                                    <div class="form-row">
+                                        <div>
+                                            <label>Ngày học</label>
+                                            <input type="date" id="editDate" value="${dateInputVal}">
+                                        </div>
+                                        <div>
+                                            <label>Giờ bắt đầu</label>
+                                            <input type="time" id="editStartTime" value="${sTime}">
+                                        </div>
+                                        <div>
+                                            <label>Giờ kết thúc</label>
+                                            <input type="time" id="editEndTime" value="${eTime}">
+                                        </div>
                                     </div>
-                                    <div>
-                                        <label>Giờ bắt đầu</label>
-                                        <input type="time" id="editStartTime" value="${sTime}" style="width:100%; padding:8px; border-radius:4px; border:1px solid var(--border);">
+                                    <div class="form-row">
+                                        <div>
+                                            <label>Phòng học mới</label>
+                                            <select id="editRoom" onchange="checkCustomRoom(this, 'editCustomRoom')">
+                                                ${roomOptions}
+                                            </select>
+                                            <input type="text" id="editCustomRoom" class="hidden" placeholder="Nhập tên phòng...">
+                                        </div>
+                                        <div>
+                                            <label>Định hướng</label>
+                                            <select id="editOrient">
+                                                <option value="">-- Giữ nguyên --</option>
+                                                <option value="Cả hai">Học chung (NC & UD)</option>
+                                                <option value="Nghiên cứu">Nghiên cứu (NC)</option>
+                                                <option value="Ứng dụng">Ứng dụng (UD)</option>
+                                            </select>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <label>Giờ kết thúc</label>
-                                        <input type="time" id="editEndTime" value="${eTime}" style="width:100%; padding:8px; border-radius:4px; border:1px solid var(--border);">
-                                    </div>
+                                    <button class="btn-primary" style="width:100%; margin-top:10px;" onclick="submitInlineEdit()">Lưu cập nhật</button>
                                 </div>
-                                <div class="form-row">
-                                    <div>
-                                        <label>Phòng học mới</label>
-                                        <select id="editRoom" style="width:100%; padding:8px; border-radius:4px; border:1px solid var(--border);">
-                                            ${roomOptions}
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label>Định hướng</label>
-                                        <select id="editOrient" style="width:100%; padding:8px; border-radius:4px; border:1px solid var(--border);">
-                                            <option value="">-- Giữ nguyên --</option>
-                                            <option value="Cả hai">Học chung (NC & UD)</option>
-                                            <option value="Nghiên cứu">Nghiên cứu (NC)</option>
-                                            <option value="Ứng dụng">Ứng dụng (UD)</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <button class="btn-primary" style="width:100%; margin-top:10px;" onclick="submitInlineEdit()">Lưu cập nhật</button>
-                            </div>
-                        `;
+                            `;
+                        }
 
                         // HIỂN THỊ CÁC THẺ CHI TIẾT
                         props.events.forEach(e => {
-                            let canDelete = isCalendarAdmin && (!e.scheduledByEmail || e.scheduledByEmail === currentUserEmail || currentUserEmail === 'hoangtran1483@gmail.com');
+                            let canDelete = isCalendarAdmin && (e.scheduledByEmail === currentUserEmail || currentUserEmail === 'hoangtran1483@gmail.com');
                             let delBtn = canDelete ? `<button class="btn-danger" style="padding:4px 10px; font-size:0.8rem;" onclick="deleteSubEvent('${e.id}')"><i class="fas fa-trash"></i> Xóa</button>` : '';
 
                             let orientHtml = e.orientation ? `<p style="margin:0 0 5px 0; color:var(--text-dark);"><strong>Phạm vi:</strong> ${e.orientation === 'Cả hai' ? '<span style="color:#d97706;font-weight:bold;">Học chung (NC & UD)</span>' : 'Hệ '+e.orientation}</p>` : '';
@@ -866,15 +879,27 @@
                         modalBody.innerHTML = html;
                         modal.classList.remove('hidden');
 
-                        // Gán giá trị mặc định cho Select Phòng & Định hướng dựa trên phần tử đầu tiên
-                        const firstItem = props.events[0];
-                        if (firstItem.room) document.getElementById('editRoom').value = firstItem.room;
-                        if (firstItem.orientation) document.getElementById('editOrient').value = firstItem.orientation;
+                        if (hasEditRight) {
+                            const firstItem = props.events[0];
+                            const editRoomSelect = document.getElementById('editRoom');
+                            
+                            if (firstItem.room) {
+                                if (ROOM_LIST.includes(firstItem.room)) {
+                                    editRoomSelect.value = firstItem.room;
+                                } else {
+                                    editRoomSelect.value = 'OTHER';
+                                    const customInput = document.getElementById('editCustomRoom');
+                                    customInput.value = firstItem.room;
+                                    customInput.classList.remove('hidden');
+                                }
+                            }
+                            
+                            if (firstItem.orientation) document.getElementById('editOrient').value = firstItem.orientation;
 
-                        // Toggle Edit Form
-                        document.getElementById('btnToggleInlineEdit').onclick = () => {
-                            document.getElementById('inlineEditForm').classList.toggle('hidden');
-                        };
+                            document.getElementById('btnToggleInlineEdit').onclick = () => {
+                                document.getElementById('inlineEditForm').classList.toggle('hidden');
+                            };
+                        }
                     }
                 }
             });
@@ -886,7 +911,8 @@
             const dateVal = document.getElementById('editDate').value;
             const startVal = document.getElementById('editStartTime').value;
             const endVal = document.getElementById('editEndTime').value;
-            const roomVal = document.getElementById('editRoom').value;
+            const roomSelVal = document.getElementById('editRoom').value;
+            const customRoomVal = document.getElementById('editCustomRoom').value.trim();
             const orientVal = document.getElementById('editOrient').value;
             const idsStr = document.getElementById('editGroupIds').value;
 
@@ -894,15 +920,21 @@
                 showToast("Vui lòng điền đủ Ngày và Giờ!", "danger"); return;
             }
 
+            const roomVal = (roomSelVal === 'OTHER' || roomSelVal === 'Khác...') ? customRoomVal : roomSelVal;
+
             const newStartStr = `${dateVal}T${startVal}:00`;
             const newEndStr = `${dateVal}T${endVal}:00`;
             const idArray = idsStr.split(',');
 
-            // Lấy lại danh sách sự kiện từ DB hiện tại
             let targetEvents = scheduledEventsDB.filter(e => idArray.includes(e.id));
             
-            // Check trùng lặp
+            // Check trùng lặp và quyền
             for (let e of targetEvents) {
+                let canEdit = (e.scheduledByEmail === currentUserEmail || currentUserEmail === 'hoangtran1483@gmail.com');
+                if (!canEdit) {
+                    showToast(`Bạn không có quyền sửa lịch do ${e.scheduledByName} xếp!`, "danger"); return;
+                }
+
                 const overlapCheck = hasOverlap(newStartStr, newEndStr, e.gv, e.class, e.task, roomVal, idArray);
                 if (overlapCheck.hasOverlap) {
                     showToast(overlapCheck.reason, "danger"); return;
@@ -933,20 +965,17 @@
         window.confirmRoomSelection = async () => {
             if (!pendingDropInfo) return;
 
-            const selectedRoom = document.getElementById('roomSelect').value;
+            const roomSelVal = document.getElementById('roomSelect').value;
+            const customRoomVal = document.getElementById('customRoomInput').value.trim();
             const repeatWeeks = parseInt(document.getElementById('repeatWeeks').value) || 1;
             const info = pendingDropInfo;
             const props = info.event.extendedProps;
 
+            const selectedRoom = (roomSelVal === 'OTHER' || roomSelVal === 'Khác...') ? customRoomVal : roomSelVal;
+
             document.getElementById('roomModal').classList.add('hidden');
 
-            let finalOrientation = ''; 
-            if (!document.getElementById('orientGroup').classList.contains('hidden')) {
-                finalOrientation = document.getElementById('modalOrientSelect').value;
-            } else {
-                if (props.orientations === 'NC') finalOrientation = 'Nghiên cứu';
-                else if (props.orientations === 'UD') finalOrientation = 'Ứng dụng';
-            }
+            let finalOrientation = document.getElementById('modalOrientSelect').value;
 
             // Mảng lưu trữ tất cả lịch cần tạo
             let allNewEvents = [];
@@ -954,23 +983,20 @@
             let originalEnd = info.event.endStr ? new Date(info.event.endStr) : new Date(originalStart.getTime() + 4.5 * 3600000);
 
             for (let i = 0; i < repeatWeeks; i++) {
-                // Cộng thêm i tuần (i * 7 ngày)
                 let currentStart = new Date(originalStart.getTime() + i * 7 * 24 * 3600 * 1000);
                 let currentEnd = new Date(originalEnd.getTime() + i * 7 * 24 * 3600 * 1000);
                 
                 let startStr = toLocalISOString(currentStart);
                 let endStr = toLocalISOString(currentEnd);
 
-                // Check overlap cho từng tuần
                 const overlapCheck = hasOverlap(startStr, endStr, props.gv, props.eventClass, props.task, selectedRoom, []);
                 if (overlapCheck.hasOverlap) {
                     showToast(`Bị trùng lịch ở tuần thứ ${i+1}: ${overlapCheck.reason}`, "danger");
                     info.revert();
                     pendingDropInfo = null;
-                    return; // Dừng lại nếu 1 tuần bị lỗi
+                    return; 
                 }
 
-                // Tạo object dữ liệu cho tuần này
                 const newUniqueId = props.originalId + '_' + Date.now() + '_' + i;
                 allNewEvents.push({
                     id: newUniqueId, 
@@ -991,7 +1017,6 @@
                 });
             }
 
-            // Thực thi lưu hàng loạt lên Firebase
             try {
                 let promises = allNewEvents.map(evData => setDoc(doc(db, "calendar_events", evData.id), evData));
                 await Promise.all(promises);
@@ -1032,24 +1057,21 @@
             const poolSubjectFilter = document.getElementById('poolSubjectFilter') ? document.getElementById('poolSubjectFilter').value : 'ALL';
             const poolSemesterFilter = document.getElementById('poolSemesterFilter') ? document.getElementById('poolSemesterFilter').value : 'ALL'; 
 
-            // --------- 1. RENDER LỊCH CHÍNH (Đã loại bỏ trùng lặp nếu môn gộp) ---------
+            // --------- 1. RENDER LỊCH CHÍNH ---------
             let scheduledEventsNormal = scheduledEventsDB.filter(e => e.status !== 'returned');
 
-            // Áp dụng bộ lọc Top Toolbar (Lớp & Định hướng)
             if (calendarClassFilter !== 'ALL') {
                 scheduledEventsNormal = scheduledEventsNormal.filter(e => e.class === calendarClassFilter);
             }
 
             if (calendarOrientFilter !== 'ALL') {
                 scheduledEventsNormal = scheduledEventsNormal.filter(e => {
-                    // Hiển thị nếu thẻ là 'Cả hai', hoặc khớp đúng định hướng, hoặc môn chung (không có orient)
                     return !e.orientation || e.orientation === 'Cả hai' || e.orientation === calendarOrientFilter || e.orientation.trim() === '';
                 });
             }
 
             let deduplicatedEventsMap = new Map();
             scheduledEventsNormal.forEach(e => {
-                // Gom chung nếu lịch có cùng giờ, cùng phòng, cùng GV, cùng Môn
                 let sTime = new Date(e.start).getTime();
                 let eTime = e.end ? new Date(e.end).getTime() : sTime + 4.5 * 3600 * 1000;
                 let deduplicateKey = `${sTime}_${eTime}_${e.room}_${e.subject}_${e.task}_${e.gv}`;
@@ -1090,7 +1112,7 @@
 
 
             // --------- 2. RENDER KHO SỰ KIỆN BÊN TRÁI ---------
-            let poolTasksMap = new Map(); // Gom nhóm thẻ
+            let poolTasksMap = new Map(); 
 
             subjectsData.forEach(sub => {
                 if (poolSubjectFilter !== 'ALL' && sub.name !== poolSubjectFilter) return;
@@ -1124,7 +1146,6 @@
                         if (hasUD) dbKeysToCheck.push({ key: `${cls}_UD_${shortMajor}`, orientCode: 'UD' });
                         
                         if (!hasNC && !hasUD) {
-                            // Fallback
                             dbKeysToCheck.push({ key: `${cls}_NC_${shortMajor}`, orientCode: 'NC' });
                             dbKeysToCheck.push({ key: `${cls}_UD_${shortMajor}`, orientCode: 'UD' });
                         }
@@ -1144,7 +1165,6 @@
                                 const totalAssigned = parseInt(a.assigned) || 0;
                                 const alreadyScheduled = window.getScheduledCount(cls, orientCode, sub.name, a.gv, a.task);
                                 
-                                // Đếm số lịch bị trả về
                                 let returnedTasks = scheduledEventsDB.filter(e => {
                                     if (e.status !== 'returned') return false;
                                     let matchOrient = false;
@@ -1153,7 +1173,6 @@
                                     } else {
                                         matchOrient = true;
                                     }
-                                    
                                     let eGVs = e.gv ? e.gv.split(/,|&/).map(s => s.trim()) : [];
                                     return e.class === cls && matchOrient && e.subject === sub.name && eGVs.includes(a.gv) && e.task === a.task;
                                 });
@@ -1175,7 +1194,6 @@
                                     let taskData = poolTasksMap.get(mapKey);
                                     if (orientCode) taskData.orients.add(orientCode);
                                     
-                                    // Gộp max số buổi còn lại
                                     taskData.remaining = Math.max(taskData.remaining, remainingNormal);
                                     returnedTasks.forEach(rt => taskData.returnedTasks.push(rt));
                                 }
@@ -1214,7 +1232,6 @@
                 const tasks = subjectGroups.get(subName);
                 
                 tasks.forEach(item => {
-                    // Xác định định hướng
                     let orientAttr = '';
                     let orientDisplay = '';
                     if (item.orients.has('NC') && item.orients.has('UD')) {
@@ -1259,7 +1276,6 @@
                     }
 
                     if (returnedCount > 0) {
-                        // Trả về thì tạo từng thẻ một
                         item.returnedTasks.forEach(rTask => {
                             unscheduledCount++;
                             let eventDiv = document.createElement('div');
@@ -1271,7 +1287,6 @@
                             eventDiv.setAttribute('data-gv', item.gv);
                             eventDiv.setAttribute('data-task', item.task);
                             eventDiv.setAttribute('data-class', item.cls);
-                            // Giữ nguyên định hướng gốc của thẻ bị trả về
                             let rOrient = rTask.orientation === 'Nghiên cứu' ? 'NC' : (rTask.orientation === 'Ứng dụng' ? 'UD' : (rTask.orientation === 'Cả hai' ? 'NC,UD' : ''));
                             eventDiv.setAttribute('data-orientations', rOrient); 
                             eventDiv.setAttribute('data-semester', item.semester);       
