@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="description" content="Thời khóa biểu - Bộ môn Phục hồi chức năng.">
-    <title>Thời khóa biểu - Bộ môn Phục hồi chức năng</title>
+    <meta name="description" content="Lịch công tác - Bộ môn Phục hồi chức năng.">
+    <title>Xếp Lịch Công Tác - Bộ môn Phục hồi chức năng</title>
 
     <link rel="icon" href="images/logo_Bộ môn.png" type="image/png">
     <link rel="stylesheet" href="css/style.css">
@@ -20,23 +20,22 @@
         html, body { min-height: 100vh; margin: 0; padding: 0; display: flex; flex-direction: column; background: var(--bg-page); }
 
         #header-placeholder { flex-shrink: 0; transition: 0.3s; z-index: 1001; position: relative;}
-        /* Lớp ẩn Header khi cuộn chuột */
         body.header-hidden #header-placeholder { display: none !important; }
-
         #footer-placeholder { display: none; }
 
         /* Thanh công cụ gọn nhẹ trên cùng */
-        .top-toolbar { position: sticky; top: 75px; z-index: 990; display: flex; justify-content: space-between; align-items: center; padding: 10px 2%; background: var(--surface); border-bottom: 1px solid var(--border); margin-bottom: 15px; box-shadow: var(--shadow-sm); transition: top 0.3s; }
+        .top-toolbar { position: sticky; top: 75px; z-index: 990; display: flex; justify-content: space-between; align-items: center; padding: 10px 2%; background: var(--surface); border-bottom: 1px solid var(--border); margin-bottom: 15px; box-shadow: var(--shadow-sm); transition: top 0.3s; flex-wrap: wrap; gap: 10px;}
         .top-toolbar h2 { margin: 0; font-size: clamp(1.1rem, 3vw, 1.4rem); color: var(--text-dark); display: flex; align-items: center; gap: 8px; font-weight: 800; text-transform: uppercase; white-space: nowrap; }
 
         body.header-hidden .top-toolbar { top: 0; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
 
         .controls-wrapper { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-        .filter-select { padding: 6px 12px; font-size: 0.95rem; font-weight: 600; border-radius: 6px; border: 1px solid var(--border); outline: none; cursor: pointer; color: var(--text-dark); max-width: 100%; }
+        .filter-select { padding: 6px 12px; font-size: 0.95rem; font-weight: 600; border-radius: 6px; border: 1px solid var(--primary); outline: none; cursor: pointer; color: var(--primary); background: var(--primary-light); max-width: 100%; transition: 0.2s; }
+        .filter-select:hover { background: white; }
+        
         .btn-toggle { background: white; color: var(--primary); border: 1px solid var(--primary); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.2s; font-size: 0.9rem; white-space: nowrap; }
         .btn-toggle:hover { background: var(--primary-light); }
 
-        /* Nút Xuất Word */
         .btn-export { background: #2563eb; color: white; border: none; padding: 7px 15px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.2s; font-size: 0.95rem; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
         .btn-export:hover { background: #1d4ed8; }
 
@@ -44,38 +43,38 @@
         main { flex: 1; max-width: 100%; width: 100%; padding: 0 1% 30px 1%; display: flex; gap: 15px; box-sizing: border-box; align-items: flex-start; }
 
         /* Khung bên trái (Kho Sự Kiện) */
-        #external-events { position: sticky; top: 80px; width: 280px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 15px; box-shadow: var(--shadow-sm); flex-shrink: 0; display: none; flex-direction: column; max-height: calc(100vh - 100px); transition: 0.3s; }
+        #external-events { position: sticky; top: 80px; width: 320px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 15px; box-shadow: var(--shadow-sm); flex-shrink: 0; display: none; flex-direction: column; max-height: calc(100vh - 100px); transition: 0.3s; }
         #external-events h4 { margin: 0 0 5px 0; color: var(--primary); border-bottom: 1px dashed var(--border); padding-bottom: 8px; font-size: 1.05rem; flex-shrink: 0; display: flex; flex-direction: column; gap: 5px; }
         
-        .pool-filter-container { display: flex; gap: 5px; margin-top: 5px; }
-        .pool-filter { padding: 4px; font-size: 0.8rem; border-radius: 4px; border: 1px solid var(--border); outline: none; cursor: pointer; color: var(--text-dark); background: white; flex: 1; min-width: 0; }
+        .pool-filter-container { display: flex; gap: 5px; margin-top: 5px; flex-wrap: wrap; }
+        .pool-filter { padding: 6px; font-size: 0.85rem; border-radius: 4px; border: 1px solid var(--border); outline: none; cursor: pointer; color: var(--text-dark); background: white; flex: 1; min-width: 0; font-weight:600;}
 
-        #event-pool { flex: 1; overflow-y: auto; padding-right: 10px; padding-top: 5px; } 
+        #event-pool { flex: 1; overflow-y: auto; padding-right: 5px; padding-top: 5px; } 
         #event-pool .fc-event { cursor: move; margin: 0 0 10px 0; padding: 10px 12px; color: var(--text-dark); border: 1px solid var(--border); border-radius: 6px; text-align: left; transition: 0.2s; position: relative; }
 
-        /* Box chứa Môn học trong Kho */
         .pool-subject-group { margin-bottom: 10px; background: white; border-radius: 8px; border: 1px solid #cbd5e1; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .pool-subject-title { font-size: 0.9rem; font-weight: 800; color: var(--text-dark); padding: 12px 10px; line-height: 1.4; transition: background 0.2s; border-radius: 8px; user-select: none; }
         .pool-subject-title:hover { background: #f8fafc; }
         .pool-cards-container { padding: 0 10px 10px 10px; }
 
-        /* Huy hiệu đếm số sự kiện gộp */
         .count-badge { position: absolute; top: -10px; right: -10px; background-color: #ef4444; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2); border: 2px solid white; z-index: 10; }
 
-        /* Màu nền phân biệt Lớp trong Kho */
         #event-pool .fc-event.THS2025 { background-color: #f0f9ff; border-color: #bae6fd; }
         #event-pool .fc-event.THS2026 { background-color: #fefce8; border-color: #fde047; }
         #event-pool .fc-event:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.05); filter: brightness(0.95); }
 
-        /* Nhãn phân loại trong Kho */
-        .class-tag { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; margin-bottom: 5px; }
+        .class-tag { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; margin-bottom: 5px; margin-right: 5px;}
         .class-tag.THS2025 { background: #bae6fd; color: #0369a1; }
         .class-tag.THS2026 { background: #fde047; color: #b45309; }
+
+        .badge-orient { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; margin-bottom: 5px; }
+        .badge-ud { background-color: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; }
+        .badge-nc { background-color: #fef08a; color: #b45309; border: 1px solid #fde047; }
+        .badge-chung { background-color: #fef3c7; color: #d97706; border: 1px solid #fde68a; }
 
         #event-pool .event-gv { font-weight: 700; font-size: 1rem; margin-bottom: 4px; color: var(--primary); }
         #event-pool .event-info { display: block; font-size: 0.8rem; color: var(--text-body); line-height: 1.4; }
 
-        /* Cảnh báo sự kiện bị GV từ chối trả về */
         #event-pool .fc-event.rejected-task { border-left: 4px solid #ef4444 !important; border-color: #ef4444 !important; background-color: #fef2f2 !important; }
         #event-pool .fc-event.rejected-task .event-gv { color: #b91c1c; }
         #event-pool .fc-event.rejected-task .reject-badge { display: block; font-size: 0.75rem; color: #ef4444; font-weight: bold; margin-top: 5px; animation: blink 1.5s infinite; }
@@ -86,145 +85,61 @@
 
         .fc-toolbar-title { font-size: clamp(1.1rem, 2.5vw, 1.3rem) !important; color: var(--primary); font-weight: bold; text-transform: capitalize; }
         .fc-button-primary { background-color: var(--primary) !important; border-color: var(--primary) !important; text-transform: capitalize; font-weight: 600 !important; padding: 6px 15px !important; font-size: 0.95rem !important;}
-        .fc-button-primary:hover { background-color: var(--primary-hover) !important; }
-        .fc-button-active { background-color: var(--primary-hover) !important; }
-
-        /* TÙY CHỈNH THẺ SỰ KIỆN GOM NHÓM (GROUPED EVENT) TRÊN LỊCH */
+        
         .fc-event-main { padding: 0 !important; }
-
         .evt-group-container {
             background: white; border: 1px solid #cbd5e1;
             border-radius: 4px; padding: 6px; box-sizing: border-box;
             height: 100%; display: flex; flex-direction: column;
             overflow: hidden; border-left: 4px solid var(--primary);
             color: var(--text-dark); box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            cursor: pointer;
         }
-        .evt-group-header {
-            font-size: 0.8rem; font-weight: 700; color: #64748b;
-            margin-bottom: 6px; padding-bottom: 4px;
-            border-bottom: 1px solid #e2e8f0;
-            display: flex; align-items: center; justify-content: flex-start;
-        }
-        .evt-items-list {
-            flex: 1; overflow-y: auto; overflow-x: hidden;
-            display: flex; flex-direction: column; gap: 8px;
-        }
-        .evt-item { display: flex; flex-direction: column; gap: 2px; margin-bottom: 4px; }
-        .evt-item-row1 { display: flex; gap: 6px; align-items: flex-start; }
-        .evt-room-badge { 
-            background: #fbbf24; color: #78350f; font-weight: 800; font-size: 0.7rem; 
-            padding: 2px 4px; border-radius: 3px; flex-shrink: 0; min-width: 22px; text-align: center; margin-top: 1px;
-        }
-        .evt-gv-name { 
-            font-size: 0.75rem; font-weight: 700; color: var(--text-dark); line-height: 1.3; word-break: break-word; white-space: normal;
-        }
-        .evt-item-row2 { 
-            font-size: 0.75rem; color: var(--primary); padding-left: 28px; line-height: 1.3; word-break: break-word; white-space: normal;
-        }
-
-        /* Chấm Bệnh viện trên cùng (All-day) */
-        .evt-clinical-dot { background-color: #10b981; color: white; border-radius: 4px; padding: 2px 0; text-align: center; font-weight: 700; font-size: 0.85rem; cursor: pointer; display: block; box-shadow: 0 2px 5px rgba(16, 185, 129, 0.4); transition: 0.2s; }
-        .evt-clinical-dot:hover { background-color: #059669; transform: scale(1.02); }
-
+        .evt-group-header { font-size: 0.8rem; font-weight: 700; color: #64748b; margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: flex-start; }
+        .evt-items-list { flex: 1; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; gap: 8px; }
+        
         .hidden { display: none !important; }
 
-        /* Tooltip Rà chuột */
         #eventTooltip { position: fixed; z-index: 9999; background: rgba(15, 23, 42, 0.95); color: white; padding: 12px 15px; border-radius: 8px; font-size: 0.9rem; pointer-events: none; display: none; box-shadow: 0 10px 25px rgba(0,0,0,0.3); line-height: 1.6; max-width: 350px; border-left: 4px solid var(--primary); }
 
-        /* Toast */
         .toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
         .toast { min-width: 250px; background-color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: 0.4s; font-weight: 600; border-left: 5px solid #22c55e; opacity: 0; }
         .toast.show { transform: translateX(0); opacity: 1; }
         .toast.danger { border-left-color: #ef4444; }
 
-        /* Modal Chi tiết chung */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 2000; padding: 10px; }
-        .modal-content { background: white; width: 95%; max-width: 600px; border-radius: 8px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); overflow: hidden; display: flex; flex-direction: column; }
+        .modal-content { background: white; width: 95%; max-width: 450px; border-radius: 8px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); overflow: hidden; display: flex; flex-direction: column; }
         .modal-header { padding: 15px 20px; background: var(--primary); color: white; display: flex; justify-content: space-between; align-items: center; }
         .modal-header h3 { margin: 0; font-size: 1.1rem; }
-        .modal-body { padding: 20px; line-height: 1.8; text-align: justify; overflow-y: auto; max-height: 70vh;}
+        .modal-body { padding: 20px; line-height: 1.8; text-align: left; }
         .modal-footer { padding: 15px 20px; background: #f1f5f9; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border); }
 
         .btn-danger { background: var(--accent); color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s;}
-        .btn-danger:hover { background: #be123c; }
         .btn-primary { background: var(--primary); color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s;}
-        .btn-primary:hover { background: var(--primary-hover); }
         .btn-secondary { background: white; color: var(--text-dark); border: 1px solid var(--border); padding: 8px 15px; border-radius: 4px; cursor: pointer; transition: 0.2s; font-weight: 600; }
-        .btn-secondary:hover { background: #e2e8f0; }
+        .btn-info { background: #0ea5e9; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s;}
 
-        /* Chọn Phòng Form */
         .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; font-weight: 600; margin-bottom: 5px; color: var(--text-dark); }
-        .form-group select { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border); font-size: 1rem; outline: none; }
-        .form-group select:focus { border-color: var(--primary); }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 5px; color: var(--text-dark); font-size:0.9rem;}
+        .form-group select, .form-group input { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border); font-size: 1rem; outline: none; box-sizing: border-box;}
+        .form-group select:focus, .form-group input:focus { border-color: var(--primary); }
 
-        /* Modal Bệnh viện / Lớp học (Dùng chung modal-body) */
-        #multiEventModal .modal-content { max-width: 750px; }
+        /* Inline Edit Form in Modal */
+        .inline-edit-form { background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #cbd5e1; margin-bottom: 15px; }
+        .inline-edit-form .form-row { display: flex; gap: 10px; margin-bottom: 10px; }
+        .inline-edit-form .form-row > div { flex: 1; }
 
-        /* Dành riêng cho Dạng danh sách trên Mobile */
-        .mobile-list-item { padding: 8px 6px; border-bottom: 1px dashed #e2e8f0; text-align: left; line-height: 1.5; }
-
-        /* TỐI ƯU HIỂN THỊ ĐIỆN THOẠI (Mobile Responsive) */
         @media (max-width: 768px) {
             main { flex-direction: column; }
             #external-events { position: relative; width: 100%; top: 0; max-height: 350px; }
-            .top-toolbar { flex-direction: column; gap: 10px; align-items: stretch; top: 60px;}
-            
-            /* Điều chỉnh tiêu đề và nút chức năng */
+            .top-toolbar { flex-direction: column; gap: 10px; align-items: stretch; }
             .fc-toolbar-title { font-size: clamp(1rem, 3vw, 1.2rem) !important; }
             .fc-button-primary { padding: 4px 8px !important; font-size: 0.75rem !important; }
-            
-            /* Ẩn cột thời gian trong lịch tuần (giải phóng không gian) */
             .fc .fc-timegrid-axis, .fc .fc-timegrid-slot-label { width: 0 !important; padding: 0 !important; border: none !important; }
             .fc .fc-timegrid-slot-label-cushion, .fc .fc-timegrid-axis-cushion { display: none !important; }
-
-            /* --- CỐT LÕI TÙY CHỈNH THU NHỎ FONT VÀ CẤM RỚT DÒNG --- */
-            .fc-event-main, .fc-list-event-title {
-                white-space: nowrap !important;
-                overflow: hidden !important;
-                text-overflow: ellipsis !important;
-            }
-            .evt-item { gap: 0; }
-            .evt-item-row1 {
-                flex-wrap: nowrap;
-                overflow: hidden;
-                min-width: 0;
-            }
-            /* Thu nhỏ cỡ chữ linh động theo vw */
-            .evt-gv-name { 
-                font-size: clamp(0.55rem, 2vw, 0.75rem) !important; 
-                white-space: nowrap !important; 
-                overflow: hidden; 
-                text-overflow: ellipsis; 
-                min-width: 0;
-                display: block;
-            }
-            .evt-item-row2 { 
-                font-size: clamp(0.55rem, 2vw, 0.75rem) !important; 
-                white-space: nowrap !important; 
-                overflow: hidden; 
-                text-overflow: ellipsis; 
-                padding-left: 22px;
-                display: block;
-            }
-            .evt-room-badge { 
-                font-size: clamp(0.5rem, 1.8vw, 0.65rem) !important; 
-                min-width: auto; 
-                padding: 1px 4px;
-            }
-            .evt-group-header {
-                font-size: clamp(0.6rem, 2vw, 0.75rem) !important;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-            /* Style cho dạng List */
-            .mobile-list-item {
-                font-size: clamp(0.6rem, 2.2vw, 0.85rem);
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
+            .fc-event-main, .fc-list-event-title { white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; }
+            
+            .inline-edit-form .form-row { flex-direction: column; gap: 5px; }
         }
     </style>
 </head>
@@ -234,50 +149,78 @@
     <div id="toastContainer" class="toast-container"></div>
     <div id="eventTooltip"></div>
 
-    <!-- THANH CÔNG CỤ COMPACT TRÊN CÙNG -->
+    <!-- THANH CÔNG CỤ CHÍNH -->
     <div class="top-toolbar">
         <div>
-            <h2>THỜI KHÓA BIỂU</h2>
+            <h2>XẾP LỊCH CÔNG TÁC GIẢNG DẠY</h2>
         </div>
         <div class="controls-wrapper">
+            <!-- Lọc hiển thị trên Lịch -->
+            <select id="calendarClassFilter" class="filter-select" onchange="processAndRenderEvents()">
+                <option value="ALL">Tất cả Lớp</option>
+                <option value="THS2025">Lớp THS2025</option>
+                <option value="THS2026">Lớp THS2026</option>
+            </select>
+            <select id="calendarOrientFilter" class="filter-select" onchange="processAndRenderEvents()">
+                <option value="ALL">Tất cả Định hướng</option>
+                <option value="Nghiên cứu">Hướng Nghiên cứu</option>
+                <option value="Ứng dụng">Hướng Ứng dụng</option>
+            </select>
+            
             <button id="btnToggleSidebar" class="btn-toggle hidden" onclick="toggleSidebar()" title="Thu gọn/Mở rộng Kho sự kiện">
                 <i class="fas fa-bars"></i> Kho Sự Kiện
-            </button>
-            <select id="semesterSelect" class="filter-select" onchange="processAndRenderEvents()">
-                <option value="ALL">Tất cả Học kỳ</option>
-                <option value="Học kỳ 1">Học kỳ 1</option>
-                <option value="Học kỳ 2">Học kỳ 2</option>
-                <option value="Học kỳ 3">Học kỳ 3</option>
-                <option value="Học kỳ 4">Học kỳ 4</option>
-            </select>
-            <!-- NÚT XUẤT BÁO CÁO -->
-            <button id="btnExportTop" class="btn-export hidden" onclick="exportWeeklyReport()" title="Xuất báo cáo các lịch đã dạy trong tuần này ra Word">
-                <i class="fas fa-file-word"></i> Xuất BC
             </button>
         </div>
     </div>
 
     <main>
-        <!-- KHO SỰ KIỆN -->
+        <!-- KHO SỰ KIỆN DÀNH CHO ADMIN -->
         <div id="external-events">
             <h4>
-                <div>Chưa lên lịch</div>
+                <div><i class="fas fa-inbox"></i> Sự kiện cần xếp</div>
+                
                 <div class="pool-filter-container">
-                    <select id="poolClassFilter" class="pool-filter" onchange="processAndRenderEvents()">
+                    <select id="poolClassFilter" class="pool-filter" onchange="updatePoolSubjectFilter(); processAndRenderEvents();">
                         <option value="ALL">Tất cả Lớp</option>
                         <option value="THS2025">THS2025</option>
-                        <option value="THS2026">THS2026</option>
+                        <option value="THS2026" selected>THS2026</option>
                     </select>
-                    <select id="poolSubjectFilter" class="pool-filter" onchange="processAndRenderEvents()">
-                        <option value="ALL">Tất cả Môn</option>
+                    <select id="poolOrientFilter" class="pool-filter" onchange="updatePoolSubjectFilter(); processAndRenderEvents();">
+                        <option value="ALL">Cả 2 Hướng</option>
+                        <option value="NC">Nghiên cứu</option>
+                        <option value="UD">Ứng dụng</option>
                     </select>
                 </div>
+                
+                <div class="pool-filter-container">
+                    <select id="poolMajorFilter" class="pool-filter" onchange="updatePoolSubjectFilter(); processAndRenderEvents();">
+                        <option value="ALL">Tất cả Ngành</option>
+                        <option value="VLTL">Vật lý trị liệu</option>
+                        <option value="HĐTL">Hoạt động trị liệu</option>
+                        <option value="NNTL">Ngôn ngữ trị liệu</option>
+                    </select>
+                    <select id="poolSemesterFilter" class="pool-filter" onchange="updatePoolSubjectFilter(); processAndRenderEvents();">
+                        <option value="ALL">Tất cả Học kỳ</option>
+                        <option value="Học kỳ 1">Học kỳ 1</option>
+                        <option value="Học kỳ 2">Học kỳ 2</option>
+                        <option value="Học kỳ 3">Học kỳ 3</option>
+                        <option value="Học kỳ 4">Học kỳ 4</option>
+                        <option value="Chưa xác định">Chưa XĐ</option>
+                    </select>
+                </div>
+
+                <div class="pool-filter-container">
+                    <select id="poolSubjectFilter" class="pool-filter" onchange="processAndRenderEvents()" style="min-width: 100%;">
+                        <option value="ALL">Tất cả Môn học</option>
+                    </select>
+                </div>
+
             </h4>
-            <div style="font-size: 0.85rem; color: #64748b; margin-bottom: 15px; font-style: italic; line-height: 1.4;">
-                Kéo thẻ phân công thả vào khung giờ bên phải.
+            <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 10px; font-style: italic; line-height: 1.4;">
+                Kéo thẻ thả vào khung giờ bên phải để xếp lịch.
             </div>
             <div id="event-pool">
-                <div style="text-align:center; padding: 20px;">Đang tải...</div>
+                <div style="text-align:center; padding: 20px;"><i class="fas fa-spinner fa-spin"></i> Đang tải...</div>
             </div>
         </div>
 
@@ -287,30 +230,49 @@
         </div>
     </main>
 
-    <!-- MODAL CHỌN PHÒNG HỌC -->
+    <!-- MODAL CHỌN PHÒNG HỌC & ĐỊNH HƯỚNG KHI THẢ THẺ TỪ KHO -->
     <div id="roomModal" class="modal-overlay hidden">
-        <div class="modal-content" style="max-width: 400px;">
+        <div class="modal-content">
             <div class="modal-header">
-                <h3>Chọn Phòng học</h3>
+                <h3>Thông số Lịch học mới</h3>
             </div>
             <div class="modal-body">
-                <div class="form-group">
-                    <label for="roomSelect">Phòng / Địa điểm:</label>
-                    <select id="roomSelect">
-                        <!-- Đổ dữ liệu từ JS vào đây -->
+                <!-- KHỐI CHỌN ĐỊNH HƯỚNG SẼ HIỆN NẾU MÔN NÀY LÀ MÔN CHIA NHÁNH -->
+                <div class="form-group hidden" id="orientGroup">
+                    <label for="modalOrientSelect" style="color: #b45309;"><i class="fas fa-code-branch"></i> Định hướng áp dụng:</label>
+                    <select id="modalOrientSelect" style="border-color: #b45309; background-color: #fffbeb; font-weight: bold; color: #b45309;">
+                        <option value="Cả hai">Học chung / Không phân định hướng</option>
+                        <option value="Nghiên cứu">Chỉ hướng Nghiên cứu (NC)</option>
+                        <option value="Ứng dụng">Chỉ hướng Ứng dụng (UD)</option>
                     </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="roomSelect"><i class="fas fa-map-marker-alt"></i> Phòng / Địa điểm:</label>
+                    <select id="roomSelect" onchange="checkCustomRoom(this, 'customRoomInput')">
+                        <!-- Đổ dữ liệu từ JS -->
+                    </select>
+                    <input type="text" id="customRoomInput" class="hidden" placeholder="Nhập tên phòng/địa điểm..." style="margin-top: 5px; width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border); box-sizing: border-box;">
+                </div>
+
+                <div class="form-group" style="background: #f1f5f9; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                    <label for="repeatWeeks"><i class="fas fa-redo"></i> Lặp lại hàng tuần:</label>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="number" id="repeatWeeks" value="1" min="1" max="15" style="width: 80px;">
+                        <span style="font-size: 0.9rem; font-weight: 600; color: var(--text-body);">tuần liên tiếp (Cùng giờ, phòng)</span>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn-secondary" onclick="cancelRoomSelection()">Hủy xếp lịch</button>
-                <button class="btn-primary" onclick="confirmRoomSelection()">Xác nhận</button>
+                <button class="btn-secondary" onclick="cancelRoomSelection()">Hủy</button>
+                <button class="btn-primary" onclick="confirmRoomSelection()"><i class="fas fa-check"></i> Xác nhận Xếp lịch</button>
             </div>
         </div>
     </div>
 
-    <!-- MODAL CHI TIẾT TỔ HỢP SỰ KIỆN -->
+    <!-- MODAL CHI TIẾT TỔ HỢP SỰ KIỆN (XEM/SỬA/XÓA) -->
     <div id="multiEventModal" class="modal-overlay hidden">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 650px;">
             <div class="modal-header" id="multiEventModalHeader" style="background: var(--primary);">
                 <h3 id="multiEventModalTitle">Chi tiết Lịch</h3>
                 <span style="cursor: pointer; font-weight: bold; font-size: 1.2rem;" onclick="document.getElementById('multiEventModal').classList.add('hidden')">X</span>
@@ -331,25 +293,16 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, collection, onSnapshot, setDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, collection, onSnapshot, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY", authDomain: "bmphcn-aa9c6.firebaseapp.com", projectId: "bmphcn-aa9c6", storageBucket: "bmphcn-aa9c6.firebasestorage.app", messagingSenderId: "749494392719", appId: "1:749494392719:web:f220c751ff541620045dfa" };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // HIỆU ỨNG ẨN HEADER KHI CUỘN CHUỘT XUỐNG
-        window.addEventListener('scroll', function() {
-            if (window.scrollY > 60) {
-                document.body.classList.add('header-hidden');
-            } else {
-                document.body.classList.remove('header-hidden');
-            }
-        });
-
-        // CẤU HÌNH DANH SÁCH PHÒNG HỌC
+        // CẤU HÌNH DANH SÁCH PHÒNG HỌC (Thêm Khác...)
         const ROOM_LIST = [
-            "Phòng 3", "Phòng 4", "Phòng ST", "Phòng OT", "Phòng 12", "Hội trường", "Khác..."
+            "Phòng 3", "Phòng 4", "Phòng OT", "Phòng ST"
         ];
 
         let calendar;
@@ -361,12 +314,12 @@
         const managedClasses = ['THS2025', 'THS2026'];
 
         let assignmentsData = {};
-        let scheduledEvents = [];
+        let scheduledEventsDB = []; 
         let subjectsData = [];
-
-        // TỪ ĐIỂN MAP TÊN ĐẦY ĐỦ -> TÊN NGẮN
         let gvShortNameMap = {};
+        let pendingDropInfo = null;
 
+        // TIỆN ÍCH
         window.toggleSidebar = () => {
             const panel = document.getElementById('external-events');
             const isHidden = panel.style.display === 'none' || panel.classList.contains('hidden');
@@ -383,9 +336,27 @@
             setTimeout(() => { if(calendar) calendar.updateSize(); }, 100);
         };
 
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            let icon = type === 'danger' ? 'fa-exclamation-triangle' : 'fa-check-circle';
+            toast.innerHTML = `<i class="fas ${icon}" style="font-size: 1.2rem; color: ${type==='danger'?'#ef4444':'#22c55e'};"></i> <span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
+        }
+
+        window.formatGvName = (gvString) => {
+            if (!gvString) return '';
+            let gvs = gvString.split(/,|&/).map(s => s.trim());
+            let shortGvs = gvs.map(gv => gvShortNameMap[gv] ? gvShortNameMap[gv] : gv);
+            return shortGvs.join(', ');
+        };
+
         window.deleteSubEvent = async (id) => {
             if(!id) return;
-            if(confirm("Bạn có chắc muốn xóa sự kiện này khỏi lịch? (Sự kiện sẽ được trả về kho)")) {
+            if(confirm("Bạn có chắc muốn xóa thẻ lịch này? (Số buổi sẽ được hoàn lại vào Kho)")) {
                 try {
                     await deleteDoc(doc(db, "calendar_events", id));
                     showToast("Đã xóa khỏi lịch!");
@@ -396,224 +367,99 @@
             }
         };
 
-        let pendingDropInfo = null;
-
-        function showToast(message, type = 'success') {
-            const container = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            toast.innerText = message;
-            container.appendChild(toast);
-            setTimeout(() => toast.classList.add('show'), 10);
-            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
+        function initRoomSelect() {
+            const select = document.getElementById('roomSelect');
+            select.innerHTML = '';
+            ROOM_LIST.forEach(room => { select.innerHTML += `<option value="${room}">${room}</option>`; });
+            select.innerHTML += `<option value="OTHER">Khác...</option>`;
         }
 
-        window.formatGvName = (gvString) => {
-            if (!gvString) return '';
-            let gvs = gvString.split(/,|&/).map(s => s.trim());
-            let shortGvs = gvs.map(gv => {
-                if (gvShortNameMap[gv]) return gvShortNameMap[gv];
-                return gv; 
-            });
-            return shortGvs.join(', ');
+        window.checkCustomRoom = (selectEl, inputId) => {
+            const inputEl = document.getElementById(inputId);
+            if (selectEl.value === 'Khác...' || selectEl.value === 'OTHER') {
+                inputEl.classList.remove('hidden');
+                inputEl.focus();
+            } else {
+                inputEl.classList.add('hidden');
+            }
         };
 
+        // HÀM ĐẾM SỐ BUỔI ĐÃ XẾP LỊCH THÔNG MINH
+        window.getScheduledCount = (cls, targetOrientCode, subName, gv, task) => {
+            let count = 0;
+            let orientName = targetOrientCode === 'NC' ? 'Nghiên cứu' : (targetOrientCode === 'UD' ? 'Ứng dụng' : '');
+
+            scheduledEventsDB.forEach(e => {
+                if (e.status === 'returned') return;
+                
+                let matchOrient = true;
+                if (cls.toUpperCase().includes('THS') && orientName !== '') {
+                    matchOrient = (!e.orientation || e.orientation === 'Cả hai' || e.orientation === orientName || e.orientation.trim() === '');
+                }
+
+                let eGVs = e.gv ? e.gv.split(/,|&/).map(s => s.trim()) : [];
+
+                if (e.class === cls && matchOrient && e.subject === subName && eGVs.includes(gv) && e.task === task) {
+                    count++;
+                }
+            });
+            return count;
+        };
+
+        // Cập nhật dropdown Lọc môn học trong Kho
         window.updatePoolSubjectFilter = () => {
             const select = document.getElementById('poolSubjectFilter');
             if (!select) return;
             const currentVal = select.value;
-            select.innerHTML = '<option value="ALL">Tất cả Môn</option>';
+            select.innerHTML = '<option value="ALL">Tất cả Môn học</option>';
             
-            // Lấy danh sách tên môn không trùng lặp
-            const uniqueSubjects = [...new Set(subjectsData.map(s => s.name))].sort((a,b) => a.localeCompare(b, 'vi'));
+            const poolClass = document.getElementById('poolClassFilter').value;
+            const poolOrient = document.getElementById('poolOrientFilter').value;
+            const poolMajor = document.getElementById('poolMajorFilter').value;
+
+            let assignedSubjectNames = new Set();
             
-            uniqueSubjects.forEach(name => {
-                select.innerHTML += `<option value="${name}">${name}</option>`;
+            subjectsData.forEach(sub => {
+                let major = sub.majorTag || 'ALL';
+                let shortMajor = major;
+                if (major === "Vật lý trị liệu") shortMajor = "VLTL";
+                else if (major === "Hoạt động trị liệu") shortMajor = "HĐTL";
+                else if (major === "Ngôn ngữ trị liệu") shortMajor = "NNTL";
+
+                if (poolMajor !== 'ALL' && shortMajor !== poolMajor && shortMajor !== 'ALL') return;
+
+                const asgObj = assignmentsData[sub.id];
+                if (asgObj) {
+                    Object.keys(asgObj).forEach(dbKey => {
+                        if (poolClass !== 'ALL' && !dbKey.includes(poolClass)) return;
+                        if (poolOrient !== 'ALL' && dbKey.includes('_') && !dbKey.includes(`_${poolOrient}_`) && !dbKey.endsWith(`_${poolOrient}`)) return;
+
+                        const asgData = asgObj[dbKey];
+                        if (asgData && asgData.allocations && asgData.allocations.length > 0 && asgData.status !== 'proposed') {
+                            assignedSubjectNames.add(sub.name);
+                        }
+                    });
+                }
             });
-            if (uniqueSubjects.includes(currentVal)) {
-                select.value = currentVal;
-            } else {
-                select.value = 'ALL';
-            }
+            
+            const uniqueSubjects = Array.from(assignedSubjectNames).sort((a,b) => a.localeCompare(b, 'vi'));
+            uniqueSubjects.forEach(name => { select.innerHTML += `<option value="${name}">${name}</option>`; });
+            
+            if (uniqueSubjects.includes(currentVal)) select.value = currentVal;
+            else select.value = 'ALL';
         };
 
-        window.exportWeeklyReport = () => {
-            if (!calendar) return;
-
-            let viewStart = calendar.view.activeStart;
-            let viewEnd = calendar.view.activeEnd;
-            let now = new Date();
-
-            let reportEvents = [];
-            let scheduledEventsNormal = scheduledEvents.filter(e => e.status !== 'returned');
-
-            let deduplicatedNormalEventsMap = new Map();
-            scheduledEventsNormal.forEach(e => {
-                let subObj = subjectsData.find(s => s.name === e.subject);
-                let baseSubId = subObj ? subObj.id : e.subject;
-                let deduplicateKey = `${e.start}_${e.end}_${e.room}_${baseSubId}_${e.task}_${e.gv}`;
-
-                if (!deduplicatedNormalEventsMap.has(deduplicateKey)) {
-                    deduplicatedNormalEventsMap.set(deduplicateKey, e);
-                }
-            });
-
-            deduplicatedNormalEventsMap.forEach((e) => {
-                let eStart = new Date(e.start);
-                let eEnd = e.end ? new Date(e.end) : new Date(eStart.getTime() + 4.5 * 3600000);
-
-                if (eStart >= viewStart && eStart < viewEnd && eEnd <= now) {
-                    if (e.class && e.class.toUpperCase().includes('THS')) {
-                        let durationHours = (eEnd - eStart) / 3600000;
-                        let tiet = Math.round(durationHours / 0.9); 
-
-                        let taskType = e.task;
-                        if (e.task.toLowerCase().includes('thực hành')) taskType = 'Thực hành lab';
-                        if (e.task.toLowerCase().includes('lý thuyết')) taskType = 'Lý thuyết';
-
-                        reportEvents.push({
-                            timeObj: eStart,
-                            timeStr: `${eStart.toLocaleDateString('vi-VN', {weekday:'short', day:'2-digit', month:'2-digit', year:'numeric'})}<br>${eStart.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'})} - ${eEnd.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'})}`,
-                            content: `[${e.class}] ${e.subject}<br><i>(${e.task})</i>`,
-                            gv: e.gv, 
-                            room: e.room || '',
-                            tiet: tiet,
-                            taskType: taskType
-                        });
-                    }
-                }
-            });
-
-            if (reportEvents.length === 0) {
-                showToast("Không có lịch công tác nào đã hoàn thành trong tuần đang chọn!", "danger");
-                return;
-            }
-
-            reportEvents.sort((a, b) => a.timeObj - b.timeObj);
-
-            let gvTotals = {};
-            reportEvents.forEach(ev => {
-                let gvList = ev.gv.split(/,|&/).map(s => s.trim()).filter(s => s);
-                gvList.forEach(g => {
-                    if (!gvTotals[g]) gvTotals[g] = {};
-                    if (!gvTotals[g][ev.taskType]) gvTotals[g][ev.taskType] = 0;
-                    gvTotals[g][ev.taskType] += ev.tiet;
-                });
-            });
-
-            let tableHtml = `
-                <h2 style="text-align: center; font-family: 'Times New Roman', serif;">BÁO CÁO LỊCH CÔNG TÁC ĐÃ HOÀN THÀNH</h2>
-                <h4 style="text-align: center; font-family: 'Times New Roman', serif; font-weight: normal; margin-bottom: 20px;">
-                    Từ ngày ${viewStart.toLocaleDateString('vi-VN')} đến ngày ${new Date(viewEnd.getTime() - 1).toLocaleDateString('vi-VN')}
-                </h4>
-                <table border="1" cellspacing="0" cellpadding="8" style="width: 100%; border-collapse: collapse; font-family: 'Times New Roman', serif; font-size: 12pt;">
-                    <thead>
-                        <tr style="background-color: #f2f2f2; font-weight: bold; text-align: center;">
-                            <th style="width: 5%;">STT</th>
-                            <th style="width: 15%;">Thời gian</th>
-                            <th style="width: 35%;">Nội dung</th>
-                            <th style="width: 15%;">Giảng viên</th>
-                            <th style="width: 20%;">Địa điểm học</th>
-                            <th style="width: 10%;">Số tiết</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-
-            reportEvents.forEach((ev, idx) => {
-                tableHtml += `
-                    <tr>
-                        <td style="text-align: center;">${idx + 1}</td>
-                        <td style="text-align: center;">${ev.timeStr}</td>
-                        <td>${ev.content}</td>
-                        <td style="text-align: center;">${ev.gv}</td>
-                        <td style="text-align: center;">${ev.room}</td>
-                        <td style="text-align: center;">${ev.tiet}</td>
-                    </tr>
-                `;
-            });
-
-            tableHtml += `</tbody></table>`;
-
-            let summaryHtml = `
-                <br><br>
-                <h3 style="text-align: left; font-family: 'Times New Roman', serif;">TỔNG HỢP SỐ TIẾT THEO GIẢNG VIÊN</h3>
-                <table border="1" cellspacing="0" cellpadding="8" style="width: 100%; border-collapse: collapse; font-family: 'Times New Roman', serif; font-size: 12pt;">
-                    <thead>
-                        <tr style="background-color: #f2f2f2; font-weight: bold; text-align: center;">
-                            <th style="width: 10%;">STT</th>
-                            <th style="width: 40%;">Giảng viên</th>
-                            <th style="width: 50%;">Tổng số tiết theo nhiệm vụ</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-            let stt = 1;
-            for (let g in gvTotals) {
-                let details = [];
-                for (let t in gvTotals[g]) {
-                    details.push(`<b>${gvTotals[g][t]}</b> tiết ${t.toLowerCase()}`);
-                }
-                summaryHtml += `
-                    <tr>
-                        <td style="text-align: center;">${stt++}</td>
-                        <td>${g}</td>
-                        <td>${details.join(' / ')}</td>
-                    </tr>
-                `;
-            }
-            summaryHtml += `</tbody></table>`;
-
-            var preHtml = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Báo Cáo Lịch Công Tác</title></head><body>";
-            var postHtml = "</body></html>";
-            var html = preHtml + tableHtml + summaryHtml + postHtml;
-
-            let dateStartFormatted = viewStart.toLocaleDateString('vi-VN').split('/').join('-');
-            let dateEndFormatted = new Date(viewEnd.getTime() - 1).toLocaleDateString('vi-VN').split('/').join('-');
-
-            var blob = new Blob(['\ufeff', html], { type: 'application/msword' });
-            var url = URL.createObjectURL(blob);
-            var downloadLink = document.createElement("a");
-            downloadLink.href = url;
-            downloadLink.download = `Bao_Cao_Lich_Cong_Tac_Tu_${dateStartFormatted}_den_${dateEndFormatted}.doc`;
-            document.body.appendChild(downloadLink);
-            downloadLink.click();
-            document.body.removeChild(downloadLink);
-
-            showToast("Đã tải xuống file Word thành công!");
-        };
-
-        function initRoomSelect() {
-            const select = document.getElementById('roomSelect');
-            select.innerHTML = '';
-            ROOM_LIST.forEach(room => {
-                select.innerHTML += `<option value="${room}">${room}</option>`;
-            });
-        }
-
-        function hasOverlap(targetStart, targetEnd, gvStr, targetClass, targetTask, targetRoom, ignoreEventIds) {
+        function hasOverlap(targetStartStr, targetEndStr, gvStr, targetClass, targetTask, targetRoom, ignoreEventIds) {
             let ignoreList = Array.isArray(ignoreEventIds) ? ignoreEventIds : [ignoreEventIds];
-            let tStart = targetStart.getTime();
-            let tEnd = targetEnd ? targetEnd.getTime() : tStart + 4.5 * 3600000;
+            let tStart = new Date(targetStartStr).getTime();
+            let tEnd = targetEndStr ? new Date(targetEndStr).getTime() : tStart + 4.5 * 3600000;
 
             let allSubEvents = [];
             calendar.getEvents().forEach(e => {
                 if (e.extendedProps.type === 'grouped_normal') {
                     allSubEvents.push(...e.extendedProps.events.map(subEv => ({
-                        ...subEv,
-                        start: e.start, 
-                        end: e.end      
+                        ...subEv, start: e.start, end: e.end      
                     })));
-                } else if (e.extendedProps.type === 'normal') {
-                    allSubEvents.push({
-                        id: e.id,
-                        start: e.start,
-                        end: e.end,
-                        room: e.extendedProps.room,
-                        class: e.extendedProps.class,
-                        gv: e.extendedProps.gv,
-                        task: e.extendedProps.task
-                    });
                 }
             });
 
@@ -621,17 +467,19 @@
 
             for (let e of allSubEvents) {
                 if (ignoreList.includes(e.id)) continue; 
-
                 let eStart = new Date(e.start).getTime();
                 let eEnd = e.end ? new Date(e.end).getTime() : eStart + 4.5 * 3600000;
 
                 if (tStart < eEnd && tEnd > eStart) {
-                    if (targetRoom && e.room && targetRoom !== 'Khác...' && e.room === targetRoom) {
-                        return { hasOverlap: true, reason: `Phòng ${targetRoom} đã có lớp khác học vào khung giờ này!` };
+                    // Cùng phòng
+                    if (targetRoom && e.room && targetRoom !== 'Khác...' && targetRoom !== 'OTHER' && e.room === targetRoom) {
+                        return { hasOverlap: true, reason: `Phòng ${targetRoom} đã có lịch học vào khung giờ này!` };
                     }
+                    // Cùng lớp
                     if (e.class === targetClass && blockingTasks.includes(targetTask) && blockingTasks.includes(e.task)) {
                         return { hasOverlap: true, reason: `Lớp ${targetClass} đã có lịch học/thi vào khung giờ này!` };
                     }
+                    // Cùng GV
                     let targetGVs = gvStr ? gvStr.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
                     let eGVs = e.gv ? e.gv.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
                     let hasCommonGV = targetGVs.some(gv => eGVs.includes(gv));
@@ -644,11 +492,21 @@
             return { hasOverlap: false };
         }
 
-        // TỰ ĐỘNG CHỌN VIEW LIST NẾU LÀ MOBILE
         const isMobile = window.innerWidth <= 768;
         const initialCalendarView = isMobile ? 'listWeek' : 'timeGridWeek';
 
-        // TIẾN TRÌNH XÁC THỰC VÀ KHỞI TẠO TẢI TRANG
+        function toLocalISOString(date) {
+            const pad = (n) => (n < 10 ? '0' + n : n);
+            return date.getFullYear() + '-' +
+                   pad(date.getMonth() + 1) + '-' +
+                   pad(date.getDate()) + 'T' +
+                   pad(date.getHours()) + ':' +
+                   pad(date.getMinutes()) + ':' +
+                   pad(date.getSeconds());
+        }
+
+        import { getDocs } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 isLoggedIn = true;
@@ -657,134 +515,127 @@
                 if (adminEmails.includes(currentUserEmail)) isCalendarAdmin = true;
 
                 if(isCalendarAdmin) {
-                    document.getElementById('btnExportTop').classList.remove('hidden');
+                    document.getElementById('btnToggleSidebar').classList.remove('hidden');
+                } else {
+                    window.location.href = "tkb-ths2026.html";
+                    return;
                 }
 
                 gvShortNameMap = {};
-                if (currentUserEmail !== 'ths.phcn26@ump.edu.vn') {
-                    try {
-                        const snapSubjects = await getDocs(collection(db, "subjects"));
-                        subjectsData = [];
-                        snapSubjects.forEach(doc => {
-                            const d = doc.data();
-                            d.id = d.id || doc.id;
-                            subjectsData.push(d);
-                        });
-                        window.updatePoolSubjectFilter(); // Khởi tạo bộ lọc sau khi có môn
-
-                        const snapUser = await getDocs(collection(db, "users"));
-                        snapUser.forEach(doc => {
-                            const d = doc.data();
-                            if(d.fullName) {
-                                let pref = d.degree === 'ThS' ? 'ThS. ' : (d.degree === 'TS' ? 'TS. ' : '');
-                                let savedName = `${pref}${d.fullName}`; 
-
-                                let nameParts = d.fullName.trim().split(' ');
-                                let firstName = nameParts[nameParts.length - 1]; 
-                                let genderPref = d.gender === 'm' ? 'Thầy ' : (d.gender === 'f' ? 'Cô ' : 'GV ');
-
-                                gvShortNameMap[savedName] = `${genderPref}${firstName}`;
-                            }
-                        });
-
-                        const snapVisiting = await getDocs(collection(db, "visiting_lecturers"));
-                        snapVisiting.forEach(doc => {
-                            const d = doc.data();
-                            if (d.name && d.gender) {
-                                let nameParts = d.name.trim().split(' ');
-                                let firstName = nameParts[nameParts.length - 1]; 
-                                let genderPref = d.gender === 'm' ? 'Thầy ' : (d.gender === 'f' ? 'Cô ' : 'GV ');
-                                gvShortNameMap[d.name] = `${d.name}`; 
-                            } else if (d.name) {
-                                gvShortNameMap[d.name] = `${d.name}`; 
-                            }
-                        });
-
-                    } catch(e) { console.error("Lỗi lấy dữ liệu:", e); }
-                }
-
-                try {
-                    if (currentUserEmail !== 'ths.phcn26@ump.edu.vn') {
-                        const userDoc = await getDoc(doc(db, "users", user.uid));
-                        if (userDoc.exists()) {
-                            const data = userDoc.data();
-                            let prefix = data.degree === 'ThS' ? 'ThS. ' : (data.degree === 'TS' ? 'TS. ' : '');
-                            currentUserName = `${prefix}${data.fullName}`;
-
-                            setTimeout(() => {
-                                const btnAuthNav = document.getElementById('btnAuthNav');
-                                if (btnAuthNav) {
-                                    btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right:5px;"></i> ${currentUserName}`;
-                                    btnAuthNav.href = "dashboard.html";
-                                }
-                            }, 300);
-                        }
-                    } else {
-                        currentUserName = "Lớp Thạc sĩ 2026";
-                        setTimeout(() => {
-                            const btnAuthNav = document.getElementById('btnAuthNav');
-                            if (btnAuthNav) {
-                                btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right:5px;"></i> ${currentUserName}`;
-                                btnAuthNav.href = "#"; 
-                            }
-                        }, 300);
-                    }
-                } catch(e) { console.error(e); }
-
-                initRoomSelect(); 
-                initCalendar();
-                listenToDatabase();
-            } else {
-                // CHƯA ĐĂNG NHẬP: KHÔNG CHẶN NỮA, CHO PHÉP XEM
-                isLoggedIn = false;
-                isCalendarAdmin = false;
-                
                 try {
                     const snapSubjects = await getDocs(collection(db, "subjects"));
                     subjectsData = [];
                     snapSubjects.forEach(doc => {
                         const d = doc.data();
                         d.id = d.id || doc.id;
+                        if (typeof d.orientations === 'string') {
+                            d.orientations = d.orientations.split(',').map(s => s.trim()).filter(s => s);
+                        }
+                        
+                        let grp = d.group || '';
+                        let match = grp.match(/\(([^)]+)\)/);
+                        if (grp.includes("TỰ CHỌN") && match) {
+                            d.majorTag = match[1].trim();
+                        } else if (grp.includes("Vật lý trị liệu")) {
+                            d.majorTag = "Vật lý trị liệu";
+                        } else if (grp.includes("Hoạt động trị liệu")) {
+                            d.majorTag = "Hoạt động trị liệu";
+                        } else if (grp.includes("Ngôn ngữ trị liệu")) {
+                            d.majorTag = "Ngôn ngữ trị liệu";
+                        } else {
+                            d.majorTag = "ALL";
+                        }
+
                         subjectsData.push(d);
                     });
-                    window.updatePoolSubjectFilter(); // Khởi tạo bộ lọc sau khi có môn
-                } catch(e){}
 
-                initRoomSelect();
+                    const snapUser = await getDocs(collection(db, "users"));
+                    snapUser.forEach(doc => {
+                        const d = doc.data();
+                        if(d.fullName) {
+                            let pref = d.degree === 'ThS' ? 'ThS. ' : (d.degree === 'TS' ? 'TS. ' : '');
+                            let savedName = `${pref}${d.fullName}`; 
+                            let nameParts = d.fullName.trim().split(' ');
+                            let firstName = nameParts[nameParts.length - 1]; 
+                            let genderPref = d.gender === 'm' ? 'Thầy ' : (d.gender === 'f' ? 'Cô ' : 'GV ');
+                            gvShortNameMap[savedName] = `${genderPref}${firstName}`;
+                        }
+                    });
+
+                    const snapVisiting = await getDocs(collection(db, "visiting_lecturers"));
+                    snapVisiting.forEach(doc => {
+                        const d = doc.data();
+                        if (d.name) {
+                            let nameParts = d.name.trim().split(' ');
+                            let firstName = nameParts[nameParts.length - 1]; 
+                            let genderPref = d.gender === 'm' ? 'Thầy ' : (d.gender === 'f' ? 'Cô ' : 'GV ');
+                            gvShortNameMap[d.name] = `${d.name}`; 
+                        }
+                    });
+
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    if (userDoc.exists()) {
+                        const data = userDoc.data();
+                        let prefix = data.degree === 'ThS' ? 'ThS. ' : (data.degree === 'TS' ? 'TS. ' : '');
+                        currentUserName = `${prefix}${data.fullName}`;
+                        setTimeout(() => {
+                            const btnAuthNav = document.getElementById('btnAuthNav');
+                            if (btnAuthNav) {
+                                btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right:5px;"></i> ${currentUserName}`;
+                                btnAuthNav.href = "dashboard.html";
+                            }
+                        }, 300);
+                    }
+                } catch(e) { console.error("Lỗi lấy dữ liệu:", e); }
+
+                initRoomSelect(); 
                 initCalendar();
-                listenToDatabase();
+
+                onSnapshot(collection(db, "assignments"), (snapshot) => {
+                    assignmentsData = {};
+                    snapshot.forEach(doc => { assignmentsData[doc.id] = doc.data(); });
+                    window.updatePoolSubjectFilter();
+                    window.processAndRenderEvents();
+                }, (error) => console.error(error));
+
+                onSnapshot(collection(db, "calendar_events"), (snapshot) => {
+                    scheduledEventsDB = [];
+                    snapshot.forEach(doc => { scheduledEventsDB.push(doc.data()); });
+                    window.processAndRenderEvents();
+                }, (error) => console.error("Lỗi lấy lịch:", error));
+
+            } else {
+                window.location.href = "login.html";
             }
         });
 
         function initCalendar() {
             const containerEl = document.getElementById('external-events');
-            if (isCalendarAdmin) {
-                new FullCalendar.Draggable(containerEl, {
-                    itemSelector: '.fc-event',
-                    eventData: function(eventEl) {
-                        return {
-                            title: eventEl.getAttribute('data-title'), 
-                            id: eventEl.getAttribute('data-id'),
-                            extendedProps: {
-                                subject: eventEl.getAttribute('data-subject'),
-                                gv: eventEl.getAttribute('data-gv'),
-                                task: eventEl.getAttribute('data-task'),
-                                originalId: eventEl.getAttribute('data-original-id') || eventEl.getAttribute('data-id'),
-                                eventClass: eventEl.getAttribute('data-class'),
-                                orientation: eventEl.getAttribute('data-orientation'),
-                                semester: eventEl.getAttribute('data-semester'),
-                                type: 'normal'
-                            }
-                        };
-                    }
-                });
-            }
+            new FullCalendar.Draggable(containerEl, {
+                itemSelector: '.fc-event',
+                eventData: function(eventEl) {
+                    return {
+                        title: eventEl.getAttribute('data-title'), 
+                        id: eventEl.getAttribute('data-id'),
+                        extendedProps: {
+                            subject: eventEl.getAttribute('data-subject'),
+                            gv: eventEl.getAttribute('data-gv'),
+                            task: eventEl.getAttribute('data-task'),
+                            originalId: eventEl.getAttribute('data-original-id') || eventEl.getAttribute('data-id'),
+                            eventClass: eventEl.getAttribute('data-class'),
+                            orientations: eventEl.getAttribute('data-orientations'), // Thuộc tính gốc của Môn (VD: 'NC,UD')
+                            semester: eventEl.getAttribute('data-semester'),
+                            type: 'normal' 
+                        }
+                    };
+                }
+            });
 
             const calendarEl = document.getElementById('calendar');
             calendar = new FullCalendar.Calendar(calendarEl, {
                 locale: 'vi',
                 height: 'auto', 
-                initialView: initialCalendarView, // ListWeek trên điện thoại
+                initialView: initialCalendarView, 
                 headerToolbar: {
                     left: 'prev,next today',
                     center: 'title',
@@ -792,19 +643,16 @@
                 },
                 slotMinTime: '07:00:00',
                 slotMaxTime: '21:00:00',
-                allDaySlot: true, 
-                allDayText: 'BV', 
-                eventDurationEditable: false, 
-                defaultTimedEventDuration: '04:30:00', 
+                allDaySlot: false, 
                 slotLabelFormat: { hour: 'numeric', minute: '2-digit', omitZeroMinute: false, meridiem: false, hour12: false },
                 eventTimeFormat: { hour: 'numeric', minute: '2-digit', meridiem: false, hour12: false },
-                editable: isCalendarAdmin, 
-                droppable: isCalendarAdmin, 
+                editable: true,       // Bật kéo thả sửa lịch
+                eventDurationEditable: true, // Bật kéo giãn giờ
+                droppable: true, 
                 events: [],
 
                 eventContent: function(arg) {
                     const props = arg.event.extendedProps;
-
                     if (props.type === 'grouped_normal') {
                         let sTime = arg.event.start ? arg.event.start.toLocaleTimeString('vi-VN', {hour: 'numeric', minute:'2-digit', hour12: false}) : '';
                         let eTime = '';
@@ -817,47 +665,25 @@
                         const timeStr = `${sTime}–${eTime}`;
                         const count = props.events.length;
 
-                        // Chế độ xem LIST WEEK
-                        if (arg.view.type === 'listWeek' || arg.view.type === 'listDay') {
-                            let listHtml = props.events.map(e => {
-                                let gvDisplay = window.formatGvName(e.gv);
-                                let clsTag = e.class === 'THS2025' ? '<span style="color:#0369a1">[THS2025]</span>' : '<span style="color:#b45309">[THS2026]</span>';
-                                let shortRoom = e.room ? e.room.replace('Phòng ', 'P').replace('Hội trường', 'HT') : '??';
-                                
-                                return `
-                                <div class="mobile-list-item">
-                                    <div style="font-weight: bold; color: #b45309;"><i class="fas fa-map-marker-alt"></i> ${shortRoom}</div>
-                                    <div style="font-weight: 700; color: var(--text-dark); margin-top: 2px;">${clsTag} ${gvDisplay}</div>
-                                    <div style="color: var(--primary); margin-top: 2px; white-space: normal;">${e.subject}</div>
-                                    <div style="font-size: 0.8rem; color: #64748b; margin-top: 2px;">${e.orientation ? `Định hướng: ${e.orientation}` : ''}</div>
-                                </div>
-                                `;
-                            }).join('');
-                            return { html: `<div>${listHtml}</div>` };
-                        }
-
-                        // Chế độ xem TIME GRID
-                        let headerHtml = `<div class="evt-group-header">
-                                            <span>${timeStr} &nbsp;&bull;&nbsp; ${count} lớp</span>
-                                          </div>`;
-
                         let itemsHtml = props.events.map(e => {
                             let gvDisplay = window.formatGvName(e.gv);
-                            let clsTag = e.class === 'THS2025' ? '<span style="color:#0369a1">[THS2025]</span>' : '<span style="color:#b45309">[THS2026]</span>';
-
-                            let shortRoom = '';
-                            if (e.room && e.room !== 'Khác...') {
-                                shortRoom = e.room.replace('Phòng ', 'P').replace('Hội trường', 'HT');
-                            } else {
-                                shortRoom = '??';
+                            let shortRoom = e.room && e.room !== 'Khác...' && e.room !== 'OTHER' ? e.room.replace('Phòng ', 'P').replace('Hội trường', 'HT') : e.room;
+                            
+                            let orientHtml = '';
+                            if (e.orientation) {
+                                if (e.orientation === 'Cả hai') {
+                                    orientHtml = `<div style="font-size: 0.7rem; color: #d97706; margin-top: 2px; font-weight:bold;"><i class="fas fa-users"></i> Học chung / Không phân ĐH</div>`;
+                                } else {
+                                    orientHtml = `<div style="font-size: 0.7rem; color: #64748b; margin-top: 2px; font-style: italic;"><i class="fas fa-compass"></i> Hệ: ${e.orientation}</div>`;
+                                }
                             }
 
                             return `
-                            <div class="evt-item" style="margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px dashed rgba(0,0,0,0.1); text-align: left; line-height: 1.4;">
+                            <div class="evt-item" style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed rgba(2, 132, 199, 0.2); text-align: left; line-height: 1.4;">
                                 <div style="font-size: 0.75rem; font-weight: 800; color: #b45309;"><i class="fas fa-map-marker-alt"></i> ${shortRoom}</div>
-                                <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-dark); margin-top: 2px;">${clsTag} ${gvDisplay}</div>
-                                <div style="font-size: 0.75rem; color: var(--primary); margin-top: 2px; white-space: normal; word-break: break-word;">${e.subject}</div>
-                                <div style="font-size: 0.7rem; color: #64748b; margin-top: 2px; font-style: italic;">${e.orientation ? e.orientation : ''}</div>
+                                <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-dark); margin-top: 2px;">[${e.class}] ${gvDisplay}</div>
+                                <div style="font-size: 0.75rem; color: var(--primary); margin-top: 2px; white-space: normal; word-break: break-word; font-weight: 600;">${e.subject}</div>
+                                ${orientHtml}
                             </div>
                             `;
                         }).join('');
@@ -869,7 +695,7 @@
                         return {
                             html: `
                             <div class="evt-group-container" style="background: ${bgColor}; border-left-color: ${borderLeftColor};">
-                                ${headerHtml}
+                                <div class="evt-group-header"><span>${timeStr}</span></div>
                                 <div class="evt-items-list">${itemsHtml}</div>
                             </div>
                             `
@@ -877,34 +703,57 @@
                     }
                 },
 
+                // KHI KÉO THẺ TỪ KHO VÀO LỊCH CHÍNH
                 eventReceive: function(info) {
-                    if (!isCalendarAdmin) { info.revert(); return; }
+                    const props = info.event.extendedProps;
+                    const orientationsAttr = props.orientations || '';
+                    const orientSelect = document.getElementById('modalOrientSelect');
+                    const orientGroup = document.getElementById('orientGroup');
+
+                    if (orientationsAttr.includes('NC') && orientationsAttr.includes('UD')) {
+                        orientGroup.classList.remove('hidden');
+                        orientSelect.value = 'Cả hai'; 
+                    } else if (orientationsAttr === 'NC') {
+                        orientGroup.classList.add('hidden');
+                        orientSelect.value = 'Nghiên cứu';
+                    } else if (orientationsAttr === 'UD') {
+                        orientGroup.classList.add('hidden');
+                        orientSelect.value = 'Ứng dụng';
+                    } else {
+                        orientGroup.classList.add('hidden');
+                        orientSelect.value = 'Cả hai'; 
+                    }
 
                     pendingDropInfo = info;
+                    document.getElementById('repeatWeeks').value = 1; 
                     document.getElementById('roomSelect').value = ROOM_LIST[0]; 
+                    document.getElementById('customRoomInput').classList.add('hidden');
                     document.getElementById('roomModal').classList.remove('hidden');
                 },
 
+                // KHI DI CHUYỂN (DRAG) LỊCH ĐÃ XẾP SANG NGÀY/GIỜ KHÁC
                 eventDrop: async function(info) {
                     if (!isCalendarAdmin) { info.revert(); return; }
                     const props = info.event.extendedProps;
 
                     if (props.type === 'grouped_normal') {
                         const subEvents = props.events;
+                        const groupIds = subEvents.map(ev => ev.id);
 
+                        // KIỂM TRA QUYỀN
                         for (let e of subEvents) {
-                            if (e.scheduledByEmail && e.scheduledByEmail !== currentUserEmail && currentUserEmail !== 'hoangtran1483@gmail.com') {
-                                showToast(`Lỗi: Không thể dời lịch nhóm chứa môn do GV khác xếp!`, "danger");
-                                info.revert(); return;
-                            }
-                            if (!validateClinicalSchedule({start: info.event.start}, e.gv, e.subject)) {
+                            let canEdit = (e.scheduledByEmail === currentUserEmail || currentUserEmail === 'hoangtran1483@gmail.com');
+                            if (!canEdit) {
+                                showToast(`Bạn không có quyền dời lịch do GV khác xếp!`, "danger");
                                 info.revert(); return;
                             }
                         }
 
-                        const groupIds = subEvents.map(ev => ev.id);
+                        let newStartStr = toLocalISOString(info.event.start);
+                        let newEndStr = info.event.end ? toLocalISOString(info.event.end) : null;
+                        
                         for (let e of subEvents) {
-                            const overlapCheck = hasOverlap(info.event.start, info.event.end, e.gv, e.class, e.task, e.room, groupIds);
+                            const overlapCheck = hasOverlap(newStartStr, newEndStr, e.gv, e.class, e.task, e.room, groupIds);
                             if (overlapCheck.hasOverlap) {
                                 showToast(overlapCheck.reason, "danger");
                                 info.revert(); return;
@@ -914,152 +763,316 @@
                         try {
                             let promises = subEvents.map(e => {
                                 return setDoc(doc(db, "calendar_events", e.id), { 
-                                    start: info.event.startStr,
-                                    end: info.event.endStr || null,
+                                    start: newStartStr,
+                                    end: newEndStr,
                                     allDay: info.event.allDay
                                 }, { merge: true });
                             });
                             await Promise.all(promises);
-                            showToast("Đã dời toàn bộ lịch trong nhóm thành công!");
+                            showToast("Đã dời lịch thành công!");
                         } catch(err) {
-                            showToast("Lỗi dời lịch!", "danger");
+                            showToast("Lỗi dời lịch: " + err.message, "danger");
                             info.revert();
                         }
                     }
                 },
 
-                eventMouseEnter: function(info) {
+                // KHI KÉO GIÃN THỜI GIAN (RESIZE)
+                eventResize: async function(info) {
+                    if (!isCalendarAdmin) { info.revert(); return; }
                     const props = info.event.extendedProps;
-                    const tooltip = document.getElementById('eventTooltip');
 
                     if (props.type === 'grouped_normal') {
-                        let html = `<strong><i class="fas fa-layer-group"></i> ${props.events.length} Lớp Học</strong><br>`;
-                        props.events.forEach(e => {
-                            let cName = e.class === 'THS2025' ? 'THS2025' : 'THS2026';
-                            let gvDisplay = window.formatGvName(e.gv);
-                            html += `<div style="margin-top:6px; border-top:1px dashed rgba(255,255,255,0.2); padding-top:6px; line-height: 1.4; text-align: left;">
-                                <span style="color:#fbbf24; font-weight:bold;">${e.room || '??'}</span> | <span style="color:#bae6fd;">[${cName}] ${gvDisplay}</span><br>
-                                <span style="font-size:0.85rem;">${e.subject}</span>
-                            </div>`;
-                        });
-                        tooltip.innerHTML = html;
+                        const subEvents = props.events;
+                        const groupIds = subEvents.map(ev => ev.id);
+
+                        // KIỂM TRA QUYỀN
+                        for (let e of subEvents) {
+                            let canEdit = (e.scheduledByEmail === currentUserEmail || currentUserEmail === 'hoangtran1483@gmail.com');
+                            if (!canEdit) {
+                                showToast(`Bạn không có quyền sửa lịch do GV khác xếp!`, "danger");
+                                info.revert(); return;
+                            }
+                        }
+
+                        let newStartStr = toLocalISOString(info.event.start);
+                        let newEndStr = info.event.end ? toLocalISOString(info.event.end) : null;
+
+                        for (let e of subEvents) {
+                            const overlapCheck = hasOverlap(newStartStr, newEndStr, e.gv, e.class, e.task, e.room, groupIds);
+                            if (overlapCheck.hasOverlap) {
+                                showToast(overlapCheck.reason, "danger");
+                                info.revert(); return;
+                            }
+                        }
+
+                        try {
+                            let promises = subEvents.map(e => {
+                                return setDoc(doc(db, "calendar_events", e.id), { 
+                                    end: newEndStr 
+                                }, { merge: true });
+                            });
+                            await Promise.all(promises);
+                            showToast("Đã cập nhật giờ thành công!");
+                        } catch(err) {
+                            showToast("Lỗi cập nhật giờ: " + err.message, "danger");
+                            info.revert();
+                        }
                     }
-
-                    tooltip.style.display = 'block';
-
-                    const moveTooltip = (e) => {
-                        let x = e.clientX + 15;
-                        let y = e.clientY + 15;
-                        const rect = tooltip.getBoundingClientRect();
-                        if (x + rect.width > window.innerWidth) x = e.clientX - rect.width - 15;
-                        if (y + rect.height > window.innerHeight) y = e.clientY - rect.height - 15;
-                        tooltip.style.left = x + 'px';
-                        tooltip.style.top = y + 'px';
-                    };
-                    moveTooltip(info.jsEvent);
-                    info.el.addEventListener('mousemove', moveTooltip);
-                    info.el._moveTooltip = moveTooltip; 
                 },
 
-                eventMouseLeave: function(info) {
-                    const tooltip = document.getElementById('eventTooltip');
-                    tooltip.style.display = 'none';
-                    if (info.el._moveTooltip) {
-                        info.el.removeEventListener('mousemove', info.el._moveTooltip);
-                    }
-                },
-
+                // CLICK ĐỂ XEM / CHỈNH SỬA / XÓA
                 eventClick: function(info) {
-                    if (!isLoggedIn) {
-                        showToast("Vui lòng đăng nhập để xem chi tiết lịch!", "danger");
-                        return;
-                    }
-
                     const props = info.event.extendedProps;
                     const modal = document.getElementById('multiEventModal');
                     const modalBody = document.getElementById('multiEventModalBody');
 
                     if (props.type === 'grouped_normal') {
-                        let sTime = info.event.start ? info.event.start.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'}) : '';
-                        let eTime = info.event.end ? info.event.end.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'}) : '';
-                        if (!eTime && info.event.start) {
-                            eTime = new Date(info.event.start.getTime() + 4.5*3600000).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'});
-                        }
-                        const dateStr = info.event.start ? info.event.start.toLocaleDateString('vi-VN', {weekday: 'long', day:'2-digit', month:'2-digit', year:'numeric'}) : '';
+                        let startObj = info.event.start;
+                        let endObj = info.event.end ? info.event.end : new Date(startObj.getTime() + 4.5*3600000);
+                        
+                        let sTime = startObj.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'});
+                        let eTime = endObj.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'});
+                        const dateStr = startObj.toLocaleDateString('vi-VN', {weekday: 'long', day:'2-digit', month:'2-digit', year:'numeric'});
 
-                        let html = `<div style="color: var(--primary); font-weight:bold; font-size:1.1rem; margin-bottom:15px; border-bottom: 2px solid var(--border); padding-bottom:10px;">
-                                        <i class="far fa-clock"></i> ${sTime} - ${eTime} (${dateStr})
-                                    </div>`;
+                        let dateInputVal = startObj.getFullYear() + '-' + String(startObj.getMonth()+1).padStart(2,'0') + '-' + String(startObj.getDate()).padStart(2,'0');
 
+                        // KIỂM TRA XEM CÓ QUYỀN SỬA/XÓA KHÔNG 
+                        let hasEditRight = false;
                         props.events.forEach(e => {
-                            let clsName = e.class === 'THS2025' ? 'THS2025' : (e.class === 'THS2026' ? 'THS2026' : e.class);
-                            let canDelete = isCalendarAdmin && (!e.scheduledByEmail || e.scheduledByEmail === currentUserEmail || currentUserEmail === 'hoangtran1483@gmail.com');
+                            if (e.scheduledByEmail === currentUserEmail || currentUserEmail === 'hoangtran1483@gmail.com') {
+                                hasEditRight = true;
+                            }
+                        });
 
-                            let delBtn = canDelete ? `<button class="btn-danger" style="padding:4px 10px; font-size:0.8rem;" onclick="deleteSubEvent('${e.id}')"><i class="fas fa-trash"></i> Trả về kho</button>` : '';
+                        let html = `
+                            <div style="color: var(--primary); font-weight:bold; font-size:1.1rem; margin-bottom:15px; border-bottom: 2px solid var(--border); padding-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+                                <span><i class="far fa-clock"></i> ${sTime} - ${eTime} <br><span style="font-size:0.9rem; color:#64748b;">(${dateStr})</span></span>
+                                ${hasEditRight ? `<button class="btn-info btn-sm" id="btnToggleInlineEdit"><i class="fas fa-edit"></i> Chỉnh sửa</button>` : ''}
+                            </div>
+                        `;
+
+                        // FORM CHỈNH SỬA ẨN MẶC ĐỊNH
+                        let roomOptions = ROOM_LIST.map(r => `<option value="${r}">${r}</option>`).join('');
+                        roomOptions += `<option value="OTHER">Khác...</option>`;
+
+                        let groupIds = props.events.map(e => e.id).join(',');
+
+                        if (hasEditRight) {
+                            html += `
+                                <div id="inlineEditForm" class="inline-edit-form hidden">
+                                    <input type="hidden" id="editGroupIds" value="${groupIds}">
+                                    <div class="form-row">
+                                        <div>
+                                            <label>Ngày học</label>
+                                            <input type="date" id="editDate" value="${dateInputVal}" style="width:100%; padding:8px; border-radius:4px; border:1px solid var(--border);">
+                                        </div>
+                                        <div>
+                                            <label>Giờ bắt đầu</label>
+                                            <input type="time" id="editStartTime" value="${sTime}" style="width:100%; padding:8px; border-radius:4px; border:1px solid var(--border);">
+                                        </div>
+                                        <div>
+                                            <label>Giờ kết thúc</label>
+                                            <input type="time" id="editEndTime" value="${eTime}" style="width:100%; padding:8px; border-radius:4px; border:1px solid var(--border);">
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div>
+                                            <label>Phòng học mới</label>
+                                            <select id="editRoom" style="width:100%; padding:8px; border-radius:4px; border:1px solid var(--border);" onchange="checkCustomRoom(this, 'editCustomRoom')">
+                                                ${roomOptions}
+                                            </select>
+                                            <input type="text" id="editCustomRoom" class="hidden" placeholder="Nhập tên phòng..." style="width:100%; padding:8px; border-radius:4px; border:1px solid var(--border); margin-top:5px;">
+                                        </div>
+                                        <div>
+                                            <label>Định hướng áp dụng</label>
+                                            <select id="editOrient" style="width:100%; padding:8px; border-radius:4px; border:1px solid var(--border);">
+                                                <option value="Cả hai">Học chung / Không phân định hướng</option>
+                                                <option value="Nghiên cứu">Chỉ hướng Nghiên cứu (NC)</option>
+                                                <option value="Ứng dụng">Chỉ hướng Ứng dụng (UD)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <button class="btn-primary" style="width:100%; margin-top:10px;" onclick="submitInlineEdit()">Lưu cập nhật</button>
+                                </div>
+                            `;
+                        }
+
+                        // HIỂN THỊ CÁC THẺ CHI TIẾT
+                        props.events.forEach(e => {
+                            let canDelete = isCalendarAdmin && (e.scheduledByEmail === currentUserEmail || currentUserEmail === 'hoangtran1483@gmail.com');
+                            let delBtn = canDelete ? `<button class="btn-danger" style="padding:4px 10px; font-size:0.8rem;" onclick="deleteSubEvent('${e.id}')"><i class="fas fa-trash"></i> Xóa</button>` : '';
+
+                            let orientHtml = e.orientation ? `<p style="margin:0 0 5px 0; color:var(--text-dark);"><strong>Phạm vi:</strong> ${e.orientation === 'Cả hai' ? '<span style="color:#d97706;font-weight:bold;">Học chung / Không phân ĐH</span>' : 'Hệ '+e.orientation}</p>` : '';
 
                             html += `
-                            <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:12px; margin-bottom:12px; position:relative; text-align: left;">
+                            <div style="background:#fff; border:1px solid #cbd5e1; border-radius:6px; padding:12px; margin-bottom:12px; position:relative; text-align: left; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
                                 <div style="position:absolute; right:12px; top:12px;">${delBtn}</div>
-                                <p style="margin:0 0 5px 0;"><strong>Khóa/Lớp:</strong> <span style="color:var(--primary); font-weight:bold;">${clsName}</span></p>
-                                ${e.semester ? `<p style="margin:0 0 5px 0; color:var(--text-dark);"><strong>Học kỳ:</strong> ${e.semester}</p>` : ''}
-                                ${e.orientation ? `<p style="margin:0 0 5px 0; color:var(--text-dark);"><strong>Định hướng:</strong> ${e.orientation}</p>` : ''}
+                                <p style="margin:0 0 5px 0; font-size:1.05rem; color:var(--primary); font-weight:bold; padding-right:60px;">${e.subject}</p>
+                                <p style="margin:0 0 5px 0;"><strong>Khóa/Lớp:</strong> <span style="font-weight:bold;">${e.class}</span></p>
+                                ${orientHtml}
                                 <p style="margin:0 0 5px 0;"><strong>Phòng học:</strong> <span style="background:#fbbf24; color:#78350f; padding:2px 6px; border-radius:4px; font-weight:bold;">${e.room || 'Chưa XĐ'}</span></p>
-                                <p style="margin:0 0 5px 0; padding-right:85px;"><strong>Môn học:</strong> ${e.subject}</p>
                                 <p style="margin:0 0 5px 0;"><strong>Nhiệm vụ:</strong> ${e.task}</p>
-                                <p style="margin:0 0 5px 0;"><strong>Giảng viên:</strong> <span style="color:var(--primary); font-weight:bold;">${e.gv}</span></p>
-                                <p style="margin:0; font-size:0.85rem; color:#64748b;"><i class="fas fa-user-edit"></i> Xếp bởi: ${e.scheduledByName || 'Admin'}</p>
+                                <p style="margin:0 0 5px 0;"><strong>Giảng viên:</strong> <span style="font-weight:bold;">${e.gv}</span></p>
+                                <p style="margin:0; font-size:0.8rem; color:#94a3b8; font-style:italic;">Xếp bởi: ${e.scheduledByName || 'Admin'}</p>
                             </div>
                             `;
                         });
 
                         modalBody.innerHTML = html;
                         modal.classList.remove('hidden');
+
+                        if (hasEditRight) {
+                            const firstItem = props.events[0];
+                            const editRoomSelect = document.getElementById('editRoom');
+                            
+                            if (firstItem.room) {
+                                if (ROOM_LIST.includes(firstItem.room)) {
+                                    editRoomSelect.value = firstItem.room;
+                                } else {
+                                    editRoomSelect.value = 'OTHER';
+                                    const customInput = document.getElementById('editCustomRoom');
+                                    customInput.value = firstItem.room;
+                                    customInput.classList.remove('hidden');
+                                }
+                            }
+                            
+                            if (firstItem.orientation && firstItem.orientation !== '') {
+                                document.getElementById('editOrient').value = firstItem.orientation;
+                            } else {
+                                document.getElementById('editOrient').value = 'Cả hai';
+                            }
+
+                            document.getElementById('btnToggleInlineEdit').onclick = () => {
+                                document.getElementById('inlineEditForm').classList.toggle('hidden');
+                            };
+                        }
                     }
                 }
             });
             calendar.render();
         }
 
+        // HÀM XỬ LÝ LƯU TỪ FORM CHỈNH SỬA TRỰC TIẾP
+        window.submitInlineEdit = async () => {
+            const dateVal = document.getElementById('editDate').value;
+            const startVal = document.getElementById('editStartTime').value;
+            const endVal = document.getElementById('editEndTime').value;
+            const roomSelVal = document.getElementById('editRoom').value;
+            const customRoomVal = document.getElementById('editCustomRoom').value.trim();
+            const orientVal = document.getElementById('editOrient').value;
+            const idsStr = document.getElementById('editGroupIds').value;
+
+            if (!dateVal || !startVal || !endVal) {
+                showToast("Vui lòng điền đủ Ngày và Giờ!", "danger"); return;
+            }
+
+            const roomVal = (roomSelVal === 'OTHER' || roomSelVal === 'Khác...') ? customRoomVal : roomSelVal;
+
+            const newStartStr = `${dateVal}T${startVal}:00`;
+            const newEndStr = `${dateVal}T${endVal}:00`;
+            const idArray = idsStr.split(',');
+
+            let targetEvents = scheduledEventsDB.filter(e => idArray.includes(e.id));
+            
+            // Check trùng lặp và quyền
+            for (let e of targetEvents) {
+                let canEdit = (e.scheduledByEmail === currentUserEmail || currentUserEmail === 'hoangtran1483@gmail.com');
+                if (!canEdit) {
+                    showToast(`Bạn không có quyền sửa lịch do ${e.scheduledByName} xếp!`, "danger"); return;
+                }
+
+                const overlapCheck = hasOverlap(newStartStr, newEndStr, e.gv, e.class, e.task, roomVal, idArray);
+                if (overlapCheck.hasOverlap) {
+                    showToast(overlapCheck.reason, "danger"); return;
+                }
+            }
+
+            try {
+                let promises = targetEvents.map(e => {
+                    let updateData = {
+                        start: newStartStr,
+                        end: newEndStr,
+                        room: roomVal
+                    };
+                    if (orientVal !== "") {
+                        updateData.orientation = orientVal;
+                    }
+                    return setDoc(doc(db, "calendar_events", e.id), updateData, { merge: true });
+                });
+                await Promise.all(promises);
+                showToast("Đã cập nhật lịch thành công!");
+                document.getElementById('multiEventModal').classList.add('hidden');
+            } catch(err) {
+                showToast("Lỗi cập nhật: " + err.message, "danger");
+            }
+        };
+
+        // HÀM XÁC NHẬN KHI DROP TỪ KHO VÀO LỊCH (HỖ TRỢ LẶP LẠI X TUẦN)
         window.confirmRoomSelection = async () => {
             if (!pendingDropInfo) return;
 
-            const selectedRoom = document.getElementById('roomSelect').value;
+            const roomSelVal = document.getElementById('roomSelect').value;
+            const customRoomVal = document.getElementById('customRoomInput').value.trim();
+            const repeatWeeks = parseInt(document.getElementById('repeatWeeks').value) || 1;
             const info = pendingDropInfo;
             const props = info.event.extendedProps;
 
+            const selectedRoom = (roomSelVal === 'OTHER' || roomSelVal === 'Khác...') ? customRoomVal : roomSelVal;
+
             document.getElementById('roomModal').classList.add('hidden');
 
-            const overlapCheck = hasOverlap(info.event.start, info.event.end, props.gv, props.eventClass, props.task, selectedRoom, [info.event.id]);
-            if (overlapCheck.hasOverlap) {
-                showToast(overlapCheck.reason, "danger");
-                info.revert();
-                pendingDropInfo = null;
-                return;
+            let finalOrientation = document.getElementById('modalOrientSelect').value;
+
+            // Mảng lưu trữ tất cả lịch cần tạo
+            let allNewEvents = [];
+            let originalStart = new Date(info.event.startStr);
+            let originalEnd = info.event.endStr ? new Date(info.event.endStr) : new Date(originalStart.getTime() + 4.5 * 3600000);
+
+            for (let i = 0; i < repeatWeeks; i++) {
+                let currentStart = new Date(originalStart.getTime() + i * 7 * 24 * 3600 * 1000);
+                let currentEnd = new Date(originalEnd.getTime() + i * 7 * 24 * 3600 * 1000);
+                
+                let startStr = toLocalISOString(currentStart);
+                let endStr = toLocalISOString(currentEnd);
+
+                const overlapCheck = hasOverlap(startStr, endStr, props.gv, props.eventClass, props.task, selectedRoom, []);
+                if (overlapCheck.hasOverlap) {
+                    showToast(`Bị trùng lịch ở tuần thứ ${i+1}: ${overlapCheck.reason}`, "danger");
+                    info.revert();
+                    pendingDropInfo = null;
+                    return; 
+                }
+
+                const newUniqueId = props.originalId + '_' + Date.now() + '_' + i;
+                allNewEvents.push({
+                    id: newUniqueId, 
+                    title: info.event.title,
+                    start: startStr,
+                    end: endStr,
+                    allDay: info.event.allDay,
+                    class: props.eventClass, 
+                    subject: props.subject,
+                    gv: props.gv,
+                    task: props.task,
+                    room: selectedRoom, 
+                    orientation: finalOrientation, 
+                    semester: props.semester, 
+                    scheduledByEmail: currentUserEmail,
+                    scheduledByName: currentUserName,
+                    status: 'scheduled'
+                });
             }
 
-            const newUniqueId = props.originalId + '_' + Date.now();
-
-            const eventData = {
-                id: newUniqueId, 
-                title: info.event.title,
-                start: info.event.startStr,
-                end: info.event.endStr || null,
-                allDay: info.event.allDay,
-                class: props.eventClass, 
-                subject: props.subject,
-                gv: props.gv,
-                task: props.task,
-                room: selectedRoom, 
-                orientation: props.orientation, // THÊM MỚI
-                semester: props.semester, // THÊM MỚI
-                scheduledByEmail: currentUserEmail,
-                scheduledByName: currentUserName,
-                status: 'scheduled'
-            };
-
             try {
-                await setDoc(doc(db, "calendar_events", eventData.id), eventData);
-                showToast(`Đã xếp lịch thành công (${selectedRoom})!`);
+                let promises = allNewEvents.map(evData => setDoc(doc(db, "calendar_events", evData.id), evData));
+                await Promise.all(promises);
+                
+                if (repeatWeeks > 1) {
+                    showToast(`Đã xếp lịch lặp lại thành công cho ${repeatWeeks} tuần!`);
+                } else {
+                    showToast(`Đã xếp lịch thành công (${selectedRoom})!`);
+                }
                 info.event.remove(); 
             } catch(e) {
                 showToast("Lỗi khi lưu lịch: " + e.message, "danger");
@@ -1076,60 +1089,41 @@
             document.getElementById('roomModal').classList.add('hidden');
         };
 
-        function listenToDatabase() {
-            onSnapshot(collection(db, "calendar_events"), (snapshot) => {
-                scheduledEvents = [];
-                snapshot.forEach(doc => { scheduledEvents.push(doc.data()); });
-                window.processAndRenderEvents();
-            }, (error) => console.error("Lỗi lấy lịch:", error));
-
-            if (currentUserEmail !== 'ths.phcn26@ump.edu.vn') {
-                onSnapshot(collection(db, "assignments"), (snapshot) => {
-                    assignmentsData = {};
-                    snapshot.forEach(doc => { assignmentsData[doc.id] = doc.data(); });
-                    window.processAndRenderEvents();
-                }, (error) => console.error(error));
-            }
-        }
-
-        window.updatePoolSubjectFilter = () => {
-            const select = document.getElementById('poolSubjectFilter');
-            if (!select) return;
-            const currentVal = select.value;
-            select.innerHTML = '<option value="ALL">Tất cả Môn</option>';
-            
-            const uniqueSubjects = [...new Set(subjectsData.map(s => s.name))].sort((a,b) => a.localeCompare(b, 'vi'));
-            
-            uniqueSubjects.forEach(name => {
-                select.innerHTML += `<option value="${name}">${name}</option>`;
-            });
-            if (uniqueSubjects.includes(currentVal)) {
-                select.value = currentVal;
-            } else {
-                select.value = 'ALL';
-            }
-        };
-
+        // HÀM LỌC VÀ RENDER KHO SỰ KIỆN + LỊCH HIỂN THỊ TRÊN MÀN HÌNH
         window.processAndRenderEvents = () => {
             if (!calendar) return;
-            
-            const selectedSemester = isLoggedIn ? document.getElementById('semesterSelect').value : 'ALL';
-            const poolClassFilter = document.getElementById('poolClassFilter').value; 
-            const poolSubjectFilter = document.getElementById('poolSubjectFilter') ? document.getElementById('poolSubjectFilter').value : 'ALL';
 
             calendar.removeAllEvents();
             const poolDiv = document.getElementById('event-pool');
-            poolDiv.innerHTML = '';
+            if(poolDiv) poolDiv.innerHTML = '';
+            
             let unscheduledCount = 0;
+            const calendarClassFilter = document.getElementById('calendarClassFilter').value;
+            const calendarOrientFilter = document.getElementById('calendarOrientFilter').value;
+            const poolClassFilter = document.getElementById('poolClassFilter') ? document.getElementById('poolClassFilter').value : 'ALL'; 
+            const poolSubjectFilter = document.getElementById('poolSubjectFilter') ? document.getElementById('poolSubjectFilter').value : 'ALL';
+            const poolSemesterFilter = document.getElementById('poolSemesterFilter') ? document.getElementById('poolSemesterFilter').value : 'ALL'; 
+            const poolMajorFilter = document.getElementById('poolMajorFilter') ? document.getElementById('poolMajorFilter').value : 'ALL';
+            const poolOrientFilter = document.getElementById('poolOrientFilter') ? document.getElementById('poolOrientFilter').value : 'ALL';
 
-            let scheduledEventsNormal = scheduledEvents.filter(e => e.status !== 'returned');
+            // --------- 1. RENDER LỊCH CHÍNH ---------
+            let scheduledEventsNormal = scheduledEventsDB.filter(e => e.status !== 'returned');
 
-            // Xử lý loại bỏ trùng lặp khi 2 hệ học chung
+            if (calendarClassFilter !== 'ALL') {
+                scheduledEventsNormal = scheduledEventsNormal.filter(e => e.class === calendarClassFilter);
+            }
+
+            if (calendarOrientFilter !== 'ALL') {
+                scheduledEventsNormal = scheduledEventsNormal.filter(e => {
+                    return !e.orientation || e.orientation === 'Cả hai' || e.orientation === calendarOrientFilter || e.orientation.trim() === '';
+                });
+            }
+
             let deduplicatedEventsMap = new Map();
             scheduledEventsNormal.forEach(e => {
-                let subObj = subjectsData.find(s => s.name === e.subject);
-                let baseSubId = subObj ? subObj.id : e.subject; 
-                let deduplicateKey = `${e.start}_${e.end}_${e.room}_${baseSubId}_${e.task}_${e.gv}`;
+                let sTime = new Date(e.start).getTime();
+                let eTime = e.end ? new Date(e.end).getTime() : sTime + 4.5 * 3600 * 1000;
+                let deduplicateKey = `${sTime}_${eTime}_${e.room}_${e.subject}_${e.task}_${e.gv}`;
 
                 if (!deduplicatedEventsMap.has(deduplicateKey)) {
                     deduplicatedEventsMap.set(deduplicateKey, e);
@@ -1137,24 +1131,14 @@
             });
             let deduplicatedEvents = Array.from(deduplicatedEventsMap.values());
 
-            if (currentUserEmail === 'ths.phcn26@ump.edu.vn') {
-                deduplicatedEvents = deduplicatedEvents.filter(e => e.class === 'THS2026');
-            }
-
             let groupedEvents = {};
-
             deduplicatedEvents.forEach(e => {
                 let sTime = new Date(e.start).getTime();
                 let eTime = e.end ? new Date(e.end).getTime() : sTime + 4.5 * 3600 * 1000;
                 let key = `${sTime}_${eTime}`;
 
                 if (!groupedEvents[key]) {
-                    groupedEvents[key] = {
-                        start: e.start,
-                        end: e.end,
-                        allDay: e.allDay,
-                        events: []
-                    };
+                    groupedEvents[key] = { start: e.start, end: e.end, allDay: e.allDay, events: [] };
                 }
                 groupedEvents[key].events.push(e);
             });
@@ -1162,7 +1146,6 @@
             let currentClassEvents = [];
             for (let key in groupedEvents) {
                 let group = groupedEvents[key];
-
                 currentClassEvents.push({
                     id: 'group_' + key,
                     start: group.start,
@@ -1171,188 +1154,228 @@
                     backgroundColor: 'transparent',
                     borderColor: 'transparent',
                     textColor: '#0f172a',
-                    extendedProps: {
-                        type: 'grouped_normal',
-                        events: group.events
-                    }
+                    extendedProps: { type: 'grouped_normal', events: group.events }
                 });
             }
             calendar.addEventSource(currentClassEvents);
 
-            // KHO SỰ KIỆN CHỈ DÀNH CHO ADMIN
-            if (currentUserEmail !== 'ths.phcn26@ump.edu.vn') {
-                let scheduledCounts = {};
-                scheduledEvents.forEach(e => {
-                    if (e.status !== 'returned') {
-                        const key = `${e.subject}_${e.gv}_${e.task}_${e.class}`;
-                        if(!scheduledCounts[key]) scheduledCounts[key] = 0;
-                        scheduledCounts[key]++;
+
+            // --------- 2. RENDER KHO SỰ KIỆN BÊN TRÁI ---------
+            let poolTasksMap = new Map(); 
+
+            subjectsData.forEach(sub => {
+                if (poolSubjectFilter !== 'ALL' && sub.name !== poolSubjectFilter) return;
+
+                let major = sub.majorTag || 'ALL';
+                let shortMajor = major;
+                if (major === "Vật lý trị liệu") shortMajor = "VLTL";
+                else if (major === "Hoạt động trị liệu") shortMajor = "HĐTL";
+                else if (major === "Ngôn ngữ trị liệu") shortMajor = "NNTL";
+
+                if (poolMajorFilter !== 'ALL' && shortMajor !== poolMajorFilter && shortMajor !== 'ALL') return;
+
+                managedClasses.forEach(cls => {
+                    if (poolClassFilter !== 'ALL' && cls !== poolClassFilter) return;
+
+                    const dbKeysToCheck = [];
+                    const dep = (sub.department || '').toLowerCase();
+                    const isNotPHCN = (sub.isPHCN === false) || (dep && !dep.includes('phục hồi chức năng') && !dep.includes('phcn'));
+                    
+                    if (cls === 'THS2025' || isNotPHCN) {
+                        dbKeysToCheck.push({ key: cls, orientCode: '' });
+                    } else {
+                        let hasNC = false; let hasUD = false;
+                        if (sub.orientations) {
+                            sub.orientations.forEach(o => {
+                                let upO = o.toUpperCase();
+                                if (upO.includes('NC') || upO.includes('NGHIÊN CỨU')) hasNC = true;
+                                if (upO.includes('UD') || upO.includes('ỨNG DỤNG')) hasUD = true;
+                            });
+                        }
+
+                        if (hasNC) dbKeysToCheck.push({ key: `${cls}_NC_${shortMajor}`, orientCode: 'NC' });
+                        if (hasUD) dbKeysToCheck.push({ key: `${cls}_UD_${shortMajor}`, orientCode: 'UD' });
+                        
+                        if (!hasNC && !hasUD) {
+                            dbKeysToCheck.push({ key: `${cls}_NC_${shortMajor}`, orientCode: 'NC' });
+                            dbKeysToCheck.push({ key: `${cls}_UD_${shortMajor}`, orientCode: 'UD' });
+                        }
                     }
-                });
 
-                let poolMap = new Map();
+                    dbKeysToCheck.forEach(item => {
+                        if (poolOrientFilter !== 'ALL' && item.orientCode !== '' && item.orientCode !== poolOrientFilter) return;
 
-                let orderedSubjectNames = [];
-                let subjectGroups = {};
+                        const asg = (assignmentsData[sub.id] && assignmentsData[sub.id][item.key]) ? assignmentsData[sub.id][item.key] : null;
+                        
+                        if (asg && asg.allocations && asg.status !== 'proposed') {
+                            const semester = asg.semester || 'Chưa xác định';
+                            if (poolSemesterFilter !== 'ALL' && semester !== poolSemesterFilter) return; 
 
-                subjectsData.forEach(sub => {
-                    if (!subjectGroups[sub.name]) {
-                        orderedSubjectNames.push(sub.name);
-                        subjectGroups[sub.name] = [];
-                    }
-                    subjectGroups[sub.name].push(sub.id);
-                });
-
-                orderedSubjectNames.forEach(subName => {
-                    if (poolSubjectFilter !== 'ALL' && subName !== poolSubjectFilter) return; // BỘ LỌC THEO MÔN
-
-                    const subIds = subjectGroups[subName];
-                    let subjectCardsMap = new Map();
-
-                    subIds.forEach(subId => {
-                        const subAsg = assignmentsData[subId];
-                        if (!subAsg) return;
-
-                        managedClasses.forEach(cls => {
-                            if (poolClassFilter !== 'ALL' && cls !== poolClassFilter) return;
-
-                            if (subAsg[cls] && subAsg[cls].allocations && subAsg[cls].status !== 'proposed') {
-                                const semester = subAsg[cls].semester || 'Chưa xác định';
-                                if (selectedSemester !== 'ALL' && semester !== selectedSemester) return; 
+                            asg.allocations.forEach(a => {
+                                const totalAssigned = parseInt(a.assigned) || 0;
+                                const alreadyScheduled = window.getScheduledCount(cls, item.orientCode, sub.name, a.gv, a.task);
                                 
-                                // Lấy Định hướng (nếu có)
-                                const orientation = subAsg[cls].orientation || '';
-
-                                subAsg[cls].allocations.forEach(a => {
-                                    const totalAssigned = parseInt(a.assigned) || 0;
-                                    const keyForCount = `${subName}_${a.gv}_${a.task}_${cls}`;
-                                    const alreadyScheduled = scheduledCounts[keyForCount] || 0;
-
-                                    let rejectedCardsOfThisTask = scheduledEvents.filter(e => e.class === cls && e.status === 'returned' && e.subject === subName && e.gv === a.gv && e.task === a.task);
-
-                                    let remaining = totalAssigned - alreadyScheduled;
-                                    let remainingNormal = remaining - rejectedCardsOfThisTask.length; 
-
-                                    if (remainingNormal > 0) {
-                                        if (!subjectCardsMap.has(keyForCount)) {
-                                            subjectCardsMap.set(keyForCount, {
-                                                type: 'normal',
-                                                data: { subName, a, cls, keyForCount, orientation, semester }, // Gắn thêm Định hướng & Học kỳ
-                                                count: remainingNormal,
-                                                gv: a.gv
-                                            });
-                                        } else {
-                                            subjectCardsMap.get(keyForCount).count = Math.max(subjectCardsMap.get(keyForCount).count, remainingNormal);
-                                        }
+                                let returnedTasks = scheduledEventsDB.filter(e => {
+                                    if (e.status !== 'returned') return false;
+                                    let matchOrient = false;
+                                    if (cls.toUpperCase().includes('THS')) {
+                                        matchOrient = (!e.orientation || e.orientation === 'Cả hai' || e.orientation === (item.orientCode==='NC'?'Nghiên cứu':'Ứng dụng') || e.orientation === item.orientCode);
+                                    } else {
+                                        matchOrient = true;
                                     }
-
-                                    rejectedCardsOfThisTask.forEach(rTask => {
-                                        let rKey = `reject_${rTask.id}`;
-                                        if (!subjectCardsMap.has(rKey)) {
-                                            subjectCardsMap.set(rKey, {
-                                                type: 'rejected',
-                                                data: { subName, a, cls, keyForCount, rTask, orientation, semester }, // Gắn thêm Định hướng & Học kỳ
-                                                count: 1,
-                                                gv: a.gv
-                                            });
-                                        }
-                                    });
+                                    
+                                    let eGVs = e.gv ? e.gv.split(/,|&/).map(s => s.trim()) : [];
+                                    return e.class === cls && matchOrient && e.subject === sub.name && eGVs.includes(a.gv) && e.task === a.task;
                                 });
-                            }
-                        });
+                                
+                                let remainingNormal = totalAssigned - alreadyScheduled - returnedTasks.length;
+
+                                if (remainingNormal > 0 || returnedTasks.length > 0) {
+                                    const mapKey = `${sub.id}_${a.gv}_${a.task}_${cls}`;
+                                    if (!poolTasksMap.has(mapKey)) {
+                                        poolTasksMap.set(mapKey, {
+                                            subName: sub.name, subId: sub.id, cls, gv: a.gv, task: a.task,
+                                            orients: new Set(),
+                                            remaining: 0,
+                                            returnedTasks: [],
+                                            semester: semester
+                                        });
+                                    }
+                                    
+                                    let taskData = poolTasksMap.get(mapKey);
+                                    if (item.orientCode) taskData.orients.add(item.orientCode);
+                                    
+                                    taskData.remaining = Math.max(taskData.remaining, remainingNormal);
+                                    returnedTasks.forEach(rt => taskData.returnedTasks.push(rt));
+                                }
+                            });
+                        }
                     });
+                });
+            });
 
-                    const cardsArray = Array.from(subjectCardsMap.values());
+            let subjectGroups = new Map();
+            poolTasksMap.forEach((data, mapKey) => {
+                if (!subjectGroups.has(data.subName)) {
+                    subjectGroups.set(data.subName, []);
+                }
+                subjectGroups.get(data.subName).push(data);
+            });
 
-                    if (cardsArray.length > 0) {
-                        cardsArray.sort((a, b) => a.gv.localeCompare(b.gv));
+            const orderedSubjectNames = Array.from(subjectGroups.keys()).sort((a,b) => a.localeCompare(b, 'vi'));
+            
+            orderedSubjectNames.forEach((subName, gIdx) => {
+                let subjectContainer = document.createElement('div');
+                subjectContainer.className = 'pool-subject-group';
 
-                        let subjectContainer = document.createElement('div');
-                        subjectContainer.className = 'pool-subject-group';
+                let subjectHeader = document.createElement('div');
+                subjectHeader.className = 'pool-subject-title';
+                subjectHeader.style.cursor = 'pointer';
+                subjectHeader.style.display = 'flex';
+                subjectHeader.style.justifyContent = 'space-between';
+                subjectHeader.style.alignItems = 'center';
+                subjectHeader.innerHTML = `<span><i class="fas fa-book"></i> ${subName}</span> <i class="fas fa-chevron-down toggle-icon" style="color: #64748b;"></i>`;
+                subjectContainer.appendChild(subjectHeader);
 
-                        let subjectHeader = document.createElement('div');
-                        subjectHeader.className = 'pool-subject-title';
-                        subjectHeader.style.cursor = 'pointer';
-                        subjectHeader.style.display = 'flex';
-                        subjectHeader.style.justifyContent = 'space-between';
-                        subjectHeader.style.alignItems = 'center';
-                        subjectHeader.innerHTML = `<span><i class="fas fa-book"></i> ${subName}</span> <i class="fas fa-chevron-down toggle-icon" style="color: #64748b;"></i>`;
-                        subjectContainer.appendChild(subjectHeader);
+                let cardsContainer = document.createElement('div');
+                cardsContainer.className = 'pool-cards-container hidden'; 
 
-                        let cardsContainer = document.createElement('div');
-                        cardsContainer.className = 'pool-cards-container hidden'; // Mặc định thu gọn
+                const tasks = subjectGroups.get(subName);
+                
+                tasks.forEach(item => {
+                    let orientAttr = '';
+                    let orientDisplay = '';
+                    if (item.orients.has('NC') && item.orients.has('UD')) {
+                        orientAttr = 'NC,UD';
+                        orientDisplay = '<div class="badge-orient badge-chung" style="display:block; text-align:center; margin-bottom:5px;">Học chung / Không phân ĐH</div>';
+                    } else if (item.orients.has('NC')) {
+                        orientAttr = 'NC';
+                        orientDisplay = '<div class="badge-orient badge-nc" style="display:block; text-align:center; margin-bottom:5px;">Hệ Nghiên cứu</div>';
+                    } else if (item.orients.has('UD')) {
+                        orientAttr = 'UD';
+                        orientDisplay = '<div class="badge-orient badge-ud" style="display:block; text-align:center; margin-bottom:5px;">Hệ Ứng dụng</div>';
+                    }
 
-                        cardsArray.forEach(item => {
-                            const isRejected = item.type === 'rejected';
-                            const count = item.count;
-                            const { a, cls, keyForCount, rTask, orientation, semester } = item.data;
+                    let totalCount = item.remaining;
+                    let returnedCount = item.returnedTasks.length;
+                    
+                    if (totalCount > 0) {
+                        unscheduledCount += totalCount;
+                        let eventDiv = document.createElement('div');
+                        eventDiv.className = `fc-event ${item.cls}`;
+                        eventDiv.setAttribute('data-id', `${item.subId}_${item.gv}_${item.task}_${item.cls}`); 
+                        eventDiv.setAttribute('data-title', item.gv); 
+                        eventDiv.setAttribute('data-subject', item.subName);
+                        eventDiv.setAttribute('data-gv', item.gv);
+                        eventDiv.setAttribute('data-task', item.task);
+                        eventDiv.setAttribute('data-class', item.cls);
+                        eventDiv.setAttribute('data-orientations', orientAttr); 
+                        eventDiv.setAttribute('data-semester', item.semester);       
 
-                            unscheduledCount += count;
+                        let classTag = item.cls === 'THS2025' ? '<span class="class-tag THS2025">THS2025</span>' : '<span class="class-tag THS2026">THS2026</span>';
+                        let countBadge = `<div class="count-badge">${totalCount}</div>`;
+                        let gvDisplay = window.formatGvName(item.gv);
 
-                            const eventDiv = document.createElement('div');
-                            eventDiv.className = `fc-event ${cls} ${isRejected ? 'rejected-task' : ''}`;
+                        eventDiv.innerHTML = `
+                            ${countBadge}
+                            ${orientDisplay}
+                            ${classTag} 
+                            <div class="event-gv" title="${item.gv}">${gvDisplay}</div>
+                            <span class="event-info">[${item.task}]</span>
+                        `;
+                        cardsContainer.appendChild(eventDiv);
+                    }
 
-                            eventDiv.setAttribute('data-id', keyForCount); 
-                            eventDiv.setAttribute('data-title', a.gv); 
-                            eventDiv.setAttribute('data-subject', subName);
-                            eventDiv.setAttribute('data-gv', a.gv);
-                            eventDiv.setAttribute('data-task', a.task);
-                            eventDiv.setAttribute('data-class', cls);
-                            eventDiv.setAttribute('data-orientation', orientation); // Lưu vào attribute để Kéo thẻ
-                            eventDiv.setAttribute('data-semester', semester);       // Lưu vào attribute để Kéo thẻ
+                    if (returnedCount > 0) {
+                        item.returnedTasks.forEach(rTask => {
+                            unscheduledCount++;
+                            let eventDiv = document.createElement('div');
+                            eventDiv.className = `fc-event ${item.cls} rejected-task`;
+                            eventDiv.setAttribute('data-id', `reject_${rTask.id}`); 
+                            eventDiv.setAttribute('data-original-id', rTask.id); 
+                            eventDiv.setAttribute('data-title', item.gv); 
+                            eventDiv.setAttribute('data-subject', item.subName);
+                            eventDiv.setAttribute('data-gv', item.gv);
+                            eventDiv.setAttribute('data-task', item.task);
+                            eventDiv.setAttribute('data-class', item.cls);
+                            let rOrient = rTask.orientation === 'Nghiên cứu' ? 'NC' : (rTask.orientation === 'Ứng dụng' ? 'UD' : (rTask.orientation === 'Cả hai' ? 'NC,UD' : ''));
+                            eventDiv.setAttribute('data-orientations', rOrient); 
+                            eventDiv.setAttribute('data-semester', item.semester);       
 
-                            if (isRejected && rTask) {
-                                eventDiv.setAttribute('data-original-id', rTask.id); 
-                            }
-
-                            let classTag = cls === 'THS2025' ? '<span class="class-tag THS2025">THS2025</span>' : '<span class="class-tag THS2026">THS2026</span>';
-
-                            let rejectHtml = '';
-                            if (isRejected && rTask) {
-                                const rejectTimes = rTask.rejected || 1;
-                                rejectHtml = `<span class="reject-badge"><i class="fas fa-exclamation-circle"></i> Bị từ chối (${rejectTimes} lần)</span>`;
-                            }
-
-                            let countBadge = (!isRejected && count > 0) ? `<div class="count-badge">${count}</div>` : '';
-                            let gvDisplay = window.formatGvName(a.gv);
-                            let orientationDisplay = orientation ? `<div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">(ĐH: ${orientation})</div>` : '';
+                            let classTag = item.cls === 'THS2025' ? '<span class="class-tag THS2025">THS2025</span>' : '<span class="class-tag THS2026">THS2026</span>';
+                            let rBadge = `<span class="reject-badge"><i class="fas fa-exclamation-circle"></i> Bị từ chối (Trả về)</span>`;
+                            let gvDisplay = window.formatGvName(item.gv);
 
                             eventDiv.innerHTML = `
-                                ${countBadge}
                                 ${classTag}
-                                <div class="event-gv" title="${a.gv}">${gvDisplay}</div>
-                                <span class="event-info">[${a.task}]</span>
-                                ${orientationDisplay}
-                                ${rejectHtml}
+                                <div class="event-gv" title="${item.gv}">${gvDisplay}</div>
+                                <span class="event-info">[${item.task}]</span>
+                                ${rBadge}
                             `;
-
                             cardsContainer.appendChild(eventDiv);
                         });
-
-                        subjectContainer.appendChild(cardsContainer);
-
-                        // Xử lý thu gọn/xổ xuống
-                        subjectHeader.onclick = () => {
-                            cardsContainer.classList.toggle('hidden');
-                            let icon = subjectHeader.querySelector('.toggle-icon');
-                            if (cardsContainer.classList.contains('hidden')) {
-                                icon.classList.remove('fa-chevron-up');
-                                icon.classList.add('fa-chevron-down');
-                            } else {
-                                icon.classList.remove('fa-chevron-down');
-                                icon.classList.add('fa-chevron-up');
-                            }
-                        };
-
-                        poolDiv.appendChild(subjectContainer);
                     }
                 });
-            }
+
+                subjectContainer.appendChild(cardsContainer);
+                subjectHeader.onclick = () => {
+                    cardsContainer.classList.toggle('hidden');
+                    let icon = subjectHeader.querySelector('.toggle-icon');
+                    if (cardsContainer.classList.contains('hidden')) {
+                        icon.classList.remove('fa-chevron-up');
+                        icon.classList.add('fa-chevron-down');
+                    } else {
+                        icon.classList.remove('fa-chevron-down');
+                        icon.classList.add('fa-chevron-up');
+                    }
+                };
+                poolDiv.appendChild(subjectContainer);
+            });
 
             const extEventsPanel = document.getElementById('external-events');
             const btnToggle = document.getElementById('btnToggleSidebar');
 
-            if (isCalendarAdmin) {
+            if (btnToggle && extEventsPanel) {
                 btnToggle.classList.remove('hidden'); 
                 if (unscheduledCount === 0) {
                     extEventsPanel.style.display = 'none';
@@ -1361,9 +1384,6 @@
                         extEventsPanel.style.display = 'flex';
                     }
                 }
-            } else {
-                extEventsPanel.style.display = 'none';
-                btnToggle.classList.add('hidden');
             }
             setTimeout(() => { calendar.updateSize(); }, 50);
         };
