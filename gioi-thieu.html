@@ -165,7 +165,8 @@
             </div>
 
             <div class="faculty-grid" id="facultyGrid">
-                </div>
+                <!-- Data will be populated here -->
+            </div>
             
         </div>
     </main>
@@ -174,10 +175,27 @@
 
     <script src="js/layout.js"></script>
 
-    <script>
-        const facultyGrid = document.getElementById('facultyGrid');
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
 
-        const facultyList = [
+        const firebaseConfig = {
+            apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY",
+            authDomain: "bmphcn-aa9c6.firebaseapp.com",
+            projectId: "bmphcn-aa9c6",
+            storageBucket: "bmphcn-aa9c6.firebasestorage.app",
+            messagingSenderId: "749494392719",
+            appId: "1:749494392719:web:f220c751ff541620045dfa",
+            measurementId: "G-LBLG62PTDK"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Danh sách tĩnh để giữ đúng thứ tự và cấu trúc chức vụ
+        let facultyList = [
             { degree: "Tiến sĩ", name: "Lê Thanh Vân", position: "Trưởng Bộ môn", email: "lethanhvan@ump.edu.vn", image: "images/TS. Lê Thanh Vân.jpg" },
             { degree: "Thạc sĩ", name: "Phan Thế Nguyên", position: "Giáo vụ", email: "phanthenguyenpt@ump.edu.vn", image: "images/ThS. Phan Thế Nguyên.jpg" },
             { degree: "Thạc sĩ", name: "Cao Minh Hạnh", position: "Giảng viên", email: "cmhanhpt@ump.edu.vn", image: "images/ThS. Cao Minh Hạnh.jpg" },
@@ -193,6 +211,8 @@
             { degree: "Thạc sĩ", name: "Trần Hữu Đức", position: "Giảng viên", email: "tranhuuduc@ump.edu.vn", image: "images/ThS. Trần Hữu Đức.jpg" },
             { degree: "Thạc sĩ", name: "Nguyễn Mai Ngọc Đoan", position: "Giảng viên", email: "nguyenmaingocdoan@ump.edu.vn", image: "images/ThS. Nguyễn Mai Ngọc Đoan.jpg" }
         ];
+
+        const facultyGrid = document.getElementById('facultyGrid');
 
         function renderFaculty() {
             facultyGrid.innerHTML = ""; 
@@ -220,27 +240,49 @@
                 facultyGrid.appendChild(card);
             });
         }
-        renderFaculty();
-    </script>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        // Tải ảnh từ Database
+        async function loadFacultyAvatars() {
+            // Hiển thị khung với ảnh mặc định trước cho nhanh
+            renderFaculty();
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY",
-            authDomain: "bmphcn-aa9c6.firebaseapp.com",
-            projectId: "bmphcn-aa9c6",
-            storageBucket: "bmphcn-aa9c6.firebasestorage.app",
-            messagingSenderId: "749494392719",
-            appId: "1:749494392719:web:f220c751ff541620045dfa",
-            measurementId: "G-LBLG62PTDK"
-        };
+            try {
+                const querySnapshot = await getDocs(collection(db, "users"));
+                const avatarMap = {};
+                
+                // Gom tất cả avatar có trong db gán vào map bằng email
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    if (data.email && data.avatar) {
+                        avatarMap[data.email.toLowerCase()] = data.avatar;
+                    }
+                });
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+                let needsUpdate = false;
+                
+                // Đối chiếu với danh sách tĩnh, nếu db có ảnh thì thay thế ảnh tĩnh
+                facultyList.forEach(faculty => {
+                    if (faculty.email) {
+                        const dbAvatar = avatarMap[faculty.email.toLowerCase()];
+                        if (dbAvatar && faculty.image !== dbAvatar) {
+                            faculty.image = dbAvatar;
+                            needsUpdate = true;
+                        }
+                    }
+                });
+
+                // Nếu phát hiện có sự thay đổi, render lại lưới để cập nhật ảnh
+                if (needsUpdate) {
+                    renderFaculty();
+                }
+
+            } catch (error) {
+                console.error("Lỗi khi tải ảnh từ database:", error);
+            }
+        }
+
+        // Kích hoạt hàm tải ảnh
+        loadFacultyAvatars();
 
         onAuthStateChanged(auth, async (user) => {
             setTimeout(async () => {
