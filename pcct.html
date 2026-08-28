@@ -18,15 +18,15 @@
 
         .hidden { display: none !important; }
         
-        /* Tabs & Controls */
+        /* Tabs & Controls MỚI DỰA TRÊN MẢNG CHỌN */
         .controls-wrapper { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; background: var(--surface); padding: 15px 20px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 20px; gap: 15px; box-shadow: var(--shadow-sm); }
-        .tabs-header { display: flex; gap: 10px; border-bottom: 2px solid transparent; }
-        .tab-btn { padding: 8px 15px; text-align: center; font-size: 0.95rem; font-weight: 600; color: var(--text-body); background: var(--bg-page); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; transition: 0.3s; }
-        .tab-btn:hover { color: var(--text-dark); background: #e2e8f0; }
-        .tab-btn.active { color: white; background: var(--primary); border-color: var(--primary); }
-
-        .filter-controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-        .filter-controls select { padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border); outline: none; font-size: 0.9rem; font-weight: 600; color: var(--text-dark); background-color: var(--bg-page); cursor: pointer; }
+        
+        .filter-controls { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; width: 100%; }
+        .filter-col { display: flex; flex-direction: column; gap: 6px; }
+        .filter-col label { font-size: 0.8rem; font-weight: 700; color: var(--text-body); letter-spacing: 0.5px; }
+        .filter-col select { padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); outline: none; font-size: 0.95rem; font-weight: 600; color: var(--primary); background-color: var(--primary-light); cursor: pointer; transition: 0.2s; min-width: 160px;}
+        .filter-col select:hover:not(:disabled) { border-color: var(--primary); background-color: #fff; }
+        .filter-col select:disabled { background-color: var(--bg-page); color: #94a3b8; cursor: not-allowed; border-color: #e2e8f0; }
 
         /* Bảng */
         .table-container { overflow-x: auto; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--surface); box-shadow: var(--shadow-sm); }
@@ -163,25 +163,38 @@
         </div>
 
         <div class="controls-wrapper">
-            <div class="tabs-header" style="margin: 0; border: none;">
-                <button class="tab-btn active" data-class="THS2025" onclick="switchClass('THS2025')">Lớp THS2025</button>
-                <button class="tab-btn" data-class="THS2026" onclick="switchClass('THS2026')">Lớp THS2026</button>
-            </div>
             <div class="filter-controls">
-                <select id="filterMajor" onchange="window.renderTable()">
-                    <option value="ALL">-- Chọn chuyên ngành --</option>
-                </select>
                 
-                <select id="filterOrient" class="hidden" onchange="window.renderTable()">
-                    <option value="ALL">-- Chọn Định hướng --</option>
-                    <option value="UD">Hướng Ứng dụng</option>
-                    <option value="NC">Hướng Nghiên cứu</option>
-                </select>
+                <div class="filter-col">
+                    <label>LỚP HỌC</label>
+                    <select id="filterClass" onchange="handleClassChange()">
+                        <option value="ALL">Đang tải...</option>
+                    </select>
+                </div>
 
-                <select id="viewModeSelect" onchange="window.renderTable()">
-                    <option value="STRUCT">Xem theo Cấu trúc Khung CT</option>
-                    <option value="SEM">Xem theo Thứ tự Học kỳ</option>
-                </select>
+                <div class="filter-col">
+                    <label>ĐỊNH HƯỚNG</label>
+                    <select id="filterOrient" onchange="handleOrientChange()" disabled>
+                        <option value="NC">Nghiên cứu</option>
+                        <option value="UD">Ứng dụng</option>
+                    </select>
+                </div>
+
+                <div class="filter-col">
+                    <label>CHUYÊN NGÀNH</label>
+                    <select id="filterMajor" onchange="window.renderTable()">
+                        <option value="ALL">-- Tất cả --</option>
+                    </select>
+                </div>
+
+                <div class="filter-col" style="margin-left: auto;">
+                    <label>GÓC NHÌN BẢNG</label>
+                    <select id="viewModeSelect" onchange="window.renderTable()">
+                        <option value="STRUCT">Theo Cấu trúc Khung CT</option>
+                        <option value="SEM">Theo Thứ tự Học kỳ</option>
+                    </select>
+                </div>
+
             </div>
         </div>
 
@@ -377,7 +390,6 @@
         let thesesList = []; 
         let subjectsData = []; 
         
-        let currentClass = 'THS2025'; 
         let assignmentsDB = {}; 
         let calendarEventsDB = []; 
         let currentEditingSubId = null;
@@ -386,6 +398,18 @@
         let isManager = false; 
 
         const taskOptions = ["Lý thuyết", "Thực hành", "Thực tế", "Ra đề thi", "Coi thi", "Chấm thi", "Soạn mới, sửa BG/GT", "Công việc khác"];
+
+        // Các hàm Getter hỗ trợ lấy trạng thái bộ lọc hiện tại
+        window.getCurrentClass = () => document.getElementById('filterClass').value;
+        window.getCurrentOrient = () => document.getElementById('filterOrient').value;
+        
+        window.getDbKey = () => {
+            const c = window.getCurrentClass();
+            if (c.toUpperCase().includes('THS') && window.getCurrentOrient() !== 'ALL') {
+                return `${c}_${window.getCurrentOrient()}`;
+            }
+            return c;
+        };
 
         function showToast(message, type = 'success') {
             const container = document.getElementById('toastContainer');
@@ -397,10 +421,41 @@
             setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
         }
 
+        window.handleClassChange = () => {
+            const cls = document.getElementById('filterClass').value;
+            const orientSel = document.getElementById('filterOrient');
+            
+            if (cls.toUpperCase().includes('THS')) {
+                orientSel.disabled = false;
+                if (!orientSel.value || orientSel.value === 'ALL') {
+                    orientSel.value = 'NC'; // Ép kiểu mặc định an toàn cho Lớp THS (Tránh trùng data ALL)
+                }
+            } else {
+                orientSel.disabled = true;
+            }
+            
+            window.updateMajorDropdown();
+            window.renderTable();
+        };
+
+        window.handleOrientChange = () => {
+            window.updateMajorDropdown();
+            window.renderTable();
+        };
+
         window.updateMajorDropdown = () => {
+            const cls = document.getElementById('filterClass').value;
+            const orient = document.getElementById('filterOrient').value;
             let uniqueMajors = new Set();
+            
             subjectsData.forEach(s => {
-                if (currentClass === 'THS2025' && (!s.orientations || !s.orientations.includes("NC"))) return;
+                if (!s.classArray.includes(cls) && cls !== 'ALL') return;
+                
+                // Môn có chia định hướng (thuộc THS)
+                if (cls.toUpperCase().includes('THS') && orient !== 'ALL' && !s.name.toLowerCase().includes("công việc chuyên môn khác")) {
+                    if (s.orientations && s.orientations.length > 0 && !s.orientations.includes(orient)) return;
+                }
+
                 if (s.majorTag && s.majorTag !== 'ALL') {
                     uniqueMajors.add(s.majorTag);
                 }
@@ -408,7 +463,7 @@
 
             const filterMajor = document.getElementById('filterMajor');
             const currentVal = filterMajor.value;
-            filterMajor.innerHTML = '<option value="ALL">-- Chọn chuyên ngành --</option>';
+            filterMajor.innerHTML = '<option value="ALL">-- Tất cả chuyên ngành --</option>';
             
             Array.from(uniqueMajors).sort().forEach(major => {
                 filterMajor.innerHTML += `<option value="${major}">${major}</option>`;
@@ -419,25 +474,6 @@
             } else {
                 filterMajor.value = 'ALL';
             }
-        };
-
-        window.switchClass = (cls) => {
-            currentClass = cls;
-            document.querySelectorAll('.tab-btn').forEach(b => {
-                if(b.getAttribute('data-class') === cls) b.classList.add('active');
-                else b.classList.remove('active');
-            });
-
-            const filterOrient = document.getElementById('filterOrient');
-            if (cls === 'THS2025') {
-                filterOrient.classList.add('hidden');
-                filterOrient.value = "ALL"; 
-            } else {
-                filterOrient.classList.remove('hidden');
-            }
-            
-            window.updateMajorDropdown();
-            window.renderTable();
         };
 
         window.getGvOptionsHtml = (selectedGv) => {
@@ -465,47 +501,74 @@
         async function fetchExternalData() {
             try {
                 const snapSubjects = await getDocs(collection(db, "subjects"));
+                let tempClasses = new Set();
                 subjectsData = [];
+                
                 snapSubjects.forEach(doc => {
                     const d = doc.data();
-                    // Đảm bảo lấy đúng id "sub_..." từ dữ liệu của file CSV nếu có
                     d.id = d.id || doc.id;
                     d.credits = parseInt(d.credits) || 0;
                     d.theory = parseInt(d.theory) || 0;
                     d.practice = parseInt(d.practice) || 0;
                     
+                    // Phân tách Class linh hoạt
+                    if (d.class) {
+                        if (Array.isArray(d.class)) {
+                            d.classArray = d.class.map(c => c.trim());
+                        } else if (typeof d.class === 'string') {
+                            d.classArray = d.class.split(',').map(c => c.trim());
+                        } else {
+                            d.classArray = [String(d.class).trim()];
+                        }
+                    } else {
+                        d.classArray = ['Chưa rõ'];
+                    }
+                    
+                    d.classArray.forEach(c => {
+                        if(c !== 'Chưa rõ') tempClasses.add(c);
+                    });
+                    
                     if (typeof d.orientations === 'string') {
                         d.orientations = d.orientations.split(',').map(s => s.trim()).filter(s => s);
                     }
                     
-                    subjectsData.push(d);
-                });
-                
-                // TÍNH TOÁN QUY ĐỔI SỐ BUỔI VÀ GÁN TAG CHUYÊN NGÀNH
-                subjectsData.forEach(sub => {
-                    sub.theorySessions = (sub.theory || 0) * 3; 
-                    
-                    if (sub.name && sub.name.toLowerCase().includes("thực hành lâm sàng")) {
-                        sub.practiceSessions = (sub.practice || 0) * 8; 
+                    // TÍNH TOÁN QUY ĐỔI SỐ BUỔI VÀ GÁN TAG CHUYÊN NGÀNH
+                    d.theorySessions = (d.theory || 0) * 3; 
+                    if (d.name && d.name.toLowerCase().includes("thực hành lâm sàng")) {
+                        d.practiceSessions = (d.practice || 0) * 8; 
                     } else {
-                        sub.practiceSessions = (sub.practice || 0) * 6; 
+                        d.practiceSessions = (d.practice || 0) * 6; 
                     }
-                    sub.totalSessions = sub.theorySessions + sub.practiceSessions;
+                    d.totalSessions = d.theorySessions + d.practiceSessions;
                     
-                    let grp = sub.group || '';
+                    let grp = d.group || '';
                     let match = grp.match(/\(([^)]+)\)/);
                     if (grp.includes("TỰ CHỌN") && match) {
-                        sub.majorTag = match[1].trim();
+                        d.majorTag = match[1].trim();
                     } else if (grp.includes("Vật lý trị liệu")) {
-                        sub.majorTag = "Vật lý trị liệu";
+                        d.majorTag = "Vật lý trị liệu";
                     } else if (grp.includes("Hoạt động trị liệu")) {
-                        sub.majorTag = "Hoạt động trị liệu";
+                        d.majorTag = "Hoạt động trị liệu";
                     } else if (grp.includes("Ngôn ngữ trị liệu")) {
-                        sub.majorTag = "Ngôn ngữ trị liệu";
+                        d.majorTag = "Ngôn ngữ trị liệu";
                     } else {
-                        sub.majorTag = "ALL";
+                        d.majorTag = "ALL";
                     }
+
+                    subjectsData.push(d);
                 });
+
+                // Render dữ liệu Lớp học động
+                const filterClassEl = document.getElementById('filterClass');
+                filterClassEl.innerHTML = '';
+                const sortedClasses = Array.from(tempClasses).sort((a,b) => b.localeCompare(a)); 
+                if(sortedClasses.length > 0) {
+                    sortedClasses.forEach(c => {
+                        filterClassEl.innerHTML += `<option value="${c}">${c}</option>`;
+                    });
+                } else {
+                    filterClassEl.innerHTML = `<option value="ALL">Chưa có dữ liệu</option>`;
+                }
 
                 // Sắp xếp môn học theo cấu trúc Khung chương trình
                 subjectsData.sort((a, b) => {
@@ -549,11 +612,18 @@
             }
         }
 
-        window.getCompletedSessions = (cls, subName, gv, task) => {
+        window.getCompletedSessions = (cls, orient, subName, gv, task) => {
             const now = new Date();
             let count = 0;
+            let orientName = orient === 'NC' ? 'Nghiên cứu' : 'Ứng dụng';
+            
             calendarEventsDB.forEach(e => {
-                if (e.class === cls && e.subject === subName && e.gv && e.gv.includes(gv) && e.task === task) {
+                let matchOrient = true;
+                if (cls.toUpperCase().includes('THS')) {
+                    matchOrient = (!e.orientation || e.orientation === 'Cả hai' || e.orientation === orientName || e.orientation.trim() === '');
+                }
+
+                if (e.class === cls && matchOrient && e.subject === subName && e.gv && e.gv.includes(gv) && e.task === task) {
                     let eventEnd = e.end ? new Date(e.end) : new Date(new Date(e.start).getTime() + 4 * 3600000);
                     if (eventEnd < now) { count++; }
                 }
@@ -587,9 +657,12 @@
                 });
 
                 let gvListDisplay = [];
+                const cls = window.getCurrentClass();
+                const orient = window.getCurrentOrient();
+
                 for (let gv in gvMap) {
                     let taskHtml = gvMap[gv].map(t => {
-                        let autoCompleted = window.getCompletedSessions(currentClass, subName, t.gv, t.task);
+                        let autoCompleted = window.getCompletedSessions(cls, orient, subName, t.gv, t.task);
                         let txt = `• [${t.task}] (${t.assigned} buổi) <span style="color:#16a34a; font-size:0.8rem; font-weight:bold;">[Đã dạy: ${autoCompleted}]</span>`;
                         if(t.note) txt += ` <br><i style="color:#64748b; font-size:0.85rem; padding-left:10px;">Ghi chú: ${t.note}</i>`;
                         return txt;
@@ -639,7 +712,7 @@
                 }
                 
                 await fetchExternalData(); 
-                window.updateMajorDropdown();
+                window.handleClassChange(); // Kích hoạt bộ lọc ban đầu
 
                 if (subjectsData.length === 0) {
                     document.getElementById('loadingScreen').innerHTML = "<i class='fas fa-exclamation-triangle'></i><br>Chưa có dữ liệu Danh sách Môn học trên hệ thống.";
@@ -688,13 +761,20 @@
             tbody.innerHTML = '';
             
             const viewMode = document.getElementById('viewModeSelect').value;
+            const cls = window.getCurrentClass();
+            const orient = window.getCurrentOrient();
             const fMajor = document.getElementById('filterMajor').value;
-            const fOrient = document.getElementById('filterOrient').value;
+            const dbKey = window.getDbKey();
             
             let filteredSubs = subjectsData.filter(s => {
-                if (currentClass === 'THS2025' && (!s.orientations || !s.orientations.includes("NC"))) return false;
+                if (!s.classArray.includes(cls)) return false;
+                
+                if (cls.toUpperCase().includes('THS') && orient !== 'ALL' && !s.name.toLowerCase().includes("công việc chuyên môn khác")) {
+                    if (s.orientations && s.orientations.length > 0 && !s.orientations.includes(orient)) return false;
+                }
+
                 if (fMajor !== 'ALL' && s.majorTag !== 'ALL' && s.majorTag !== fMajor) return false;
-                if (currentClass === 'THS2026' && fOrient !== 'ALL' && (!s.orientations || !s.orientations.includes(fOrient)) && s.id !== 'sub_60') return false; 
+                
                 return true;
             });
 
@@ -714,13 +794,13 @@
                     subsInGroup.forEach(s => groupTotal += (s.credits || 0));
                     
                     tbody.innerHTML += `<tr class="group-header" onclick="toggleGroup('${gClass}', 'icon-${gIdx}')"><td colspan="6" class="group-title"><i id="icon-${gIdx}" class="fas fa-chevron-down group-icon"></i> ${groupName} <span style="color:#b45309; font-size:0.9rem; margin-left: 10px;">(Tổng: ${groupTotal} TC)</span></td></tr>`;
-                    subsInGroup.forEach(sub => { appendSubjectRow(tbody, sub, gClass, stt++); });
+                    subsInGroup.forEach(sub => { appendSubjectRow(tbody, sub, gClass, stt++, dbKey, cls, orient); });
                     gIdx++;
                 });
             } else {
                 const semData = {};
                 filteredSubs.forEach(sub => {
-                    const asg = (assignmentsDB[sub.id] && assignmentsDB[sub.id][currentClass]) || { semester: 'Chưa phân bổ', allocations: [] };
+                    const asg = (assignmentsDB[sub.id] && assignmentsDB[sub.id][dbKey]) || { semester: 'Chưa phân bổ', allocations: [] };
                     const sem = sub.id === 'sub_60' ? 'Các Công Việc Khác' : (asg.semester || 'Chưa phân bổ');
                     if(!semData[sem]) semData[sem] = [];
                     semData[sem].push(sub);
@@ -742,22 +822,21 @@
                     semData[semName].forEach(s => semTotal += (s.credits || 0));
                     
                     tbody.innerHTML += `<tr class="group-header" onclick="toggleGroup('${gClass}', 'icon-sem-${gIdx}')"><td colspan="6" class="group-title"><i id="icon-sem-${gIdx}" class="fas fa-chevron-down group-icon"></i> ${semName} <span style="color:#b45309; font-size:0.9rem; margin-left: 10px;">(Tổng: ${semTotal} TC)</span></td></tr>`;
-                    semData[semName].forEach(sub => { appendSubjectRow(tbody, sub, gClass, stt++); });
+                    semData[semName].forEach(sub => { appendSubjectRow(tbody, sub, gClass, stt++, dbKey, cls, orient); });
                 });
             }
         };
 
-        function appendSubjectRow(tbody, sub, gClass, sttIndex) {
+        function appendSubjectRow(tbody, sub, gClass, sttIndex, dbKey, cls, orient) {
             const asgDoc = assignmentsDB[sub.id] || {};
-            const asg = asgDoc[currentClass] || { semester: '', allocations: [], proposed_allocations: [] };
+            const asg = asgDoc[dbKey] || { semester: '', allocations: [], proposed_allocations: [] };
             const isThesis = sub.name && (sub.name.includes("Luận văn") || sub.name.includes("Đề án"));
             
             let isProposed = asg.status === 'proposed';
             let statusBadge = isProposed ? `<span class="proposal-badge" title="Đang chờ Trưởng BM duyệt">Chờ duyệt</span>` : '';
             
             let orientTag = '';
-            // Gắn tag nếu môn bị tách nhánh
-            if (sub.orientations && sub.orientations.length === 1 && !sub.name.toLowerCase().includes("công việc chuyên môn khác")) {
+            if (cls.toUpperCase().includes('THS') && sub.orientations && sub.orientations.length === 1 && !sub.name.toLowerCase().includes("công việc chuyên môn khác")) {
                 const isUD = sub.orientations[0] === 'UD';
                 orientTag = `<span class="badge-orient ${isUD ? 'badge-ud' : 'badge-nc'}">[Hệ ${isUD ? 'Ứng dụng' : 'Nghiên cứu'}]</span>`;
             }
@@ -785,7 +864,7 @@
                 } else {
                     asg.allocations.forEach(t => {
                         if (t.task === 'Lý thuyết' || t.task === 'Thực hành' || t.task === 'Thực tế') {
-                            completedLT_TH += window.getCompletedSessions(currentClass, sub.name, t.gv, t.task);
+                            completedLT_TH += window.getCompletedSessions(cls, orient, sub.name, t.gv, t.task);
                         }
                     });
                 }
@@ -831,7 +910,8 @@
             const sub = subjectsData.find(s => s.id === id);
             
             let displayName = sub.name;
-            if (sub.orientations && sub.orientations.length === 1 && !sub.name.toLowerCase().includes("công việc chuyên môn khác")) {
+            const cls = window.getCurrentClass();
+            if (cls.toUpperCase().includes('THS') && sub.orientations && sub.orientations.length === 1 && !sub.name.toLowerCase().includes("công việc chuyên môn khác")) {
                 const isUD = sub.orientations[0] === 'UD';
                 displayName += isUD ? ' (Hệ Ứng dụng)' : ' (Hệ Nghiên cứu)';
             }
@@ -868,24 +948,27 @@
 
         window.openAssignModal = (id) => {
             const fMajor = document.getElementById('filterMajor').value;
-            const fOrient = document.getElementById('filterOrient').value;
-            
+            const cls = window.getCurrentClass();
+            const orient = window.getCurrentOrient();
+
             if (fMajor === 'ALL') {
                 showToast("Vui lòng Chọn cụ thể CHUYÊN NGÀNH trên thanh công cụ trước khi phân công!", "danger");
                 return;
             }
-            if (currentClass === 'THS2026' && fOrient === 'ALL') {
+            if (cls.toUpperCase().includes('THS') && orient === 'ALL') {
                 showToast("Vui lòng Chọn cụ thể ĐỊNH HƯỚNG trên thanh công cụ trước khi phân công!", "danger");
                 return;
             }
 
             currentEditingSubId = id;
             const sub = subjectsData.find(s => s.id === id);
-            const asg = (assignmentsDB[id] && assignmentsDB[id][currentClass]) || { semester: '', allocations: [], proposed_allocations: [], status: 'approved' };
+            
+            const dbKey = window.getDbKey();
+            const asg = (assignmentsDB[id] && assignmentsDB[id][dbKey]) || { semester: '', allocations: [], proposed_allocations: [], status: 'approved' };
             const isProposed = asg.status === 'proposed';
 
             if(sub.name && (sub.name.includes("Luận văn") || sub.name.includes("Đề án"))) {
-                document.getElementById('tasgName').innerText = `${sub.name} (Lớp: ${currentClass})`;
+                document.getElementById('tasgName').innerText = `${sub.name} (Lớp: ${cls} ${orient ? '- Hướng ' + (orient==='UD'?'Ứng dụng':'Nghiên cứu') : ''})`;
                 document.getElementById('tasgSemester').value = asg.semester || 'Học kỳ 4';
                 document.getElementById('thesisAllocContainer').innerHTML = '';
                 
@@ -932,7 +1015,7 @@
                 document.getElementById('thesisAssignModal').classList.remove('hidden');
 
             } else {
-                document.getElementById('asgName').innerText = `${sub.name} (Lớp: ${currentClass})`;
+                document.getElementById('asgName').innerText = `${sub.name} (Lớp: ${cls} ${orient ? '- Hướng ' + (orient==='UD'?'Ứng dụng':'Nghiên cứu') : ''})`;
                 document.getElementById('asgLT').innerText = sub.theorySessions;
                 document.getElementById('asgTH').innerText = sub.practiceSessions;
                 
@@ -983,7 +1066,7 @@
                         const block = addGvBlock(gv);
                         const taskContainer = block.querySelector('.task-container');
                         gvMap[gv].forEach(t => {
-                            let autoCompleted = window.getCompletedSessions(currentClass, sub.name, t.gv, t.task);
+                            let autoCompleted = window.getCompletedSessions(cls, orient, sub.name, t.gv, t.task);
                             addTaskRow(taskContainer, t.task, t.assigned, autoCompleted, t.note);
                         });
                     }
@@ -1131,7 +1214,9 @@
             for (let gv of externalGVsToSave) { try { await setDoc(doc(collection(db, "visiting_lecturers")), { name: gv }); } catch(e){} }
 
             const assignStatus = isHOD ? 'approved' : 'proposed';
+            
             let updateData = { semester: semester, status: assignStatus };
+            
             if (isHOD) {
                 updateData.allocations = allocations;
                 updateData.proposed_allocations = [];
@@ -1139,39 +1224,9 @@
                 updateData.proposed_allocations = allocations;
             }
 
-            let promises = [];
-            promises.push(setDoc(doc(db, "assignments", currentEditingSubId), { [currentClass]: updateData }, { merge: true }));
-
-            // TỰ ĐỘNG ĐỒNG BỘ MÔN TRÙNG TÊN (VD: UD VÀ NC) DỰA THEO TỶ LỆ
-            const twinSub = subjectsData.find(s => s.name === currentSub.name && s.id !== currentSub.id);
-            if (twinSub) {
-                let twinAllocations = [];
-                allocations.forEach(a => {
-                    let twinAssigned = a.assigned;
-                    if (a.task === 'Lý thuyết') {
-                        let ratio = currentSub.theorySessions > 0 ? (a.assigned / currentSub.theorySessions) : 0;
-                        twinAssigned = Math.round(ratio * twinSub.theorySessions);
-                    } else if (['Thực hành', 'Thực tế'].includes(a.task)) {
-                        let ratio = currentSub.practiceSessions > 0 ? (a.assigned / currentSub.practiceSessions) : 0;
-                        twinAssigned = Math.round(ratio * twinSub.practiceSessions);
-                    }
-                    if (twinAssigned > 0) {
-                        twinAllocations.push({ gv: a.gv, task: a.task, assigned: twinAssigned, completed: a.completed, note: a.note });
-                    }
-                });
-
-                let twinUpdateData = { semester: semester, status: assignStatus };
-                if (isHOD) {
-                    twinUpdateData.allocations = twinAllocations;
-                    twinUpdateData.proposed_allocations = [];
-                } else {
-                    twinUpdateData.proposed_allocations = twinAllocations;
-                }
-                promises.push(setDoc(doc(db, "assignments", twinSub.id), { [currentClass]: twinUpdateData }, { merge: true }));
-            }
-
+            let dbKey = window.getDbKey();
             try {
-                await Promise.all(promises);
+                await setDoc(doc(db, "assignments", currentEditingSubId), { [dbKey]: updateData }, { merge: true });
                 document.getElementById('assignModal').classList.add('hidden');
                 showToast(isHOD ? "Lưu phân công thành công!" : "Đã gửi đề xuất thành công!");
             } catch (e) { showToast("Lỗi khi lưu: " + e.message, "danger"); }
@@ -1181,11 +1236,12 @@
             const container = document.getElementById('thesisAllocContainer');
             const block = document.createElement('div');
             block.className = 'gv-block';
-            
+            const cls = window.getCurrentClass();
+
             let isCustomStudent = student && !learnersList.find(l => l.name === student);
             let studentOpts = '<option value="">-- Chọn Học viên --</option>';
             learnersList.forEach(l => {
-                if(l.classId === currentClass || l.name === student) {
+                if(l.classId === cls || l.name === student) {
                     studentOpts += `<option value="${l.name}" ${l.name === student ? 'selected' : ''}>${l.name}</option>`;
                 }
             });
@@ -1302,7 +1358,9 @@
             for (let gv of externalGVsToSave) { try { await setDoc(doc(collection(db, "visiting_lecturers")), { name: gv }); } catch(e){} }
 
             const assignStatus = isHOD ? 'approved' : 'proposed';
+            
             let updateData = { semester: semester, status: assignStatus };
+            
             if (isHOD) {
                 updateData.allocations = allocations;
                 updateData.proposed_allocations = [];
@@ -1310,8 +1368,9 @@
                 updateData.proposed_allocations = allocations;
             }
 
+            let dbKey = window.getDbKey();
             try {
-                await setDoc(doc(db, "assignments", currentEditingSubId), { [currentClass]: updateData }, { merge: true });
+                await setDoc(doc(db, "assignments", currentEditingSubId), { [dbKey]: updateData }, { merge: true });
                 document.getElementById('thesisAssignModal').classList.add('hidden');
                 showToast(isHOD ? "Lưu phân công HD Luận văn thành công!" : "Đã gửi đề xuất thành công!");
             } catch (e) { showToast("Lỗi khi lưu: " + e.message, "danger"); }
@@ -1320,40 +1379,38 @@
         // --- DASHBOARD THỐNG KÊ LẤY TỪ DB THỰC TẾ ---
         window.openMiniDashboard = () => {
             const fMajor = document.getElementById('filterMajor').value;
-            const fOrient = document.getElementById('filterOrient').value;
-            
+            const cls = window.getCurrentClass();
+            const orient = window.getCurrentOrient();
+
             if (fMajor === 'ALL') {
                 showToast("Vui lòng Chọn cụ thể CHUYÊN NGÀNH để xem Dashboard chính xác!", "danger");
                 return;
             }
-            if (currentClass === 'THS2026' && fOrient === 'ALL') {
-                showToast("Vui lòng Chọn cụ thể ĐỊNH HƯỚNG để xem Dashboard chính xác!", "danger");
-                return;
-            }
 
-            let filterDesc = currentClass === 'THS2025' ? 'Lớp THS2025' : 'Lớp THS2026';
-            if (fMajor !== 'ALL') filterDesc += ` - ${fMajor}`;
-            if (currentClass === 'THS2026' && fOrient !== 'ALL') {
-                filterDesc += ` - Hướng ${fOrient === 'UD' ? 'Ứng dụng' : 'Nghiên cứu'}`;
-            } else if (currentClass === 'THS2025') {
-                filterDesc += ` - Hướng Nghiên cứu`;
+            let filterDesc = cls;
+            if (cls.toUpperCase().includes('THS') && orient !== 'ALL') {
+                filterDesc += ` - Hướng ${orient === 'UD' ? 'Ứng dụng' : 'Nghiên cứu'}`;
             }
+            if (fMajor !== 'ALL') filterDesc += ` - ${fMajor}`;
 
             document.getElementById('dashClassName').innerText = `(${filterDesc})`;
             
             let stats = { "Học kỳ 1": 0, "Học kỳ 2": 0, "Học kỳ 3": 0, "Học kỳ 4": 0, "Chưa phân bổ": 0 };
             
             let filteredSubs = subjectsData.filter(s => {
-                if (currentClass === 'THS2025' && (!s.orientations || !s.orientations.includes("NC"))) return false;
-                if (fMajor !== 'ALL' && s.majorTag !== 'ALL' && s.majorTag !== fMajor) return false;
-                if (currentClass === 'THS2026' && fOrient !== 'ALL' && (!s.orientations || !s.orientations.includes(fOrient)) && s.id !== 'sub_60') return false; 
+                if (!s.classArray.includes(cls)) return false;
+                if (cls.toUpperCase().includes('THS') && orient !== 'ALL' && !s.name.toLowerCase().includes("công việc chuyên môn khác")) {
+                    if (s.orientations && s.orientations.length > 0 && !s.orientations.includes(orient)) return false;
+                }
+                if (fMajor !== 'ALL' && s.majorTag !== 'ALL' && s.majorTag !== fMajor) return false; 
                 return true;
             });
 
             let total = 0;
+            const dbKey = window.getDbKey();
             filteredSubs.forEach(sub => {
                 if (sub.id !== 'sub_60') {
-                    const asg = (assignmentsDB[sub.id] && assignmentsDB[sub.id][currentClass]) || {};
+                    const asg = (assignmentsDB[sub.id] && assignmentsDB[sub.id][dbKey]) || {};
                     const sem = asg.semester || 'Chưa phân bổ';
                     if(stats[sem] !== undefined) {
                         stats[sem] += (sub.credits || 0);
@@ -1404,4 +1461,3 @@
     </script>
 </body>
 </html>
-sửa lỗi các môn thực hành và thực tế có hệ số tiến độ không đúng. quy định: 1 TC thực hành/lâm sàng = 8 buổi, 1 TC thực hành phòng kỹ năng/lab = 6 buổi
