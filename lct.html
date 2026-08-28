@@ -30,10 +30,13 @@
         body.header-hidden .top-toolbar { top: 0; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
 
         .controls-wrapper { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-        .filter-select { padding: 6px 12px; font-size: 0.95rem; font-weight: 600; border-radius: 6px; border: 1px solid var(--border); outline: none; cursor: pointer; color: var(--text-dark); max-width: 100%; }
+        .filter-select { padding: 6px 12px; font-size: 0.95rem; font-weight: 600; border-radius: 6px; border: 1px solid var(--primary); outline: none; cursor: pointer; color: var(--primary); background: var(--primary-light); max-width: 100%; transition: 0.2s; }
+        .filter-select:hover { background: white; }
+        
         .btn-toggle { background: white; color: var(--primary); border: 1px solid var(--primary); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.2s; font-size: 0.9rem; white-space: nowrap; }
         .btn-toggle:hover { background: var(--primary-light); }
 
+        /* Nút Xuất Word */
         .btn-export { background: #2563eb; color: white; border: none; padding: 7px 15px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.2s; font-size: 0.95rem; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
         .btn-export:hover { background: #1d4ed8; }
 
@@ -45,7 +48,7 @@
         #external-events h4 { margin: 0 0 5px 0; color: var(--primary); border-bottom: 1px dashed var(--border); padding-bottom: 8px; font-size: 1.05rem; flex-shrink: 0; display: flex; flex-direction: column; gap: 5px; }
         
         .pool-filter-container { display: flex; gap: 5px; margin-top: 5px; }
-        .pool-filter { padding: 4px; font-size: 0.8rem; border-radius: 4px; border: 1px solid var(--border); outline: none; cursor: pointer; color: var(--text-dark); background: white; flex: 1; min-width: 0; }
+        .pool-filter { padding: 6px; font-size: 0.85rem; border-radius: 4px; border: 1px solid var(--border); outline: none; cursor: pointer; color: var(--text-dark); background: white; flex: 1; min-width: 0; font-weight:600;}
 
         #event-pool { flex: 1; overflow-y: auto; padding-right: 5px; padding-top: 5px; } 
         #event-pool .fc-event { cursor: move; margin: 0 0 10px 0; padding: 10px 12px; color: var(--text-dark); border: 1px solid var(--border); border-radius: 6px; text-align: left; transition: 0.2s; position: relative; }
@@ -91,6 +94,7 @@
             height: 100%; display: flex; flex-direction: column;
             overflow: hidden; border-left: 4px solid var(--primary);
             color: var(--text-dark); box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            cursor: pointer;
         }
         .evt-group-header { font-size: 0.8rem; font-weight: 700; color: #64748b; margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: flex-start; }
         .evt-items-list { flex: 1; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; gap: 8px; }
@@ -105,29 +109,44 @@
         .toast.danger { border-left-color: #ef4444; }
 
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 2000; padding: 10px; }
-        .modal-content { background: white; width: 95%; max-width: 450px; border-radius: 8px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); overflow: hidden; display: flex; flex-direction: column; }
+        .modal-content { background: white; width: 95%; max-width: 500px; border-radius: 8px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); overflow: hidden; display: flex; flex-direction: column; }
         .modal-header { padding: 15px 20px; background: var(--primary); color: white; display: flex; justify-content: space-between; align-items: center; }
         .modal-header h3 { margin: 0; font-size: 1.1rem; }
-        .modal-body { padding: 20px; line-height: 1.8; text-align: left; }
+        .modal-body { padding: 20px; line-height: 1.8; text-align: left; max-height: 70vh; overflow-y: auto;}
         .modal-footer { padding: 15px 20px; background: #f1f5f9; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border); }
 
         .btn-danger { background: var(--accent); color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s;}
         .btn-primary { background: var(--primary); color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s;}
         .btn-secondary { background: white; color: var(--text-dark); border: 1px solid var(--border); padding: 8px 15px; border-radius: 4px; cursor: pointer; transition: 0.2s; font-weight: 600; }
+        .btn-info { background: #0ea5e9; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s;}
 
         .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; font-weight: 600; margin-bottom: 5px; color: var(--text-dark); }
-        .form-group select { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border); font-size: 1rem; outline: none; }
-        .form-group select:focus { border-color: var(--primary); }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 5px; color: var(--text-dark); font-size:0.9rem;}
+        .form-group select, .form-group input { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border); font-size: 1rem; outline: none; box-sizing: border-box;}
+        .form-group select:focus, .form-group input:focus { border-color: var(--primary); }
+
+        /* Inline Edit Form in Modal */
+        .inline-edit-form { background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #cbd5e1; margin-bottom: 15px; }
+        .inline-edit-form .form-row { display: flex; gap: 10px; margin-bottom: 10px; }
+        .inline-edit-form .form-row > div { flex: 1; }
 
         @media (max-width: 768px) {
             main { flex-direction: column; }
             #external-events { position: relative; width: 100%; top: 0; max-height: 350px; }
-            .top-toolbar { flex-direction: column; gap: 10px; align-items: stretch; }
-            .fc-toolbar-title { font-size: clamp(1rem, 3vw, 1.2rem) !important; }
-            .fc-button-primary { padding: 4px 8px !important; font-size: 0.75rem !important; }
+            .top-toolbar { flex-direction: column; gap: 10px; justify-content: center; } 
+            
+            .fc-toolbar { flex-direction: column; gap: 8px; }
+            .fc-toolbar-chunk:nth-child(1) { order: 2; width: 100%; justify-content: space-between; } 
+            .fc-toolbar-chunk:nth-child(2) { order: 1; width: 100%; margin-bottom: 5px; } 
+            .fc-toolbar-chunk:nth-child(3) { order: 3; width: 100%; } 
+            .fc-button-primary { padding: 5px 10px !important; font-size: 0.8rem !important; }
+            
             .fc .fc-timegrid-axis, .fc .fc-timegrid-slot-label { width: 0 !important; padding: 0 !important; border: none !important; }
             .fc .fc-timegrid-slot-label-cushion, .fc .fc-timegrid-axis-cushion { display: none !important; }
+
+            .fc-event-main, .fc-list-event-title { white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; }
+            
+            .inline-edit-form .form-row { flex-direction: column; gap: 5px; }
         }
     </style>
 </head>
@@ -137,21 +156,25 @@
     <div id="toastContainer" class="toast-container"></div>
     <div id="eventTooltip"></div>
 
+    <!-- THANH CÔNG CỤ CHÍNH -->
     <div class="top-toolbar">
-        <div>
-            <h2>XẾP LỊCH CÔNG TÁC GIẢNG DẠY</h2>
-        </div>
+        <h2>XẾP LỊCH CÔNG TÁC GIẢNG DẠY</h2>
         <div class="controls-wrapper">
+            <!-- Lọc hiển thị trên Lịch -->
+            <select id="calendarClassFilter" class="filter-select" onchange="processAndRenderEvents()">
+                <option value="ALL">Tất cả Lớp</option>
+                <option value="THS2025">Lớp THS2025</option>
+                <option value="THS2026">Lớp THS2026</option>
+            </select>
+            <select id="calendarOrientFilter" class="filter-select" onchange="processAndRenderEvents()">
+                <option value="ALL">Tất cả Định hướng</option>
+                <option value="Nghiên cứu">Hướng Nghiên cứu</option>
+                <option value="Ứng dụng">Hướng Ứng dụng</option>
+            </select>
+            
             <button id="btnToggleSidebar" class="btn-toggle hidden" onclick="toggleSidebar()" title="Thu gọn/Mở rộng Kho sự kiện">
                 <i class="fas fa-bars"></i> Kho Sự Kiện
             </button>
-            <select id="semesterSelect" class="filter-select" onchange="processAndRenderEvents()">
-                <option value="ALL">Tất cả Học kỳ</option>
-                <option value="Học kỳ 1">Học kỳ 1</option>
-                <option value="Học kỳ 2">Học kỳ 2</option>
-                <option value="Học kỳ 3">Học kỳ 3</option>
-                <option value="Học kỳ 4">Học kỳ 4</option>
-            </select>
         </div>
     </div>
 
@@ -185,11 +208,11 @@
         </div>
     </main>
 
-    <!-- MODAL CHỌN PHÒNG HỌC & ĐỊNH HƯỚNG -->
+    <!-- MODAL CHỌN PHÒNG HỌC & LẶP LẠI (KHI DROP TỪ KHO) -->
     <div id="roomModal" class="modal-overlay hidden">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Thông số Lịch học</h3>
+                <h3>Thông số Lịch học mới</h3>
             </div>
             <div class="modal-body">
                 <!-- KHỐI CHỌN ĐỊNH HƯỚNG SẼ HIỆN NẾU MÔN NÀY LÀ MÔN CHIA NHÁNH -->
@@ -208,6 +231,14 @@
                         <!-- Đổ dữ liệu từ JS -->
                     </select>
                 </div>
+
+                <div class="form-group" style="background: #f1f5f9; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                    <label for="repeatWeeks"><i class="fas fa-redo"></i> Lặp lại hàng tuần:</label>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="number" id="repeatWeeks" value="1" min="1" max="15" style="width: 80px;">
+                        <span style="font-size: 0.9rem; font-weight: 600; color: var(--text-body);">tuần liên tiếp (Cùng giờ, phòng)</span>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
                 <button class="btn-secondary" onclick="cancelRoomSelection()">Hủy</button>
@@ -216,9 +247,9 @@
         </div>
     </div>
 
-    <!-- MODAL CHI TIẾT TỔ HỢP SỰ KIỆN -->
+    <!-- MODAL CHI TIẾT TỔ HỢP SỰ KIỆN (XEM/SỬA/XÓA) -->
     <div id="multiEventModal" class="modal-overlay hidden">
-        <div class="modal-content" style="max-width: 600px;">
+        <div class="modal-content" style="max-width: 650px;">
             <div class="modal-header" id="multiEventModalHeader" style="background: var(--primary);">
                 <h3 id="multiEventModalTitle">Chi tiết Lịch</h3>
                 <span style="cursor: pointer; font-weight: bold; font-size: 1.2rem;" onclick="document.getElementById('multiEventModal').classList.add('hidden')">X</span>
@@ -302,7 +333,7 @@
 
         window.deleteSubEvent = async (id) => {
             if(!id) return;
-            if(confirm("Bạn có chắc muốn xóa sự kiện này khỏi lịch? (Sẽ được trả lại số buổi vào Kho sự kiện)")) {
+            if(confirm("Bạn có chắc muốn xóa thẻ lịch này? (Số buổi sẽ được hoàn lại vào Kho)")) {
                 try {
                     await deleteDoc(doc(db, "calendar_events", id));
                     showToast("Đã xóa khỏi lịch!");
@@ -320,9 +351,6 @@
         }
 
         // HÀM ĐẾM SỐ BUỔI ĐÃ XẾP LỊCH THÔNG MINH
-        // Nếu orient === 'NC', đếm các lịch là NC hoặc Cả hai
-        // Nếu orient === 'UD', đếm các lịch là UD hoặc Cả hai
-        // Nếu orient === '', đếm các lịch không có phân hướng
         window.getScheduledCount = (cls, targetOrientCode, subName, gv, task) => {
             let count = 0;
             let orientName = targetOrientCode === 'NC' ? 'Nghiên cứu' : (targetOrientCode === 'UD' ? 'Ứng dụng' : '');
@@ -332,7 +360,6 @@
                 
                 let matchOrient = true;
                 if (cls.toUpperCase().includes('THS') && orientName !== '') {
-                    // Chìa khóa: Môn chia nhánh thì khi lịch báo 'Cả hai' sẽ được tính cho cả NC và UD
                     matchOrient = (!e.orientation || e.orientation === 'Cả hai' || e.orientation === orientName || e.orientation.trim() === '');
                 }
 
@@ -345,7 +372,7 @@
             return count;
         };
 
-        // Hàm cập nhật dropdown Lọc môn học trong Kho
+        // Cập nhật dropdown Lọc môn học trong Kho
         window.updatePoolSubjectFilter = () => {
             const select = document.getElementById('poolSubjectFilter');
             if (!select) return;
@@ -358,11 +385,8 @@
             subjectsData.forEach(sub => {
                 const asgObj = assignmentsData[sub.id];
                 if (asgObj) {
-                    // Duyệt qua tất cả các key (THS2025, THS2026_NC, THS2026_UD,...)
                     Object.keys(asgObj).forEach(dbKey => {
-                        // Nếu đang lọc theo lớp cụ thể thì dbKey phải chứa tên lớp đó
                         if (currentPoolClass !== 'ALL' && !dbKey.includes(currentPoolClass)) return;
-                        
                         const asgData = asgObj[dbKey];
                         if (asgData && asgData.allocations && asgData.allocations.length > 0 && asgData.status !== 'proposed') {
                             assignedSubjectNames.add(sub.name);
@@ -378,10 +402,11 @@
             else select.value = 'ALL';
         };
 
-        function hasOverlap(targetStart, targetEnd, gvStr, targetClass, targetTask, targetRoom, ignoreEventIds) {
+        // KHOẢNG THỜI GIAN CÓ TRÙNG LẶP KHÔNG?
+        function hasOverlap(targetStartStr, targetEndStr, gvStr, targetClass, targetTask, targetRoom, ignoreEventIds) {
             let ignoreList = Array.isArray(ignoreEventIds) ? ignoreEventIds : [ignoreEventIds];
-            let tStart = targetStart.getTime();
-            let tEnd = targetEnd ? targetEnd.getTime() : tStart + 4.5 * 3600000;
+            let tStart = new Date(targetStartStr).getTime();
+            let tEnd = targetEndStr ? new Date(targetEndStr).getTime() : tStart + 4.5 * 3600000;
 
             let allSubEvents = [];
             calendar.getEvents().forEach(e => {
@@ -400,12 +425,15 @@
                 let eEnd = e.end ? new Date(e.end).getTime() : eStart + 4.5 * 3600000;
 
                 if (tStart < eEnd && tEnd > eStart) {
+                    // Cùng phòng
                     if (targetRoom && e.room && targetRoom !== 'Khác...' && e.room === targetRoom) {
-                        return { hasOverlap: true, reason: `Phòng ${targetRoom} đã có lớp khác học vào khung giờ này!` };
+                        return { hasOverlap: true, reason: `Phòng ${targetRoom} đã có lịch học vào khung giờ này!` };
                     }
+                    // Cùng lớp
                     if (e.class === targetClass && blockingTasks.includes(targetTask) && blockingTasks.includes(e.task)) {
                         return { hasOverlap: true, reason: `Lớp ${targetClass} đã có lịch học/thi vào khung giờ này!` };
                     }
+                    // Cùng GV
                     let targetGVs = gvStr ? gvStr.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
                     let eGVs = e.gv ? e.gv.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
                     let hasCommonGV = targetGVs.some(gv => eGVs.includes(gv));
@@ -432,7 +460,6 @@
                 if(isCalendarAdmin) {
                     document.getElementById('btnToggleSidebar').classList.remove('hidden');
                 } else {
-                    // Nếu là học viên vào trang này -> đá về trang xem lịch bình thường
                     window.location.href = "tkb-ths2026.html";
                     return;
                 }
@@ -512,6 +539,19 @@
             }
         });
 
+        // -------------------------------------------------------------
+        // HÀM HELPER ĐỂ ĐỊNH DẠNG NGÀY CHO FIREBASE (ISO String local time)
+        // -------------------------------------------------------------
+        function toLocalISOString(date) {
+            const pad = (n) => (n < 10 ? '0' + n : n);
+            return date.getFullYear() + '-' +
+                   pad(date.getMonth() + 1) + '-' +
+                   pad(date.getDate()) + 'T' +
+                   pad(date.getHours()) + ':' +
+                   pad(date.getMinutes()) + ':' +
+                   pad(date.getSeconds());
+        }
+
         function initCalendar() {
             const containerEl = document.getElementById('external-events');
             new FullCalendar.Draggable(containerEl, {
@@ -528,7 +568,7 @@
                             eventClass: eventEl.getAttribute('data-class'),
                             orientations: eventEl.getAttribute('data-orientations'), // Thuộc tính gốc của Môn (VD: 'NC,UD')
                             semester: eventEl.getAttribute('data-semester'),
-                            type: 'normal'
+                            type: 'normal' // Thẻ kéo từ kho ra coi như là thẻ chưa gộp
                         }
                     };
                 }
@@ -549,7 +589,8 @@
                 allDaySlot: false, 
                 slotLabelFormat: { hour: 'numeric', minute: '2-digit', omitZeroMinute: false, meridiem: false, hour12: false },
                 eventTimeFormat: { hour: 'numeric', minute: '2-digit', meridiem: false, hour12: false },
-                editable: true, 
+                editable: true,       // Bật kéo thả sửa lịch
+                eventDurationEditable: true, // Bật kéo giãn giờ
                 droppable: true, 
                 events: [],
 
@@ -571,11 +612,10 @@
                             let gvDisplay = window.formatGvName(e.gv);
                             let shortRoom = e.room && e.room !== 'Khác...' ? e.room.replace('Phòng ', 'P').replace('Hội trường', 'HT') : '??';
                             
-                            // Hiển thị định hướng trên thẻ
                             let orientHtml = '';
                             if (e.orientation) {
                                 if (e.orientation === 'Cả hai') {
-                                    orientHtml = `<div style="font-size: 0.7rem; color: #d97706; margin-top: 2px; font-weight:bold;"><i class="fas fa-users"></i> Dạy chung (Cả 2 hệ)</div>`;
+                                    orientHtml = `<div style="font-size: 0.7rem; color: #d97706; margin-top: 2px; font-weight:bold;"><i class="fas fa-users"></i> Dạy chung (NC & UD)</div>`;
                                 } else {
                                     orientHtml = `<div style="font-size: 0.7rem; color: #64748b; margin-top: 2px; font-style: italic;"><i class="fas fa-compass"></i> Hệ: ${e.orientation}</div>`;
                                 }
@@ -598,7 +638,7 @@
                         return {
                             html: `
                             <div class="evt-group-container" style="background: ${bgColor}; border-left-color: ${borderLeftColor};">
-                                <div class="evt-group-header"><span>${timeStr} &nbsp;&bull;&nbsp; ${count} thẻ</span></div>
+                                <div class="evt-group-header"><span>${timeStr}</span></div>
                                 <div class="evt-items-list">${itemsHtml}</div>
                             </div>
                             `
@@ -606,11 +646,12 @@
                     }
                 },
 
+                // KHI KÉO THẺ TỪ KHO VÀO LỊCH CHÍNH
                 eventReceive: function(info) {
                     const props = info.event.extendedProps;
                     const orientationsAttr = props.orientations || '';
 
-                    // NẾU MÔN NÀY ĐƯỢC CHIA LÀM CẢ 2 NHÁNH NC VÀ UD TRONG KHO SỰ KIỆN THÌ BẬT POPUP HỎI
+                    // Bật popup hỏi định hướng nếu môn chia nhánh
                     const orientGroup = document.getElementById('orientGroup');
                     const orientSelect = document.getElementById('modalOrientSelect');
 
@@ -625,134 +666,328 @@
                     }
 
                     pendingDropInfo = info;
+                    document.getElementById('repeatWeeks').value = 1; // Reset số tuần
                     document.getElementById('roomSelect').value = ROOM_LIST[0]; 
                     document.getElementById('roomModal').classList.remove('hidden');
                 },
 
+                // KHI DI CHUYỂN (DRAG) LỊCH ĐÃ XẾP SANG NGÀY/GIỜ KHÁC
                 eventDrop: async function(info) {
+                    if (!isCalendarAdmin) { info.revert(); return; }
                     const props = info.event.extendedProps;
+
                     if (props.type === 'grouped_normal') {
                         const subEvents = props.events;
                         const groupIds = subEvents.map(ev => ev.id);
+
+                        // Kiểm tra quyền
                         for (let e of subEvents) {
-                            const overlapCheck = hasOverlap(info.event.start, info.event.end, e.gv, e.class, e.task, e.room, groupIds);
+                            if (e.scheduledByEmail && e.scheduledByEmail !== currentUserEmail && currentUserEmail !== 'hoangtran1483@gmail.com') {
+                                showToast(`Bạn không có quyền dời lịch do GV khác xếp!`, "danger");
+                                info.revert(); return;
+                            }
+                        }
+
+                        // Kiểm tra trùng lặp thời gian mới
+                        let newStartStr = toLocalISOString(info.event.start);
+                        let newEndStr = info.event.end ? toLocalISOString(info.event.end) : null;
+                        
+                        for (let e of subEvents) {
+                            const overlapCheck = hasOverlap(newStartStr, newEndStr, e.gv, e.class, e.task, e.room, groupIds);
                             if (overlapCheck.hasOverlap) {
                                 showToast(overlapCheck.reason, "danger");
                                 info.revert(); return;
                             }
                         }
 
+                        // Lưu lên Firebase
                         try {
                             let promises = subEvents.map(e => {
                                 return setDoc(doc(db, "calendar_events", e.id), { 
-                                    start: info.event.startStr,
-                                    end: info.event.endStr || null,
+                                    start: newStartStr,
+                                    end: newEndStr,
                                     allDay: info.event.allDay
                                 }, { merge: true });
                             });
                             await Promise.all(promises);
-                            showToast("Đã dời toàn bộ lịch trong nhóm thành công!");
+                            showToast("Đã dời lịch thành công!");
                         } catch(err) {
-                            showToast("Lỗi dời lịch!", "danger");
+                            showToast("Lỗi dời lịch: " + err.message, "danger");
                             info.revert();
                         }
                     }
                 },
 
+                // KHI KÉO GIÃN THỜI GIAN (RESIZE)
+                eventResize: async function(info) {
+                    if (!isCalendarAdmin) { info.revert(); return; }
+                    const props = info.event.extendedProps;
+
+                    if (props.type === 'grouped_normal') {
+                        const subEvents = props.events;
+                        const groupIds = subEvents.map(ev => ev.id);
+
+                        // Kiểm tra quyền
+                        for (let e of subEvents) {
+                            if (e.scheduledByEmail && e.scheduledByEmail !== currentUserEmail && currentUserEmail !== 'hoangtran1483@gmail.com') {
+                                showToast(`Bạn không có quyền sửa lịch do GV khác xếp!`, "danger");
+                                info.revert(); return;
+                            }
+                        }
+
+                        // Kiểm tra trùng lặp
+                        let newStartStr = toLocalISOString(info.event.start);
+                        let newEndStr = info.event.end ? toLocalISOString(info.event.end) : null;
+
+                        for (let e of subEvents) {
+                            const overlapCheck = hasOverlap(newStartStr, newEndStr, e.gv, e.class, e.task, e.room, groupIds);
+                            if (overlapCheck.hasOverlap) {
+                                showToast(overlapCheck.reason, "danger");
+                                info.revert(); return;
+                            }
+                        }
+
+                        // Cập nhật Firebase
+                        try {
+                            let promises = subEvents.map(e => {
+                                return setDoc(doc(db, "calendar_events", e.id), { 
+                                    end: newEndStr 
+                                }, { merge: true });
+                            });
+                            await Promise.all(promises);
+                            showToast("Đã cập nhật giờ thành công!");
+                        } catch(err) {
+                            showToast("Lỗi cập nhật giờ: " + err.message, "danger");
+                            info.revert();
+                        }
+                    }
+                },
+
+                // CLICK ĐỂ XEM / CHỈNH SỬA / XÓA
                 eventClick: function(info) {
                     const props = info.event.extendedProps;
                     const modal = document.getElementById('multiEventModal');
                     const modalBody = document.getElementById('multiEventModalBody');
 
                     if (props.type === 'grouped_normal') {
-                        let sTime = info.event.start ? info.event.start.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'}) : '';
-                        let eTime = info.event.end ? info.event.end.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'}) : '';
-                        if (!eTime && info.event.start) {
-                            eTime = new Date(info.event.start.getTime() + 4.5*3600000).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'});
-                        }
-                        const dateStr = info.event.start ? info.event.start.toLocaleDateString('vi-VN', {weekday: 'long', day:'2-digit', month:'2-digit', year:'numeric'}) : '';
+                        // Tính toán thời gian
+                        let startObj = info.event.start;
+                        let endObj = info.event.end ? info.event.end : new Date(startObj.getTime() + 4.5*3600000);
+                        
+                        let sTime = startObj.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'});
+                        let eTime = endObj.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'});
+                        const dateStr = startObj.toLocaleDateString('vi-VN', {weekday: 'long', day:'2-digit', month:'2-digit', year:'numeric'});
 
-                        let html = `<div style="color: var(--primary); font-weight:bold; font-size:1.1rem; margin-bottom:15px; border-bottom: 2px solid var(--border); padding-bottom:10px;">
-                                        <i class="far fa-clock"></i> ${sTime} - ${eTime} (${dateStr})
-                                    </div>`;
+                        let dateInputVal = startObj.getFullYear() + '-' + String(startObj.getMonth()+1).padStart(2,'0') + '-' + String(startObj.getDate()).padStart(2,'0');
 
+                        let html = `
+                            <div style="color: var(--primary); font-weight:bold; font-size:1.1rem; margin-bottom:15px; border-bottom: 2px solid var(--border); padding-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+                                <span><i class="far fa-clock"></i> ${sTime} - ${eTime} (${dateStr})</span>
+                                <button class="btn-info btn-sm" id="btnToggleInlineEdit"><i class="fas fa-edit"></i> Chỉnh sửa</button>
+                            </div>
+                        `;
+
+                        // FORM CHỈNH SỬA ẨN MẶC ĐỊNH
+                        let roomOptions = ROOM_LIST.map(r => `<option value="${r}">${r}</option>`).join('');
+                        let groupIds = props.events.map(e => e.id).join(',');
+
+                        html += `
+                            <div id="inlineEditForm" class="inline-edit-form hidden">
+                                <input type="hidden" id="editGroupIds" value="${groupIds}">
+                                <div class="form-row">
+                                    <div>
+                                        <label>Ngày học</label>
+                                        <input type="date" id="editDate" value="${dateInputVal}" style="width:100%; padding:8px; border-radius:4px; border:1px solid var(--border);">
+                                    </div>
+                                    <div>
+                                        <label>Giờ bắt đầu</label>
+                                        <input type="time" id="editStartTime" value="${sTime}" style="width:100%; padding:8px; border-radius:4px; border:1px solid var(--border);">
+                                    </div>
+                                    <div>
+                                        <label>Giờ kết thúc</label>
+                                        <input type="time" id="editEndTime" value="${eTime}" style="width:100%; padding:8px; border-radius:4px; border:1px solid var(--border);">
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div>
+                                        <label>Phòng học mới</label>
+                                        <select id="editRoom" style="width:100%; padding:8px; border-radius:4px; border:1px solid var(--border);">
+                                            ${roomOptions}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label>Định hướng</label>
+                                        <select id="editOrient" style="width:100%; padding:8px; border-radius:4px; border:1px solid var(--border);">
+                                            <option value="">-- Giữ nguyên --</option>
+                                            <option value="Cả hai">Học chung (NC & UD)</option>
+                                            <option value="Nghiên cứu">Nghiên cứu (NC)</option>
+                                            <option value="Ứng dụng">Ứng dụng (UD)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <button class="btn-primary" style="width:100%; margin-top:10px;" onclick="submitInlineEdit()">Lưu cập nhật</button>
+                            </div>
+                        `;
+
+                        // HIỂN THỊ CÁC THẺ CHI TIẾT
                         props.events.forEach(e => {
-                            let delBtn = `<button class="btn-danger" style="padding:4px 10px; font-size:0.8rem;" onclick="deleteSubEvent('${e.id}')"><i class="fas fa-trash"></i> Trả về kho</button>`;
+                            let canDelete = isCalendarAdmin && (!e.scheduledByEmail || e.scheduledByEmail === currentUserEmail || currentUserEmail === 'hoangtran1483@gmail.com');
+                            let delBtn = canDelete ? `<button class="btn-danger" style="padding:4px 10px; font-size:0.8rem;" onclick="deleteSubEvent('${e.id}')"><i class="fas fa-trash"></i> Xóa</button>` : '';
+
                             let orientHtml = e.orientation ? `<p style="margin:0 0 5px 0; color:var(--text-dark);"><strong>Phạm vi:</strong> ${e.orientation === 'Cả hai' ? '<span style="color:#d97706;font-weight:bold;">Học chung (NC & UD)</span>' : 'Hệ '+e.orientation}</p>` : '';
 
                             html += `
-                            <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:12px; margin-bottom:12px; position:relative; text-align: left;">
+                            <div style="background:#fff; border:1px solid #cbd5e1; border-radius:6px; padding:12px; margin-bottom:12px; position:relative; text-align: left; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
                                 <div style="position:absolute; right:12px; top:12px;">${delBtn}</div>
-                                <p style="margin:0 0 5px 0;"><strong>Khóa/Lớp:</strong> <span style="color:var(--primary); font-weight:bold;">${e.class}</span></p>
-                                ${e.semester ? `<p style="margin:0 0 5px 0; color:var(--text-dark);"><strong>Học kỳ:</strong> ${e.semester}</p>` : ''}
+                                <p style="margin:0 0 5px 0; font-size:1.05rem; color:var(--primary); font-weight:bold; padding-right:60px;">${e.subject}</p>
+                                <p style="margin:0 0 5px 0;"><strong>Khóa/Lớp:</strong> <span style="font-weight:bold;">${e.class}</span></p>
                                 ${orientHtml}
                                 <p style="margin:0 0 5px 0;"><strong>Phòng học:</strong> <span style="background:#fbbf24; color:#78350f; padding:2px 6px; border-radius:4px; font-weight:bold;">${e.room || 'Chưa XĐ'}</span></p>
-                                <p style="margin:0 0 5px 0; padding-right:85px;"><strong>Môn học:</strong> ${e.subject}</p>
                                 <p style="margin:0 0 5px 0;"><strong>Nhiệm vụ:</strong> ${e.task}</p>
-                                <p style="margin:0 0 5px 0;"><strong>Giảng viên:</strong> <span style="color:var(--primary); font-weight:bold;">${e.gv}</span></p>
-                                <p style="margin:0; font-size:0.85rem; color:#64748b;"><i class="fas fa-user-edit"></i> Xếp bởi: ${e.scheduledByName || 'Admin'}</p>
+                                <p style="margin:0 0 5px 0;"><strong>Giảng viên:</strong> <span style="font-weight:bold;">${e.gv}</span></p>
+                                <p style="margin:0; font-size:0.8rem; color:#94a3b8; font-style:italic;">Xếp bởi: ${e.scheduledByName || 'Admin'}</p>
                             </div>
                             `;
                         });
 
                         modalBody.innerHTML = html;
                         modal.classList.remove('hidden');
+
+                        // Gán giá trị mặc định cho Select Phòng & Định hướng dựa trên phần tử đầu tiên
+                        const firstItem = props.events[0];
+                        if (firstItem.room) document.getElementById('editRoom').value = firstItem.room;
+                        if (firstItem.orientation) document.getElementById('editOrient').value = firstItem.orientation;
+
+                        // Toggle Edit Form
+                        document.getElementById('btnToggleInlineEdit').onclick = () => {
+                            document.getElementById('inlineEditForm').classList.toggle('hidden');
+                        };
                     }
                 }
             });
             calendar.render();
         }
 
+        // HÀM XỬ LÝ LƯU TỪ FORM CHỈNH SỬA TRỰC TIẾP
+        window.submitInlineEdit = async () => {
+            const dateVal = document.getElementById('editDate').value;
+            const startVal = document.getElementById('editStartTime').value;
+            const endVal = document.getElementById('editEndTime').value;
+            const roomVal = document.getElementById('editRoom').value;
+            const orientVal = document.getElementById('editOrient').value;
+            const idsStr = document.getElementById('editGroupIds').value;
+
+            if (!dateVal || !startVal || !endVal) {
+                showToast("Vui lòng điền đủ Ngày và Giờ!", "danger"); return;
+            }
+
+            const newStartStr = `${dateVal}T${startVal}:00`;
+            const newEndStr = `${dateVal}T${endVal}:00`;
+            const idArray = idsStr.split(',');
+
+            // Lấy lại danh sách sự kiện từ DB hiện tại
+            let targetEvents = scheduledEventsDB.filter(e => idArray.includes(e.id));
+            
+            // Check trùng lặp
+            for (let e of targetEvents) {
+                const overlapCheck = hasOverlap(newStartStr, newEndStr, e.gv, e.class, e.task, roomVal, idArray);
+                if (overlapCheck.hasOverlap) {
+                    showToast(overlapCheck.reason, "danger"); return;
+                }
+            }
+
+            try {
+                let promises = targetEvents.map(e => {
+                    let updateData = {
+                        start: newStartStr,
+                        end: newEndStr,
+                        room: roomVal
+                    };
+                    if (orientVal !== "") {
+                        updateData.orientation = orientVal;
+                    }
+                    return setDoc(doc(db, "calendar_events", e.id), updateData, { merge: true });
+                });
+                await Promise.all(promises);
+                showToast("Đã cập nhật lịch thành công!");
+                document.getElementById('multiEventModal').classList.add('hidden');
+            } catch(err) {
+                showToast("Lỗi cập nhật: " + err.message, "danger");
+            }
+        };
+
+        // HÀM XÁC NHẬN KHI DROP TỪ KHO VÀO LỊCH (HỖ TRỢ LẶP LẠI X TUẦN)
         window.confirmRoomSelection = async () => {
             if (!pendingDropInfo) return;
 
             const selectedRoom = document.getElementById('roomSelect').value;
+            const repeatWeeks = parseInt(document.getElementById('repeatWeeks').value) || 1;
             const info = pendingDropInfo;
             const props = info.event.extendedProps;
 
             document.getElementById('roomModal').classList.add('hidden');
 
-            const overlapCheck = hasOverlap(info.event.start, info.event.end, props.gv, props.eventClass, props.task, selectedRoom, [info.event.id]);
-            if (overlapCheck.hasOverlap) {
-                showToast(overlapCheck.reason, "danger");
-                info.revert();
-                pendingDropInfo = null;
-                return;
-            }
-
-            const newUniqueId = props.originalId + '_' + Date.now();
-            
-            // XÁC ĐỊNH ĐỊNH HƯỚNG SẼ LƯU
             let finalOrientation = ''; 
             if (!document.getElementById('orientGroup').classList.contains('hidden')) {
-                finalOrientation = document.getElementById('modalOrientSelect').value; // Ghi đè nếu có chọn trong dropdown
+                finalOrientation = document.getElementById('modalOrientSelect').value;
             } else {
-                // Rút xuất từ data-orientations gốc
                 if (props.orientations === 'NC') finalOrientation = 'Nghiên cứu';
                 else if (props.orientations === 'UD') finalOrientation = 'Ứng dụng';
             }
 
-            const eventData = {
-                id: newUniqueId, 
-                title: info.event.title,
-                start: info.event.startStr,
-                end: info.event.endStr || null,
-                allDay: info.event.allDay,
-                class: props.eventClass, 
-                subject: props.subject,
-                gv: props.gv,
-                task: props.task,
-                room: selectedRoom, 
-                orientation: finalOrientation, 
-                semester: props.semester, 
-                scheduledByEmail: currentUserEmail,
-                scheduledByName: currentUserName,
-                status: 'scheduled'
-            };
+            // Mảng lưu trữ tất cả lịch cần tạo
+            let allNewEvents = [];
+            let originalStart = new Date(info.event.startStr);
+            let originalEnd = info.event.endStr ? new Date(info.event.endStr) : new Date(originalStart.getTime() + 4.5 * 3600000);
 
+            for (let i = 0; i < repeatWeeks; i++) {
+                // Cộng thêm i tuần (i * 7 ngày)
+                let currentStart = new Date(originalStart.getTime() + i * 7 * 24 * 3600 * 1000);
+                let currentEnd = new Date(originalEnd.getTime() + i * 7 * 24 * 3600 * 1000);
+                
+                let startStr = toLocalISOString(currentStart);
+                let endStr = toLocalISOString(currentEnd);
+
+                // Check overlap cho từng tuần
+                const overlapCheck = hasOverlap(startStr, endStr, props.gv, props.eventClass, props.task, selectedRoom, []);
+                if (overlapCheck.hasOverlap) {
+                    showToast(`Bị trùng lịch ở tuần thứ ${i+1}: ${overlapCheck.reason}`, "danger");
+                    info.revert();
+                    pendingDropInfo = null;
+                    return; // Dừng lại nếu 1 tuần bị lỗi
+                }
+
+                // Tạo object dữ liệu cho tuần này
+                const newUniqueId = props.originalId + '_' + Date.now() + '_' + i;
+                allNewEvents.push({
+                    id: newUniqueId, 
+                    title: info.event.title,
+                    start: startStr,
+                    end: endStr,
+                    allDay: info.event.allDay,
+                    class: props.eventClass, 
+                    subject: props.subject,
+                    gv: props.gv,
+                    task: props.task,
+                    room: selectedRoom, 
+                    orientation: finalOrientation, 
+                    semester: props.semester, 
+                    scheduledByEmail: currentUserEmail,
+                    scheduledByName: currentUserName,
+                    status: 'scheduled'
+                });
+            }
+
+            // Thực thi lưu hàng loạt lên Firebase
             try {
-                await setDoc(doc(db, "calendar_events", eventData.id), eventData);
-                showToast(`Đã xếp lịch thành công (${selectedRoom})!`);
+                let promises = allNewEvents.map(evData => setDoc(doc(db, "calendar_events", evData.id), evData));
+                await Promise.all(promises);
+                
+                if (repeatWeeks > 1) {
+                    showToast(`Đã xếp lịch lặp lại thành công cho ${repeatWeeks} tuần!`);
+                } else {
+                    showToast(`Đã xếp lịch thành công (${selectedRoom})!`);
+                }
                 info.event.remove(); 
             } catch(e) {
                 showToast("Lỗi khi lưu lịch: " + e.message, "danger");
@@ -778,15 +1013,28 @@
             if(poolDiv) poolDiv.innerHTML = '';
             
             let unscheduledCount = 0;
+            const calendarClassFilter = document.getElementById('calendarClassFilter').value;
+            const calendarOrientFilter = document.getElementById('calendarOrientFilter').value;
             const poolClassFilter = document.getElementById('poolClassFilter') ? document.getElementById('poolClassFilter').value : 'ALL'; 
             const poolSubjectFilter = document.getElementById('poolSubjectFilter') ? document.getElementById('poolSubjectFilter').value : 'ALL';
 
-            // --------- 1. RENDER LỊCH CHÍNH (Đã loại bỏ trùng lặp nếu môn gộp) ---------
+            // --------- 1. RENDER LỊCH CHÍNH ---------
             let scheduledEventsNormal = scheduledEventsDB.filter(e => e.status !== 'returned');
+
+            // Áp dụng bộ lọc Top Toolbar (Lớp & Định hướng)
+            if (calendarClassFilter !== 'ALL') {
+                scheduledEventsNormal = scheduledEventsNormal.filter(e => e.class === calendarClassFilter);
+            }
+
+            if (calendarOrientFilter !== 'ALL') {
+                scheduledEventsNormal = scheduledEventsNormal.filter(e => {
+                    // Hiển thị nếu thẻ là 'Cả hai', hoặc khớp đúng định hướng, hoặc môn chung (không có orient)
+                    return !e.orientation || e.orientation === 'Cả hai' || e.orientation === calendarOrientFilter || e.orientation.trim() === '';
+                });
+            }
 
             let deduplicatedEventsMap = new Map();
             scheduledEventsNormal.forEach(e => {
-                // Gom chung nếu lịch có cùng giờ, cùng phòng, cùng GV, cùng Môn
                 let sTime = new Date(e.start).getTime();
                 let eTime = e.end ? new Date(e.end).getTime() : sTime + 4.5 * 3600 * 1000;
                 let deduplicateKey = `${sTime}_${eTime}_${e.room}_${e.subject}_${e.task}_${e.gv}`;
@@ -798,19 +1046,13 @@
             let deduplicatedEvents = Array.from(deduplicatedEventsMap.values());
 
             let groupedEvents = {};
-
             deduplicatedEvents.forEach(e => {
                 let sTime = new Date(e.start).getTime();
                 let eTime = e.end ? new Date(e.end).getTime() : sTime + 4.5 * 3600 * 1000;
                 let key = `${sTime}_${eTime}`;
 
                 if (!groupedEvents[key]) {
-                    groupedEvents[key] = {
-                        start: e.start,
-                        end: e.end,
-                        allDay: e.allDay,
-                        events: []
-                    };
+                    groupedEvents[key] = { start: e.start, end: e.end, allDay: e.allDay, events: [] };
                 }
                 groupedEvents[key].events.push(e);
             });
@@ -826,17 +1068,14 @@
                     backgroundColor: 'transparent',
                     borderColor: 'transparent',
                     textColor: '#0f172a',
-                    extendedProps: {
-                        type: 'grouped_normal',
-                        events: group.events
-                    }
+                    extendedProps: { type: 'grouped_normal', events: group.events }
                 });
             }
             calendar.addEventSource(currentClassEvents);
 
 
             // --------- 2. RENDER KHO SỰ KIỆN BÊN TRÁI ---------
-            let poolTasksMap = new Map(); // Gom nhóm thẻ
+            let poolTasksMap = new Map();
 
             subjectsData.forEach(sub => {
                 if (poolSubjectFilter !== 'ALL' && sub.name !== poolSubjectFilter) return;
@@ -879,7 +1118,6 @@
                                 const totalAssigned = parseInt(a.assigned) || 0;
                                 const alreadyScheduled = window.getScheduledCount(cls, orientCode, sub.name, a.gv, a.task);
                                 
-                                // Đếm số lịch bị trả về
                                 let returnedTasks = scheduledEventsDB.filter(e => {
                                     if (e.status !== 'returned') return false;
                                     let matchOrient = false;
@@ -888,7 +1126,6 @@
                                     } else {
                                         matchOrient = true;
                                     }
-                                    
                                     let eGVs = e.gv ? e.gv.split(/,|&/).map(s => s.trim()) : [];
                                     return e.class === cls && matchOrient && e.subject === sub.name && eGVs.includes(a.gv) && e.task === a.task;
                                 });
@@ -909,8 +1146,6 @@
                                     
                                     let taskData = poolTasksMap.get(mapKey);
                                     if (orientCode) taskData.orients.add(orientCode);
-                                    
-                                    // Gộp max số buổi còn lại
                                     taskData.remaining = Math.max(taskData.remaining, remainingNormal);
                                     returnedTasks.forEach(rt => taskData.returnedTasks.push(rt));
                                 }
@@ -949,7 +1184,6 @@
                 const tasks = subjectGroups.get(subName);
                 
                 tasks.forEach(item => {
-                    // Xác định định hướng
                     let orientAttr = '';
                     let orientDisplay = '';
                     if (item.orients.has('NC') && item.orients.has('UD')) {
@@ -994,7 +1228,6 @@
                     }
 
                     if (returnedCount > 0) {
-                        // Trả về thì tạo từng thẻ một
                         item.returnedTasks.forEach(rTask => {
                             unscheduledCount++;
                             let eventDiv = document.createElement('div');
@@ -1006,7 +1239,6 @@
                             eventDiv.setAttribute('data-gv', item.gv);
                             eventDiv.setAttribute('data-task', item.task);
                             eventDiv.setAttribute('data-class', item.cls);
-                            // Giữ nguyên định hướng gốc của thẻ bị trả về
                             let rOrient = rTask.orientation === 'Nghiên cứu' ? 'NC' : (rTask.orientation === 'Ứng dụng' ? 'UD' : (rTask.orientation === 'Cả hai' ? 'NC,UD' : ''));
                             eventDiv.setAttribute('data-orientations', rOrient); 
                             eventDiv.setAttribute('data-semester', item.semester);       
