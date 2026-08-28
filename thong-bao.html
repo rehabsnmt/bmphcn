@@ -159,6 +159,15 @@
             setTimeout(async () => {
                 const btnAuthNav = document.getElementById('btnAuthNav');
                 if (user) {
+                    // Nếu là tài khoản THS2026 thì xem như khách vãng lai
+                    if (user.email.toLowerCase() === 'ths.phcn26@ump.edu.vn') {
+                        isAdmin = false;
+                        document.body.classList.remove('is-logged-in'); 
+                        btnToggleForm.style.display = 'none';
+                        if(btnAuthNav) btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 5px;"></i> Lớp Thạc sĩ 2026`;
+                        return; // Ngừng thực thi các logic Admin bên dưới
+                    }
+
                     isAdmin = true;
                     document.body.classList.add('is-logged-in'); // Hiện tên tác giả
                     btnToggleForm.style.display = 'flex'; 
