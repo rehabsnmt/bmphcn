@@ -33,6 +33,8 @@
             display: flex; 
             justify-content: center; 
             align-items: center; 
+            flex-wrap: wrap; /* Cho phép rớt dòng trên màn hình quá nhỏ */
+            gap: 15px;
             padding: 15px 2%; 
             background: var(--surface); 
             border-bottom: 1px solid var(--border); 
@@ -44,7 +46,22 @@
         /* Khi header ẩn, kéo Toolbar lên đỉnh màn hình */
         body.header-hidden .top-toolbar { top: 0; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
 
-        .top-toolbar h2 { margin: 0; font-size: clamp(1.2rem, 3.5vw, 1.5rem); color: var(--text-dark); font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+        .top-toolbar h2 { margin: 0; font-size: clamp(1.1rem, 3vw, 1.4rem); color: var(--text-dark); font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; text-align: center; }
+
+        /* Bộ lọc Định hướng */
+        .filter-select { 
+            padding: 6px 15px; 
+            font-size: 0.9rem; 
+            font-weight: 600; 
+            border-radius: 8px; 
+            border: 1px solid var(--primary); 
+            outline: none; 
+            cursor: pointer; 
+            color: var(--primary); 
+            background-color: var(--primary-light); 
+            transition: 0.2s;
+        }
+        .filter-select:hover { background-color: white; }
 
         /* Khu vực Lịch */
         main { flex: 1; max-width: 1000px; width: 100%; margin: 0 auto; padding: 0 3% 30px 3%; box-sizing: border-box; }
@@ -116,7 +133,7 @@
         /* TỐI ƯU HIỂN THỊ ĐIỆN THOẠI (Mobile Responsive) */
         @media (max-width: 768px) {
             #calendar-container { padding: 10px 5px; border-radius: 8px; border: none; box-shadow: none; }
-            .top-toolbar { top: 60px; } /* Header mobile thường mỏng hơn một chút */
+            .top-toolbar { top: 60px; flex-direction: column; gap: 8px; } /* Header mobile thường mỏng hơn một chút */
 
             /* Tái cấu trúc thanh Toolbar của FullCalendar trên Mobile */
             .fc-toolbar { flex-direction: column; gap: 8px; }
@@ -152,6 +169,11 @@
 
     <div class="top-toolbar">
         <h2>THỜI KHÓA BIỂU LỚP THS2026</h2>
+        <select id="filterOrient" class="filter-select" onchange="processAndRenderEvents()">
+            <option value="ALL">Tất cả định hướng</option>
+            <option value="Ứng dụng">Hướng Ứng dụng</option>
+            <option value="Nghiên cứu">Hướng Nghiên cứu</option>
+        </select>
     </div>
 
     <main>
@@ -417,7 +439,6 @@
                                 ${orientHtml}
                                 <p style="margin:0 0 5px 0; color: var(--text-dark);"><strong>Phòng học:</strong> <span style="background:#fbbf24; color:#78350f; padding:2px 8px; border-radius:4px; font-weight:bold;">${e.room || 'Chưa XĐ'}</span></p>
                                 <p style="margin:0 0 5px 0; color: var(--text-dark);"><strong>Giảng viên:</strong> <span style="font-weight:bold;">${e.gv}</span></p>
-                                <p style="margin:0; font-size:0.9rem; color:#64748b;"><strong>Nhiệm vụ:</strong> ${e.task}</p>
                             </div>
                             `;
                         });
@@ -430,13 +451,23 @@
             calendar.render();
         }
 
-        function processAndRenderEvents() {
+        window.processAndRenderEvents = () => {
             if (!calendar) return;
 
             calendar.removeAllEvents();
             
+            const filterOrient = document.getElementById('filterOrient').value;
+
             // CHỈ LẤY LỊCH CỦA LỚP THS2026 VÀ KHÔNG BỊ TRẢ VỀ
             let ths2026Events = scheduledEvents.filter(e => e.class === 'THS2026' && e.status !== 'returned');
+
+            // LỌC THEO ĐỊNH HƯỚNG
+            if (filterOrient !== 'ALL') {
+                ths2026Events = ths2026Events.filter(e => {
+                    // Giữ lại môn học chung (không có định hướng) HOẶC môn khớp với định hướng đã chọn
+                    return !e.orientation || e.orientation === filterOrient;
+                });
+            }
 
             // Xử lý loại bỏ trùng lặp nếu cần
             let deduplicatedEventsMap = new Map();
