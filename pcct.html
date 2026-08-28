@@ -403,12 +403,32 @@
         window.getCurrentClass = () => document.getElementById('filterClass').value;
         window.getCurrentOrient = () => document.getElementById('filterOrient').value;
         
-        window.getDbKey = () => {
+        window.getDbKey = (sub) => {
             const c = window.getCurrentClass();
-            if (c.toUpperCase().includes('THS') && window.getCurrentOrient() !== 'ALL') {
-                return `${c}_${window.getCurrentOrient()}`;
+            const o = window.getCurrentOrient();
+
+            // Kiểm tra môn có phải của Bộ môn PHCN không
+            const isNotPHCN = (sub.isPHCN === false) || (sub.department && sub.department !== 'Bộ môn Phục hồi chức năng' && sub.department !== 'Bộ môn PHCN');
+
+            if (isNotPHCN) {
+                // Môn ngoài BM -> Chỉ dùng mã lớp (Chia sẻ chung giữa NC và UD)
+                return c;
             }
-            return c;
+
+            // Môn của BM PHCN -> Lưu tách biệt theo Lớp + Định hướng + Chuyên ngành
+            let key = c;
+            if (c.toUpperCase().includes('THS')) {
+                // Mặc định NC nếu ALL
+                key += `_${o === 'ALL' ? 'NC' : o}`; 
+            }
+
+            let major = sub.majorTag || 'ALL';
+            let shortMajor = major;
+            if (major === "Vật lý trị liệu") shortMajor = "VLTL";
+            else if (major === "Hoạt động trị liệu") shortMajor = "HĐTL";
+            else if (major === "Ngôn ngữ trị liệu") shortMajor = "NNTL";
+
+            return `${key}_${shortMajor}`;
         };
 
         function showToast(message, type = 'success') {
@@ -428,7 +448,7 @@
             if (cls.toUpperCase().includes('THS')) {
                 orientSel.disabled = false;
                 if (!orientSel.value || orientSel.value === 'ALL') {
-                    orientSel.value = 'NC'; // Ép kiểu mặc định an toàn cho Lớp THS (Tránh trùng data ALL)
+                    orientSel.value = 'NC'; // Ép kiểu mặc định an toàn cho Lớp THS
                 }
             } else {
                 orientSel.disabled = true;
@@ -511,6 +531,10 @@
                     d.theory = parseInt(d.theory) || 0;
                     d.practice = parseInt(d.practice) || 0;
                     
+                    // Lấy trạng thái của BM nào phụ trách
+                    d.isPHCN = d.isPHCN; // Từ Database
+                    d.department = d.department || '';
+
                     // Phân tách Class linh hoạt
                     if (d.class) {
                         if (Array.isArray(d.class)) {
@@ -617,10 +641,18 @@
             let count = 0;
             let orientName = orient === 'NC' ? 'Nghiên cứu' : 'Ứng dụng';
             
+            const sub = subjectsData.find(s => s.name === subName);
+            const isNotPHCN = sub && ((sub.isPHCN === false) || (sub.department && sub.department !== 'Bộ môn Phục hồi chức năng' && sub.department !== 'Bộ môn PHCN'));
+
             calendarEventsDB.forEach(e => {
                 let matchOrient = true;
                 if (cls.toUpperCase().includes('THS')) {
-                    matchOrient = (!e.orientation || e.orientation === 'Cả hai' || e.orientation === orientName || e.orientation.trim() === '');
+                    if (isNotPHCN) {
+                        // Môn ngoài BM -> Tính chung lịch
+                        matchOrient = true;
+                    } else {
+                        matchOrient = (!e.orientation || e.orientation === 'Cả hai' || e.orientation === orientName || e.orientation.trim() === '');
+                    }
                 }
 
                 if (e.class === cls && matchOrient && e.subject === subName && e.gv && e.gv.includes(gv) && e.task === task) {
@@ -764,7 +796,6 @@
             const cls = window.getCurrentClass();
             const orient = window.getCurrentOrient();
             const fMajor = document.getElementById('filterMajor').value;
-            const dbKey = window.getDbKey();
             
             let filteredSubs = subjectsData.filter(s => {
                 if (!s.classArray.includes(cls)) return false;
@@ -794,12 +825,13 @@
                     subsInGroup.forEach(s => groupTotal += (s.credits || 0));
                     
                     tbody.innerHTML += `<tr class="group-header" onclick="toggleGroup('${gClass}', 'icon-${gIdx}')"><td colspan="6" class="group-title"><i id="icon-${gIdx}" class="fas fa-chevron-down group-icon"></i> ${groupName} <span style="color:#b45309; font-size:0.9rem; margin-left: 10px;">(Tổng: ${groupTotal} TC)</span></td></tr>`;
-                    subsInGroup.forEach(sub => { appendSubjectRow(tbody, sub, gClass, stt++, dbKey, cls, orient); });
+                    subsInGroup.forEach(sub => { appendSubjectRow(tbody, sub, gClass, stt++, cls, orient); });
                     gIdx++;
                 });
             } else {
                 const semData = {};
                 filteredSubs.forEach(sub => {
+                    const dbKey = window.getDbKey(sub);
                     const asg = (assignmentsDB[sub.id] && assignmentsDB[sub.id][dbKey]) || { semester: 'Chưa phân bổ', allocations: [] };
                     const sem = sub.id === 'sub_60' ? 'Các Công Việc Khác' : (asg.semester || 'Chưa phân bổ');
                     if(!semData[sem]) semData[sem] = [];
@@ -822,13 +854,14 @@
                     semData[semName].forEach(s => semTotal += (s.credits || 0));
                     
                     tbody.innerHTML += `<tr class="group-header" onclick="toggleGroup('${gClass}', 'icon-sem-${gIdx}')"><td colspan="6" class="group-title"><i id="icon-sem-${gIdx}" class="fas fa-chevron-down group-icon"></i> ${semName} <span style="color:#b45309; font-size:0.9rem; margin-left: 10px;">(Tổng: ${semTotal} TC)</span></td></tr>`;
-                    semData[semName].forEach(sub => { appendSubjectRow(tbody, sub, gClass, stt++, dbKey, cls, orient); });
+                    semData[semName].forEach(sub => { appendSubjectRow(tbody, sub, gClass, stt++, cls, orient); });
                 });
             }
         };
 
-        function appendSubjectRow(tbody, sub, gClass, sttIndex, dbKey, cls, orient) {
+        function appendSubjectRow(tbody, sub, gClass, sttIndex, cls, orient) {
             const asgDoc = assignmentsDB[sub.id] || {};
+            const dbKey = window.getDbKey(sub);
             const asg = asgDoc[dbKey] || { semester: '', allocations: [], proposed_allocations: [] };
             const isThesis = sub.name && (sub.name.includes("Luận văn") || sub.name.includes("Đề án"));
             
@@ -963,7 +996,7 @@
             currentEditingSubId = id;
             const sub = subjectsData.find(s => s.id === id);
             
-            const dbKey = window.getDbKey();
+            const dbKey = window.getDbKey(sub);
             const asg = (assignmentsDB[id] && assignmentsDB[id][dbKey]) || { semester: '', allocations: [], proposed_allocations: [], status: 'approved' };
             const isProposed = asg.status === 'proposed';
 
@@ -1224,7 +1257,7 @@
                 updateData.proposed_allocations = allocations;
             }
 
-            let dbKey = window.getDbKey();
+            let dbKey = window.getDbKey(currentSub);
             try {
                 await setDoc(doc(db, "assignments", currentEditingSubId), { [dbKey]: updateData }, { merge: true });
                 document.getElementById('assignModal').classList.add('hidden');
@@ -1329,6 +1362,7 @@
         };
 
         window.saveThesisAssignment = async () => {
+            const currentSub = subjectsData.find(s => s.id === currentEditingSubId);
             const semester = document.getElementById('tasgSemester').value;
             const blocks = document.querySelectorAll('#thesisAllocContainer .gv-block');
             let allocations = [];
@@ -1368,7 +1402,7 @@
                 updateData.proposed_allocations = allocations;
             }
 
-            let dbKey = window.getDbKey();
+            let dbKey = window.getDbKey(currentSub);
             try {
                 await setDoc(doc(db, "assignments", currentEditingSubId), { [dbKey]: updateData }, { merge: true });
                 document.getElementById('thesisAssignModal').classList.add('hidden');
@@ -1407,9 +1441,9 @@
             });
 
             let total = 0;
-            const dbKey = window.getDbKey();
             filteredSubs.forEach(sub => {
                 if (sub.id !== 'sub_60') {
+                    const dbKey = window.getDbKey(sub);
                     const asg = (assignmentsDB[sub.id] && assignmentsDB[sub.id][dbKey]) || {};
                     const sem = asg.semester || 'Chưa phân bổ';
                     if(stats[sem] !== undefined) {
