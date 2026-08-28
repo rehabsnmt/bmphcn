@@ -19,17 +19,17 @@
         /* APP LAYOUT */
         html, body { min-height: 100vh; margin: 0; padding: 0; display: flex; flex-direction: column; background: var(--bg-page); }
 
-        #header-placeholder { flex-shrink: 0; transition: 0.3s; }
+        #header-placeholder { flex-shrink: 0; transition: 0.3s; z-index: 1001; position: relative;}
         /* Lớp ẩn Header khi cuộn chuột */
         body.header-hidden #header-placeholder { display: none !important; }
 
         #footer-placeholder { display: none; }
 
         /* Thanh công cụ gọn nhẹ trên cùng */
-        .top-toolbar { position: sticky; top: 0; z-index: 1000; display: flex; justify-content: space-between; align-items: center; padding: 10px 2%; background: var(--surface); border-bottom: 1px solid var(--border); margin-bottom: 15px; box-shadow: var(--shadow-sm); transition: 0.3s; }
+        .top-toolbar { position: sticky; top: 75px; z-index: 990; display: flex; justify-content: space-between; align-items: center; padding: 10px 2%; background: var(--surface); border-bottom: 1px solid var(--border); margin-bottom: 15px; box-shadow: var(--shadow-sm); transition: top 0.3s; }
         .top-toolbar h2 { margin: 0; font-size: clamp(1.1rem, 3vw, 1.4rem); color: var(--text-dark); display: flex; align-items: center; gap: 8px; font-weight: 800; text-transform: uppercase; white-space: nowrap; }
 
-        body.header-hidden .top-toolbar { box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        body.header-hidden .top-toolbar { top: 0; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
 
         .controls-wrapper { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
         .filter-select { padding: 6px 12px; font-size: 0.95rem; font-weight: 600; border-radius: 6px; border: 1px solid var(--border); outline: none; cursor: pointer; color: var(--text-dark); max-width: 100%; }
@@ -73,7 +73,7 @@
         .class-tag.THS2026 { background: #fde047; color: #b45309; }
 
         #event-pool .event-gv { font-weight: 700; font-size: 1rem; margin-bottom: 4px; color: var(--primary); }
-        #event-pool .event-info { display: block; font-size: 0.85rem; color: var(--text-body); line-height: 1.4; }
+        #event-pool .event-info { display: block; font-size: 0.8rem; color: var(--text-body); line-height: 1.4; }
 
         /* Cảnh báo sự kiện bị GV từ chối trả về */
         #event-pool .fc-event.rejected-task { border-left: 4px solid #ef4444 !important; border-color: #ef4444 !important; background-color: #fef2f2 !important; }
@@ -109,6 +109,22 @@
             flex: 1; overflow-y: auto; overflow-x: hidden;
             display: flex; flex-direction: column; gap: 8px;
         }
+        .evt-item { display: flex; flex-direction: column; gap: 2px; margin-bottom: 4px; }
+        .evt-item-row1 { display: flex; gap: 6px; align-items: flex-start; }
+        .evt-room-badge { 
+            background: #fbbf24; color: #78350f; font-weight: 800; font-size: 0.7rem; 
+            padding: 2px 4px; border-radius: 3px; flex-shrink: 0; min-width: 22px; text-align: center; margin-top: 1px;
+        }
+        .evt-gv-name { 
+            font-size: 0.75rem; font-weight: 700; color: var(--text-dark); line-height: 1.3; word-break: break-word; white-space: normal;
+        }
+        .evt-item-row2 { 
+            font-size: 0.75rem; color: var(--primary); padding-left: 28px; line-height: 1.3; word-break: break-word; white-space: normal;
+        }
+
+        /* Chấm Bệnh viện trên cùng (All-day) */
+        .evt-clinical-dot { background-color: #10b981; color: white; border-radius: 4px; padding: 2px 0; text-align: center; font-weight: 700; font-size: 0.85rem; cursor: pointer; display: block; box-shadow: 0 2px 5px rgba(16, 185, 129, 0.4); transition: 0.2s; }
+        .evt-clinical-dot:hover { background-color: #059669; transform: scale(1.02); }
 
         .hidden { display: none !important; }
 
@@ -126,7 +142,7 @@
         .modal-content { background: white; width: 95%; max-width: 600px; border-radius: 8px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); overflow: hidden; display: flex; flex-direction: column; }
         .modal-header { padding: 15px 20px; background: var(--primary); color: white; display: flex; justify-content: space-between; align-items: center; }
         .modal-header h3 { margin: 0; font-size: 1.1rem; }
-        .modal-body { padding: 20px; line-height: 1.8; text-align: left; overflow-y: auto; max-height: 70vh;}
+        .modal-body { padding: 20px; line-height: 1.8; text-align: justify; overflow-y: auto; max-height: 70vh;}
         .modal-footer { padding: 15px 20px; background: #f1f5f9; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border); }
 
         .btn-danger { background: var(--accent); color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s;}
@@ -152,7 +168,7 @@
         @media (max-width: 768px) {
             main { flex-direction: column; }
             #external-events { position: relative; width: 100%; top: 0; max-height: 350px; }
-            .top-toolbar { flex-direction: column; gap: 10px; align-items: stretch; }
+            .top-toolbar { flex-direction: column; gap: 10px; align-items: stretch; top: 60px;}
             
             /* Điều chỉnh tiêu đề và nút chức năng */
             .fc-toolbar-title { font-size: clamp(1rem, 3vw, 1.2rem) !important; }
@@ -168,8 +184,43 @@
                 overflow: hidden !important;
                 text-overflow: ellipsis !important;
             }
+            .evt-item { gap: 0; }
+            .evt-item-row1 {
+                flex-wrap: nowrap;
+                overflow: hidden;
+                min-width: 0;
+            }
+            /* Thu nhỏ cỡ chữ linh động theo vw */
+            .evt-gv-name { 
+                font-size: clamp(0.55rem, 2vw, 0.75rem) !important; 
+                white-space: nowrap !important; 
+                overflow: hidden; 
+                text-overflow: ellipsis; 
+                min-width: 0;
+                display: block;
+            }
+            .evt-item-row2 { 
+                font-size: clamp(0.55rem, 2vw, 0.75rem) !important; 
+                white-space: nowrap !important; 
+                overflow: hidden; 
+                text-overflow: ellipsis; 
+                padding-left: 22px;
+                display: block;
+            }
+            .evt-room-badge { 
+                font-size: clamp(0.5rem, 1.8vw, 0.65rem) !important; 
+                min-width: auto; 
+                padding: 1px 4px;
+            }
             .evt-group-header {
                 font-size: clamp(0.6rem, 2vw, 0.75rem) !important;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            /* Style cho dạng List */
+            .mobile-list-item {
+                font-size: clamp(0.6rem, 2.2vw, 0.85rem);
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -298,7 +349,7 @@
 
         // CẤU HÌNH DANH SÁCH PHÒNG HỌC
         const ROOM_LIST = [
-            "Phòng 3", "Phòng 4", "Phòng ST", "Phòng OT", "Phòng 12", "GĐ6A", "GĐ6B", "GĐ7A", "GĐ7B", "ĐGĐ-Y", "ĐGĐ-Dược", "ĐGĐ-ĐD", "Khác..."
+            "Phòng 3", "Phòng 4", "Phòng ST", "Phòng OT", "Phòng 12", "Hội trường", "Khác..."
         ];
 
         let calendar;
@@ -684,8 +735,24 @@
                 initCalendar();
                 listenToDatabase();
             } else {
-                // CHƯA ĐĂNG NHẬP: ÉP TRỞ VỀ TRANG THÔNG BÁO NGAY LẬP TỨC
-                window.location.href = "thong-bao.html";
+                // CHƯA ĐĂNG NHẬP: KHÔNG CHẶN NỮA, CHO PHÉP XEM
+                isLoggedIn = false;
+                isCalendarAdmin = false;
+                
+                try {
+                    const snapSubjects = await getDocs(collection(db, "subjects"));
+                    subjectsData = [];
+                    snapSubjects.forEach(doc => {
+                        const d = doc.data();
+                        d.id = d.id || doc.id;
+                        subjectsData.push(d);
+                    });
+                    window.updatePoolSubjectFilter(); // Khởi tạo bộ lọc sau khi có môn
+                } catch(e){}
+
+                initRoomSelect();
+                initCalendar();
+                listenToDatabase();
             }
         });
 
@@ -704,6 +771,8 @@
                                 task: eventEl.getAttribute('data-task'),
                                 originalId: eventEl.getAttribute('data-original-id') || eventEl.getAttribute('data-id'),
                                 eventClass: eventEl.getAttribute('data-class'),
+                                orientation: eventEl.getAttribute('data-orientation'),
+                                semester: eventEl.getAttribute('data-semester'),
                                 type: 'normal'
                             }
                         };
@@ -760,6 +829,7 @@
                                     <div style="font-weight: bold; color: #b45309;"><i class="fas fa-map-marker-alt"></i> ${shortRoom}</div>
                                     <div style="font-weight: 700; color: var(--text-dark); margin-top: 2px;">${clsTag} ${gvDisplay}</div>
                                     <div style="color: var(--primary); margin-top: 2px; white-space: normal;">${e.subject}</div>
+                                    <div style="font-size: 0.8rem; color: #64748b; margin-top: 2px;">${e.orientation ? `Định hướng: ${e.orientation}` : ''}</div>
                                 </div>
                                 `;
                             }).join('');
@@ -787,6 +857,7 @@
                                 <div style="font-size: 0.75rem; font-weight: 800; color: #b45309;"><i class="fas fa-map-marker-alt"></i> ${shortRoom}</div>
                                 <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-dark); margin-top: 2px;">${clsTag} ${gvDisplay}</div>
                                 <div style="font-size: 0.75rem; color: var(--primary); margin-top: 2px; white-space: normal; word-break: break-word;">${e.subject}</div>
+                                <div style="font-size: 0.7rem; color: #64748b; margin-top: 2px; font-style: italic;">${e.orientation ? e.orientation : ''}</div>
                             </div>
                             `;
                         }).join('');
@@ -824,6 +895,9 @@
                         for (let e of subEvents) {
                             if (e.scheduledByEmail && e.scheduledByEmail !== currentUserEmail && currentUserEmail !== 'hoangtran1483@gmail.com') {
                                 showToast(`Lỗi: Không thể dời lịch nhóm chứa môn do GV khác xếp!`, "danger");
+                                info.revert(); return;
+                            }
+                            if (!validateClinicalSchedule({start: info.event.start}, e.gv, e.subject)) {
                                 info.revert(); return;
                             }
                         }
@@ -904,8 +978,6 @@
                     const props = info.event.extendedProps;
                     const modal = document.getElementById('multiEventModal');
                     const modalBody = document.getElementById('multiEventModalBody');
-                    const modalTitle = document.getElementById('multiEventModalTitle');
-                    const modalHeader = document.getElementById('multiEventModalHeader');
 
                     if (props.type === 'grouped_normal') {
                         let sTime = info.event.start ? info.event.start.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'}) : '';
@@ -916,7 +988,7 @@
                         const dateStr = info.event.start ? info.event.start.toLocaleDateString('vi-VN', {weekday: 'long', day:'2-digit', month:'2-digit', year:'numeric'}) : '';
 
                         let html = `<div style="color: var(--primary); font-weight:bold; font-size:1.1rem; margin-bottom:15px; border-bottom: 2px solid var(--border); padding-bottom:10px;">
-                                        ${sTime} - ${eTime} (${dateStr})
+                                        <i class="far fa-clock"></i> ${sTime} - ${eTime} (${dateStr})
                                     </div>`;
 
                         props.events.forEach(e => {
@@ -929,6 +1001,8 @@
                             <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:12px; margin-bottom:12px; position:relative; text-align: left;">
                                 <div style="position:absolute; right:12px; top:12px;">${delBtn}</div>
                                 <p style="margin:0 0 5px 0;"><strong>Khóa/Lớp:</strong> <span style="color:var(--primary); font-weight:bold;">${clsName}</span></p>
+                                ${e.semester ? `<p style="margin:0 0 5px 0; color:var(--text-dark);"><strong>Học kỳ:</strong> ${e.semester}</p>` : ''}
+                                ${e.orientation ? `<p style="margin:0 0 5px 0; color:var(--text-dark);"><strong>Định hướng:</strong> ${e.orientation}</p>` : ''}
                                 <p style="margin:0 0 5px 0;"><strong>Phòng học:</strong> <span style="background:#fbbf24; color:#78350f; padding:2px 6px; border-radius:4px; font-weight:bold;">${e.room || 'Chưa XĐ'}</span></p>
                                 <p style="margin:0 0 5px 0; padding-right:85px;"><strong>Môn học:</strong> ${e.subject}</p>
                                 <p style="margin:0 0 5px 0;"><strong>Nhiệm vụ:</strong> ${e.task}</p>
@@ -939,8 +1013,6 @@
                         });
 
                         modalBody.innerHTML = html;
-                        modalTitle.innerText = "Chi tiết Tổ hợp Lịch dạy";
-                        modalHeader.style.background = "var(--primary)";
                         modal.classList.remove('hidden');
                     }
                 }
@@ -978,6 +1050,8 @@
                 gv: props.gv,
                 task: props.task,
                 room: selectedRoom, 
+                orientation: props.orientation, // THÊM MỚI
+                semester: props.semester, // THÊM MỚI
                 scheduledByEmail: currentUserEmail,
                 scheduledByName: currentUserName,
                 status: 'scheduled'
@@ -1105,6 +1179,7 @@
             }
             calendar.addEventSource(currentClassEvents);
 
+            // KHO SỰ KIỆN CHỈ DÀNH CHO ADMIN
             if (currentUserEmail !== 'ths.phcn26@ump.edu.vn') {
                 let scheduledCounts = {};
                 scheduledEvents.forEach(e => {
@@ -1144,6 +1219,9 @@
                             if (subAsg[cls] && subAsg[cls].allocations && subAsg[cls].status !== 'proposed') {
                                 const semester = subAsg[cls].semester || 'Chưa xác định';
                                 if (selectedSemester !== 'ALL' && semester !== selectedSemester) return; 
+                                
+                                // Lấy Định hướng (nếu có)
+                                const orientation = subAsg[cls].orientation || '';
 
                                 subAsg[cls].allocations.forEach(a => {
                                     const totalAssigned = parseInt(a.assigned) || 0;
@@ -1159,7 +1237,7 @@
                                         if (!subjectCardsMap.has(keyForCount)) {
                                             subjectCardsMap.set(keyForCount, {
                                                 type: 'normal',
-                                                data: { subName, a, cls, keyForCount },
+                                                data: { subName, a, cls, keyForCount, orientation, semester }, // Gắn thêm Định hướng & Học kỳ
                                                 count: remainingNormal,
                                                 gv: a.gv
                                             });
@@ -1173,7 +1251,7 @@
                                         if (!subjectCardsMap.has(rKey)) {
                                             subjectCardsMap.set(rKey, {
                                                 type: 'rejected',
-                                                data: { subName, a, cls, keyForCount, rTask },
+                                                data: { subName, a, cls, keyForCount, rTask, orientation, semester }, // Gắn thêm Định hướng & Học kỳ
                                                 count: 1,
                                                 gv: a.gv
                                             });
@@ -1207,7 +1285,7 @@
                         cardsArray.forEach(item => {
                             const isRejected = item.type === 'rejected';
                             const count = item.count;
-                            const { a, cls, keyForCount, rTask } = item.data;
+                            const { a, cls, keyForCount, rTask, orientation, semester } = item.data;
 
                             unscheduledCount += count;
 
@@ -1220,6 +1298,8 @@
                             eventDiv.setAttribute('data-gv', a.gv);
                             eventDiv.setAttribute('data-task', a.task);
                             eventDiv.setAttribute('data-class', cls);
+                            eventDiv.setAttribute('data-orientation', orientation); // Lưu vào attribute để Kéo thẻ
+                            eventDiv.setAttribute('data-semester', semester);       // Lưu vào attribute để Kéo thẻ
 
                             if (isRejected && rTask) {
                                 eventDiv.setAttribute('data-original-id', rTask.id); 
@@ -1235,12 +1315,14 @@
 
                             let countBadge = (!isRejected && count > 0) ? `<div class="count-badge">${count}</div>` : '';
                             let gvDisplay = window.formatGvName(a.gv);
+                            let orientationDisplay = orientation ? `<div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">(ĐH: ${orientation})</div>` : '';
 
                             eventDiv.innerHTML = `
                                 ${countBadge}
                                 ${classTag}
                                 <div class="event-gv" title="${a.gv}">${gvDisplay}</div>
                                 <span class="event-info">[${a.task}]</span>
+                                ${orientationDisplay}
                                 ${rejectHtml}
                             `;
 
