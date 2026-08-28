@@ -515,6 +515,27 @@
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
+                // CHẶN QUYỀN NẾU LÀ TÀI KHOẢN HỌC VIÊN
+                if (user.email.toLowerCase() === 'ths.phcn26@ump.edu.vn') {
+                    isAdmin = false;
+                    adminSection.classList.add('hidden');
+                    document.getElementById('bulkSection').classList.add('hidden');
+                    thAction.classList.add('hidden');
+                    document.getElementById('btnOpenBulk').classList.add('hidden');
+                    document.getElementById('btnOpenHistory').classList.add('hidden');
+                    document.getElementById('btnOpenTrash').classList.add('hidden');
+                    
+                    setTimeout(() => {
+                        const btnAuthNav = document.getElementById('btnAuthNav');
+                        if(btnAuthNav) {
+                            btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 5px;"></i> Lớp Thạc sĩ 2026`;
+                            btnAuthNav.href = "#";
+                        }
+                    }, 100);
+                    renderTable();
+                    return; // Thoát hàm để không chạy các lệnh cấp quyền bên dưới
+                }
+
                 isAdmin = true;
                 document.getElementById('btnOpenBulk').classList.remove('hidden');
                 document.getElementById('btnOpenHistory').classList.remove('hidden');
