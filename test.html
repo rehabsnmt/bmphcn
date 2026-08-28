@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Luận văn & Khóa luận - Bộ môn Phục hồi chức năng</title>
+    
+    <link rel="icon" href="images/logo_Bộ môn.png" type="image/png">
+    
+    <!-- Link CSS gốc để đồng bộ giao diện -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    
+    <style>
+        /* =========================================
+           TÙY CHỈNH DÀNH RIÊNG CHO TRANG LUẬN VĂN
+        ========================================= */
+        main { max-width: 1200px; padding: 2rem 3%; margin: 0 auto; }
+
+        /* Tiêu đề căn giữa */
+        .header-actions { display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid var(--border); gap: 10px; }
+        .header-title-box h2 { font-size: 1.6rem; color: var(--text-dark); margin: 0; font-weight: 700; }
+        .header-title-box .subtitle { font-size: 1rem; color: var(--text-body); font-weight: 600; margin-top: 5px; }
+        .header-buttons { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 10px; }
+        
+        .section-box { background: var(--surface); padding: 25px; border-radius: var(--radius-md); margin-bottom: 20px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
+        .hidden { display: none !important; }
+
+        /* Bố cục Form */
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; align-items: end; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { font-size: 0.85rem; font-weight: 600; color: var(--text-dark); margin-bottom: 5px; }
+        
+        select, input[type="text"] {
+            width: 100%; padding: 0.6rem; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.95rem; background-color: var(--bg-page); color: var(--text-dark); outline: none; transition: var(--transition); box-sizing: border-box;
+        }
+        select:focus, input[type="text"]:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15); background-color: var(--surface); }
+
+        /* Tabs Chuyển hệ */
+        .tabs-header { display: flex; border-bottom: 2px solid var(--border); margin-bottom: 20px; gap: 10px; }
+        .tab-btn { flex: 1; padding: 12px; text-align: center; font-size: 1rem; font-weight: 600; color: var(--text-body); background: transparent; border: none; cursor: pointer; transition: var(--transition); border-bottom: 3px solid transparent; }
+        .tab-btn:hover { color: var(--text-dark); }
+        .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+        /* Nút phụ đặc thù */
+        button { cursor: pointer; transition: var(--transition); font-family: inherit; }
+        .btn-primary { background-color: var(--primary); color: white; padding: 0.6rem 1.2rem; border-radius: var(--radius-pill); border: none; font-weight: 500; }
+        .btn-primary:hover { background-color: var(--primary-hover); }
+        .btn-warning { background-color: #f59e0b; color: white; padding: 0.6rem 1.2rem; border-radius: var(--radius-pill); border: none; font-weight: 500; }
+        .btn-warning:hover { background-color: #d97706; box-shadow: 0 4px 12px rgba(217, 119, 6, 0.2); }
+        .btn-danger { background-color: var(--accent); color: white; padding: 0.6rem 1.2rem; border-radius: var(--radius-pill); border: none; font-weight: 500; }
+        .btn-danger:hover { background-color: #be123c; box-shadow: 0 4px 12px rgba(225, 29, 72, 0.2); }
+        .btn-success { background-color: #16a34a; color: white; padding: 0.6rem 1.2rem; border-radius: var(--radius-pill); border: none; font-weight: 500; }
+        .btn-success:hover { background-color: #15803d; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.2); }
+        .btn-secondary { background-color: var(--bg-page); color: var(--text-dark); padding: 0.6rem 1.2rem; border-radius: var(--radius-pill); border: 1px solid var(--border); font-weight: 500; }
+        .btn-secondary:hover { background-color: #e2e8f0; }
+        .btn-sm { padding: 5px 10px; font-size: 0.8rem; border-radius: 6px; }
+        button:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn-page { background-color: var(--surface); color: var(--text-dark); border: 1px solid var(--border); padding: 5px 15px; border-radius: 6px; font-weight: 600; }
+        .btn-page:hover:not(:disabled) { background-color: var(--primary-light); color: var(--primary); border-color: var(--primary); }
+
+        /* Bảng hiển thị */
+        .table-container { overflow-x: auto; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--surface); box-shadow: var(--shadow-sm); position: relative; }
+        table { width: 100%; border-collapse: collapse; white-space: nowrap; font-size: 0.95rem; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: middle; }
+        th { background-color: var(--bg-page); font-weight: 600; color: var(--text-dark); text-transform: uppercase; font-size: 0.85rem; position: sticky; top: 0; z-index: 10; letter-spacing: 0.5px;}
+        tr:hover { background-color: var(--primary-light); }
+        
+        #thAction, .td-action { position: sticky; right: 0; background-color: var(--surface); z-index: 5; box-shadow: -4px 0 8px rgba(0,0,0,0.02); border-left: 1px solid var(--border); }
+        tr:hover .td-action { background-color: var(--primary-light); }
+
+        /* Tương tác tên đề tài & GVHD */
+        .advisor-link { color: var(--primary); font-weight: 600; cursor: pointer; text-decoration: none; border-bottom: 1px dashed var(--primary); }
+        .advisor-link:hover { color: var(--primary-hover); border-bottom-style: solid; }
+        
+        .thesis-title-link { cursor: pointer; color: var(--text-dark); transition: color 0.2s; font-weight: 600; line-height: 1.5; }
+        .thesis-title-link:hover { color: var(--primary); }
+
+        /* =========================================
+           CSS THÔNG BÁO TOAST (POPUP GÓC DƯỚI)
+        ========================================= */
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .toast {
+            min-width: 250px;
+            background-color: var(--surface);
+            color: var(--text-dark);
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transform: translateX(120%);
+            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.3s;
+            font-weight: 600;
+            border-left: 5px solid;
+            opacity: 0;
+            font-size: 0.95rem;
+        }
+        .toast.show { transform: translateX(0); opacity: 1; }
+        .toast.success { border-left-color: #22c55e; }
+        .toast.warning { border-left-color: #f59e0b; }
+        .toast.danger { border-left-color: #ef4444; }
+        .toast-icon { font-size: 1.2rem; }
+        .toast.success .toast-icon { color: #22c55e; }
+        .toast.warning .toast-icon { color: #f59e0b; }
+        .toast.danger .toast-icon { color: #ef4444; }
+
+        /* =========================================
+           RESPONSIVE DÀNH RIÊNG CHO ĐIỆN THOẠI
+        ========================================= */
+        @media (max-width: 768px) {
+            .header-title-box h2 { font-size: 1.3rem; }
+            .header-buttons { width: 100%; justify-content: center; margin-top: 10px; }
+            .tabs-header { margin-top: 10px; }
+            .toast-container { bottom: 10px; right: 10px; left: 10px; }
+            .toast { min-width: unset; width: 100%; box-sizing: border-box; }
+
+            /* ẨN CÁC CỘT KHÔNG CẦN THIẾT TRÊN MOBILE */
+            .table-container th:nth-child(2), .table-container td:nth-child(2), 
+            .table-container th:nth-child(4), .table-container td:nth-child(4), 
+            .table-container th:nth-child(5), .table-container td:nth-child(5)  
+            { display: none; }
+
+            /* Mở rộng cột tên đề tài */
+            .table-container th:nth-child(3), .table-container td:nth-child(3) { width: 100% !important; min-width: unset !important; }
+            .thesis-title-link { color: var(--primary); font-size: 0.95rem; }
+            .mobile-hint { display: block !important; } 
+        }
+    </style>
+</head>
+<body style="display: flex; flex-direction: column; min-height: 100vh;">
+
+    <!-- 1. HEADER CHUNG -->
+    <div id="header-placeholder"></div>
+
+    <!-- Khung chứa thông báo nổi -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <main style="flex: 1; padding-top: 2rem;">
+        <div class="header-actions">
+            <div class="header-title-box">
+                <h2>DANH SÁCH LUẬN VĂN THẠC SĨ VÀ KHÓA LUẬN CỬ NHÂN</h2>
+                <div class="subtitle">BỘ MÔN PHỤC HỒI CHỨC NĂNG</div>
+            </div>
+            <div class="header-buttons">
+                <button id="btnOpenHistory" class="btn-primary hidden" onclick="openHistoryModal()"><i class="fas fa-history"></i> Lịch sử</button>
+                <button id="btnOpenBulk" class="btn-warning hidden"><i class="fas fa-file-excel"></i> Nhập Excel</button>
+                <!-- NÚT THÙNG RÁC - ẨN MẶC ĐỊNH -->
+                <button id="btnOpenTrash" class="btn-danger hidden" onclick="openTrashModal()"><i class="fas fa-trash-restore"></i> Thùng rác</button>
+            </div>
+        </div>
+
+        <!-- Khung nhập file Excel -->
+        <div id="bulkSection" class="section-box hidden" style="background: #fffbeb; border-color: #fde68a;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px;">
+                <div>
+                    <h3 style="margin-top: 0; margin-bottom: 10px; color: #b45309;"><i class="fas fa-file-import"></i> Nhập dữ liệu hàng loạt từ Excel</h3>
+                    <p style="font-size: 0.9rem; color: #78350f; margin-bottom: 15px; line-height: 1.6;">
+                        <strong>Cấu trúc file Excel bắt buộc:</strong> Hàng đầu tiên là tiêu đề. Dữ liệu bắt đầu từ hàng 2.<br>
+                        <strong>Thứ tự cột:</strong> Cột A (Tác giả) | Cột B (Tên đề tài) | Cột C (Giảng viên hướng dẫn) | Cột D (Lớp) | Cột E (Chuyên ngành)<br>
+                        <em>Mẹo: Nếu có 2 Giảng viên, hãy dùng dấu "/" để ngăn cách ở Cột C.</em>
+                    </p>
+                </div>
+                <button id="btnDownloadTemplate" class="btn-secondary"><i class="fas fa-download"></i> Tải Excel Mẫu</button>
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;">
+                <input type="file" id="excelFile" accept=".xlsx, .xls, .csv" style="display: none;">
+                <button id="btnSelectFile" class="btn-warning" style="border: none;">Chọn file Excel</button>
+                <span id="fileNameDisplay" style="font-style: italic; font-size: 0.9rem; color: var(--text-body);">Chưa chọn file</span>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button id="btnUploadExcel" class="btn-primary hidden" style="border: none;">Bắt đầu tải lên</button>
+                <button id="btnCloseBulk" class="btn-danger btn-sm">Đóng khung</button>
+            </div>
+            <div id="bulkLog" style="font-size: 0.9rem; font-weight: 600; color: #15803d; margin-top: 15px;"></div>
+        </div>
+
+        <!-- Khung Thêm/Sửa -->
+        <div id="adminSection" class="section-box hidden">
+            <h3 style="margin-top: 0; color: var(--primary);">
+                <i class="fas fa-edit"></i> <span id="formTitle">Thêm đề tài mới</span>
+                <span id="editModeBadge" class="hidden" style="background: #f59e0b; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; margin-left: 10px;">Đang sửa</span>
+            </h3>
+            <input type="hidden" id="editId">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Tác giả *</label>
+                    <input type="text" id="addAuthor" placeholder="Họ và tên tác giả">
+                </div>
+                <div class="form-group" style="grid-column: span 2;">
+                    <label>Tên đề tài *</label>
+                    <input type="text" id="addTitle" placeholder="Nhập tên đề tài...">
+                </div>
+                <div class="form-group">
+                    <label>Lớp *</label>
+                    <div style="display: flex; gap: 10px;">
+                        <select id="addLevel" style="flex: 1;"><option value="CN">CN</option><option value="THS">THS</option></select>
+                        <select id="addYear" style="flex: 1;"></select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Chuyên ngành</label>
+                    <select id="addMajor">
+                        <option value="Vật lý trị liệu">Vật lý trị liệu</option>
+                        <option value="Hoạt động trị liệu">Hoạt động trị liệu</option>
+                        <option value="Ngôn ngữ trị liệu">Ngôn ngữ trị liệu</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Giảng viên hướng dẫn *</label>
+                    <input type="text" id="addAdvisor" placeholder="Cách nhau bằng dấu /">
+                </div>
+                <div class="form-group">
+                    <label>&nbsp;</label>
+                    <button id="btnSaveData" class="btn-primary" style="border: none;">Lưu dữ liệu</button>
+                </div>
+                <div class="form-group hidden" id="btnCancelEditContainer">
+                    <label>&nbsp;</label>
+                    <button id="btnCancelEdit" class="btn-danger btn-sm">Hủy sửa</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Giao diện hiển thị chung -->
+        <div class="tabs-header">
+            <button class="tab-btn active" data-tab="CN">Cử nhân (CN)</button>
+            <button class="tab-btn" data-tab="THS">Thạc sĩ (THS)</button>
+        </div>
+
+        <div class="section-box" style="padding: 15px; margin-bottom: 15px;">
+            <div class="form-grid" style="grid-template-columns: 2fr 1fr 1fr;">
+                <div class="form-group">
+                    <label>Tìm kiếm</label>
+                    <input type="text" id="searchInput" placeholder="Tìm theo tác giả, đề tài, GV...">
+                </div>
+                <div class="form-group">
+                    <label>Sắp xếp</label>
+                    <select id="sortSelect">
+                        <option value="title_asc" selected>Tên đề tài (A → Z)</option>
+                        <option value="title_desc">Tên đề tài (Z → A)</option>
+                        <option value="author_asc">Tác giả (A → Z)</option>
+                        <option value="author_desc">Tác giả (Z → A)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Lọc theo Lớp</label>
+                    <select id="filterClass"><option value="Tất cả">Tất cả lớp</option></select>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 15px; font-size: 0.95rem; color: var(--text-body);">
+            Hiển thị <strong id="filteredCountText" style="color: var(--primary);">0</strong> / <strong id="totalCountText">0</strong> đề tài
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="text-align: center; width: 60px;">STT</th>
+                        <th style="width: 180px;">Tác Giả</th>
+                        <th style="min-width: 300px;">Tên Đề Tài</th>
+                        <th style="width: 160px;">LỚP</th>
+                        <th style="min-width: 200px;">Giảng Viên Hướng Dẫn</th>
+                        <th id="thAction" class="hidden" style="text-align: center; width: 120px;"></th>
+                    </tr>
+                </thead>
+                <tbody id="dataTableBody">
+                    <tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-body);"><i class="fas fa-spinner fa-spin"></i> Đang tải dữ liệu...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Phân trang -->
+        <div id="paginationContainer" style="display: flex; justify-content: center; align-items: center; margin-top: 20px; gap: 15px;">
+            <button id="btnPrevPage" class="btn-page" onclick="changePage(-1)">Trước</button>
+            <span id="pageInfo" style="font-size: 0.95rem; color: var(--text-body); font-weight: 600;">Trang 1 / 1</span>
+            <button id="btnNextPage" class="btn-page" onclick="changePage(1)">Sau</button>
+        </div>
+    </main>
+
+    <!-- MODAL 1: CHI TIẾT ĐỀ TÀI TRÊN MOBILE -->
+    <div id="thesisDetailModal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 500px; text-align: left; position: relative;">
+            <button class="modal-close" onclick="closeThesisDetailModal()"><i class="fas fa-times"></i></button>
+            <h3 style="color: var(--primary); margin-top: 0; border-bottom: 2px solid var(--primary-light); padding-bottom: 15px; margin-bottom: 20px;">Thông tin Đề tài</h3>
+            <div style="margin-bottom: 12px; font-size: 0.95rem;">
+                <span style="color: var(--text-body); font-size: 0.85rem; display: block; margin-bottom: 3px;">Tên đề tài:</span>
+                <strong id="detailTitle" style="color: var(--text-dark); font-size: 1.1rem; line-height: 1.4;"></strong>
+            </div>
+            <div style="margin-bottom: 12px; font-size: 0.95rem;">
+                <span style="color: var(--text-body); font-size: 0.85rem; display: block; margin-bottom: 3px;">Tác giả:</span>
+                <strong id="detailAuthor" style="color: var(--text-dark);"></strong>
+            </div>
+            <div style="display: flex; gap: 30px; margin-bottom: 12px; font-size: 0.95rem;">
+                <div>
+                    <span style="color: var(--text-body); font-size: 0.85rem; display: block; margin-bottom: 3px;">Lớp:</span>
+                    <strong id="detailClass" style="color: var(--primary);"></strong>
+                </div>
+                <div>
+                    <span style="color: var(--text-body); font-size: 0.85rem; display: block; margin-bottom: 3px;">Chuyên ngành:</span>
+                    <strong id="detailMajor" style="color: var(--text-dark);"></strong>
+                </div>
+            </div>
+            <div style="margin-bottom: 10px; font-size: 0.95rem; background: var(--bg-page); padding: 12px; border-radius: 8px;">
+                <span style="color: var(--text-body); font-size: 0.85rem; display: block; margin-bottom: 5px;">Giảng viên hướng dẫn:</span>
+                <div id="detailAdvisor" style="line-height: 1.6;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: THÔNG TIN GIẢNG VIÊN -->
+    <div id="advisorModal" class="modal-overlay hidden">
+        <div class="modal-content" style="text-align: center;">
+            <button class="modal-close" onclick="closeAdvisorModal()"><i class="fas fa-times"></i></button>
+            <img id="modalAvatar" src="" alt="Avatar GV" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin: 0 auto 15px auto; border: 3px solid var(--primary); display: block; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+            <h2 id="modalName" style="color: var(--text-dark); margin-bottom: 5px;">Tên GV</h2>
+            <p id="modalDegree" style="color: var(--text-body); font-size: 0.9rem; margin-bottom: 20px;">Học hàm / Học vị</p>
+            <div style="border-top: 1px solid var(--border); padding-top: 20px; text-align: left; font-size: 0.95rem;">
+                <p><strong><i class="fas fa-envelope" style="color:var(--primary); margin-right:8px;"></i></strong> <span id="modalEmail">...</span></p>
+                <p><strong><i class="fas fa-microscope" style="color:var(--primary); margin-right:8px;"></i></strong> <span id="modalResearch">...</span></p>
+                <p style="margin-top: 15px; margin-bottom: 5px;"><strong><i class="fas fa-info-circle" style="color:var(--primary); margin-right:8px;"></i>Giới thiệu:</strong></p>
+                <p id="modalBio" style="background: var(--bg-page); padding: 12px; border-radius: 8px; color: var(--text-body); margin: 0; line-height: 1.6;">...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: THÙNG RÁC (RECYCLE) -->
+    <div id="trashModal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 900px;">
+            <button class="modal-close" onclick="closeTrashModal()"><i class="fas fa-times"></i></button>
+            <h2 style="color: var(--text-dark); margin-bottom: 10px;"><i class="fas fa-trash-restore" style="color: var(--accent);"></i> Thùng rác (Lưu 30 ngày)</h2>
+            <div style="max-height: 400px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-sm);">
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+                    <thead>
+                        <tr>
+                            <th style="background: var(--bg-page); padding: 10px; width: 150px;">Tác giả</th>
+                            <th style="background: var(--bg-page); padding: 10px;">Tên đề tài</th>
+                            <th style="background: var(--bg-page); padding: 10px; width: 140px;">Ngày xóa</th>
+                            <th style="background: var(--bg-page); padding: 10px; width: 110px; text-align: center;">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="trashTableBody">
+                        <tr><td colspan="4" align="center">Đang tải...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 4: LỊCH SỬ -->
+    <div id="historyModal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 900px;">
+            <button class="modal-close" onclick="closeHistoryModal()"><i class="fas fa-times"></i></button>
+            <h2 style="color: var(--text-dark); margin-bottom: 10px;">Lịch sử hoạt động</h2>
+            <div style="max-height: 400px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-sm);">
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+                    <thead>
+                        <tr>
+                            <th style="background: var(--bg-page); padding: 10px; width: 140px;">Thời gian</th>
+                            <th style="background: var(--bg-page); padding: 10px; width: 90px;">Thao tác</th>
+                            <th style="background: var(--bg-page); padding: 10px; width: 150px;">Tài khoản</th>
+                            <th style="background: var(--bg-page); padding: 10px; white-space: normal;">Chi tiết cập nhật</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 5: XÁC NHẬN XÓA -->
+    <div id="deleteConfirmModal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 400px; text-align: center;">
+            <button class="modal-close" onclick="closeDeleteModal()"><i class="fas fa-times"></i></button>
+            <h3 style="color: var(--accent); margin-bottom: 15px;"><i class="fas fa-exclamation-triangle"></i> Xác nhận xóa</h3>
+            <p style="font-size: 0.9rem; color: var(--text-body);">Đề tài:</p>
+            <p id="deleteThesisTitlePreview" style="font-weight: 700; color: var(--text-dark); margin-bottom: 20px;"></p>
+            <p style="font-size: 0.85rem;">Mã xác nhận:</p>
+            <div id="randomDeleteCodeDisplay" style="background: var(--bg-page); padding: 10px; border-radius: 6px; font-size: 1.5rem; font-weight: bold; color: var(--accent); letter-spacing: 5px; margin-bottom: 15px;">0000</div>
+            <input type="text" id="inputDeleteCodeConfirm" placeholder="Nhập mã xác nhận..." style="text-align: center; letter-spacing: 2px; width: 100%; box-sizing: border-box; padding: 10px; border-radius: 6px; border: 1px solid var(--border);">
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button id="btnExecuteFinalDelete" class="btn-danger" disabled style="flex: 1; border:none; padding:10px; border-radius:8px;">Xóa vĩnh viễn</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. FOOTER CHUNG -->
+    <div id="footer-placeholder"></div>
+
+    <script src="js/layout.js"></script>
+
+    <!-- FIREBASE SCRIPT V9 -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, query, orderBy, limit, getDoc, setDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY",
+            authDomain: "bmphcn-aa9c6.firebaseapp.com",
+            projectId: "bmphcn-aa9c6",
+            storageBucket: "bmphcn-aa9c6.firebasestorage.app",
+            messagingSenderId: "749494392719",
+            appId: "1:749494392719:web:f220c751ff541620045dfa",
+            measurementId: "G-LBLG62PTDK"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app); 
+
+        const internalAdvisors = {
+            "TS. Lê Thanh Vân": { degree: "Tiến sĩ / Trưởng Bộ môn", email: "lethanhvan@ump.edu.vn", research: "Vật lý trị liệu", bio: "Lê Thanh Vân" },
+            "TS. Nguyễn Thanh Duy": { degree: "Tiến sĩ / Giảng viên", email: "thduypt@ump.edu.vn", research: "Vật lý trị liệu", bio: "Nguyễn Thanh Duy" },
+            "ThS. Phan Thế Nguyên": { degree: "Thạc sĩ / Giáo vụ", email: "phanthenguyenpt@ump.edu.vn", research: "Vật lý trị liệu", bio: "Phan Thế Nguyên" },
+            "ThS. Cao Minh Hạnh": { degree: "Thạc sĩ / Giảng viên", email: "cmhanhpt@ump.edu.vn", research: "Vật lý trị liệu", bio: "Cao Minh Hạnh" },
+            "ThS. Huỳnh Chung": { degree: "Thạc sĩ / Giảng viên", email: "huynhchungpt@ump.edu.vn", research: "Vật lý trị liệu", bio: "Huỳnh Chung" },
+            "ThS. Nguyễn Minh Sang": { degree: "Thạc sĩ / Giảng viên", email: "ngmsangpt@ump.edu.vn", research: "Vật lý trị liệu", bio: "Nguyễn Minh Sang" },
+            "ThS. Trần Thị Bích Hạnh": { degree: "Thạc sĩ / Giảng viên", email: "hanhtranpt@ump.edu.vn", research: "Ngôn ngữ trị liệu", bio: "Trần Thị Bích Hạnh" },
+            "TS. Nguyễn Ngọc Minh": { degree: "Tiến sĩ / Giảng viên", email: "minhngpt@ump.edu.vn", research: "Vật lý trị liệu", bio: "Nguyễn Ngọc Minh" },
+            "ThS. Phạm Ngọc Đạt": { degree: "Thạc sĩ / Giảng viên", email: "phamngocdat@ump.edu.vn", research: "Hoạt động trị liệu", bio: "Phạm Ngọc Đạt" },
+            "ThS. Nguyễn Huỳnh Ngọc Mai Trâm": { degree: "Thạc sĩ / Giảng viên", email: "nguyen.tram@ump.edu.vn", research: "Hoạt động trị liệu", bio: "Nguyễn Huỳnh Ngọc Mai Trâm" },
+            "ThS. Nguyễn Đức Sinh": { degree: "Thạc sĩ / Giảng viên", email: "nguyenducsinhpt@ump.edu.vn", research: "Ngôn ngữ trị liệu", bio: "Nguyễn Đức Sinh" },
+            "ThS. Trần Long Biên": { degree: "Thạc sĩ / Giảng viên", email: "tlbien@ump.edu.vn", research: "Vật lý trị liệu", bio: "Trần Long Biên" },
+            "ThS. Trần Hữu Đức": { degree: "Thạc sĩ / Giảng viên", email: "tranhuuduc@ump.edu.vn", research: "Ngôn ngữ trị liệu", bio: "Trần Hữu Đức" },
+            "ThS. Nguyễn Mai Ngọc Đoan": { degree: "Thạc sĩ / Giảng viên", email: "nguyenmaingocdoan@ump.edu.vn", research: "Vật lý trị liệu", bio: "Nguyễn Mai Ngọc Đoan" }
+        };
+
+        let allTheses = [];
+        let isAdmin = false;
+        let isEditing = false; 
+        let currentTab = 'CN'; 
+        let targetDeleteId = null;
+        let targetDeleteTitle = "";
+        let generatedSecurityCode = "";
+        let lastEditedId = null; 
+        let originalEditData = null; 
+        let currentPage = 1;
+        const itemsPerPage = 30;
+        let totalPages = 1;
+        let unsubscribeLogs = null;
+
+        const tableBody = document.getElementById('dataTableBody');
+        const thAction = document.getElementById('thAction');
+        const adminSection = document.getElementById('adminSection');
+        const bulkSection = document.getElementById('bulkSection');
+        const filterClass = document.getElementById('filterClass'); 
+        const sortSelect = document.getElementById('sortSelect'); 
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            let icon = 'fa-check-circle';
+            if (type === 'warning') icon = 'fa-exclamation-triangle';
+            if (type === 'danger') icon = 'fa-trash-alt';
+            toast.innerHTML = `<i class="fas ${icon} toast-icon"></i><span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 400); 
+            }, 3000);
+        }
+
+        async function logAction(actionType, detailString) {
+            if (!auth.currentUser) return;
+            try {
+                await addDoc(collection(db, "logs"), { 
+                    action: actionType, 
+                    user: auth.currentUser.email, 
+                    timestamp: new Date(), 
+                    details: detailString 
+                });
+            } catch (error) { console.error(error); }
+        }
+
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentTab = btn.getAttribute('data-tab'); 
+                filterClass.value = 'Tất cả';
+                currentPage = 1; 
+                updateDynamicFilters(); 
+                renderTable();
+            });
+        });
+
+        function populateYears(levelType) {
+            const addYear = document.getElementById('addYear');
+            addYear.innerHTML = '';
+            const currentYear = new Date().getFullYear();
+            let maxYear = (levelType === 'THS') ? currentYear - 1 : currentYear - 3; 
+            const startYear = (levelType === 'CN') ? 2017 : 2019;
+            for (let y = startYear; y <= maxYear; y++) {
+                addYear.innerHTML += `<option value="${y}">${y}</option>`;
+            }
+            addYear.value = maxYear; 
+        }
+        document.getElementById('addLevel').addEventListener('change', (e) => populateYears(e.target.value));
+        populateYears('CN');
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // CHẶN QUYỀN NẾU LÀ TÀI KHOẢN HỌC VIÊN
+                if (user.email.toLowerCase() === 'ths.phcn26@ump.edu.vn') {
+                    isAdmin = false;
+                    adminSection.classList.add('hidden');
+                    document.getElementById('bulkSection').classList.add('hidden');
+                    thAction.classList.add('hidden');
+                    document.getElementById('btnOpenBulk').classList.add('hidden');
+                    document.getElementById('btnOpenHistory').classList.add('hidden');
+                    document.getElementById('btnOpenTrash').classList.add('hidden');
+                    
+                    setTimeout(() => {
+                        const btnAuthNav = document.getElementById('btnAuthNav');
+                        if(btnAuthNav) {
+                            btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 5px;"></i> Lớp Thạc sĩ 2026`;
+                            btnAuthNav.href = "#";
+                        }
+                    }, 100);
+                    renderTable();
+                    return; // Thoát hàm để không chạy các lệnh cấp quyền bên dưới
+                }
+
+                isAdmin = true;
+                document.getElementById('btnOpenBulk').classList.remove('hidden');
+                document.getElementById('btnOpenHistory').classList.remove('hidden');
+                adminSection.classList.remove('hidden');
+                thAction.classList.remove('hidden');
+
+                // Quyền riêng cho email hiển thị nút Thùng Rác
+                if (user.email.toLowerCase() === 'hoangtran1483@gmail.com') {
+                    document.getElementById('btnOpenTrash').classList.remove('hidden');
+                } else {
+                    document.getElementById('btnOpenTrash').classList.add('hidden');
+                }
+                
+                setTimeout(async () => {
+                    const btnAuthNav = document.getElementById('btnAuthNav');
+                    if(btnAuthNav) {
+                        try {
+                            const userDoc = await getDoc(doc(db, "users", user.uid));
+                            if (userDoc.exists()) {
+                                const data = userDoc.data();
+                                let degreePrefix = data.degree === 'ThS' ? 'ThS. ' : (data.degree === 'TS' ? 'TS. ' : '');
+                                btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 5px;"></i> ${degreePrefix}${data.fullName || 'Giảng viên'}`;
+                            } else {
+                                btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 5px;"></i> Giảng viên`;
+                            }
+                            btnAuthNav.href = "dashboard.html";
+                        } catch (error) {
+                            console.error("Lỗi lấy thông tin:", error);
+                        }
+                    }
+                }, 100);
+
+                unsubscribeLogs = onSnapshot(query(collection(db, "logs"), orderBy("timestamp", "desc"), limit(50)), (snap) => {
+                    const historyBody = document.getElementById('historyTableBody');
+                    historyBody.innerHTML = snap.empty ? '<tr><td colspan="4" align="center">Chưa có</td></tr>' : '';
+                    snap.forEach(d => {
+                        const log = d.data();
+                        const c = log.action==='THÊM' ? '#16a34a' : log.action==='SỬA' ? '#d97706' : log.action==='XÓA' ? '#dc2626' : '#2563eb';
+                        historyBody.innerHTML += `<tr>
+                            <td style="color:#64748b">${log.timestamp?.toDate().toLocaleString('vi-VN')}</td>
+                            <td style="color:${c};font-weight:bold">${log.action}</td>
+                            <td style="word-break: break-all;">${log.user || ''}</td>
+                            <td style="white-space: normal; line-height: 1.5;">${log.details}</td>
+                        </tr>`;
+                    });
+                });
+            } else {
+                if (unsubscribeLogs) {
+                    unsubscribeLogs();
+                    unsubscribeLogs = null;
+                }
+                isAdmin = false;
+                adminSection.classList.add('hidden');
+                document.getElementById('bulkSection').classList.add('hidden');
+                thAction.classList.add('hidden');
+                document.getElementById('btnOpenBulk').classList.add('hidden');
+                document.getElementById('btnOpenHistory').classList.add('hidden');
+                document.getElementById('btnOpenTrash').classList.add('hidden');
+
+                setTimeout(() => {
+                    const btnAuthNav = document.getElementById('btnAuthNav');
+                    if(btnAuthNav) {
+                        btnAuthNav.innerHTML = 'Đăng nhập';
+                        btnAuthNav.href = "login.html";
+                    }
+                }, 100);
+            }
+            renderTable();
+        });
+
+        // ==========================================
+        // CÁC HÀM XỬ LÝ DỮ LIỆU ĐƯỢC BỌC BỞI String()
+        // ==========================================
+        function updateDynamicFilters() {
+            const currClass = filterClass.value;
+            const tabClasses = [...new Set(allTheses.map(t => String(t.studentClass || '').trim()).filter(c => c.startsWith(currentTab)))].sort();
+            filterClass.innerHTML = '<option value="Tất cả">Tất cả lớp</option>';
+            tabClasses.forEach(c => filterClass.innerHTML += `<option value="${c}">${c}</option>`);
+            filterClass.value = tabClasses.includes(currClass) ? currClass : 'Tất cả';
+        }
+
+        onSnapshot(collection(db, "theses"), (snapshot) => {
+            allTheses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            updateDynamicFilters(); 
+            renderTable();
+        });
+
+        function renderTable() {
+            const searchText = document.getElementById('searchInput').value.toLowerCase();
+            const filterCls = filterClass.value; 
+            const sortType = sortSelect.value; 
+
+            let filtered = allTheses.filter(t => {
+                const classStr = String(t.studentClass || '').trim();
+                if (!classStr.startsWith(currentTab)) return false;
+                
+                const txtMatch = String(t.title||'').toLowerCase().includes(searchText) 
+                              || String(t.author||'').toLowerCase().includes(searchText) 
+                              || String(t.advisor||'').toLowerCase().includes(searchText);
+                              
+                return txtMatch && (filterCls === 'Tất cả' || classStr === filterCls);
+            });
+
+            filtered.sort((a, b) => {
+                const cmp = String(b.studentClass||'').localeCompare(String(a.studentClass||''), 'vi');
+                if(cmp !== 0) return cmp;
+                if(sortType === 'title_asc') return String(a.title||'').localeCompare(String(b.title||''), 'vi');
+                if(sortType === 'title_desc') return String(b.title||'').localeCompare(String(a.title||''), 'vi');
+                return String(a.author||'').localeCompare(String(b.author||''), 'vi');
+            });
+
+            document.getElementById('totalCountText').innerText = allTheses.filter(t => String(t.studentClass || '').startsWith(currentTab)).length;
+            document.getElementById('filteredCountText').innerText = filtered.length;
+
+            if (lastEditedId) {
+                const editedIndex = filtered.findIndex(t => t.id === lastEditedId);
+                if (editedIndex !== -1) {
+                    currentPage = Math.floor(editedIndex / itemsPerPage) + 1;
+                }
+                lastEditedId = null; 
+            }
+
+            totalPages = Math.ceil(filtered.length / itemsPerPage) || 1;
+            if (currentPage > totalPages) currentPage = totalPages;
+            
+            document.getElementById('pageInfo').innerText = `Trang ${currentPage} / ${totalPages}`;
+            document.getElementById('btnPrevPage').disabled = currentPage === 1;
+            document.getElementById('btnNextPage').disabled = currentPage === totalPages;
+
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const paginatedData = filtered.slice(startIndex, startIndex + itemsPerPage);
+
+            tableBody.innerHTML = paginatedData.length === 0 ? '<tr><td colspan="6" style="text-align:center;padding:30px">Không tìm thấy kết quả</td></tr>' : '';
+
+            paginatedData.forEach((t, i) => {
+                const actualIndex = startIndex + i + 1;
+                let actionHtml = '';
+                
+                const dataStrObj = encodeURIComponent(JSON.stringify(t)).replace(/'/g, "%27");
+
+                if (isAdmin) {
+                    actionHtml = `<td class="td-action" align="center"><button class="btn-sm btn-warning" onclick="triggerEdit('${dataStrObj}')">Sửa</button> <button class="btn-sm btn-danger" onclick="triggerDeleteConfirm('${t.id}', '${encodeURIComponent(String(t.title||'')).replace(/'/g, "%27")}')">Xóa</button></td>`;
+                }
+
+                const advHtml = String(t.advisor||'').split(/[\/,]+/).map(a => {
+                    let n = a.trim();
+                    return internalAdvisors[n] ? `<span class="advisor-link" onclick="openAdvisorModal('${encodeURIComponent(n).replace(/'/g, "%27")}')">${n}</span>` : n;
+                }).join('<br>');
+
+                tableBody.innerHTML += `
+                    <tr>
+                        <td align="center" style="color:#94a3b8;font-weight:bold">${actualIndex}</td>
+                        <td><b>${t.author}</b></td>
+                        
+                        <td style="white-space:normal;">
+                            <div class="thesis-title-link" onclick="openThesisDetailModal('${dataStrObj}')" title="Nhấn để xem chi tiết">${t.title}</div>
+                            <div class="mobile-hint" style="font-size: 0.8rem; color: var(--primary); margin-top: 5px; font-weight: normal; display: none;"><i class="fas fa-hand-pointer"></i> Chạm để xem chi tiết</div>
+                        </td>
+
+                        <td>
+                            <div style="font-weight: 600; color: var(--text-dark);">${t.studentClass||'—'}</div>
+                            <div style="font-size: 0.85rem; color: var(--primary); margin-top: 2px;">${t.major||'—'}</div>
+                        </td>
+                        <td>${advHtml}</td>
+                        ${actionHtml}
+                    </tr>`;
+            });
+        }
+
+        document.getElementById('searchInput').addEventListener('input', () => { currentPage = 1; renderTable(); });
+        filterClass.addEventListener('change', () => { currentPage = 1; renderTable(); });
+        sortSelect.addEventListener('change', () => { currentPage = 1; renderTable(); });
+
+        window.changePage = (step) => {
+            currentPage += step;
+            if (currentPage < 1) currentPage = 1;
+            if (currentPage > totalPages) currentPage = totalPages;
+            renderTable();
+        };
+
+        // ==========================================
+        // CÁC POPUP KHÁC
+        // ==========================================
+        window.openThesisDetailModal = (encodedData) => {
+            const t = JSON.parse(decodeURIComponent(encodedData));
+            
+            document.getElementById('detailTitle').innerText = t.title || 'Chưa có tên';
+            document.getElementById('detailAuthor').innerText = t.author || 'Chưa rõ';
+            document.getElementById('detailClass').innerText = t.studentClass || '—';
+            document.getElementById('detailMajor').innerText = t.major || '—';
+            
+            const advHtml = String(t.advisor||'').split(/[\/,]+/).map(a => {
+                let n = a.trim();
+                return internalAdvisors[n] ? `<span class="advisor-link" onclick="openAdvisorModal('${encodeURIComponent(n).replace(/'/g, "%27")}')">${n}</span>` : n;
+            }).join('<br>');
+            
+            document.getElementById('detailAdvisor').innerHTML = advHtml || 'Chưa rõ';
+            document.getElementById('thesisDetailModal').classList.remove('hidden');
+        };
+
+        window.closeThesisDetailModal = () => {
+            document.getElementById('thesisDetailModal').classList.add('hidden');
+        };
+
+        window.openAdvisorModal = (enN) => {
+            const n = decodeURIComponent(enN);
+            const inf = internalAdvisors[n];
+            if(!inf) return;
+            
+            const avatarImg = document.getElementById('modalAvatar');
+            avatarImg.src = `images/${n}.jpg`;
+            avatarImg.onerror = function() {
+                this.src = 'images/logo_Bộ môn.png';
+            };
+
+            document.getElementById('modalName').innerText = n;
+            document.getElementById('modalDegree').innerText = inf.degree;
+            document.getElementById('modalEmail').innerText = inf.email;
+            document.getElementById('modalResearch').innerText = inf.research;
+            document.getElementById('modalBio').innerText = inf.bio;
+            
+            document.getElementById('advisorModal').classList.remove('hidden');
+        };
+        window.closeAdvisorModal = () => document.getElementById('advisorModal').classList.add('hidden');
+
+        window.openHistoryModal = () => document.getElementById('historyModal').classList.remove('hidden');
+        window.closeHistoryModal = () => document.getElementById('historyModal').classList.add('hidden');
+
+        // ==========================================
+        // KHỐI XỬ LÝ THÙNG RÁC (RECYCLE) VÀ XÓA ĐỀ TÀI
+        // ==========================================
+        window.openTrashModal = async () => {
+            document.getElementById('trashModal').classList.remove('hidden');
+            const tbody = document.getElementById('trashTableBody');
+            tbody.innerHTML = '<tr><td colspan="4" align="center"><i class="fas fa-spinner fa-spin"></i> Đang tải dữ liệu...</td></tr>';
+            
+            try {
+                // ĐÃ THAY ĐỔI: Sử dụng collection 'recycle'
+                const snap = await getDocs(collection(db, "recycle"));
+                if(snap.empty) {
+                    tbody.innerHTML = '<tr><td colspan="4" align="center">Thùng rác đang trống.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = '';
+                snap.forEach(docSnap => {
+                    const d = docSnap.data();
+                    const id = docSnap.id;
+                    const dateStr = d.deletedAt ? d.deletedAt.toDate().toLocaleString('vi-VN') : 'Không rõ';
+                    const dataStrObj = encodeURIComponent(JSON.stringify({...d, id})).replace(/'/g, "%27");
+                    
+                    tbody.innerHTML += `
+                        <tr id="trash-row-${id}">
+                            <td><b>${d.author || 'Chưa rõ'}</b></td>
+                            <td style="white-space: normal; color: var(--text-dark);">${d.title || 'Chưa rõ'}</td>
+                            <td style="color:#64748b; font-size: 0.85rem;">${dateStr}</td>
+                            <td align="center">
+                                <button class="btn-sm btn-success" onclick="restoreThesis('${id}', '${dataStrObj}')"><i class="fas fa-undo"></i> Khôi phục</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch(e) {
+                tbody.innerHTML = `<tr><td colspan="4" align="center" style="color:red;">Lỗi tải dữ liệu: ${e.message}</td></tr>`;
+            }
+        };
+
+        window.closeTrashModal = () => document.getElementById('trashModal').classList.add('hidden');
+
+        window.restoreThesis = async (id, encodedData) => {
+            try {
+                const t = JSON.parse(decodeURIComponent(encodedData));
+                const restoreData = { ...t };
+                delete restoreData.id;
+                delete restoreData.deletedAt;
+                delete restoreData.expireAt;
+
+                await setDoc(doc(db, "theses", id), restoreData);
+                
+                // ĐÃ THAY ĐỔI: Xóa khỏi collection 'recycle'
+                await deleteDoc(doc(db, "recycle", id));
+                
+                const row = document.getElementById(`trash-row-${id}`);
+                if (row) row.remove();
+                
+                logAction("KHÔI PHỤC", `<strong>Đề tài:</strong> ${restoreData.title}`);
+                showToast("Đã khôi phục đề tài thành công!", "success");
+            } catch (error) {
+                showToast("Lỗi khôi phục: " + error.message, "danger");
+            }
+        };
+
+        window.triggerDeleteConfirm = (id, enT) => {
+            targetDeleteId = id; targetDeleteTitle = decodeURIComponent(enT);
+            generatedSecurityCode = Math.floor(1000 + Math.random() * 9000).toString();
+            document.getElementById('deleteThesisTitlePreview').innerText = targetDeleteTitle;
+            document.getElementById('randomDeleteCodeDisplay').innerText = generatedSecurityCode;
+            const input = document.getElementById('inputDeleteCodeConfirm');
+            input.value = '';
+            document.getElementById('btnExecuteFinalDelete').disabled = true;
+            document.getElementById('deleteConfirmModal').classList.remove('hidden');
+            input.focus();
+        };
+        window.closeDeleteModal = () => document.getElementById('deleteConfirmModal').classList.add('hidden');
+        document.getElementById('inputDeleteCodeConfirm').oninput = (e) => { document.getElementById('btnExecuteFinalDelete').disabled = (e.target.value.trim() !== generatedSecurityCode); };
+        
+        document.getElementById('btnExecuteFinalDelete').onclick = async () => {
+            if(!targetDeleteId) return;
+            
+            try {
+                const deletedItem = allTheses.find(t => t.id === targetDeleteId);
+                if (deletedItem) {
+                    const backupData = { ...deletedItem };
+                    delete backupData.id; 
+                    
+                    backupData.deletedAt = new Date();
+                    const expireDate = new Date();
+                    expireDate.setDate(expireDate.getDate() + 30); 
+                    backupData.expireAt = expireDate;
+
+                    // ĐÃ THAY ĐỔI: Lưu vào collection 'recycle'
+                    await setDoc(doc(db, "recycle", targetDeleteId), backupData);
+                }
+            } catch (backupError) {
+                console.warn("Lỗi sao lưu thùng rác:", backupError);
+            }
+
+            try {
+                await deleteDoc(doc(db, "theses", targetDeleteId));
+                logAction("XÓA", `<strong>Đề tài:</strong> ${targetDeleteTitle}`);
+                closeDeleteModal();
+                showToast("Đã xóa đề tài thành công!", "danger");
+            } catch(e) { 
+                showToast("Lỗi xóa đề tài: " + e.message, "danger"); 
+            }
+        };
+
+        // ==========================================
+        // CÁC HÀM LƯU / NHẬP EXCEL
+        // ==========================================
+        document.getElementById('btnSaveData').onclick = async () => {
+            const title = document.getElementById('addTitle').value.trim();
+            const author = document.getElementById('addAuthor').value.trim();
+            const advisor = document.getElementById('addAdvisor').value.trim();
+            
+            if(!title || !author || !advisor) {
+                showToast("Vui lòng điền đủ thông tin có dấu *", "warning");
+                return;
+            }
+            
+            const obj = { 
+                title, 
+                author, 
+                advisor, 
+                major: document.getElementById('addMajor').value, 
+                studentClass: `${document.getElementById('addLevel').value}${document.getElementById('addYear').value}`,
+                category: "Khác"
+            };
+            
+            try {
+                const editIdValue = document.getElementById('editId').value;
+                if(isEditing && editIdValue) {
+                    await updateDoc(doc(db, "theses", editIdValue), obj);
+                    
+                    let changes = [];
+                    if(originalEditData.title !== obj.title) changes.push(`- <b>Tên đề tài:</b> ${originalEditData.title} ➔ <span style="color:#d97706">${obj.title}</span>`);
+                    if(originalEditData.author !== obj.author) changes.push(`- <b>Tác giả:</b> ${originalEditData.author} ➔ <span style="color:#d97706">${obj.author}</span>`);
+                    if(originalEditData.advisor !== obj.advisor) changes.push(`- <b>GVHD:</b> ${originalEditData.advisor} ➔ <span style="color:#d97706">${obj.advisor}</span>`);
+                    if(originalEditData.studentClass !== obj.studentClass) changes.push(`- <b>Lớp:</b> ${originalEditData.studentClass} ➔ <span style="color:#d97706">${obj.studentClass}</span>`);
+                    if(originalEditData.major !== obj.major) changes.push(`- <b>Chuyên ngành:</b> ${originalEditData.major} ➔ <span style="color:#d97706">${obj.major}</span>`);
+                    
+                    let historyString = changes.length > 0 ? changes.join('<br>') : "<i>Không có thay đổi dữ liệu thực tế.</i>";
+                    
+                    logAction("SỬA", historyString);
+                    lastEditedId = editIdValue; 
+                    showToast("Đã cập nhật thay đổi thành công!", "success");
+                } else {
+                    await addDoc(collection(db, "theses"), obj);
+                    logAction("THÊM", `<strong>Đề tài:</strong> ${title}<br><strong>Lớp:</strong> ${obj.studentClass} | <strong>Tác giả:</strong> ${author}`);
+                    showToast("Đã thêm đề tài mới!", "success");
+                }
+                resetForm();
+            } catch(e) { showToast("Lỗi lưu dữ liệu: " + e.message, "danger"); }
+        };
+
+        window.triggerEdit = (enD) => {
+            const t = JSON.parse(decodeURIComponent(enD));
+            originalEditData = t;
+            
+            document.getElementById('editId').value = t.id;
+            document.getElementById('addTitle').value = t.title||'';
+            document.getElementById('addAuthor').value = t.author||'';
+            document.getElementById('addAdvisor').value = t.advisor||'';
+            document.getElementById('addMajor').value = t.major||'Vật lý trị liệu';
+            
+            if (t.studentClass) {
+                let lvl = String(t.studentClass).startsWith('THS') ? 'THS' : 'CN';
+                let yr = String(t.studentClass).replace(lvl, '');
+                document.getElementById('addLevel').value = lvl; populateYears(lvl);
+                if(yr) document.getElementById('addYear').value = yr;
+            }
+            
+            if (t.studentClass) {
+                const targetLvl = String(t.studentClass).startsWith('THS') ? 'THS' : 'CN';
+                if (currentTab !== targetLvl) {
+                    document.querySelectorAll('.tab-btn').forEach(b => {
+                        b.classList.remove('active');
+                        if(b.getAttribute('data-tab') === targetLvl) b.classList.add('active');
+                    });
+                    currentTab = targetLvl;
+                    filterClass.value = 'Tất cả';
+                    currentPage = 1;
+                    updateDynamicFilters();
+                }
+            }
+            
+            isEditing = true;
+            document.getElementById('formTitle').innerText = 'Sửa đề tài';
+            document.getElementById('editModeBadge').classList.remove('hidden');
+            document.getElementById('btnCancelEditContainer').classList.remove('hidden');
+            document.getElementById('btnSaveData').innerText = 'Cập nhật';
+            document.getElementById('adminSection').scrollIntoView({behavior: 'smooth', block: 'start'});
+        };
+
+        document.getElementById('btnCancelEdit').onclick = resetForm;
+        function resetForm() {
+            isEditing = false; 
+            originalEditData = null; 
+            document.getElementById('editId').value = '';
+            document.getElementById('addTitle').value = ''; document.getElementById('addAuthor').value = ''; document.getElementById('addAdvisor').value = '';
+            document.getElementById('formTitle').innerText = 'Thêm đề tài mới';
+            document.getElementById('editModeBadge').classList.add('hidden');
+            document.getElementById('btnCancelEditContainer').classList.add('hidden');
+            document.getElementById('btnSaveData').innerText = 'Lưu dữ liệu';
+        }
+
+        document.getElementById('btnOpenBulk').onclick = () => { document.getElementById('bulkSection').classList.remove('hidden'); document.getElementById('adminSection').classList.add('hidden'); };
+        document.getElementById('btnCloseBulk').onclick = () => { document.getElementById('bulkSection').classList.add('hidden'); document.getElementById('adminSection').classList.remove('hidden'); };
+        
+        let uploadData = [];
+        document.getElementById('btnSelectFile').onclick = () => document.getElementById('excelFile').click();
+        
+        document.getElementById('btnDownloadTemplate').addEventListener('click', () => {
+            const templateData = [
+                ["Tác giả", "Tên đề tài", "Giảng viên hướng dẫn", "Lớp", "Chuyên ngành"],
+                ["Nguyễn Văn A", "Đánh giá chất lượng cuộc sống bệnh nhân...", "TS. Lê Thanh Vân", "CN2022", "Vật lý trị liệu"],
+                ["Trần Thị B", "Ứng dụng hoạt động trị liệu trên trẻ tự kỷ...", "ThS. Cao Minh Hạnh / ThS. Nguyễn Mai Ngọc Đoan", "THS2023", "Hoạt động trị liệu"]
+            ];
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(templateData);
+            ws['!cols'] = [ {wpx: 20}, {wpx: 50}, {wpx: 30}, {wpx: 15}, {wpx: 20} ];
+            XLSX.utils.book_append_sheet(wb, ws, "LuanVan_Mau");
+            XLSX.writeFile(wb, "Bieu_Mau_Nhap_Luan_Van.xlsx");
+        });
+
+        document.getElementById('excelFile').onchange = (e) => {
+            const f = e.target.files[0]; if(!f) return;
+            document.getElementById('fileNameDisplay').innerText = f.name;
+            const r = new FileReader();
+            r.onload = (ev) => {
+                const j = XLSX.utils.sheet_to_json(XLSX.read(new Uint8Array(ev.target.result), {type:'array'}).Sheets[XLSX.read(new Uint8Array(ev.target.result), {type:'array'}).SheetNames[0]], {header:1});
+                uploadData = j.slice(1).filter(r => r.length > 0);
+                if(uploadData.length > 0) {
+                    document.getElementById('btnUploadExcel').classList.remove('hidden');
+                    document.getElementById('bulkLog').innerText = `Sẵn sàng tải lên ${uploadData.length} đề tài.`;
+                }
+            };
+            r.readAsArrayBuffer(f);
+        };
+        
+        document.getElementById('btnUploadExcel').onclick = async () => {
+            if(!uploadData.length) return;
+            let success = 0; document.getElementById('btnUploadExcel').disabled = true;
+            for(const row of uploadData) {
+                try {
+                    await addDoc(collection(db, "theses"), { 
+                        author: row[0]?String(row[0]).trim():"Chưa rõ", 
+                        title: row[1]?String(row[1]).trim():"Chưa có tên", 
+                        advisor: row[2]?String(row[2]).trim():"Chưa rõ", 
+                        studentClass: row[3]?String(row[3]).trim():"CN2022", 
+                        major: row[4]?String(row[4]).trim():"Vật lý trị liệu",
+                        category: "Khác"
+                    });
+                    success++; document.getElementById('bulkLog').innerText = `Hoàn thành: ${success} / ${uploadData.length}`;
+                } catch(e){}
+            }
+            logAction("NHẬP EXCEL", `Đã nhập <b>${success}</b> đề tài hàng loạt.`);
+            showToast(`Hoàn tất tải lên ${success} đề tài!`, "success");
+            document.getElementById('btnCloseBulk').click();
+            uploadData = []; document.getElementById('excelFile').value = '';
+            document.getElementById('btnUploadExcel').disabled = false; document.getElementById('btnUploadExcel').classList.add('hidden');
+            document.getElementById('fileNameDisplay').innerText = "Chưa chọn file";
+        };
+    </script>
+</body>
+</html>
