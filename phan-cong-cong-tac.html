@@ -468,7 +468,6 @@
                 subjectsData = [];
                 snapSubjects.forEach(doc => {
                     const d = doc.data();
-                    // Đảm bảo lấy đúng id "sub_..." từ dữ liệu của file CSV nếu có
                     d.id = d.id || doc.id;
                     d.credits = parseInt(d.credits) || 0;
                     d.theory = parseInt(d.theory) || 0;
@@ -1085,6 +1084,12 @@
             const currentSub = subjectsData.find(s => s.id === currentEditingSubId);
             const semester = currentSub.name.toLowerCase().includes("công việc chuyên môn khác") ? 'Tất cả' : document.getElementById('asgSemester').value;
             
+            // XÁC ĐỊNH ĐỊNH HƯỚNG CỦA MÔN HỌC (Nếu có)
+            let orientationValue = '';
+            if (currentSub.orientations && currentSub.orientations.length === 1) {
+                orientationValue = currentSub.orientations[0] === 'UD' ? 'Ứng dụng' : 'Nghiên cứu';
+            }
+            
             const blocks = document.querySelectorAll('#allocContainer .gv-block');
             let allocations = [];
             
@@ -1131,7 +1136,9 @@
             for (let gv of externalGVsToSave) { try { await setDoc(doc(collection(db, "visiting_lecturers")), { name: gv }); } catch(e){} }
 
             const assignStatus = isHOD ? 'approved' : 'proposed';
-            let updateData = { semester: semester, status: assignStatus };
+            
+            // CẬP NHẬT: GHI NHẬN THÊM TRƯỜNG ORIENTATION VÀO DATA
+            let updateData = { semester: semester, status: assignStatus, orientation: orientationValue };
             if (isHOD) {
                 updateData.allocations = allocations;
                 updateData.proposed_allocations = [];
@@ -1145,6 +1152,11 @@
             // TỰ ĐỘNG ĐỒNG BỘ MÔN TRÙNG TÊN (VD: UD VÀ NC) DỰA THEO TỶ LỆ
             const twinSub = subjectsData.find(s => s.name === currentSub.name && s.id !== currentSub.id);
             if (twinSub) {
+                let twinOrientationValue = '';
+                if (twinSub.orientations && twinSub.orientations.length === 1) {
+                    twinOrientationValue = twinSub.orientations[0] === 'UD' ? 'Ứng dụng' : 'Nghiên cứu';
+                }
+
                 let twinAllocations = [];
                 allocations.forEach(a => {
                     let twinAssigned = a.assigned;
@@ -1160,7 +1172,8 @@
                     }
                 });
 
-                let twinUpdateData = { semester: semester, status: assignStatus };
+                // CẬP NHẬT: GHI NHẬN THÊM TRƯỜNG ORIENTATION VÀO BẢN ĐỒNG BỘ MÔN ANH EM
+                let twinUpdateData = { semester: semester, status: assignStatus, orientation: twinOrientationValue };
                 if (isHOD) {
                     twinUpdateData.allocations = twinAllocations;
                     twinUpdateData.proposed_allocations = [];
@@ -1302,7 +1315,10 @@
             for (let gv of externalGVsToSave) { try { await setDoc(doc(collection(db, "visiting_lecturers")), { name: gv }); } catch(e){} }
 
             const assignStatus = isHOD ? 'approved' : 'proposed';
-            let updateData = { semester: semester, status: assignStatus };
+            
+            // LUẬN VĂN MẶC ĐỊNH LÀ KHÔNG CÓ ĐỊNH HƯỚNG TỪ MÔN HỌC (vì là đồ án cuối kỳ)
+            let updateData = { semester: semester, status: assignStatus, orientation: '' };
+            
             if (isHOD) {
                 updateData.allocations = allocations;
                 updateData.proposed_allocations = [];
