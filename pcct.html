@@ -18,7 +18,7 @@
 
         .hidden { display: none !important; }
         
-        /* Tabs & Controls MỚI DỰA TRÊN MẢNG CHỌN */
+        /* Tabs & Controls */
         .controls-wrapper { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; background: var(--surface); padding: 15px 20px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 20px; gap: 15px; box-shadow: var(--shadow-sm); }
         
         .filter-controls { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; width: 100%; }
@@ -399,7 +399,6 @@
 
         const taskOptions = ["Lý thuyết", "Thực hành", "Thực tế", "Ra đề thi", "Coi thi", "Chấm thi", "Soạn mới, sửa BG/GT", "Công việc khác"];
 
-        // Các hàm Getter hỗ trợ lấy trạng thái bộ lọc hiện tại
         window.getCurrentClass = () => document.getElementById('filterClass').value;
         window.getCurrentOrient = () => document.getElementById('filterOrient').value;
         
@@ -407,18 +406,14 @@
             const c = window.getCurrentClass();
             const o = window.getCurrentOrient();
 
-            // Kiểm tra môn có phải của Bộ môn PHCN không
             const isNotPHCN = (sub.isPHCN === false) || (sub.department && sub.department !== 'Bộ môn Phục hồi chức năng' && sub.department !== 'Bộ môn PHCN');
 
             if (isNotPHCN) {
-                // Môn ngoài BM -> Chỉ dùng mã lớp (Chia sẻ chung giữa NC và UD)
                 return c;
             }
 
-            // Môn của BM PHCN -> Lưu tách biệt theo Lớp + Định hướng + Chuyên ngành
             let key = c;
             if (c.toUpperCase().includes('THS')) {
-                // Mặc định NC nếu ALL
                 key += `_${o === 'ALL' ? 'NC' : o}`; 
             }
 
@@ -448,7 +443,7 @@
             if (cls.toUpperCase().includes('THS')) {
                 orientSel.disabled = false;
                 if (!orientSel.value || orientSel.value === 'ALL') {
-                    orientSel.value = 'NC'; // Ép kiểu mặc định an toàn cho Lớp THS
+                    orientSel.value = 'NC'; 
                 }
             } else {
                 orientSel.disabled = true;
@@ -471,7 +466,6 @@
             subjectsData.forEach(s => {
                 if (!s.classArray.includes(cls) && cls !== 'ALL') return;
                 
-                // Môn có chia định hướng (thuộc THS)
                 if (cls.toUpperCase().includes('THS') && orient !== 'ALL' && !s.name.toLowerCase().includes("công việc chuyên môn khác")) {
                     if (s.orientations && s.orientations.length > 0 && !s.orientations.includes(orient)) return;
                 }
@@ -531,11 +525,9 @@
                     d.theory = parseInt(d.theory) || 0;
                     d.practice = parseInt(d.practice) || 0;
                     
-                    // Lấy trạng thái của BM nào phụ trách
-                    d.isPHCN = d.isPHCN; // Từ Database
+                    d.isPHCN = d.isPHCN; 
                     d.department = d.department || '';
 
-                    // Phân tách Class linh hoạt
                     if (d.class) {
                         if (Array.isArray(d.class)) {
                             d.classArray = d.class.map(c => c.trim());
@@ -556,7 +548,6 @@
                         d.orientations = d.orientations.split(',').map(s => s.trim()).filter(s => s);
                     }
                     
-                    // TÍNH TOÁN QUY ĐỔI SỐ BUỔI VÀ GÁN TAG CHUYÊN NGÀNH
                     d.theorySessions = (d.theory || 0) * 3; 
                     if (d.name && d.name.toLowerCase().includes("thực hành lâm sàng")) {
                         d.practiceSessions = (d.practice || 0) * 8; 
@@ -582,7 +573,6 @@
                     subjectsData.push(d);
                 });
 
-                // Render dữ liệu Lớp học động
                 const filterClassEl = document.getElementById('filterClass');
                 filterClassEl.innerHTML = '';
                 const sortedClasses = Array.from(tempClasses).sort((a,b) => b.localeCompare(a)); 
@@ -594,7 +584,6 @@
                     filterClassEl.innerHTML = `<option value="ALL">Chưa có dữ liệu</option>`;
                 }
 
-                // Sắp xếp môn học theo cấu trúc Khung chương trình
                 subjectsData.sort((a, b) => {
                     let idxA = GROUP_ORDER.indexOf(a.group);
                     let idxB = GROUP_ORDER.indexOf(b.group);
@@ -636,8 +625,11 @@
             }
         }
 
+        // TÍNH TIẾN ĐỘ VỚI ĐIỀU KIỆN ĐÃ QUA NGÀY HÔM SAU
         window.getCompletedSessions = (cls, orient, subName, gv, task) => {
-            const now = new Date();
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Đặt mốc 00:00 ngày hôm nay
+            
             let count = 0;
             let orientName = orient === 'NC' ? 'Nghiên cứu' : 'Ứng dụng';
             
@@ -648,7 +640,6 @@
                 let matchOrient = true;
                 if (cls.toUpperCase().includes('THS')) {
                     if (isNotPHCN) {
-                        // Môn ngoài BM -> Tính chung lịch
                         matchOrient = true;
                     } else {
                         matchOrient = (!e.orientation || e.orientation === 'Cả hai' || e.orientation === orientName || e.orientation.trim() === '');
@@ -657,7 +648,8 @@
 
                 if (e.class === cls && matchOrient && e.subject === subName && e.gv && e.gv.includes(gv) && e.task === task) {
                     let eventEnd = e.end ? new Date(e.end) : new Date(new Date(e.start).getTime() + 4 * 3600000);
-                    if (eventEnd < now) { count++; }
+                    // Chỉ tính là hoàn thành khi lịch đã trôi qua ngày hôm sau (eventEnd < today)
+                    if (eventEnd < today) { count++; }
                 }
             });
             return count;
@@ -744,7 +736,7 @@
                 }
                 
                 await fetchExternalData(); 
-                window.handleClassChange(); // Kích hoạt bộ lọc ban đầu
+                window.handleClassChange();
 
                 if (subjectsData.length === 0) {
                     document.getElementById('loadingScreen').innerHTML = "<i class='fas fa-exclamation-triangle'></i><br>Chưa có dữ liệu Danh sách Môn học trên hệ thống.";
@@ -1200,6 +1192,7 @@
         window.saveAssignment = async () => {
             const currentSub = subjectsData.find(s => s.id === currentEditingSubId);
             const semester = currentSub.name.toLowerCase().includes("công việc chuyên môn khác") ? 'Tất cả' : document.getElementById('asgSemester').value;
+            const cls = window.getCurrentClass();
             
             const blocks = document.querySelectorAll('#allocContainer .gv-block');
             let allocations = [];
@@ -1248,7 +1241,19 @@
 
             const assignStatus = isHOD ? 'approved' : 'proposed';
             
-            let updateData = { semester: semester, status: assignStatus };
+            let updateData = { 
+                semester: semester, 
+                status: assignStatus,
+                name: currentSub.name,
+                credits: currentSub.credits || 0,
+                theory: currentSub.theory || 0,
+                practice: currentSub.practice || 0,
+                department: currentSub.department || '',
+                isPHCN: currentSub.isPHCN !== undefined ? currentSub.isPHCN : true,
+                orientations: currentSub.orientations || [],
+                class: cls,
+                group: currentSub.group || ''
+            };
             
             if (isHOD) {
                 updateData.allocations = allocations;
@@ -1364,7 +1369,9 @@
         window.saveThesisAssignment = async () => {
             const currentSub = subjectsData.find(s => s.id === currentEditingSubId);
             const semester = document.getElementById('tasgSemester').value;
+            const cls = window.getCurrentClass();
             const blocks = document.querySelectorAll('#thesisAllocContainer .gv-block');
+            
             let allocations = [];
             const externalGVsToSave = new Set();
             let hasError = false;
@@ -1393,7 +1400,19 @@
 
             const assignStatus = isHOD ? 'approved' : 'proposed';
             
-            let updateData = { semester: semester, status: assignStatus };
+            let updateData = { 
+                semester: semester, 
+                status: assignStatus,
+                name: currentSub.name,
+                credits: currentSub.credits || 0,
+                theory: currentSub.theory || 0,
+                practice: currentSub.practice || 0,
+                department: currentSub.department || '',
+                isPHCN: currentSub.isPHCN !== undefined ? currentSub.isPHCN : true,
+                orientations: currentSub.orientations || [],
+                class: cls,
+                group: currentSub.group || ''
+            };
             
             if (isHOD) {
                 updateData.allocations = allocations;
