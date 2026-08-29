@@ -138,6 +138,7 @@
             
             .fc .fc-timegrid-axis, .fc .fc-timegrid-slot-label { width: 0 !important; padding: 0 !important; border: none !important; }
             .fc .fc-timegrid-slot-label-cushion, .fc .fc-timegrid-axis-cushion { display: none !important; }
+
             .fc-event-main, .fc-list-event-title { white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; }
             
             .inline-edit-form .form-row { flex-direction: column; gap: 5px; }
@@ -150,7 +151,6 @@
     <div id="toastContainer" class="toast-container"></div>
     <div id="eventTooltip"></div>
 
-    <!-- THANH CÔNG CỤ CHÍNH -->
     <div class="top-toolbar">
         <div>
             <h2>XẾP LỊCH CÔNG TÁC GIẢNG DẠY</h2>
@@ -177,7 +177,6 @@
     </div>
 
     <main>
-        <!-- KHO SỰ KIỆN DÀNH CHO ADMIN -->
         <div id="external-events">
             <h4>
                 <div><i class="fas fa-inbox"></i> Sự kiện cần xếp</div>
@@ -221,13 +220,11 @@
             </div>
         </div>
 
-        <!-- KHUNG LỊCH CHÍNH -->
         <div id="calendar-container">
             <div id="calendar"></div>
         </div>
     </main>
 
-    <!-- MODAL CHỌN PHÒNG HỌC & ĐỊNH HƯỚNG KHI THẢ THẺ TỪ KHO -->
     <div id="roomModal" class="modal-overlay hidden">
         <div class="modal-content">
             <div class="modal-header">
@@ -264,7 +261,6 @@
         </div>
     </div>
 
-    <!-- MODAL CHI TIẾT TỔ HỢP SỰ KIỆN (XEM/SỬA/XÓA) -->
     <div id="multiEventModal" class="modal-overlay hidden">
         <div class="modal-content" style="max-width: 650px;">
             <div class="modal-header" id="multiEventModalHeader" style="background: var(--primary);">
@@ -294,7 +290,6 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // CẤU HÌNH DANH SÁCH PHÒNG HỌC
         const ROOM_LIST = ["Phòng 3", "Phòng 4", "Phòng OT", "Phòng ST", "Hội trường"];
 
         let calendar;
@@ -304,7 +299,6 @@
         let currentUserName = '';
 
         let managedClasses = [];
-
         let assignmentsData = {};
         let scheduledEventsDB = []; 
         let subjectsData = [];
@@ -375,7 +369,7 @@
             }
         };
 
-        // Hàm Đếm Số Buổi Tiến Độ
+        // --- ĐẾM SỐ BUỔI ĐÃ XẾP ---
         window.getScheduledCount = (cls, targetOrientCode, subName, gv, task) => {
             let count = 0;
             let orientName = targetOrientCode === 'NC' ? 'Nghiên cứu' : (targetOrientCode === 'UD' ? 'Ứng dụng' : '');
@@ -668,8 +662,7 @@
                             eventClass: eventEl.getAttribute('data-class'),
                             orientations: eventEl.getAttribute('data-orientations'), 
                             semester: eventEl.getAttribute('data-semester'),
-                            remNc: parseInt(eventEl.getAttribute('data-rem-nc')) || 0,
-                            remUd: parseInt(eventEl.getAttribute('data-rem-ud')) || 0,
+                            maxRem: parseInt(eventEl.getAttribute('data-max-rem')) || 1,
                             type: 'normal' 
                         }
                     };
@@ -708,7 +701,6 @@
                             eTime = eObj.toLocaleTimeString('vi-VN', {hour: 'numeric', minute:'2-digit', hour12: false});
                         }
                         const timeStr = `${sTime}–${eTime}`;
-                        const count = props.events.length;
 
                         let itemsHtml = props.events.map(e => {
                             let gvDisplay = window.formatGvName(e.gv);
@@ -716,10 +708,12 @@
                             
                             let orientHtml = '';
                             if (e.orientation) {
-                                if (e.orientation === 'Cả hai' || e.orientation === 'Học chung / Không phân định hướng') {
-                                    orientHtml = `<div style="font-size: 0.7rem; color: #d97706; margin-top: 2px; font-weight:bold;"><i class="fas fa-users"></i> Học chung / Không phân ĐH</div>`;
+                                if (e.orientation === 'Nghiên cứu') {
+                                    orientHtml = `<div style="font-size: 0.7rem; color: #b45309; margin-top: 2px; font-weight:bold;"><i class="fas fa-compass"></i> Hệ: Nghiên cứu (NC)</div>`;
+                                } else if (e.orientation === 'Ứng dụng') {
+                                    orientHtml = `<div style="font-size: 0.7rem; color: #0369a1; margin-top: 2px; font-weight:bold;"><i class="fas fa-compass"></i> Hệ: Ứng dụng (UD)</div>`;
                                 } else {
-                                    orientHtml = `<div style="font-size: 0.7rem; color: #64748b; margin-top: 2px; font-style: italic;"><i class="fas fa-compass"></i> Hệ: ${e.orientation}</div>`;
+                                    orientHtml = `<div style="font-size: 0.7rem; color: #64748b; margin-top: 2px;"><i class="fas fa-users"></i> ${e.orientation}</div>`;
                                 }
                             }
 
@@ -751,38 +745,21 @@
                 // KHI KÉO THẺ TỪ KHO VÀO LỊCH CHÍNH
                 eventReceive: function(info) {
                     const props = info.event.extendedProps;
-                    
+                    const orientAttr = props.orientations || '';
+
                     const orientContainer = document.getElementById('modalOrientContainer');
                     const orientGroup = document.getElementById('orientGroup');
-                    
-                    let remNC = parseInt(props.remNc) || 0;
-                    let remUD = parseInt(props.remUd) || 0;
 
-                    let selectHtml = `<select id="modalOrientSelect" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border); font-size: 1rem; outline: none; border-color: #b45309; background-color: #fffbeb; font-weight: bold; color: #b45309;">`;
+                    let orientLabelText = orientAttr === 'NC' ? 'Nghiên cứu (NC)' : (orientAttr === 'UD' ? 'Ứng dụng (UD)' : 'Chung / Không phân định');
+                    if (orientAttr === 'Cả hai') orientLabelText = 'Học chung (NC & UD)';
                     
-                    if (remNC > 0 && remUD > 0) {
-                        let maxChung = Math.min(remNC, remUD);
-                        selectHtml += `<option value="Cả hai" data-max="${maxChung}" selected>Học chung (NC & UD) - Được phép xếp tối đa ${maxChung} buổi</option>`;
-                        selectHtml += `<option value="Nghiên cứu" data-max="${remNC}">Chỉ hướng Nghiên cứu (NC) - Được phép xếp tối đa ${remNC} buổi</option>`;
-                        selectHtml += `<option value="Ứng dụng" data-max="${remUD}">Chỉ hướng Ứng dụng (UD) - Được phép xếp tối đa ${remUD} buổi</option>`;
-                        orientGroup.classList.remove('hidden');
-                    } else if (remNC > 0) {
-                        selectHtml += `<option value="Nghiên cứu" data-max="${remNC}" selected>Chỉ hướng Nghiên cứu (NC) - Được phép xếp tối đa ${remNC} buổi</option>`;
-                        orientGroup.classList.remove('hidden');
-                    } else if (remUD > 0) {
-                        selectHtml += `<option value="Ứng dụng" data-max="${remUD}" selected>Chỉ hướng Ứng dụng (UD) - Được phép xếp tối đa ${remUD} buổi</option>`;
-                        orientGroup.classList.remove('hidden');
-                    } else {
-                        // Môn chung không phân nhánh
-                        selectHtml = `<input type="hidden" id="modalOrientSelect" value="Cả hai" data-max="999">`;
-                        orientGroup.classList.add('hidden');
-                    }
-                    
-                    if (remNC > 0 || remUD > 0) {
-                        selectHtml += `</select>`;
-                    }
-                    
-                    orientContainer.innerHTML = selectHtml;
+                    let finalOrientVal = orientAttr === 'NC' ? 'Nghiên cứu' : (orientAttr === 'UD' ? 'Ứng dụng' : 'Cả hai');
+
+                    orientContainer.innerHTML = `
+                        <input type="text" value="${orientLabelText}" readonly style="background:#f1f5f9; font-weight:bold; color:#b45309; border:1px solid #cbd5e1; padding:8px; width:100%; border-radius:4px; box-sizing:border-box;">
+                        <input type="hidden" id="modalOrientSelect" value="${finalOrientVal}">
+                    `;
+                    orientGroup.classList.remove('hidden');
 
                     pendingDropInfo = info;
                     document.getElementById('repeatWeeks').value = 1; 
@@ -939,8 +916,8 @@
                                             <input type="text" id="editCustomRoom" class="hidden" placeholder="Nhập tên phòng..." style="width:100%; padding:8px; border-radius:4px; border:1px solid var(--border); margin-top:5px; box-sizing: border-box;">
                                         </div>
                                         <div>
-                                            <label style="font-size:0.85rem; font-weight:bold; color:#64748b;">Định hướng (Không thể sửa)</label>
-                                            <div style="width:100%; padding:8px; border-radius:4px; border:1px solid #e2e8f0; background:#f8fafc; color:#64748b; font-size:0.9rem; box-sizing: border-box; cursor: not-allowed;" title="Để đổi định hướng, vui lòng Xóa thẻ và kéo xếp lại từ Kho sự kiện.">
+                                            <label style="font-size:0.85rem; font-weight:bold; color:#64748b;">Định hướng (Cố định)</label>
+                                            <div style="width:100%; padding:8px; border-radius:4px; border:1px solid #e2e8f0; background:#f8fafc; color:#64748b; font-size:0.9rem; box-sizing: border-box; cursor:not-allowed;" title="Để đổi định hướng, vui lòng Xóa thẻ và kéo xếp lại từ Kho sự kiện.">
                                                 ${firstItem.orientation || 'Học chung / Không phân ĐH'}
                                             </div>
                                             <input type="hidden" id="editOrient" value="${firstItem.orientation || 'Cả hai'}">
@@ -1018,6 +995,7 @@
 
             let targetEvents = scheduledEventsDB.filter(e => idArray.includes(e.id));
             
+            // Check trùng lặp và quyền
             for (let e of targetEvents) {
                 let canEdit = (e.scheduledByEmail === currentUserEmail || currentUserEmail === 'hoangtran1483@gmail.com');
                 if (!canEdit) {
@@ -1054,19 +1032,11 @@
             const props = info.event.extendedProps;
 
             const selectedRoom = (roomSelVal === 'OTHER' || roomSelVal === 'Khác...') ? customRoomVal : roomSelVal;
-
             document.getElementById('roomModal').classList.add('hidden');
 
-            let orientSelect = document.getElementById('modalOrientSelect');
-            let finalOrientation = orientSelect.value;
-            
-            // Validate Max sessions based on dataset attribute
-            let maxAllowed = 999;
-            if (orientSelect.options && orientSelect.selectedIndex > -1) {
-                let dataMax = orientSelect.options[orientSelect.selectedIndex].getAttribute('data-max');
-                if (dataMax) maxAllowed = parseInt(dataMax);
-            }
+            let finalOrientation = document.getElementById('modalOrientSelect').value;
 
+            let maxAllowed = props.maxRem || 99;
             if (repeatWeeks > maxAllowed) {
                  showToast(`Số buổi lặp lại (${repeatWeeks}) vượt quá số buổi cho phép (${maxAllowed}) của lựa chọn này!`, "danger");
                  info.revert(); pendingDropInfo = null; return; 
@@ -1134,6 +1104,7 @@
             document.getElementById('roomModal').classList.add('hidden');
         };
 
+        // --- TẠO DANH SÁCH THẺ KHO (TÁCH BIỆT HỌC CHUNG VÀ CÒN DƯ) ---
         window.processAndRenderEvents = () => {
             if (!calendar) return;
 
@@ -1174,7 +1145,6 @@
                         if (major === "Vật lý trị liệu") shortMajor = "VLTL";
                         else if (major === "Hoạt động trị liệu") shortMajor = "HĐTL";
                         else if (major === "Ngôn ngữ trị liệu") shortMajor = "NNTL";
-                        
                         return shortMajor === calendarMajorFilter || shortMajor === 'ALL'; 
                     }
                     return true;
@@ -1185,7 +1155,7 @@
             scheduledEventsNormal.forEach(e => {
                 let sTime = new Date(e.start).getTime();
                 let eTime = e.end ? new Date(e.end).getTime() : sTime + 4.5 * 3600 * 1000;
-                let deduplicateKey = `${sTime}_${eTime}_${e.room}_${e.subject}_${e.task}_${e.gv}`;
+                let deduplicateKey = `${sTime}_${eTime}_${e.room}_${e.subject}_${e.task}_${e.gv}_${e.orientation}`;
 
                 if (!deduplicatedEventsMap.has(deduplicateKey)) {
                     deduplicatedEventsMap.set(deduplicateKey, e);
@@ -1222,8 +1192,8 @@
             calendar.addEventSource(currentClassEvents);
 
 
-            // --------- 2. RENDER KHO SỰ KIỆN ---------
-            let poolTasksMap = new Map(); 
+            // --------- 2. RENDER KHO SỰ KIỆN (Bóc tách thẻ chung và riêng) ---------
+            let rawTaskMap = new Map();
 
             subjectsData.forEach(sub => {
                 if (poolSubjectFilter !== 'ALL' && sub.name !== poolSubjectFilter) return;
@@ -1249,8 +1219,6 @@
                     if (dbKey.includes('_NC')) dbOrientCode = 'NC';
                     else if (dbKey.includes('_UD')) dbOrientCode = 'UD';
 
-                    if (poolOrientFilter !== 'ALL' && dbOrientCode !== '' && dbOrientCode !== poolOrientFilter) return;
-
                     const asgData = asgObj[dbKey];
                     if (asgData && asgData.allocations && asgData.status !== 'proposed') {
                         const semester = asgData.semester || 'Chưa xác định';
@@ -1258,18 +1226,16 @@
 
                         asgData.allocations.forEach(a => {
                             const totalAssigned = parseInt(a.assigned) || 0;
-                            
                             const mapKey = `${sub.id}_${a.gv}_${a.task}_${clsMatch}`;
-                            if (!poolTasksMap.has(mapKey)) {
-                                poolTasksMap.set(mapKey, {
+                            
+                            if (!rawTaskMap.has(mapKey)) {
+                                rawTaskMap.set(mapKey, {
                                     subName: sub.name, subId: sub.id, cls: clsMatch, gv: a.gv, task: a.task,
-                                    totalNC: 0, totalUD: 0, totalGeneral: 0,
-                                    returnedTasks: [],
-                                    semester: semester
+                                    totalNC: 0, totalUD: 0, totalGeneral: 0, semester: semester
                                 });
                             }
                             
-                            let taskData = poolTasksMap.get(mapKey);
+                            let taskData = rawTaskMap.get(mapKey);
                             if (dbOrientCode === 'NC') taskData.totalNC += totalAssigned;
                             else if (dbOrientCode === 'UD') taskData.totalUD += totalAssigned;
                             else taskData.totalGeneral += totalAssigned;
@@ -1278,17 +1244,35 @@
                 });
             });
 
-            // Tính toán số buổi còn lại
-            poolTasksMap.forEach((taskData, mapKey) => {
-                let scheduledNC = window.getScheduledCount(taskData.cls, 'NC', taskData.subName, taskData.gv, taskData.task);
-                let scheduledUD = window.getScheduledCount(taskData.cls, 'UD', taskData.subName, taskData.gv, taskData.task);
-                let scheduledGeneral = window.getScheduledCount(taskData.cls, '', taskData.subName, taskData.gv, taskData.task);
+            let poolTasksList = [];
 
-                taskData.remNC = Math.max(0, taskData.totalNC - scheduledNC);
-                taskData.remUD = Math.max(0, taskData.totalUD - scheduledUD);
-                taskData.remGeneral = Math.max(0, taskData.totalGeneral - scheduledGeneral);
-                
-                taskData.displayRem = Math.max(taskData.remNC, taskData.remUD, taskData.remGeneral);
+            // Chuyển đổi Dữ liệu Tổng thành Thẻ (Bóc tách giao tập hợp)
+            rawTaskMap.forEach((data, mapKey) => {
+                let scheduledNC = window.getScheduledCount(data.cls, 'NC', data.subName, data.gv, data.task);
+                let scheduledUD = window.getScheduledCount(data.cls, 'UD', data.subName, data.gv, data.task);
+                let scheduledGeneral = window.getScheduledCount(data.cls, '', data.subName, data.gv, data.task);
+
+                let remNC = Math.max(0, data.totalNC - scheduledNC);
+                let remUD = Math.max(0, data.totalUD - scheduledUD);
+                let remGeneral = Math.max(0, data.totalGeneral - scheduledGeneral);
+
+                if (data.totalGeneral > 0 && remGeneral > 0) {
+                    poolTasksList.push({ ...data, orientCode: '', remaining: remGeneral });
+                } else if (data.totalNC > 0 || data.totalUD > 0) {
+                    let shared = Math.min(remNC, remUD);
+                    let onlyNC = remNC - shared;
+                    let onlyUD = remUD - shared;
+
+                    if (shared > 0 && (poolOrientFilter === 'ALL' || poolOrientFilter === 'NC' || poolOrientFilter === 'UD')) {
+                        poolTasksList.push({ ...data, orientCode: 'Cả hai', remaining: shared });
+                    }
+                    if (onlyNC > 0 && (poolOrientFilter === 'ALL' || poolOrientFilter === 'NC')) {
+                        poolTasksList.push({ ...data, orientCode: 'NC', remaining: onlyNC });
+                    }
+                    if (onlyUD > 0 && (poolOrientFilter === 'ALL' || poolOrientFilter === 'UD')) {
+                        poolTasksList.push({ ...data, orientCode: 'UD', remaining: onlyUD });
+                    }
+                }
             });
 
             // Add returned events
@@ -1297,19 +1281,16 @@
                     if (poolClassFilter !== 'ALL' && e.class !== poolClassFilter) return;
                     if (poolSubjectFilter !== 'ALL' && e.subject !== poolSubjectFilter) return;
 
-                    const mapKey = `reject_${e.id}`;
-                    poolTasksMap.set(mapKey, {
+                    poolTasksList.push({
                         isRejected: true, rTask: e, subName: e.subject, subId: e.subject, cls: e.class, gv: e.gv, task: e.task, semester: e.semester
                     });
                 }
             });
 
             let subjectGroups = new Map();
-            poolTasksMap.forEach((data, mapKey) => {
-                if (data.displayRem > 0 || data.isRejected) {
-                    if (!subjectGroups.has(data.subName)) subjectGroups.set(data.subName, []);
-                    subjectGroups.get(data.subName).push(data);
-                }
+            poolTasksList.forEach((item) => {
+                if (!subjectGroups.has(item.subName)) subjectGroups.set(item.subName, []);
+                subjectGroups.get(item.subName).push(item);
             });
 
             const orderedSubjectNames = Array.from(subjectGroups.keys()).sort((a,b) => a.localeCompare(b, 'vi'));
@@ -1353,31 +1334,13 @@
                         eventDiv.setAttribute('data-semester', item.semester);       
 
                         let rBadge = `<span class="reject-badge"><i class="fas fa-exclamation-circle"></i> Bị từ chối (Trả về)</span>`;
-
-                        eventDiv.innerHTML = `
-                            ${classTag}
-                            <div class="event-gv" title="${item.gv}">${gvDisplay}</div>
-                            <span class="event-info">[${item.task}]</span>
-                            ${rBadge}
-                        `;
+                        eventDiv.innerHTML = `${classTag}<div class="event-gv">${gvDisplay}</div><span class="event-info">[${item.task}]</span>${rBadge}`;
                     } else {
-                        let orientAttr = '';
-                        let orientDisplay = '';
-                        if (item.remNC > 0 && item.remUD > 0) {
-                            orientAttr = 'NC,UD';
-                            orientDisplay = '<div class="badge-orient badge-chung" style="display:block; text-align:center; margin-bottom:5px;">Học chung (NC & UD)</div>';
-                        } else if (item.remNC > 0) {
-                            orientAttr = 'NC';
-                            orientDisplay = '<div class="badge-orient badge-nc" style="display:block; text-align:center; margin-bottom:5px;">Hệ Nghiên cứu</div>';
-                        } else if (item.remUD > 0) {
-                            orientAttr = 'UD';
-                            orientDisplay = '<div class="badge-orient badge-ud" style="display:block; text-align:center; margin-bottom:5px;">Hệ Ứng dụng</div>';
-                        } else {
-                            orientDisplay = '<div class="badge-orient badge-chung" style="display:block; text-align:center; margin-bottom:5px;">Học chung / Không phân ĐH</div>';
-                        }
+                        let orientAttr = item.orientCode === 'Cả hai' ? 'Cả hai' : (item.orientCode === 'NC' ? 'NC' : (item.orientCode === 'UD' ? 'UD' : ''));
+                        let orientDisplay = item.orientCode === 'Cả hai' ? '<div class="badge-orient badge-chung" style="display:block; text-align:center; margin-bottom:5px;">Học chung (NC & UD)</div>' : (item.orientCode === 'NC' ? '<div class="badge-orient badge-nc" style="display:block; text-align:center; margin-bottom:5px;">Hệ Nghiên cứu</div>' : (item.orientCode === 'UD' ? '<div class="badge-orient badge-ud" style="display:block; text-align:center; margin-bottom:5px;">Hệ Ứng dụng</div>' : '<div class="badge-orient badge-chung" style="display:block; text-align:center; margin-bottom:5px;">Chung / Không phân ĐH</div>'));
 
                         eventDiv.className = `fc-event ${item.cls}`;
-                        eventDiv.setAttribute('data-id', `${item.subId}_${item.gv}_${item.task}_${item.cls}`); 
+                        eventDiv.setAttribute('data-id', `${item.subId}_${item.orientCode}_${item.gv}_${item.task}_${item.cls}`); 
                         eventDiv.setAttribute('data-title', item.gv); 
                         eventDiv.setAttribute('data-subject', item.subName);
                         eventDiv.setAttribute('data-gv', item.gv);
@@ -1385,10 +1348,9 @@
                         eventDiv.setAttribute('data-class', item.cls);
                         eventDiv.setAttribute('data-orientations', orientAttr); 
                         eventDiv.setAttribute('data-semester', item.semester);
-                        eventDiv.setAttribute('data-rem-nc', item.remNC);       
-                        eventDiv.setAttribute('data-rem-ud', item.remUD);       
+                        eventDiv.setAttribute('data-max-rem', item.remaining);       
 
-                        let countBadge = `<div class="count-badge">${item.displayRem}</div>`;
+                        let countBadge = `<div class="count-badge">${item.remaining}</div>`;
 
                         eventDiv.innerHTML = `
                             ${countBadge}
