@@ -310,13 +310,13 @@
             return 'CHUNG';
         };
 
-        // --- HÀM KIỂM TRA LỚP MẸ/CON ---
+        // --- HÀM KIỂM TRA LỚP MẸ/CON CHUẨN XÁC ---
         window.isClassMatch = (eventClass, filterClass) => {
             if (!eventClass || !filterClass) return false;
             if (eventClass === filterClass) return true;
             // Nếu chọn lớp cha (VD: THS2026), lịch là lớp con (THS2026-ĐỢT 1) -> Cho phép hiển thị
             if (eventClass.startsWith(filterClass + '-')) return true;
-            // Nếu chọn lớp con (VD: THS2026-ĐỢT 1), lịch là lớp cha (THS2026 chung) -> Cho phép hiển thị
+            // Nếu chọn lớp con (VD: THS2026-ĐỢT 1), lịch là lớp cha (THS2026) -> Cho phép hiển thị
             if (filterClass.startsWith(eventClass + '-')) return true;
             return false;
         };
@@ -412,14 +412,13 @@
             return count;
         };
 
-        // --- HÀM KIỂM TRA TRÙNG LẶP THÔNG MINH (XỬ LÝ LỚP MẸ/ĐỢT & ĐỊNH HƯỚNG) ---
+        // --- HÀM KIỂM TRA TRÙNG LẶP THÔNG MINH ---
         function hasOverlap(targetStartStr, targetEndStr, gvStr, targetClass, targetTask, targetRoom, targetSubject, targetOrient, ignoreEventIds) {
             let ignoreList = Array.isArray(ignoreEventIds) ? ignoreEventIds : [ignoreEventIds];
             let tStart = new Date(targetStartStr).getTime();
             let tEnd = targetEndStr ? new Date(targetEndStr).getTime() : tStart + 4.5 * 3600000;
             let targetOrientNorm = window.normalizeOrient(targetOrient);
             
-            // Tách lớp mẹ. VD: THS2026-ĐỢT 1 -> THS2026
             let targetBaseClass = targetClass ? targetClass.split('-')[0].trim() : '';
 
             let allSubEvents = [];
@@ -445,19 +444,16 @@
                     let eOrientNorm = window.normalizeOrient(e.orientation);
                     let eBaseClass = e.class ? e.class.split('-')[0].trim() : '';
                     
-                    // NGOẠI LỆ 1: Cùng môn, cùng lớp tuyệt đối, nhưng khác định hướng (Gộp NC và UD)
                     let isSameSubjectAndClass = (e.class === targetClass && e.subject === targetSubject);
                     let isDifferentSpecificOrient = (eOrientNorm !== 'CHUNG' && targetOrientNorm !== 'CHUNG' && eOrientNorm !== targetOrientNorm);
 
-                    // NGOẠI LỆ 2: Cùng môn, cùng lớp mẹ, nhưng khác đợt học
                     let isSameSubjectAndBaseClass = (eBaseClass === targetBaseClass && e.subject === targetSubject);
                     let isDifferentBatch = (e.class !== targetClass);
 
                     if ((isSameSubjectAndClass && isDifferentSpecificOrient) || (isSameSubjectAndBaseClass && isDifferentBatch)) {
-                        continue; // Cho phép trùng hoàn toàn
+                        continue; 
                     }
 
-                    // --- CÒN LẠI CHỐNG XẾP TRÙNG BÌNH THƯỜNG ---
                     if (targetRoom && e.room && targetRoom !== 'Khác...' && targetRoom !== 'OTHER' && e.room === targetRoom) {
                         return { hasOverlap: true, reason: `Phòng ${targetRoom} đã có lớp khác học vào khung giờ này!` };
                     }
@@ -1148,6 +1144,8 @@
             const calendarMajorFilter = document.getElementById('calendarMajorFilter') ? document.getElementById('calendarMajorFilter').value : 'ALL';
             
             const poolClassFilter = document.getElementById('poolClassFilter') ? document.getElementById('poolClassFilter').value : 'ALL'; 
+            const poolSemesterFilter = document.getElementById('poolSemesterFilter') ? document.getElementById('poolSemesterFilter').value : 'ALL'; 
+            const poolMajorFilter = document.getElementById('poolMajorFilter') ? document.getElementById('poolMajorFilter').value : 'ALL';
             const poolOrientFilter = document.getElementById('poolOrientFilter') ? document.getElementById('poolOrientFilter').value : 'ALL';
 
             // --------- 1. RENDER LỊCH CHÍNH ---------
@@ -1186,9 +1184,8 @@
                 let sTime = new Date(e.start).getTime();
                 let eTime = e.end ? new Date(e.end).getTime() : sTime + 4.5 * 3600 * 1000;
                 
-                // Gom chung nếu cùng giờ, phòng, môn, GV, định hướng VÀ lớp mẹ
-                let eBaseClass = e.class ? e.class.split('-')[0].trim() : '';
-                let deduplicateKey = `${sTime}_${eTime}_${e.room}_${e.subject}_${e.task}_${e.gv}_${e.orientation}_${eBaseClass}`;
+                // --- SỬA Ở ĐÂY: Dùng e.class thay vì eBaseClass để KHÔNG NÉN MẤT LỚP ĐỢT KHÁC NHAU ---
+                let deduplicateKey = `${sTime}_${eTime}_${e.room}_${e.subject}_${e.task}_${e.gv}_${e.orientation}_${e.class}`;
 
                 if (!deduplicatedEventsMap.has(deduplicateKey)) {
                     deduplicatedEventsMap.set(deduplicateKey, e);
@@ -1229,6 +1226,9 @@
             let rawTaskMap = new Map();
 
             subjectsData.forEach(sub => {
+                const poolSubjectFilter = document.getElementById('poolSubjectFilter').value;
+                if (poolSubjectFilter !== 'ALL' && sub.name !== poolSubjectFilter) return;
+
                 const poolMajorFilter = document.getElementById('poolMajorFilter').value;
                 let major = sub.majorTag || 'ALL';
                 let shortMajor = major;
@@ -1339,6 +1339,9 @@
             scheduledEventsDB.forEach(e => {
                 if (e.status === 'returned') {
                     if (poolClassFilter !== 'ALL' && !window.isClassMatch(e.class, poolClassFilter)) return;
+
+                    const poolSubjectFilter = document.getElementById('poolSubjectFilter').value;
+                    if (poolSubjectFilter !== 'ALL' && e.subject !== poolSubjectFilter) return;
 
                     poolTasksList.push({
                         isRejected: true, rTask: e, subName: e.subject, subId: e.subject, cls: e.class, gv: e.gv, task: e.task, semester: e.semester
