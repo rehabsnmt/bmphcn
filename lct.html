@@ -180,10 +180,10 @@
                 <div><i class="fas fa-inbox"></i> Sự kiện cần xếp</div>
                 
                 <div class="pool-filter-container">
-                    <select id="poolClassFilter" class="pool-filter" onchange="updatePoolSubjectFilter(); processAndRenderEvents();">
+                    <select id="poolClassFilter" class="pool-filter" onchange="processAndRenderEvents();">
                         <option value="ALL">Đang tải...</option>
                     </select>
-                    <select id="poolOrientFilter" class="pool-filter" onchange="updatePoolSubjectFilter(); processAndRenderEvents();">
+                    <select id="poolOrientFilter" class="pool-filter" onchange="processAndRenderEvents();">
                         <option value="ALL">Cả 2 Hướng</option>
                         <option value="NC">Nghiên cứu</option>
                         <option value="UD">Ứng dụng</option>
@@ -191,10 +191,10 @@
                 </div>
                 
                 <div class="pool-filter-container">
-                    <select id="poolMajorFilter" class="pool-filter" onchange="updatePoolSubjectFilter(); processAndRenderEvents();">
+                    <select id="poolMajorFilter" class="pool-filter" onchange="processAndRenderEvents();">
                         <option value="ALL">Tất cả Ngành</option>
                     </select>
-                    <select id="poolSemesterFilter" class="pool-filter" onchange="updatePoolSubjectFilter(); processAndRenderEvents();">
+                    <select id="poolSemesterFilter" class="pool-filter" onchange="processAndRenderEvents();">
                         <option value="ALL">Tất cả Học kỳ</option>
                         <option value="Học kỳ 1">Học kỳ 1</option>
                         <option value="Học kỳ 2">Học kỳ 2</option>
@@ -412,57 +412,6 @@
             return count;
         };
 
-        window.updatePoolSubjectFilter = () => {
-            const select = document.getElementById('poolSubjectFilter');
-            if (!select) return;
-            const currentVal = select.value;
-            select.innerHTML = '<option value="ALL">Tất cả Môn học</option>';
-            
-            const poolClass = document.getElementById('poolClassFilter').value;
-            const poolOrient = document.getElementById('poolOrientFilter').value;
-            const poolMajor = document.getElementById('poolMajorFilter').value;
-
-            let assignedSubjectNames = new Set();
-            
-            subjectsData.forEach(sub => {
-                let major = sub.majorTag || 'ALL';
-                let shortMajor = major;
-                if (major === "Vật lý trị liệu") shortMajor = "VLTL";
-                else if (major === "Hoạt động trị liệu") shortMajor = "HĐTL";
-                else if (major === "Ngôn ngữ trị liệu") shortMajor = "NNTL";
-
-                if (poolMajor !== 'ALL' && shortMajor !== poolMajor && shortMajor !== 'ALL') return;
-
-                const asgObj = assignmentsData[sub.id];
-                if (asgObj) {
-                    Object.keys(asgObj).forEach(dbKey => {
-                        let clsMatch = null;
-                        managedClasses.forEach(c => { 
-                            if (dbKey.includes(c)) {
-                                if (!clsMatch || c.length > clsMatch.length) clsMatch = c;
-                            }
-                        });
-                        
-                        if (!clsMatch) return;
-                        
-                        if (poolClass !== 'ALL' && !window.isClassMatch(clsMatch, poolClass)) return;
-                        if (poolOrient !== 'ALL' && dbKey.includes('_') && !dbKey.includes(`_${poolOrient}_`) && !dbKey.endsWith(`_${poolOrient}`)) return;
-
-                        const asgData = asgObj[dbKey];
-                        if (asgData && asgData.allocations && asgData.allocations.length > 0 && asgData.status !== 'proposed') {
-                            assignedSubjectNames.add(sub.name);
-                        }
-                    });
-                }
-            });
-            
-            const uniqueSubjects = Array.from(assignedSubjectNames).sort((a,b) => a.localeCompare(b, 'vi'));
-            uniqueSubjects.forEach(name => { select.innerHTML += `<option value="${name}">${name}</option>`; });
-            
-            if (uniqueSubjects.includes(currentVal)) select.value = currentVal;
-            else select.value = 'ALL';
-        };
-
         // --- HÀM KIỂM TRA TRÙNG LẶP THÔNG MINH (XỬ LÝ LỚP MẸ/ĐỢT & ĐỊNH HƯỚNG) ---
         function hasOverlap(targetStartStr, targetEndStr, gvStr, targetClass, targetTask, targetRoom, targetSubject, targetOrient, ignoreEventIds) {
             let ignoreList = Array.isArray(ignoreEventIds) ? ignoreEventIds : [ignoreEventIds];
@@ -470,6 +419,7 @@
             let tEnd = targetEndStr ? new Date(targetEndStr).getTime() : tStart + 4.5 * 3600000;
             let targetOrientNorm = window.normalizeOrient(targetOrient);
             
+            // Tách lớp mẹ. VD: THS2026-ĐỢT 1 -> THS2026
             let targetBaseClass = targetClass ? targetClass.split('-')[0].trim() : '';
 
             let allSubEvents = [];
@@ -682,7 +632,6 @@
                 onSnapshot(collection(db, "assignments"), (snapshot) => {
                     assignmentsData = {};
                     snapshot.forEach(doc => { assignmentsData[doc.id] = doc.data(); });
-                    window.updatePoolSubjectFilter();
                     window.processAndRenderEvents();
                 }, (error) => console.error(error));
 
@@ -801,7 +750,6 @@
                     }
                 },
 
-                // KHI KÉO THẺ TỪ KHO VÀO LỊCH CHÍNH
                 eventReceive: function(info) {
                     try {
                         const props = info.event.extendedProps;
@@ -1009,7 +957,6 @@
                             let orientText = eNorm === 'NC' ? 'Hệ Nghiên cứu (NC)' : (eNorm === 'UD' ? 'Hệ Ứng dụng (UD)' : 'Học chung / Không phân ĐH');
                             let orientHtml = `<p style="margin:0 0 5px 0; color:var(--text-dark);"><strong>Phạm vi:</strong> <span style="font-weight:bold; color:${eNorm==='NC'?'#b45309':(eNorm==='UD'?'#0369a1':'#d97706')};">${orientText}</span></p>`;
 
-                            // --- TÌM THÔNG TIN MÔN HỌC CHI TIẾT ---
                             let subObj = subjectsData.find(s => s.name === e.subject);
                             let extraSubInfo = '';
                             if (subObj) {
@@ -1201,8 +1148,6 @@
             const calendarMajorFilter = document.getElementById('calendarMajorFilter') ? document.getElementById('calendarMajorFilter').value : 'ALL';
             
             const poolClassFilter = document.getElementById('poolClassFilter') ? document.getElementById('poolClassFilter').value : 'ALL'; 
-            const poolSemesterFilter = document.getElementById('poolSemesterFilter') ? document.getElementById('poolSemesterFilter').value : 'ALL'; 
-            const poolMajorFilter = document.getElementById('poolMajorFilter') ? document.getElementById('poolMajorFilter').value : 'ALL';
             const poolOrientFilter = document.getElementById('poolOrientFilter') ? document.getElementById('poolOrientFilter').value : 'ALL';
 
             // --------- 1. RENDER LỊCH CHÍNH ---------
@@ -1243,7 +1188,7 @@
                 
                 // Gom chung nếu cùng giờ, phòng, môn, GV, định hướng VÀ lớp mẹ
                 let eBaseClass = e.class ? e.class.split('-')[0].trim() : '';
-                let deduplicateKey = `${sTime}_${eTime}_${e.room}_${e.subject}_${e.task}_${e.gv}_${e.orientation}_${e.class}`;
+                let deduplicateKey = `${sTime}_${eTime}_${e.room}_${e.subject}_${e.task}_${e.gv}_${e.orientation}_${eBaseClass}`;
 
                 if (!deduplicatedEventsMap.has(deduplicateKey)) {
                     deduplicatedEventsMap.set(deduplicateKey, e);
@@ -1284,9 +1229,6 @@
             let rawTaskMap = new Map();
 
             subjectsData.forEach(sub => {
-                const poolSubjectFilter = document.getElementById('poolSubjectFilter').value;
-                if (poolSubjectFilter !== 'ALL' && sub.name !== poolSubjectFilter) return;
-
                 const poolMajorFilter = document.getElementById('poolMajorFilter').value;
                 let major = sub.majorTag || 'ALL';
                 let shortMajor = major;
@@ -1397,9 +1339,6 @@
             scheduledEventsDB.forEach(e => {
                 if (e.status === 'returned') {
                     if (poolClassFilter !== 'ALL' && !window.isClassMatch(e.class, poolClassFilter)) return;
-
-                    const poolSubjectFilter = document.getElementById('poolSubjectFilter').value;
-                    if (poolSubjectFilter !== 'ALL' && e.subject !== poolSubjectFilter) return;
 
                     poolTasksList.push({
                         isRejected: true, rTask: e, subName: e.subject, subId: e.subject, cls: e.class, gv: e.gv, task: e.task, semester: e.semester
