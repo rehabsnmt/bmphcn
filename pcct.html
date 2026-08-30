@@ -49,7 +49,6 @@
         .badge-ud { background-color: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; }
         .badge-nc { background-color: #fef08a; color: #b45309; border: 1px solid #fde047; }
         .badge-credits { background-color: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; margin-left: 8px; white-space: nowrap; }
-        .badge-joint { background-color: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; margin-left: 6px; white-space: nowrap; display: inline-block; }
         
         .proposal-box { background: #fefce8; padding: 10px; border-radius: 6px; border: 1px dashed #facc15; margin-top: 10px; }
         .proposal-badge { background-color: #fef08a; color: #b45309; border: 1px solid #fde047; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; margin-left: 5px; animation: pulse 2s infinite; display: inline-block; }
@@ -207,20 +206,23 @@
                         <th style="min-width: 320px;">Tên Học phần</th>
                         <th style="width: 120px;">Học kỳ</th>
                         <th style="min-width: 320px;">Phân công Giảng viên</th>
-                        <th style="width: 180px;">Tiến độ (Chỉ tính LT/TH)</th>
+                        <th style="width: 220px;">Tiến độ (Chỉ tính LT/TH)</th>
                         <th class="col-action hidden" style="width: 100px; text-align: center;">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody">
-                    </tbody>
+                    <!-- Dữ liệu JS -->
+                </tbody>
             </table>
         </div>
     </main>
 
+    <!-- NÚT NỔI DASHBOARD TỔNG QUAN -->
     <div class="fab-dashboard" onclick="openMiniDashboard()" title="Xem tổng quan Tín chỉ">
         <i class="fas fa-chart-pie"></i>
     </div>
 
+    <!-- MODAL DASHBOARD TỔNG QUAN TÍN CHỈ -->
     <div id="miniDashboardModal" class="modal-overlay hidden" style="z-index: 3000;">
         <div class="modal-content">
             <button class="modal-close" onclick="document.getElementById('miniDashboardModal').classList.add('hidden')">X</button>
@@ -228,7 +230,8 @@
             <div style="text-align: center; font-weight: bold; color: #d97706; margin-bottom: 25px; font-size: 0.95rem; border-bottom: 1px dashed var(--border); padding-bottom: 10px;" id="dashClassName"></div>
             
             <div id="dashboardGrid" style="display: flex; flex-direction: column; gap: 15px;">
-                </div>
+                <!-- JS Đổ dữ liệu vào đây -->
+            </div>
             
             <div style="text-align: center; margin-top: 30px; font-weight: 800; font-size: 1.3rem; color: #be123c; padding-top: 15px; border-top: 2px solid #cbd5e1;">
                 TỔNG CỘNG TOÀN KHÓA: <span id="dashTotalCredits">0</span> TC
@@ -236,6 +239,7 @@
         </div>
     </div>
 
+    <!-- MODAL CHI TIẾT MÔN HỌC -->
     <div id="subjectModal" class="modal-overlay hidden">
         <div class="modal-content">
             <button class="modal-close" onclick="document.getElementById('subjectModal').classList.add('hidden')">X</button>
@@ -266,15 +270,18 @@
         </div>
     </div>
 
+    <!-- MODAL CHI TIẾT ĐỀ TÀI (THESIS INFO) -->
     <div id="thesisDetailModal" class="modal-overlay hidden" style="z-index: 3500;">
         <div class="modal-content" style="max-width: 500px;">
             <button class="modal-close" onclick="document.getElementById('thesisDetailModal').classList.add('hidden')">X</button>
             <h3 style="color: var(--primary); margin-top: 0; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Thông tin Luận văn / Đề án</h3>
             <div id="thesisDetailContent" style="margin-top: 15px; line-height: 1.8; color: var(--text-dark); font-size: 0.95rem;">
-                </div>
+                <!-- Dữ liệu được đổ qua JS -->
+            </div>
         </div>
     </div>
 
+    <!-- MODAL PHÂN CÔNG MÔN THƯỜNG -->
     <div id="assignModal" class="modal-overlay hidden">
         <div class="modal-content" style="max-width: 900px;">
             <button class="modal-close" onclick="document.getElementById('assignModal').classList.add('hidden')">X</button>
@@ -307,13 +314,14 @@
                     </select>
                 </div>
 
-                <div id="asgJointContainer" style="flex: 1.5; min-width: 280px; background: #f0fdf4; padding: 10px 15px; border-radius: 6px; border: 1px solid #bbf7d0;">
+                <!-- Ô CHỌN ĐỒNG BỘ PHÂN CÔNG CHÉO -->
+                <div id="syncSiblingContainer" class="hidden" style="flex: 1.5; min-width: 280px; background: #f0fdf4; padding: 10px 15px; border-radius: 6px; border: 1px solid #bbf7d0;">
                     <label style="font-weight: 700; display: flex; align-items: center; gap: 8px; cursor: pointer; color: #166534;">
-                        <input type="checkbox" id="asgAllowJoint" checked style="width: 18px; height: 18px; cursor: pointer;">
-                        <span><i class="fas fa-layer-group"></i> Cho phép gộp nhóm / học chung</span>
+                        <input type="checkbox" id="asgSyncSibling" checked style="width: 18px; height: 18px; cursor: pointer;">
+                        <span><i class="fas fa-sync-alt"></i> Tự động đồng bộ cho hệ còn lại</span>
                     </label>
                     <div style="font-size: 0.78rem; color: #15803d; margin-top: 4px; font-style: italic;">
-                        Thuật toán xếp lịch sẽ gom các chuyên ngành cùng lớp/định hướng học chung buổi khi phù hợp.
+                        Phân công này sẽ được tự động sao chép sang định hướng kia (NC/UD) nếu môn này học cả 2 hệ.
                     </div>
                 </div>
             </div>
@@ -329,6 +337,7 @@
         </div>
     </div>
 
+    <!-- MODAL PHÂN CÔNG ĐỀ ÁN / LUẬN VĂN -->
     <div id="thesisAssignModal" class="modal-overlay hidden">
         <div class="modal-content" style="max-width: 900px;">
             <button class="modal-close" onclick="document.getElementById('thesisAssignModal').classList.add('hidden')">X</button>
@@ -344,12 +353,21 @@
                 <i class="fas fa-exclamation-circle"></i> Đang hiển thị Bản đề xuất. Trưởng BM có thể điều chỉnh và bấm "Duyệt".
             </div>
 
-            <div style="margin-bottom: 20px; max-width: 300px;">
-                <label style="font-weight: 600; display: block; margin-bottom: 5px;">Học kỳ:</label>
-                <select id="tasgSemester" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border); outline: none;">
-                    <option value="Học kỳ 3">Học kỳ 3</option>
-                    <option value="Học kỳ 4" selected>Học kỳ 4</option>
-                </select>
+            <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap; margin-bottom: 20px;">
+                <div style="flex: 1; min-width: 200px;">
+                    <label style="font-weight: 600; display: block; margin-bottom: 5px;">Học kỳ:</label>
+                    <select id="tasgSemester" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border); outline: none;">
+                        <option value="Học kỳ 3">Học kỳ 3</option>
+                        <option value="Học kỳ 4" selected>Học kỳ 4</option>
+                    </select>
+                </div>
+                
+                <div id="thesisSyncSiblingContainer" class="hidden" style="flex: 1.5; min-width: 280px; background: #f0fdf4; padding: 10px 15px; border-radius: 6px; border: 1px solid #bbf7d0;">
+                    <label style="font-weight: 700; display: flex; align-items: center; gap: 8px; cursor: pointer; color: #166534;">
+                        <input type="checkbox" id="tasgSyncSibling" checked style="width: 18px; height: 18px; cursor: pointer;">
+                        <span><i class="fas fa-sync-alt"></i> Tự động đồng bộ cho hệ còn lại</span>
+                    </label>
+                </div>
             </div>
 
             <div style="border-top: 1px solid var(--border); padding-top: 15px; margin-bottom: 15px;">
@@ -646,12 +664,13 @@
                     if (isNotPHCN) {
                         matchOrient = true;
                     } else {
-                        matchOrient = (!e.orientation || e.orientation === 'Cả hai' || e.orientation === 'Học chung / Không phân định hướng' || e.orientation === orientName || e.orientation.trim() === '');
+                        matchOrient = (!e.orientation || e.orientation === 'Cả hai' || e.orientation === 'Học chung (NC & UD)' || e.orientation === 'Học chung / Không phân định hướng' || e.orientation === orientName || e.orientation.trim() === '');
                     }
                 }
 
                 if (e.class === cls && matchOrient && e.subject === subName && e.gv && e.gv.includes(gv) && e.task === task) {
                     let eventEnd = e.end ? new Date(e.end) : new Date(new Date(e.start).getTime() + 4 * 3600000);
+                    // Chỉ tính là hoàn thành khi lịch đã trôi qua ngày hôm sau (eventEnd < today)
                     if (eventEnd < today) { count++; }
                 }
             });
@@ -870,11 +889,11 @@
             }
             
             let creditsBadge = `<span class="badge-credits">${sub.credits || 0} TC</span>`;
-            let jointBadge = asg.allowJoint !== false ? `<span class="badge-joint" title="Cho phép gộp nhóm học chung giữa các chuyên ngành"><i class="fas fa-layer-group"></i> Gộp nhóm</span>` : '';
             
             let gvHtml = '';
             let progressHtml = '';
             let completedLT_TH = 0;
+            let totalAssignedLT_TH = 0;
 
             let approvedHtml = buildAllocationHTML(asg.allocations, false, sub.name, isThesis);
             let proposedHtml = '';
@@ -893,6 +912,7 @@
                 } else {
                     asg.allocations.forEach(t => {
                         if (t.task === 'Lý thuyết' || t.task === 'Thực hành' || t.task === 'Thực tế') {
+                            totalAssignedLT_TH += (parseInt(t.assigned) || 0);
                             completedLT_TH += window.getCompletedSessions(cls, orient, sub.name, t.gv, t.task);
                         }
                     });
@@ -906,7 +926,13 @@
                     let displayCompleted = Math.min(completedLT_TH, sub.totalSessions);
                     const pct = sub.totalSessions > 0 ? Math.min(100, Math.round((displayCompleted / sub.totalSessions) * 100)) : 100;
                     let pColor = '#16a34a'; if (pct < 50) pColor = '#f59e0b'; if (pct === 0) pColor = '#e2e8f0';
-                    progressHtml = `<div class="progress-container"><div class="progress-bar" style="width: ${pct}%; background-color: ${pColor};"></div></div><span class="progress-text">${displayCompleted} / ${sub.totalSessions} buổi (${pct}%)</span>`;
+                    progressHtml = `
+                        <div style="font-size:0.85rem; margin-bottom:3px; font-weight:700; color:var(--primary);">
+                            Đã phân công: ${totalAssignedLT_TH} / ${sub.totalSessions} buổi
+                        </div>
+                        <div class="progress-container"><div class="progress-bar" style="width: ${pct}%; background-color: ${pColor};"></div></div>
+                        <span class="progress-text">Đã dạy: ${displayCompleted} / ${sub.totalSessions} buổi (${pct}%)</span>
+                    `;
                 }
             }
 
@@ -923,7 +949,7 @@
                     <td align="center" style="font-weight:bold; color:#94a3b8;">${sttIndex}</td>
                     <td>
                         <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div class="subject-link" onclick="openSubjectModal('${sub.id}')">${sub.name} ${orientTag} ${creditsBadge} ${jointBadge} ${statusBadge}</div>
+                            <div class="subject-link" onclick="openSubjectModal('${sub.id}')">${sub.name} ${orientTag} ${creditsBadge} ${statusBadge}</div>
                             <div class="mobile-toggle-btn" onclick="toggleMobileRow(this)"><i class="fas fa-chevron-down"></i></div>
                         </div>
                     </td>
@@ -993,7 +1019,7 @@
             const sub = subjectsData.find(s => s.id === id);
             
             const dbKey = window.getDbKey(sub);
-            const asg = (assignmentsDB[id] && assignmentsDB[id][dbKey]) || { semester: '', allocations: [], proposed_allocations: [], status: 'approved', allowJoint: true };
+            const asg = (assignmentsDB[id] && assignmentsDB[id][dbKey]) || { semester: '', allocations: [], proposed_allocations: [], status: 'approved' };
             const isProposed = asg.status === 'proposed';
 
             if(sub.name && (sub.name.includes("Luận văn") || sub.name.includes("Đề án"))) {
@@ -1025,6 +1051,13 @@
                     btnSave.classList.replace('btn-success', 'btn-primary');
                 }
 
+                // Hiển thị nút Sync
+                if (cls.toUpperCase().includes('THS') && orient !== 'ALL' && sub.orientations && sub.orientations.includes('NC') && sub.orientations.includes('UD')) {
+                    document.getElementById('thesisSyncSiblingContainer').classList.remove('hidden');
+                } else {
+                    document.getElementById('thesisSyncSiblingContainer').classList.add('hidden');
+                }
+
                 if (!targetAllocations || targetAllocations.length === 0) { 
                     addStudentBlock(); 
                 } else {
@@ -1051,13 +1084,17 @@
                 if (sub.name.toLowerCase().includes("công việc chuyên môn khác")) {
                     document.getElementById('asgLimits').classList.add('hidden');
                     document.getElementById('asgSemesterContainer').classList.add('hidden');
-                    document.getElementById('asgJointContainer').classList.add('hidden');
+                    document.getElementById('syncSiblingContainer').classList.add('hidden');
                 } else {
                     document.getElementById('asgLimits').classList.remove('hidden');
                     document.getElementById('asgSemesterContainer').classList.remove('hidden');
-                    document.getElementById('asgJointContainer').classList.remove('hidden');
                     document.getElementById('asgSemester').value = asg.semester;
-                    document.getElementById('asgAllowJoint').checked = asg.allowJoint !== false;
+
+                    if (cls.toUpperCase().includes('THS') && orient !== 'ALL' && sub.orientations && sub.orientations.includes('NC') && sub.orientations.includes('UD')) {
+                        document.getElementById('syncSiblingContainer').classList.remove('hidden');
+                    } else {
+                        document.getElementById('syncSiblingContainer').classList.add('hidden');
+                    }
                 }
                 
                 document.getElementById('allocContainer').innerHTML = '';
@@ -1199,8 +1236,9 @@
         window.saveAssignment = async () => {
             const currentSub = subjectsData.find(s => s.id === currentEditingSubId);
             const semester = currentSub.name.toLowerCase().includes("công việc chuyên môn khác") ? 'Tất cả' : document.getElementById('asgSemester').value;
-            const allowJoint = document.getElementById('asgAllowJoint') ? document.getElementById('asgAllowJoint').checked : true;
             const cls = window.getCurrentClass();
+            const orient = window.getCurrentOrient();
+            const syncSibling = document.getElementById('asgSyncSibling') ? document.getElementById('asgSyncSibling').checked : false;
             
             const blocks = document.querySelectorAll('#allocContainer .gv-block');
             let allocations = [];
@@ -1260,8 +1298,7 @@
                 isPHCN: currentSub.isPHCN !== undefined ? currentSub.isPHCN : true,
                 orientations: currentSub.orientations || [],
                 class: cls,
-                group: currentSub.group || '',
-                allowJoint: allowJoint
+                group: currentSub.group || ''
             };
             
             if (isHOD) {
@@ -1272,8 +1309,23 @@
             }
 
             let dbKey = window.getDbKey(currentSub);
+            let updates = { [dbKey]: updateData };
+
+            // Tự động sao chép sang định hướng còn lại nếu bật Sync
+            if (syncSibling && cls.toUpperCase().includes('THS') && orient !== 'ALL') {
+                let siblingOrient = orient === 'NC' ? 'UD' : 'NC';
+                let major = currentSub.majorTag || 'ALL';
+                let shortMajor = major;
+                if (major === "Vật lý trị liệu") shortMajor = "VLTL";
+                else if (major === "Hoạt động trị liệu") shortMajor = "HĐTL";
+                else if (major === "Ngôn ngữ trị liệu") shortMajor = "NNTL";
+                
+                let siblingKey = `${cls}_${siblingOrient}_${shortMajor}`;
+                updates[siblingKey] = updateData; 
+            }
+
             try {
-                await setDoc(doc(db, "assignments", currentEditingSubId), { [dbKey]: updateData }, { merge: true });
+                await setDoc(doc(db, "assignments", currentEditingSubId), updates, { merge: true });
                 document.getElementById('assignModal').classList.add('hidden');
                 showToast(isHOD ? "Lưu phân công thành công!" : "Đã gửi đề xuất thành công!");
             } catch (e) { showToast("Lỗi khi lưu: " + e.message, "danger"); }
@@ -1379,8 +1431,10 @@
             const currentSub = subjectsData.find(s => s.id === currentEditingSubId);
             const semester = document.getElementById('tasgSemester').value;
             const cls = window.getCurrentClass();
+            const orient = window.getCurrentOrient();
+            const syncSibling = document.getElementById('tasgSyncSibling') ? document.getElementById('tasgSyncSibling').checked : false;
+
             const blocks = document.querySelectorAll('#thesisAllocContainer .gv-block');
-            
             let allocations = [];
             const externalGVsToSave = new Set();
             let hasError = false;
@@ -1431,8 +1485,22 @@
             }
 
             let dbKey = window.getDbKey(currentSub);
+            let updates = { [dbKey]: updateData };
+
+            if (syncSibling && cls.toUpperCase().includes('THS') && orient !== 'ALL') {
+                let siblingOrient = orient === 'NC' ? 'UD' : 'NC';
+                let major = currentSub.majorTag || 'ALL';
+                let shortMajor = major;
+                if (major === "Vật lý trị liệu") shortMajor = "VLTL";
+                else if (major === "Hoạt động trị liệu") shortMajor = "HĐTL";
+                else if (major === "Ngôn ngữ trị liệu") shortMajor = "NNTL";
+                
+                let siblingKey = `${cls}_${siblingOrient}_${shortMajor}`;
+                updates[siblingKey] = updateData; 
+            }
+
             try {
-                await setDoc(doc(db, "assignments", currentEditingSubId), { [dbKey]: updateData }, { merge: true });
+                await setDoc(doc(db, "assignments", currentEditingSubId), updates, { merge: true });
                 document.getElementById('thesisAssignModal').classList.add('hidden');
                 showToast(isHOD ? "Lưu phân công HD Luận văn thành công!" : "Đã gửi đề xuất thành công!");
             } catch (e) { showToast("Lỗi khi lưu: " + e.message, "danger"); }
