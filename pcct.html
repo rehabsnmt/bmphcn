@@ -630,7 +630,7 @@
         // TÍNH TIẾN ĐỘ VỚI ĐIỀU KIỆN ĐÃ QUA NGÀY HÔM SAU
         window.getCompletedSessions = (cls, orient, subName, gv, task) => {
             const today = new Date();
-            today.setHours(0, 0, 0, 0); 
+            today.setHours(0, 0, 0, 0); // Đặt mốc 00:00 ngày hôm nay
             
             let count = 0;
             let orientName = orient === 'NC' ? 'Nghiên cứu' : 'Ứng dụng';
@@ -650,6 +650,7 @@
 
                 if (e.class === cls && matchOrient && e.subject === subName && e.gv && e.gv.includes(gv) && e.task === task) {
                     let eventEnd = e.end ? new Date(e.end) : new Date(new Date(e.start).getTime() + 4 * 3600000);
+                    // Chỉ tính là hoàn thành khi lịch đã trôi qua ngày hôm sau (eventEnd < today)
                     if (eventEnd < today) { count++; }
                 }
             });
@@ -902,15 +903,29 @@
                 if (sub.name.toLowerCase().includes("công việc chuyên môn khác")) {
                     progressHtml = `<span style="color:#94a3b8; font-size:0.85rem;">Công việc khác</span>`;
                 } else {
+                    let displayAssigned = Math.min(totalAssignedLT_TH, sub.totalSessions);
+                    const pctAssigned = sub.totalSessions > 0 ? Math.min(100, Math.round((displayAssigned / sub.totalSessions) * 100)) : 100;
+                    let pColorAssigned = '#0ea5e9'; if (pctAssigned < 100) pColorAssigned = '#38bdf8'; if (pctAssigned === 0) pColorAssigned = '#e2e8f0';
+
                     let displayCompleted = Math.min(completedLT_TH, sub.totalSessions);
-                    const pct = sub.totalSessions > 0 ? Math.min(100, Math.round((displayCompleted / sub.totalSessions) * 100)) : 100;
-                    let pColor = '#16a34a'; if (pct < 50) pColor = '#f59e0b'; if (pct === 0) pColor = '#e2e8f0';
+                    const pctCompleted = sub.totalSessions > 0 ? Math.min(100, Math.round((displayCompleted / sub.totalSessions) * 100)) : 100;
+                    let pColorCompleted = '#16a34a'; if (pctCompleted < 100) pColorCompleted = '#f59e0b'; if (pctCompleted === 0) pColorCompleted = '#e2e8f0';
+
                     progressHtml = `
-                        <div style="font-size:0.85rem; margin-bottom:3px; font-weight:700; color:var(--primary);">
-                            Đã phân công: ${totalAssignedLT_TH} / ${sub.totalSessions} buổi
+                        <div style="margin-bottom: 8px;">
+                            <div style="display:flex; justify-content:space-between; font-size:0.8rem; font-weight:700; color:var(--primary); margin-bottom:2px;">
+                                <span>Phân công: ${totalAssignedLT_TH}/${sub.totalSessions}</span>
+                                <span>${pctAssigned}%</span>
+                            </div>
+                            <div class="progress-container" style="height:6px;"><div class="progress-bar" style="width: ${pctAssigned}%; background-color: ${pColorAssigned};"></div></div>
                         </div>
-                        <div class="progress-container"><div class="progress-bar" style="width: ${pct}%; background-color: ${pColor};"></div></div>
-                        <span class="progress-text">Đã dạy: ${displayCompleted} / ${sub.totalSessions} buổi (${pct}%)</span>
+                        <div>
+                            <div style="display:flex; justify-content:space-between; font-size:0.8rem; font-weight:700; color:#15803d; margin-bottom:2px;">
+                                <span>Hoàn thành: ${displayCompleted}/${sub.totalSessions}</span>
+                                <span>${pctCompleted}%</span>
+                            </div>
+                            <div class="progress-container" style="height:6px;"><div class="progress-bar" style="width: ${pctCompleted}%; background-color: ${pColorCompleted};"></div></div>
+                        </div>
                     `;
                 }
             }
@@ -1247,11 +1262,10 @@
                 if (sumTH > currentSub.practiceSessions) { showToast(`Số buổi Thực hành (${sumTH}) vượt quá tối đa (${currentSub.practiceSessions})!`, "danger"); return; }
             }
 
-            // HỎI XÁC NHẬN PHÂN CÔNG CHÉO
+            // TỰ ĐỘNG PHÂN CÔNG CHÉO (Hệ thống tự nhận diện môn thuộc cả 2 hệ)
             let syncSibling = false;
             if (cls.toUpperCase().includes('THS') && orient !== 'ALL' && currentSub.orientations && currentSub.orientations.includes('NC') && currentSub.orientations.includes('UD')) {
-                let siblingOrientName = orient === 'NC' ? 'Ứng dụng (UD)' : 'Nghiên cứu (NC)';
-                syncSibling = confirm(`Học phần này áp dụng cho cả 2 định hướng.\n\nBạn có muốn ĐỒNG THỜI ÁP DỤNG phân công này cho định hướng còn lại [${siblingOrientName}] không?`);
+                syncSibling = true;
             }
 
             for (let gv of externalGVsToSave) { try { await setDoc(doc(collection(db, "visiting_lecturers")), { name: gv }); } catch(e){} }
@@ -1282,7 +1296,7 @@
             let dbKey = window.getDbKey(currentSub);
             let updates = { [dbKey]: updateData };
 
-            // Nếu người dùng chọn "OK" (Đồng ý) thì lưu chéo
+            // Thực thi lưu chéo
             if (syncSibling) {
                 let siblingOrient = orient === 'NC' ? 'UD' : 'NC';
                 let major = currentSub.majorTag || 'ALL';
@@ -1429,11 +1443,10 @@
 
             if (hasError) { showToast("Vui lòng nhập đầy đủ Tên Học viên và Giảng viên!", "danger"); return; }
 
-            // HỎI XÁC NHẬN PHÂN CÔNG CHÉO
+            // TỰ ĐỘNG PHÂN CÔNG CHÉO (Hệ thống tự nhận diện môn thuộc cả 2 hệ)
             let syncSibling = false;
             if (cls.toUpperCase().includes('THS') && orient !== 'ALL' && currentSub.orientations && currentSub.orientations.includes('NC') && currentSub.orientations.includes('UD')) {
-                let siblingOrientName = orient === 'NC' ? 'Ứng dụng (UD)' : 'Nghiên cứu (NC)';
-                syncSibling = confirm(`Học phần này áp dụng cho cả 2 định hướng.\n\nBạn có muốn ĐỒNG THỜI ÁP DỤNG phân công này cho định hướng còn lại [${siblingOrientName}] không?`);
+                syncSibling = true;
             }
 
             for (let gv of externalGVsToSave) { try { await setDoc(doc(collection(db, "visiting_lecturers")), { name: gv }); } catch(e){} }
