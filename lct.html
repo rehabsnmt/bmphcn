@@ -139,7 +139,9 @@
             
             .fc .fc-timegrid-axis, .fc .fc-timegrid-slot-label { width: 0 !important; padding: 0 !important; border: none !important; }
             .fc .fc-timegrid-slot-label-cushion, .fc .fc-timegrid-axis-cushion { display: none !important; }
+
             .fc-event-main, .fc-list-event-title { white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; }
+            
             .inline-edit-form .form-row { flex-direction: column; gap: 5px; }
         }
     </style>
@@ -212,7 +214,7 @@
                 </div>
             </h4>
             <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 10px; font-style: italic; line-height: 1.4;">
-                Kéo thẻ thả vào khung giờ bên phải để xếp lịch. Cho phép xếp trùng giờ đối với môn khác định hướng.
+                Kéo thẻ thả vào khung giờ bên phải để xếp lịch. Cho phép xếp trùng giờ đối với môn khác định hướng hoặc khác đợt.
             </div>
             <div id="event-pool">
                 <div style="text-align:center; padding: 20px;"><i class="fas fa-spinner fa-spin"></i> Đang tải...</div>
@@ -251,7 +253,7 @@
                     <label for="repeatWeeks"><i class="fas fa-redo"></i> Lặp lại hàng tuần:</label>
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <input type="number" id="repeatWeeks" value="1" min="1" max="15" style="width: 80px;">
-                        <span style="font-size: 0.9rem; font-weight: 600; color: var(--text-body);">tuần liên tiếp</span>
+                        <span style="font-size: 0.9rem; font-weight: 600; color: var(--text-body);">tuần liên tiếp (Cùng giờ, phòng)</span>
                     </div>
                 </div>
             </div>
@@ -432,7 +434,10 @@
                 const asgObj = assignmentsData[sub.id];
                 if (asgObj) {
                     Object.keys(asgObj).forEach(dbKey => {
-                        if (poolClass !== 'ALL' && !dbKey.includes(poolClass)) return;
+                        let clsMatch = managedClasses.find(c => dbKey.startsWith(c));
+                        if (!clsMatch) return;
+                        if (poolClassFilter !== 'ALL' && clsMatch !== poolClassFilter) return;
+
                         if (poolOrient !== 'ALL' && dbKey.includes('_') && !dbKey.includes(`_${poolOrient}_`) && !dbKey.endsWith(`_${poolOrient}`)) return;
 
                         const asgData = asgObj[dbKey];
@@ -456,6 +461,8 @@
             let tStart = new Date(targetStartStr).getTime();
             let tEnd = targetEndStr ? new Date(targetEndStr).getTime() : tStart + 4.5 * 3600000;
             let targetOrientNorm = window.normalizeOrient(targetOrient);
+            
+            let targetBaseClass = targetClass ? targetClass.split('-')[0].trim() : '';
 
             let allSubEvents = [];
             if (calendar) {
@@ -478,12 +485,18 @@
 
                 if (tStart < eEnd && tEnd > eStart) {
                     let eOrientNorm = window.normalizeOrient(e.orientation);
+                    let eBaseClass = e.class ? e.class.split('-')[0].trim() : '';
                     
+                    // NGOẠI LỆ 1: Cùng môn, cùng lớp tuyệt đối, nhưng khác định hướng (Gộp NC và UD)
                     let isSameSubjectAndClass = (e.class === targetClass && e.subject === targetSubject);
                     let isDifferentSpecificOrient = (eOrientNorm !== 'CHUNG' && targetOrientNorm !== 'CHUNG' && eOrientNorm !== targetOrientNorm);
 
-                    if (isSameSubjectAndClass && isDifferentSpecificOrient) {
-                        continue; // Cho phép trùng hoàn toàn nếu là 2 định hướng khác nhau của cùng 1 môn
+                    // NGOẠI LỆ 2: Cùng môn, cùng lớp lớn (ví dụ THS2026), nhưng khác đợt (VD ĐỢT 1 vs ĐỢT 2)
+                    let isSameSubjectAndBaseClass = (eBaseClass === targetBaseClass && e.subject === targetSubject);
+                    let isDifferentBatch = (e.class !== targetClass);
+
+                    if ((isSameSubjectAndClass && isDifferentSpecificOrient) || (isSameSubjectAndBaseClass && isDifferentBatch)) {
+                        continue; // Cho phép trùng hoàn toàn
                     }
 
                     if (targetRoom && e.room && targetRoom !== 'Khác...' && targetRoom !== 'OTHER' && e.room === targetRoom) {
@@ -987,7 +1000,7 @@
                             let orientText = eNorm === 'NC' ? 'Hệ Nghiên cứu (NC)' : (eNorm === 'UD' ? 'Hệ Ứng dụng (UD)' : 'Học chung / Không phân ĐH');
                             let orientHtml = `<p style="margin:0 0 5px 0; color:var(--text-dark);"><strong>Phạm vi:</strong> <span style="font-weight:bold; color:${eNorm==='NC'?'#b45309':(eNorm==='UD'?'#0369a1':'#d97706')};">${orientText}</span></p>`;
 
-                            // --- TÌM THÔNG TIN MÔN HỌC CHI TIẾT ĐỂ HIỂN THỊ ---
+                            // TÌM THÔNG TIN MÔN HỌC CHI TIẾT ĐỂ HIỂN THỊ
                             let subObj = subjectsData.find(s => s.name === e.subject);
                             let extraSubInfo = '';
                             if (subObj) {
@@ -1053,7 +1066,6 @@
             }
 
             const roomVal = (roomSelVal === 'OTHER' || roomSelVal === 'Khác...') ? customRoomVal : roomSelVal;
-
             const newStartStr = `${dateVal}T${startVal}:00`;
             const newEndStr = `${dateVal}T${endVal}:00`;
             const idArray = idsStr.split(',');
@@ -1141,7 +1153,6 @@
                 });
             }
 
-            // Xóa thẻ tạm thời ngay lập tức để tránh lỗi crash với Firebase
             info.event.remove(); 
             pendingDropInfo = null;
 
@@ -1185,7 +1196,6 @@
             const poolMajorFilter = document.getElementById('poolMajorFilter') ? document.getElementById('poolMajorFilter').value : 'ALL';
             const poolOrientFilter = document.getElementById('poolOrientFilter') ? document.getElementById('poolOrientFilter').value : 'ALL';
 
-            // CHỐT CHẶN BẢO VỆ LỊCH
             let scheduledEventsNormal = scheduledEventsDB.filter(e => e.status !== 'returned' && e.start);
 
             if (calendarClassFilter !== 'ALL') {
@@ -1275,8 +1285,7 @@
                 if (!asgObj) return;
 
                 Object.keys(asgObj).forEach(dbKey => {
-                    let clsMatch = null;
-                    managedClasses.forEach(c => { if (dbKey.includes(c)) clsMatch = c; });
+                    let clsMatch = managedClasses.find(c => dbKey.startsWith(c));
                     if (!clsMatch) return;
                     if (poolClassFilter !== 'ALL' && clsMatch !== poolClassFilter) return;
 
@@ -1289,7 +1298,6 @@
                         const semester = asgData.semester || 'Chưa xác định';
                         if (poolSemesterFilter !== 'ALL' && semester !== poolSemesterFilter) return; 
 
-                        // Tự động ép kiểu hệ nếu Database đang lưu bị thiếu định hướng
                         let actualOrient = dbOrientCode;
                         if (!actualOrient) {
                             let orients = asgData.orientations || sub.orientations || [];
@@ -1325,7 +1333,6 @@
 
             let poolTasksList = [];
 
-            // Chuyển đổi Dữ liệu Tổng thành Thẻ Kho
             rawTaskMap.forEach((data, mapKey) => {
                 let scheduledNC = window.getScheduledCount(data.cls, 'NC', data.subName, data.gv, data.task);
                 let scheduledUD = window.getScheduledCount(data.cls, 'UD', data.subName, data.gv, data.task);
