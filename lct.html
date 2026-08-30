@@ -225,7 +225,7 @@
         </div>
     </main>
 
-    <!-- MODAL CHỌN PHÒNG HỌC & ĐỊNH HƯỚNG -->
+    <!-- MODAL CHỌN PHÒNG HỌC & ĐỊNH HƯỚNG KHI THẢ THẺ TỪ KHO -->
     <div id="roomModal" class="modal-overlay hidden">
         <div class="modal-content">
             <div class="modal-header">
@@ -251,7 +251,7 @@
                     <label for="repeatWeeks"><i class="fas fa-redo"></i> Lặp lại hàng tuần:</label>
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <input type="number" id="repeatWeeks" value="1" min="1" max="15" style="width: 80px;">
-                        <span style="font-size: 0.9rem; font-weight: 600; color: var(--text-body);">tuần liên tiếp (Cùng giờ, phòng)</span>
+                        <span style="font-size: 0.9rem; font-weight: 600; color: var(--text-body);">tuần liên tiếp</span>
                     </div>
                 </div>
             </div>
@@ -483,7 +483,7 @@
                     let isDifferentSpecificOrient = (eOrientNorm !== 'CHUNG' && targetOrientNorm !== 'CHUNG' && eOrientNorm !== targetOrientNorm);
 
                     if (isSameSubjectAndClass && isDifferentSpecificOrient) {
-                        continue; // Bỏ qua trùng lặp nếu là môn ghép 2 định hướng
+                        continue; // Cho phép trùng hoàn toàn nếu là 2 định hướng khác nhau của cùng 1 môn
                     }
 
                     if (targetRoom && e.room && targetRoom !== 'Khác...' && targetRoom !== 'OTHER' && e.room === targetRoom) {
@@ -492,7 +492,6 @@
                     if (e.class === targetClass && blockingTasks.includes(targetTask) && blockingTasks.includes(e.task)) {
                         return { hasOverlap: true, reason: `Lớp ${targetClass} đã có lịch học/thi khác vào khung giờ này!` };
                     }
-                    
                     let targetGVs = gvStr ? gvStr.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
                     let eGVs = e.gv ? e.gv.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
                     let hasCommonGV = targetGVs.some(gv => eGVs.includes(gv));
@@ -988,10 +987,23 @@
                             let orientText = eNorm === 'NC' ? 'Hệ Nghiên cứu (NC)' : (eNorm === 'UD' ? 'Hệ Ứng dụng (UD)' : 'Học chung / Không phân ĐH');
                             let orientHtml = `<p style="margin:0 0 5px 0; color:var(--text-dark);"><strong>Phạm vi:</strong> <span style="font-weight:bold; color:${eNorm==='NC'?'#b45309':(eNorm==='UD'?'#0369a1':'#d97706')};">${orientText}</span></p>`;
 
+                            // --- TÌM THÔNG TIN MÔN HỌC CHI TIẾT ĐỂ HIỂN THỊ ---
+                            let subObj = subjectsData.find(s => s.name === e.subject);
+                            let extraSubInfo = '';
+                            if (subObj) {
+                                let majorText = subObj.majorTag === 'ALL' ? 'Chung / Đa chuyên ngành' : subObj.majorTag;
+                                extraSubInfo = `
+                                    <p style="margin:0 0 5px 0;"><strong>Chuyên ngành:</strong> ${majorText}</p>
+                                    <p style="margin:0 0 5px 0;"><strong>Khối lượng:</strong> ${subObj.credits || 0} TC (LT: ${subObj.theory || 0} - TH: ${subObj.practice || 0})</p>
+                                    <p style="margin:0 0 5px 0;"><strong>Đơn vị phụ trách:</strong> ${subObj.department || 'Bộ môn PHCN'}</p>
+                                `;
+                            }
+
                             html += `
                             <div style="background:#fff; border:1px solid #cbd5e1; border-radius:6px; padding:12px; margin-bottom:12px; position:relative; text-align: left; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
                                 <div style="position:absolute; right:12px; top:12px;">${delBtn}</div>
                                 <p style="margin:0 0 5px 0; font-size:1.05rem; color:var(--primary); font-weight:bold; padding-right:60px;">${e.subject}</p>
+                                ${extraSubInfo}
                                 <p style="margin:0 0 5px 0;"><strong>Khóa/Lớp:</strong> <span style="font-weight:bold;">${e.class}</span></p>
                                 ${orientHtml}
                                 <p style="margin:0 0 5px 0;"><strong>Phòng học:</strong> <span style="background:#fbbf24; color:#78350f; padding:2px 6px; border-radius:4px; font-weight:bold;">${e.room || 'Chưa XĐ'}</span></p>
@@ -1041,6 +1053,7 @@
             }
 
             const roomVal = (roomSelVal === 'OTHER' || roomSelVal === 'Khác...') ? customRoomVal : roomSelVal;
+
             const newStartStr = `${dateVal}T${startVal}:00`;
             const newEndStr = `${dateVal}T${endVal}:00`;
             const idArray = idsStr.split(',');
@@ -1411,8 +1424,17 @@
                         let rBadge = `<span class="reject-badge"><i class="fas fa-exclamation-circle"></i> Bị từ chối (Trả về)</span>`;
                         eventDiv.innerHTML = `${classTag}<div class="event-gv">${gvDisplay}</div><span class="event-info">[${item.task}]</span>${rBadge}`;
                     } else {
-                        let orientAttr = item.orientCode === 'Cả hai' ? 'Cả hai' : (item.orientCode === 'NC' ? 'NC' : (item.orientCode === 'UD' ? 'UD' : ''));
-                        let orientDisplay = item.orientCode === 'Cả hai' ? '<div class="badge-orient badge-chung" style="display:block; text-align:center; margin-bottom:5px;">Học chung (NC & UD)</div>' : (item.orientCode === 'NC' ? '<div class="badge-orient badge-nc" style="display:block; text-align:center; margin-bottom:5px;">Hệ Nghiên cứu</div>' : (item.orientCode === 'UD' ? '<div class="badge-orient badge-ud" style="display:block; text-align:center; margin-bottom:5px;">Hệ Ứng dụng</div>' : '<div class="badge-orient badge-chung" style="display:block; text-align:center; margin-bottom:5px;">Chung / Không phân ĐH</div>'));
+                        let normCode = window.normalizeOrient(item.orientCode);
+                        let orientAttr = normCode === 'NC' ? 'Nghiên cứu' : (normCode === 'UD' ? 'Ứng dụng' : 'Cả hai');
+                        
+                        let orientDisplay = '';
+                        if (normCode === 'NC') {
+                            orientDisplay = '<div class="badge-orient badge-nc" style="display:block; text-align:center; margin-bottom:5px;">Hệ Nghiên cứu (NC)</div>';
+                        } else if (normCode === 'UD') {
+                            orientDisplay = '<div class="badge-orient badge-ud" style="display:block; text-align:center; margin-bottom:5px;">Hệ Ứng dụng (UD)</div>';
+                        } else {
+                            orientDisplay = '<div class="badge-orient badge-chung" style="display:block; text-align:center; margin-bottom:5px;">Học chung (NC & UD)</div>';
+                        }
 
                         eventDiv.className = `fc-event ${item.cls}`;
                         eventDiv.setAttribute('data-id', `${item.subId}_${item.orientCode}_${item.gv}_${item.task}_${item.cls}`); 
