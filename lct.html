@@ -10,7 +10,6 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- FullCalendar CSS & JS -->
     <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/vi.js'></script>
@@ -150,7 +149,6 @@
     <div id="toastContainer" class="toast-container"></div>
     <div id="eventTooltip"></div>
 
-    <!-- THANH CÔNG CỤ CHÍNH -->
     <div class="top-toolbar">
         <div>
             <h2>XẾP LỊCH CÔNG TÁC GIẢNG DẠY</h2>
@@ -175,7 +173,6 @@
     </div>
 
     <main>
-        <!-- KHO SỰ KIỆN DÀNH CHO ADMIN -->
         <div id="external-events">
             <h4>
                 <div><i class="fas fa-inbox"></i> Sự kiện cần xếp</div>
@@ -219,13 +216,11 @@
             </div>
         </div>
 
-        <!-- KHUNG LỊCH CHÍNH -->
         <div id="calendar-container">
             <div id="calendar"></div>
         </div>
     </main>
 
-    <!-- MODAL CHỌN PHÒNG HỌC & ĐỊNH HƯỚNG KHI THẢ THẺ TỪ KHO -->
     <div id="roomModal" class="modal-overlay hidden">
         <div class="modal-content">
             <div class="modal-header">
@@ -235,15 +230,13 @@
                 <div class="form-group" id="orientGroup">
                     <label for="modalOrientSelect"><i class="fas fa-compass"></i> Định hướng áp dụng:</label>
                     <div id="modalOrientContainer">
-                        <!-- Selectbox Render By JS -->
-                    </div>
+                        </div>
                 </div>
 
                 <div class="form-group">
                     <label for="roomSelect"><i class="fas fa-map-marker-alt"></i> Phòng / Địa điểm:</label>
                     <select id="roomSelect" onchange="checkCustomRoom(this, 'customRoomInput')">
-                        <!-- Đổ dữ liệu từ JS -->
-                    </select>
+                        </select>
                     <input type="text" id="customRoomInput" class="hidden" placeholder="Nhập tên phòng/địa điểm..." style="margin-top: 5px; width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border); box-sizing: border-box;">
                 </div>
 
@@ -262,7 +255,6 @@
         </div>
     </div>
 
-    <!-- MODAL CHI TIẾT TỔ HỢP SỰ KIỆN (XEM/SỬA/XÓA) -->
     <div id="multiEventModal" class="modal-overlay hidden">
         <div class="modal-content" style="max-width: 650px;">
             <div class="modal-header" id="multiEventModalHeader" style="background: var(--primary);">
@@ -270,8 +262,7 @@
                 <span style="cursor: pointer; font-weight: bold; font-size: 1.2rem;" onclick="document.getElementById('multiEventModal').classList.add('hidden')">X</span>
             </div>
             <div class="modal-body" id="multiEventModalBody">
-                <!-- Nội dung được đổ bằng JS -->
-            </div>
+                </div>
             <div class="modal-footer">
                 <button class="btn-secondary" onclick="document.getElementById('multiEventModal').classList.add('hidden')">Đóng</button>
             </div>
@@ -306,6 +297,16 @@
         let subjectsData = [];
         let gvShortNameMap = {};
         let pendingDropInfo = null;
+
+        // --- HÀM CHUẨN HÓA ĐỊNH HƯỚNG ---
+        function normalizeOrient(orient) {
+            if (!orient) return 'CHUNG';
+            let str = String(orient).toUpperCase().trim();
+            if (str === 'NC' || str.includes('NGHIÊN CỨU')) return 'NC';
+            if (str === 'UD' || str.includes('ỨNG DỤNG')) return 'UD';
+            if (str === 'CẢ HAI' || str.includes('CHUNG') || str.includes('NC,UD') || str.includes('UD,NC')) return 'CHUNG';
+            return 'CHUNG';
+        }
 
         window.toggleSidebar = () => {
             const panel = document.getElementById('external-events');
@@ -371,21 +372,23 @@
             }
         };
 
-        // --- HÀM TÍNH TOÁN TIẾN ĐỘ ---
+        // --- ĐẾM SỐ BUỔI ĐÃ XẾP ---
         window.getScheduledCount = (cls, targetOrientCode, subName, gv, task) => {
             let count = 0;
-            let orientName = targetOrientCode === 'NC' ? 'Nghiên cứu' : (targetOrientCode === 'UD' ? 'Ứng dụng' : '');
+            let targetNorm = normalizeOrient(targetOrientCode);
 
             scheduledEventsDB.forEach(e => {
                 if (e.status === 'returned') return;
                 
+                let eNorm = normalizeOrient(e.orientation);
                 let matchOrient = false;
-                if (targetOrientCode === '') {
-                     matchOrient = true; // Môn chung đếm tất
+
+                if (targetNorm === 'CHUNG') {
+                    matchOrient = true;
                 } else {
-                     if (!e.orientation || e.orientation === 'Cả hai' || e.orientation === 'Học chung / Không phân định hướng' || e.orientation === 'Học chung (NC & UD)' || e.orientation === orientName) {
-                         matchOrient = true;
-                     }
+                    if (eNorm === 'CHUNG' || eNorm === targetNorm) {
+                        matchOrient = true;
+                    }
                 }
 
                 let eGVs = e.gv ? e.gv.split(/,|&/).map(s => s.trim()) : [];
@@ -438,14 +441,15 @@
             else select.value = 'ALL';
         };
 
-        // --- HÀM KIỂM TRA TRÙNG LẶP (ĐÃ UPDATE 9 BIẾN) ---
+        // --- HÀM KIỂM TRA TRÙNG LẶP THÔNG MINH ---
         function hasOverlap(targetStartStr, targetEndStr, gvStr, targetClass, targetTask, targetRoom, targetSubject, targetOrient, ignoreEventIds) {
             let ignoreList = Array.isArray(ignoreEventIds) ? ignoreEventIds : [ignoreEventIds];
             let tStart = new Date(targetStartStr).getTime();
             let tEnd = targetEndStr ? new Date(targetEndStr).getTime() : tStart + 4.5 * 3600000;
+            let targetOrientNorm = normalizeOrient(targetOrient);
 
             let allSubEvents = [];
-            if(calendar) {
+            if (calendar) {
                 calendar.getEvents().forEach(e => {
                     if (e.extendedProps && e.extendedProps.type === 'grouped_normal') {
                         allSubEvents.push(...e.extendedProps.events.map(subEv => ({
@@ -460,27 +464,25 @@
             for (let e of allSubEvents) {
                 if (ignoreList.includes(e.id)) continue; 
                 
-                let eStart = new Date(e.start || Date.now()).getTime(); // Đề phòng lỗi DB thiếu start
+                let eStart = new Date(e.start || Date.now()).getTime();
                 let eEnd = e.end ? new Date(e.end).getTime() : eStart + 4.5 * 3600000;
 
                 if (tStart < eEnd && tEnd > eStart) {
+                    let eOrientNorm = normalizeOrient(e.orientation);
                     
-                    // --- XÉT NGOẠI LỆ CHO PHÉP TRÙNG (Cùng Môn, Cùng Lớp nhưng Khác Hệ) ---
-                    let isSameClassAndSlot = (e.class === targetClass && e.subject === targetSubject);
-                    let isDifferentOrient = (e.orientation && targetOrient && e.orientation !== targetOrient && e.orientation !== 'Cả hai' && targetOrient !== 'Cả hai');
+                    let isSameSubjectAndClass = (e.class === targetClass && e.subject === targetSubject);
+                    let isDifferentSpecificOrient = (eOrientNorm !== 'CHUNG' && targetOrientNorm !== 'CHUNG' && eOrientNorm !== targetOrientNorm);
 
-                    if (isSameClassAndSlot && isDifferentOrient) {
-                        continue; // Bỏ qua, cho phép xếp đè
+                    if (isSameSubjectAndClass && isDifferentSpecificOrient) {
+                        continue; // Cho phép trùng hoàn toàn nếu là 2 định hướng khác nhau của cùng 1 môn
                     }
 
-                    // --- CÒN LẠI CHỐNG XẾP TRÙNG BÌNH THƯỜNG ---
                     if (targetRoom && e.room && targetRoom !== 'Khác...' && targetRoom !== 'OTHER' && e.room === targetRoom) {
                         return { hasOverlap: true, reason: `Phòng ${targetRoom} đã có lớp khác học vào khung giờ này!` };
                     }
                     if (e.class === targetClass && blockingTasks.includes(targetTask) && blockingTasks.includes(e.task)) {
                         return { hasOverlap: true, reason: `Lớp ${targetClass} đã có lịch học/thi khác vào khung giờ này!` };
                     }
-                    
                     let targetGVs = gvStr ? gvStr.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
                     let eGVs = e.gv ? e.gv.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
                     let hasCommonGV = targetGVs.some(gv => eGVs.includes(gv));
@@ -496,17 +498,6 @@
         const isMobile = window.innerWidth <= 768;
         const initialCalendarView = isMobile ? 'listWeek' : 'timeGridWeek';
 
-        function toLocalISOString(date) {
-            const pad = (n) => (n < 10 ? '0' + n : n);
-            return date.getFullYear() + '-' +
-                   pad(date.getMonth() + 1) + '-' +
-                   pad(date.getDate()) + 'T' +
-                   pad(date.getHours()) + ':' +
-                   pad(date.getMinutes()) + ':' +
-                   pad(date.getSeconds());
-        }
-
-        // XÁC THỰC VÀ TẢI DỮ LIỆU
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 isLoggedIn = true;
@@ -644,7 +635,7 @@
                 } catch(e) { console.error("Lỗi lấy dữ liệu:", e); }
 
                 initRoomSelect(); 
-                initCalendar(); // <-- Chạy khởi tạo Lịch an toàn ở đây
+                initCalendar();
 
                 onSnapshot(collection(db, "assignments"), (snapshot) => {
                     assignmentsData = {};
@@ -724,15 +715,14 @@
                             let gvDisplay = window.formatGvName(e.gv);
                             let shortRoom = e.room && e.room !== 'Khác...' && e.room !== 'OTHER' ? e.room.replace('Phòng ', 'P').replace('Hội trường', 'HT') : e.room;
                             
+                            let eNorm = normalizeOrient(e.orientation);
                             let orientHtml = '';
-                            if (e.orientation) {
-                                if (e.orientation === 'Nghiên cứu') {
-                                    orientHtml = `<div style="font-size: 0.7rem; color: #b45309; margin-top: 2px; font-weight:bold;"><i class="fas fa-compass"></i> Hệ: Nghiên cứu (NC)</div>`;
-                                } else if (e.orientation === 'Ứng dụng') {
-                                    orientHtml = `<div style="font-size: 0.7rem; color: #0369a1; margin-top: 2px; font-weight:bold;"><i class="fas fa-compass"></i> Hệ: Ứng dụng (UD)</div>`;
-                                } else {
-                                    orientHtml = `<div style="font-size: 0.7rem; color: #64748b; margin-top: 2px;"><i class="fas fa-users"></i> ${e.orientation}</div>`;
-                                }
+                            if (eNorm === 'NC') {
+                                orientHtml = `<div style="font-size: 0.7rem; color: #b45309; margin-top: 2px; font-weight:bold;"><i class="fas fa-compass"></i> Hệ: Nghiên cứu (NC)</div>`;
+                            } else if (eNorm === 'UD') {
+                                orientHtml = `<div style="font-size: 0.7rem; color: #0369a1; margin-top: 2px; font-weight:bold;"><i class="fas fa-compass"></i> Hệ: Ứng dụng (UD)</div>`;
+                            } else {
+                                orientHtml = `<div style="font-size: 0.7rem; color: #d97706; margin-top: 2px; font-weight:bold;"><i class="fas fa-users"></i> Học chung (NC & UD)</div>`;
                             }
 
                             return `
@@ -764,6 +754,7 @@
                 eventReceive: function(info) {
                     const props = info.event.extendedProps;
                     const orientAttr = props.orientations || '';
+                    const normCode = normalizeOrient(orientAttr);
 
                     const orientContainer = document.getElementById('modalOrientContainer');
                     const orientGroup = document.getElementById('orientGroup');
@@ -771,17 +762,14 @@
                     let orientLabelText = '';
                     let finalOrientVal = '';
 
-                    if (orientAttr === 'Cả hai' || orientAttr === 'NC,UD') {
-                        orientLabelText = `Học chung (NC & UD) - Tối đa ${props.maxRem} buổi`;
-                        finalOrientVal = 'Cả hai';
-                    } else if (orientAttr === 'NC') {
+                    if (normCode === 'NC') {
                         orientLabelText = `Chỉ hướng Nghiên cứu (NC) - Tối đa ${props.maxRem} buổi`;
                         finalOrientVal = 'Nghiên cứu';
-                    } else if (orientAttr === 'UD') {
+                    } else if (normCode === 'UD') {
                         orientLabelText = `Chỉ hướng Ứng dụng (UD) - Tối đa ${props.maxRem} buổi`;
                         finalOrientVal = 'Ứng dụng';
                     } else {
-                        orientLabelText = 'Chung / Không phân định';
+                        orientLabelText = `Học chung (NC & UD) - Tối đa ${props.maxRem} buổi`;
                         finalOrientVal = 'Cả hai';
                     }
 
@@ -920,17 +908,16 @@
                         const firstItem = props.events[0];
 
                         if (hasEditRight) {
-                            
-                            // KHÓA ĐỊNH HƯỚNG BẢO VỆ TIẾN ĐỘ
                             let orientDisplayText = 'Học chung / Không phân định hướng';
                             if (props.events.length === 1) {
-                                orientDisplayText = firstItem.orientation || 'Học chung';
+                                let fNorm = normalizeOrient(firstItem.orientation);
+                                orientDisplayText = fNorm === 'NC' ? 'Hệ Nghiên cứu (NC)' : (fNorm === 'UD' ? 'Hệ Ứng dụng (UD)' : 'Học chung (NC & UD)');
                             } else {
                                 let uniqueOrients = new Set();
                                 props.events.forEach(e => {
-                                    let o = e.orientation || 'Học chung';
-                                    if (o === 'Cả hai' || o === 'Học chung / Không phân định hướng' || o === 'Học chung (NC & UD)') o = 'Học chung';
-                                    uniqueOrients.add(o);
+                                    let oNorm = normalizeOrient(e.orientation);
+                                    let oText = oNorm === 'NC' ? 'Nghiên cứu' : (oNorm === 'UD' ? 'Ứng dụng' : 'Học chung');
+                                    uniqueOrients.add(oText);
                                 });
                                 orientDisplayText = Array.from(uniqueOrients).join(' & ');
                             }
@@ -977,7 +964,9 @@
                             let canDelete = isCalendarAdmin && (e.scheduledByEmail === currentUserEmail || currentUserEmail === 'hoangtran1483@gmail.com');
                             let delBtn = canDelete ? `<button class="btn-danger" style="padding:4px 10px; font-size:0.8rem;" onclick="deleteSubEvent('${e.id}')"><i class="fas fa-trash"></i> Xóa</button>` : '';
 
-                            let orientHtml = e.orientation ? `<p style="margin:0 0 5px 0; color:var(--text-dark);"><strong>Phạm vi:</strong> ${e.orientation === 'Cả hai' ? '<span style="color:#d97706;font-weight:bold;">Học chung / Không phân ĐH</span>' : 'Hệ '+e.orientation}</p>` : '';
+                            let eNorm = normalizeOrient(e.orientation);
+                            let orientText = eNorm === 'NC' ? 'Hệ Nghiên cứu (NC)' : (eNorm === 'UD' ? 'Hệ Ứng dụng (UD)' : 'Học chung / Không phân ĐH');
+                            let orientHtml = `<p style="margin:0 0 5px 0; color:var(--text-dark);"><strong>Phạm vi:</strong> <span style="font-weight:bold; color:${eNorm==='NC'?'#b45309':(eNorm==='UD'?'#0369a1':'#d97706')};">${orientText}</span></p>`;
 
                             html += `
                             <div style="background:#fff; border:1px solid #cbd5e1; border-radius:6px; padding:12px; margin-bottom:12px; position:relative; text-align: left; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
@@ -1166,7 +1155,7 @@
             const poolMajorFilter = document.getElementById('poolMajorFilter') ? document.getElementById('poolMajorFilter').value : 'ALL';
             const poolOrientFilter = document.getElementById('poolOrientFilter') ? document.getElementById('poolOrientFilter').value : 'ALL';
 
-            // CHỐT CHẶN BẢO VỆ (Loại bỏ các dữ liệu rác thiếu thời gian để tránh crash FullCalendar)
+            // CHỐT CHẶN BẢO VỆ LỊCH
             let scheduledEventsNormal = scheduledEventsDB.filter(e => e.status !== 'returned' && e.start);
 
             if (calendarClassFilter !== 'ALL') {
@@ -1174,8 +1163,10 @@
             }
 
             if (calendarOrientFilter !== 'ALL') {
+                let filterNorm = normalizeOrient(calendarOrientFilter);
                 scheduledEventsNormal = scheduledEventsNormal.filter(e => {
-                    return !e.orientation || e.orientation === 'Cả hai' || e.orientation === 'Học chung / Không phân định hướng' || e.orientation === calendarOrientFilter || e.orientation.trim() === '';
+                    let eNorm = normalizeOrient(e.orientation);
+                    return eNorm === 'CHUNG' || eNorm === filterNorm;
                 });
             }
 
@@ -1268,6 +1259,17 @@
                         const semester = asgData.semester || 'Chưa xác định';
                         if (poolSemesterFilter !== 'ALL' && semester !== poolSemesterFilter) return; 
 
+                        // SỬA LỖI TÍNH NHẦM HỆ MÔN BẰNG CÁCH DÒ THUỘC TÍNH ORIENTATIONS CỦA MÔN
+                        let actualOrient = dbOrientCode;
+                        if (!actualOrient) {
+                            let orients = asgData.orientations || sub.orientations || [];
+                            if (typeof orients === 'string') orients = orients.split(',').map(s => s.trim());
+                            if (orients.length === 1) {
+                                let singleO = normalizeOrient(orients[0]);
+                                if (singleO === 'NC' || singleO === 'UD') actualOrient = singleO;
+                            }
+                        }
+
                         asgData.allocations.forEach(a => {
                             const totalAssigned = parseInt(a.assigned) || 0;
                             const mapKey = `${sub.id}_${a.gv}_${a.task}_${clsMatch}`;
@@ -1276,13 +1278,13 @@
                                 rawTaskMap.set(mapKey, {
                                     subName: sub.name, subId: sub.id, cls: clsMatch, gv: a.gv, task: a.task,
                                     totalNC: 0, totalUD: 0, totalGeneral: 0, semester: semester,
-                                    allowJoint: asgData.allowJoint !== false // Mặc định là true nếu undefined
+                                    allowJoint: asgData.allowJoint !== false
                                 });
                             }
                             
                             let taskData = rawTaskMap.get(mapKey);
-                            if (dbOrientCode === 'NC') taskData.totalNC += totalAssigned;
-                            else if (dbOrientCode === 'UD') taskData.totalUD += totalAssigned;
+                            if (actualOrient === 'NC') taskData.totalNC += totalAssigned;
+                            else if (actualOrient === 'UD') taskData.totalUD += totalAssigned;
                             else taskData.totalGeneral += totalAssigned;
                             
                             if (asgData.allowJoint === false) taskData.allowJoint = false;
@@ -1293,7 +1295,7 @@
 
             let poolTasksList = [];
 
-            // Chuyển đổi Dữ liệu Tổng thành Thẻ (Bóc tách giao tập hợp)
+            // Chuyển đổi Dữ liệu Tổng thành Thẻ Kho
             rawTaskMap.forEach((data, mapKey) => {
                 let scheduledNC = window.getScheduledCount(data.cls, 'NC', data.subName, data.gv, data.task);
                 let scheduledUD = window.getScheduledCount(data.cls, 'UD', data.subName, data.gv, data.task);
@@ -1392,8 +1394,17 @@
                         let rBadge = `<span class="reject-badge"><i class="fas fa-exclamation-circle"></i> Bị từ chối (Trả về)</span>`;
                         eventDiv.innerHTML = `${classTag}<div class="event-gv">${gvDisplay}</div><span class="event-info">[${item.task}]</span>${rBadge}`;
                     } else {
-                        let orientAttr = item.orientCode === 'Cả hai' ? 'Cả hai' : (item.orientCode === 'NC' ? 'NC' : (item.orientCode === 'UD' ? 'UD' : ''));
-                        let orientDisplay = item.orientCode === 'Cả hai' ? '<div class="badge-orient badge-chung" style="display:block; text-align:center; margin-bottom:5px;">Học chung (NC & UD)</div>' : (item.orientCode === 'NC' ? '<div class="badge-orient badge-nc" style="display:block; text-align:center; margin-bottom:5px;">Hệ Nghiên cứu</div>' : (item.orientCode === 'UD' ? '<div class="badge-orient badge-ud" style="display:block; text-align:center; margin-bottom:5px;">Hệ Ứng dụng</div>' : '<div class="badge-orient badge-chung" style="display:block; text-align:center; margin-bottom:5px;">Chung / Không phân ĐH</div>'));
+                        let normCode = normalizeOrient(item.orientCode);
+                        let orientAttr = normCode === 'NC' ? 'Nghiên cứu' : (normCode === 'UD' ? 'Ứng dụng' : 'Cả hai');
+                        
+                        let orientDisplay = '';
+                        if (normCode === 'NC') {
+                            orientDisplay = '<div class="badge-orient badge-nc" style="display:block; text-align:center; margin-bottom:5px;">Hệ Nghiên cứu (NC)</div>';
+                        } else if (normCode === 'UD') {
+                            orientDisplay = '<div class="badge-orient badge-ud" style="display:block; text-align:center; margin-bottom:5px;">Hệ Ứng dụng (UD)</div>';
+                        } else {
+                            orientDisplay = '<div class="badge-orient badge-chung" style="display:block; text-align:center; margin-bottom:5px;">Học chung (NC & UD)</div>';
+                        }
 
                         eventDiv.className = `fc-event ${item.cls}`;
                         eventDiv.setAttribute('data-id', `${item.subId}_${item.orientCode}_${item.gv}_${item.task}_${item.cls}`); 
