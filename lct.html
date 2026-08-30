@@ -397,7 +397,7 @@
                 let matchOrient = false;
 
                 if (targetNorm === 'CHUNG') {
-                    matchOrient = true; // Thẻ chung thì đếm mọi tiến độ đã xếp
+                    matchOrient = true; 
                 } else {
                     if (eNorm === 'CHUNG' || eNorm === targetNorm) {
                         matchOrient = true;
@@ -1184,7 +1184,7 @@
                 let sTime = new Date(e.start).getTime();
                 let eTime = e.end ? new Date(e.end).getTime() : sTime + 4.5 * 3600 * 1000;
                 
-                // --- SỬA Ở ĐÂY: Dùng e.class thay vì eBaseClass để KHÔNG NÉN MẤT LỚP ĐỢT KHÁC NHAU ---
+                // --- ĐẢM BẢO CHÌA KHÓA CHỨA E.CLASS ĐỂ KHÔNG MẤT LỚP ĐỢT ---
                 let deduplicateKey = `${sTime}_${eTime}_${e.room}_${e.subject}_${e.task}_${e.gv}_${e.orientation}_${e.class}`;
 
                 if (!deduplicatedEventsMap.has(deduplicateKey)) {
@@ -1226,10 +1226,6 @@
             let rawTaskMap = new Map();
 
             subjectsData.forEach(sub => {
-                const poolSubjectFilter = document.getElementById('poolSubjectFilter').value;
-                if (poolSubjectFilter !== 'ALL' && sub.name !== poolSubjectFilter) return;
-
-                const poolMajorFilter = document.getElementById('poolMajorFilter').value;
                 let major = sub.majorTag || 'ALL';
                 let shortMajor = major;
                 if (major === "Vật lý trị liệu") shortMajor = "VLTL";
@@ -1259,7 +1255,6 @@
 
                     const asgData = asgObj[dbKey];
                     if (asgData && asgData.allocations && asgData.status !== 'proposed') {
-                        const poolSemesterFilter = document.getElementById('poolSemesterFilter').value;
                         const semester = asgData.semester || 'Chưa xác định';
                         if (poolSemesterFilter !== 'ALL' && semester !== poolSemesterFilter) return; 
 
@@ -1339,9 +1334,6 @@
             scheduledEventsDB.forEach(e => {
                 if (e.status === 'returned') {
                     if (poolClassFilter !== 'ALL' && !window.isClassMatch(e.class, poolClassFilter)) return;
-
-                    const poolSubjectFilter = document.getElementById('poolSubjectFilter').value;
-                    if (poolSubjectFilter !== 'ALL' && e.subject !== poolSubjectFilter) return;
 
                     poolTasksList.push({
                         isRejected: true, rTask: e, subName: e.subject, subId: e.subject, cls: e.class, gv: e.gv, task: e.task, semester: e.semester
