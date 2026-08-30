@@ -180,10 +180,10 @@
                 <div><i class="fas fa-inbox"></i> Sự kiện cần xếp</div>
                 
                 <div class="pool-filter-container">
-                    <select id="poolClassFilter" class="pool-filter" onchange="processAndRenderEvents();">
+                    <select id="poolClassFilter" class="pool-filter" onchange="updatePoolSubjectFilter(); processAndRenderEvents();">
                         <option value="ALL">Đang tải...</option>
                     </select>
-                    <select id="poolOrientFilter" class="pool-filter" onchange="processAndRenderEvents();">
+                    <select id="poolOrientFilter" class="pool-filter" onchange="updatePoolSubjectFilter(); processAndRenderEvents();">
                         <option value="ALL">Cả 2 Hướng</option>
                         <option value="NC">Nghiên cứu</option>
                         <option value="UD">Ứng dụng</option>
@@ -191,10 +191,10 @@
                 </div>
                 
                 <div class="pool-filter-container">
-                    <select id="poolMajorFilter" class="pool-filter" onchange="processAndRenderEvents();">
+                    <select id="poolMajorFilter" class="pool-filter" onchange="updatePoolSubjectFilter(); processAndRenderEvents();">
                         <option value="ALL">Tất cả Ngành</option>
                     </select>
-                    <select id="poolSemesterFilter" class="pool-filter" onchange="processAndRenderEvents();">
+                    <select id="poolSemesterFilter" class="pool-filter" onchange="updatePoolSubjectFilter(); processAndRenderEvents();">
                         <option value="ALL">Tất cả Học kỳ</option>
                         <option value="Học kỳ 1">Học kỳ 1</option>
                         <option value="Học kỳ 2">Học kỳ 2</option>
@@ -310,6 +310,17 @@
             return 'CHUNG';
         };
 
+        // --- HÀM KIỂM TRA LỚP MẸ/CON ---
+        window.isClassMatch = (eventClass, filterClass) => {
+            if (!eventClass || !filterClass) return false;
+            if (eventClass === filterClass) return true;
+            // Nếu chọn lớp cha (VD: THS2026), lịch là lớp con (THS2026-ĐỢT 1) -> Cho phép hiển thị
+            if (eventClass.startsWith(filterClass + '-')) return true;
+            // Nếu chọn lớp con (VD: THS2026-ĐỢT 1), lịch là lớp cha (THS2026 chung) -> Cho phép hiển thị
+            if (filterClass.startsWith(eventClass + '-')) return true;
+            return false;
+        };
+
         window.toggleSidebar = () => {
             const panel = document.getElementById('external-events');
             const isHidden = panel.style.display === 'none' || panel.classList.contains('hidden');
@@ -401,6 +412,57 @@
             return count;
         };
 
+        window.updatePoolSubjectFilter = () => {
+            const select = document.getElementById('poolSubjectFilter');
+            if (!select) return;
+            const currentVal = select.value;
+            select.innerHTML = '<option value="ALL">Tất cả Môn học</option>';
+            
+            const poolClass = document.getElementById('poolClassFilter').value;
+            const poolOrient = document.getElementById('poolOrientFilter').value;
+            const poolMajor = document.getElementById('poolMajorFilter').value;
+
+            let assignedSubjectNames = new Set();
+            
+            subjectsData.forEach(sub => {
+                let major = sub.majorTag || 'ALL';
+                let shortMajor = major;
+                if (major === "Vật lý trị liệu") shortMajor = "VLTL";
+                else if (major === "Hoạt động trị liệu") shortMajor = "HĐTL";
+                else if (major === "Ngôn ngữ trị liệu") shortMajor = "NNTL";
+
+                if (poolMajor !== 'ALL' && shortMajor !== poolMajor && shortMajor !== 'ALL') return;
+
+                const asgObj = assignmentsData[sub.id];
+                if (asgObj) {
+                    Object.keys(asgObj).forEach(dbKey => {
+                        let clsMatch = null;
+                        managedClasses.forEach(c => { 
+                            if (dbKey.includes(c)) {
+                                if (!clsMatch || c.length > clsMatch.length) clsMatch = c;
+                            }
+                        });
+                        
+                        if (!clsMatch) return;
+                        
+                        if (poolClass !== 'ALL' && !window.isClassMatch(clsMatch, poolClass)) return;
+                        if (poolOrient !== 'ALL' && dbKey.includes('_') && !dbKey.includes(`_${poolOrient}_`) && !dbKey.endsWith(`_${poolOrient}`)) return;
+
+                        const asgData = asgObj[dbKey];
+                        if (asgData && asgData.allocations && asgData.allocations.length > 0 && asgData.status !== 'proposed') {
+                            assignedSubjectNames.add(sub.name);
+                        }
+                    });
+                }
+            });
+            
+            const uniqueSubjects = Array.from(assignedSubjectNames).sort((a,b) => a.localeCompare(b, 'vi'));
+            uniqueSubjects.forEach(name => { select.innerHTML += `<option value="${name}">${name}</option>`; });
+            
+            if (uniqueSubjects.includes(currentVal)) select.value = currentVal;
+            else select.value = 'ALL';
+        };
+
         // --- HÀM KIỂM TRA TRÙNG LẶP THÔNG MINH (XỬ LÝ LỚP MẸ/ĐỢT & ĐỊNH HƯỚNG) ---
         function hasOverlap(targetStartStr, targetEndStr, gvStr, targetClass, targetTask, targetRoom, targetSubject, targetOrient, ignoreEventIds) {
             let ignoreList = Array.isArray(ignoreEventIds) ? ignoreEventIds : [ignoreEventIds];
@@ -408,7 +470,6 @@
             let tEnd = targetEndStr ? new Date(targetEndStr).getTime() : tStart + 4.5 * 3600000;
             let targetOrientNorm = window.normalizeOrient(targetOrient);
             
-            // Tách lớp mẹ. VD: THS2026-ĐỢT 1 -> THS2026
             let targetBaseClass = targetClass ? targetClass.split('-')[0].trim() : '';
 
             let allSubEvents = [];
@@ -621,6 +682,7 @@
                 onSnapshot(collection(db, "assignments"), (snapshot) => {
                     assignmentsData = {};
                     snapshot.forEach(doc => { assignmentsData[doc.id] = doc.data(); });
+                    window.updatePoolSubjectFilter();
                     window.processAndRenderEvents();
                 }, (error) => console.error(error));
 
@@ -739,6 +801,7 @@
                     }
                 },
 
+                // KHI KÉO THẺ TỪ KHO VÀO LỊCH CHÍNH
                 eventReceive: function(info) {
                     try {
                         const props = info.event.extendedProps;
@@ -946,6 +1009,7 @@
                             let orientText = eNorm === 'NC' ? 'Hệ Nghiên cứu (NC)' : (eNorm === 'UD' ? 'Hệ Ứng dụng (UD)' : 'Học chung / Không phân ĐH');
                             let orientHtml = `<p style="margin:0 0 5px 0; color:var(--text-dark);"><strong>Phạm vi:</strong> <span style="font-weight:bold; color:${eNorm==='NC'?'#b45309':(eNorm==='UD'?'#0369a1':'#d97706')};">${orientText}</span></p>`;
 
+                            // --- TÌM THÔNG TIN MÔN HỌC CHI TIẾT ---
                             let subObj = subjectsData.find(s => s.name === e.subject);
                             let extraSubInfo = '';
                             if (subObj) {
@@ -1137,17 +1201,15 @@
             const calendarMajorFilter = document.getElementById('calendarMajorFilter') ? document.getElementById('calendarMajorFilter').value : 'ALL';
             
             const poolClassFilter = document.getElementById('poolClassFilter') ? document.getElementById('poolClassFilter').value : 'ALL'; 
+            const poolSemesterFilter = document.getElementById('poolSemesterFilter') ? document.getElementById('poolSemesterFilter').value : 'ALL'; 
+            const poolMajorFilter = document.getElementById('poolMajorFilter') ? document.getElementById('poolMajorFilter').value : 'ALL';
             const poolOrientFilter = document.getElementById('poolOrientFilter') ? document.getElementById('poolOrientFilter').value : 'ALL';
 
             // --------- 1. RENDER LỊCH CHÍNH ---------
             let scheduledEventsNormal = scheduledEventsDB.filter(e => e.status !== 'returned' && e.start);
 
             if (calendarClassFilter !== 'ALL') {
-                scheduledEventsNormal = scheduledEventsNormal.filter(e => {
-                    let baseFilter = calendarClassFilter.split('-')[0].trim();
-                    let eBase = e.class ? e.class.split('-')[0].trim() : '';
-                    return e.class === calendarClassFilter || eBase === baseFilter;
-                });
+                scheduledEventsNormal = scheduledEventsNormal.filter(e => window.isClassMatch(e.class, calendarClassFilter));
             }
 
             if (calendarOrientFilter !== 'ALL') {
@@ -1178,7 +1240,9 @@
             scheduledEventsNormal.forEach(e => {
                 let sTime = new Date(e.start).getTime();
                 let eTime = e.end ? new Date(e.end).getTime() : sTime + 4.5 * 3600 * 1000;
-                // Thêm e.class vào để không bị gom trùng khi hiển thị Đợt 1 và Đợt 2 cùng giờ
+                
+                // Gom chung nếu cùng giờ, phòng, môn, GV, định hướng VÀ lớp mẹ
+                let eBaseClass = e.class ? e.class.split('-')[0].trim() : '';
                 let deduplicateKey = `${sTime}_${eTime}_${e.room}_${e.subject}_${e.task}_${e.gv}_${e.orientation}_${e.class}`;
 
                 if (!deduplicatedEventsMap.has(deduplicateKey)) {
@@ -1238,7 +1302,6 @@
                 Object.keys(asgObj).forEach(dbKey => {
                     let clsMatch = null;
                     managedClasses.forEach(c => { 
-                        // Chỉ lấy class dài nhất trùng khớp (để THS2026-ĐỢT 1 không bị bắt nhầm thành THS2026)
                         if (dbKey.includes(c)) {
                             if (!clsMatch || c.length > clsMatch.length) clsMatch = c;
                         }
@@ -1246,11 +1309,7 @@
                     
                     if (!clsMatch) return;
                     
-                    if (poolClassFilter !== 'ALL') {
-                        let baseFilter = poolClassFilter.split('-')[0].trim();
-                        let clsBase = clsMatch.split('-')[0].trim();
-                        if (clsMatch !== poolClassFilter && clsBase !== baseFilter) return;
-                    }
+                    if (poolClassFilter !== 'ALL' && !window.isClassMatch(clsMatch, poolClassFilter)) return;
 
                     let dbOrientCode = '';
                     if (dbKey.includes('_NC')) dbOrientCode = 'NC';
@@ -1337,11 +1396,8 @@
 
             scheduledEventsDB.forEach(e => {
                 if (e.status === 'returned') {
-                    if (poolClassFilter !== 'ALL') {
-                        let baseFilter = poolClassFilter.split('-')[0].trim();
-                        let eBase = e.class ? e.class.split('-')[0].trim() : '';
-                        if (e.class !== poolClassFilter && eBase !== baseFilter) return;
-                    }
+                    if (poolClassFilter !== 'ALL' && !window.isClassMatch(e.class, poolClassFilter)) return;
+
                     const poolSubjectFilter = document.getElementById('poolSubjectFilter').value;
                     if (poolSubjectFilter !== 'ALL' && e.subject !== poolSubjectFilter) return;
 
