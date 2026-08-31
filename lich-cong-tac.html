@@ -237,6 +237,13 @@
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
+                // KIỂM TRA QUYỀN TRUY CẬP: CHẶN HỌC VIÊN
+                if (user.email.toLowerCase() === 'ths.phcn26@ump.edu.vn') {
+                    alert("Tài khoản học viên không có quyền truy cập trang này!");
+                    window.location.href = "thoi-khoa-bieu.html";
+                    return; 
+                }
+
                 try { await fetchData(); } 
                 catch(e) { console.error("Lỗi:", e); }
             } else {
