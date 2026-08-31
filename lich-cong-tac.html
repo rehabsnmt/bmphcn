@@ -161,7 +161,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY", authDomain: "bmphcn-aa9c6.firebaseapp.com", projectId: "bmphcn-aa9c6", storageBucket: "bmphcn-aa9c6.firebasestorage.app", messagingSenderId: "749494392719", appId: "1:749494392719:web:f220c751ff541620045dfa" };
         const app = initializeApp(firebaseConfig);
@@ -260,10 +260,29 @@
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
+                // KIỂM TRA QUYỀN TRUY CẬP: CHẶN HỌC VIÊN
                 if (user.email.toLowerCase() === 'ths.phcn26@ump.edu.vn') {
                     alert("Tài khoản học viên không có quyền truy cập trang này!");
                     window.location.href = "thoi-khoa-bieu.html";
                     return; 
+                }
+
+                // Lấy thông tin user để hiển thị lên Header (Không kèm học vị)
+                try {
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    if (userDoc.exists()) {
+                        const data = userDoc.data();
+                        let currentUserName = data.fullName;
+                        setTimeout(() => {
+                            const btnAuthNav = document.getElementById('btnAuthNav');
+                            if (btnAuthNav) {
+                                btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right:5px;"></i> ${currentUserName}`;
+                                btnAuthNav.href = "dashboard.html";
+                            }
+                        }, 300);
+                    }
+                } catch(e) {
+                    console.error("Lỗi lấy thông tin Profile:", e);
                 }
 
                 try { await fetchData(); } 
@@ -525,8 +544,8 @@
                             let ortHtml = `<div class="evt-orientation">${shortOrt}</div>`;
 
                             let borderClass = 'border-chung';
-                            if(shortOrt.includes('NC')) borderClass = 'border-nc';
-                            else if(shortOrt.includes('UD')) borderClass = 'border-ud';
+                            if(shortOrt.includes('NC') && !shortOrt.includes('UD')) borderClass = 'border-nc';
+                            else if(shortOrt.includes('UD') && !shortOrt.includes('NC')) borderClass = 'border-ud';
 
                             let classColor = getClassColor(ev.class);
                             
