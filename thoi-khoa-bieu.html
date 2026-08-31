@@ -49,7 +49,7 @@
         #event-pool { flex: 1; overflow-y: auto; padding-right: 5px; padding-top: 5px; } 
         
         /* Chỉnh nhỏ thẻ sự kiện */
-        #event-pool .fc-event { cursor: move; margin: 0 0 6px 0; padding: 6px 8px; color: var(--text-dark); border: 1px solid var(--border); border-radius: 4px; text-align: left; transition: 0.2s; position: relative; }
+        #event-pool .fc-event { background: #ffffff; cursor: move; margin: 0 0 6px 0; padding: 6px 8px; color: var(--text-dark); border: 1px solid #cbd5e1; border-radius: 4px; text-align: left; transition: 0.2s; position: relative; }
 
         .pool-subject-group { margin-bottom: 8px; background: white; border-radius: 6px; border: 1px solid #cbd5e1; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
         .pool-subject-title { font-size: 0.85rem; font-weight: 800; color: var(--text-dark); padding: 10px 8px; line-height: 1.3; transition: background 0.2s; border-radius: 6px; user-select: none; }
@@ -60,7 +60,7 @@
 
         #event-pool .fc-event:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.05); filter: brightness(0.95); }
 
-        .class-tag { display: inline-block; padding: 2px 4px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; margin-bottom: 4px; margin-right: 4px;}
+        .class-tag { display: inline-block; padding: 2px 5px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; margin-bottom: 4px; margin-right: 4px;}
         .badge-orient { display: inline-block; padding: 2px 4px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; margin-bottom: 4px; }
         .badge-ud { background-color: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; }
         .badge-nc { background-color: #fef08a; color: #b45309; border: 1px solid #fde047; }
@@ -98,7 +98,7 @@
         #eventTooltip { position: fixed; z-index: 9999; background: rgba(15, 23, 42, 0.95); color: white; padding: 12px 15px; border-radius: 8px; font-size: 0.9rem; pointer-events: none; display: none; box-shadow: 0 10px 25px rgba(0,0,0,0.3); line-height: 1.6; max-width: 350px; border-left: 4px solid var(--primary); }
 
         .toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
-        .toast { min-width: 250px; background-color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: 0.4s; font-weight: 600; border-left: 5px solid #22c55e; opacity: 0; pointer-events: auto; }
+        .toast { min-width: 250px; background-color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: 0.4s; font-weight: 600; border-left: 5px solid #22c55e; opacity: 0; }
         .toast.show { transform: translateX(0); opacity: 1; }
         .toast.danger { border-left-color: #ef4444; }
 
@@ -300,6 +300,30 @@
         let subjectsData = [];
         let gvShortNameMap = {};
         let pendingDropInfo = null;
+
+        // --- HÀM TẠO MÀU SẮC ĐỘNG CHO TỪNG TÊN LỚP KHÁC NHAU ---
+        window.getClassColor = (className) => {
+            if (!className) return 'background:#e2e8f0; color:#475569; border: 1px solid #cbd5e1;';
+            const palettes = [
+                { bg: '#bae6fd', text: '#0369a1' }, // Blue
+                { bg: '#fef08a', text: '#b45309' }, // Yellow
+                { bg: '#bbf7d0', text: '#166534' }, // Green
+                { bg: '#e9d5ff', text: '#6b21a8' }, // Purple
+                { bg: '#fbcfe8', text: '#9d174d' }, // Pink
+                { bg: '#fed7aa', text: '#c2410c' }, // Orange
+                { bg: '#99f6e4', text: '#0f766e' }, // Teal
+                { bg: '#fecaca', text: '#b91c1c' }, // Red
+                { bg: '#d9f99d', text: '#065f46' }, // Lime
+                { bg: '#bfdbfe', text: '#1d4ed8' }  // Deep Blue
+            ];
+            let hash = 0;
+            for (let i = 0; i < className.length; i++) {
+                hash = className.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            hash = Math.abs(hash);
+            const color = palettes[hash % palettes.length];
+            return `background:${color.bg}; color:${color.text}; border: 1px solid ${color.text}40;`;
+        };
 
         // --- HÀM CHUẨN HÓA ĐỊNH HƯỚNG TOÀN CỤC ---
         window.normalizeOrient = (orient) => {
@@ -730,11 +754,15 @@
                                 orientHtml = `<div style="font-size: 0.7rem; color: #d97706; margin-top: 2px; font-weight:bold;"><i class="fas fa-users"></i> Học chung (NC & UD)</div>`;
                             }
 
+                            // Dynamic Tag Color
+                            let classColorStyle = window.getClassColor(e.class);
+                            let classBadge = `<span style="display:inline-block; padding:1px 5px; border-radius:3px; font-size:0.65rem; margin-right:4px; ${classColorStyle}">${e.class}</span>`;
+
                             return `
                             <div class="evt-item" style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed rgba(2, 132, 199, 0.2); text-align: left; line-height: 1.4;">
                                 <div style="font-size: 0.75rem; font-weight: 800; color: #b45309;"><i class="fas fa-map-marker-alt"></i> ${shortRoom}</div>
-                                <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-dark); margin-top: 2px;">[${e.class}] ${gvDisplay}</div>
-                                <div style="font-size: 0.75rem; color: var(--primary); margin-top: 2px; white-space: normal; word-break: break-word; font-weight: 600;">${e.subject}</div>
+                                <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-dark); margin-top: 2px; display: flex; align-items: center;">${classBadge} ${gvDisplay}</div>
+                                <div style="font-size: 0.75rem; color: var(--primary); margin-top: 3px; white-space: normal; word-break: break-word; font-weight: 600;">${e.subject}</div>
                                 ${orientHtml}
                             </div>
                             `;
@@ -975,12 +1003,16 @@
                                 `;
                             }
 
+                            // Dynamic tag styling
+                            let classColorStyle = window.getClassColor(e.class);
+                            let classBadge = `<span style="display:inline-block; padding:2px 6px; border-radius:4px; font-size:0.75rem; font-weight:bold; ${classColorStyle}">${e.class}</span>`;
+
                             html += `
                             <div style="background:#fff; border:1px solid #cbd5e1; border-radius:6px; padding:12px; margin-bottom:12px; position:relative; text-align: left; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
                                 <div style="position:absolute; right:12px; top:12px;">${delBtn}</div>
                                 <p style="margin:0 0 5px 0; font-size:1.05rem; color:var(--primary); font-weight:bold; padding-right:60px;">${e.subject}</p>
                                 ${extraSubInfo}
-                                <p style="margin:0 0 5px 0;"><strong>Khóa/Lớp:</strong> <span style="font-weight:bold;">${e.class}</span></p>
+                                <p style="margin:0 0 5px 0;"><strong>Khóa/Lớp:</strong> ${classBadge}</p>
                                 ${orientHtml}
                                 <p style="margin:0 0 5px 0;"><strong>Phòng học:</strong> <span style="background:#fbbf24; color:#78350f; padding:2px 6px; border-radius:4px; font-weight:bold;">${e.room || 'Chưa XĐ'}</span></p>
                                 <p style="margin:0 0 5px 0;"><strong>Nhiệm vụ:</strong> ${e.task}</p>
@@ -1053,7 +1085,7 @@
                     return setDoc(doc(db, "calendar_events", e.id), { start: newStartStr, end: newEndStr, room: roomVal }, { merge: true });
                 });
                 await Promise.all(promises);
-                showToast("Đã cập nhật lịch thành công!");
+                showToast("Đã cập nhật thời khóa biểu thành công!");
                 document.getElementById('multiEventModal').classList.add('hidden');
             } catch(err) {
                 showToast("Lỗi cập nhật: " + err.message, "danger");
@@ -1130,7 +1162,7 @@
                     showToast(`Đã xếp thời khóa biểu thành công (${selectedRoom})!`);
                 }
             } catch(e) {
-                showToast("Lỗi khi lưu lịch: " + e.message, "danger");
+                showToast("Lỗi khi lưu: " + e.message, "danger");
             }
         };
 
@@ -1385,9 +1417,8 @@
                     unscheduledCount++;
                     let eventDiv = document.createElement('div');
                     
-                    let baseClass = item.cls ? item.cls.split('-')[0].trim() : '';
-                    let classColor = baseClass.includes('2025') ? 'background:#bae6fd; color:#0369a1;' : 'background:#fde047; color:#b45309;';
-                    let classTag = `<span class="class-tag" style="${classColor}">${item.cls}</span>`;
+                    let classColorStyle = window.getClassColor(item.cls);
+                    let classTag = `<span class="class-tag" style="${classColorStyle}">${item.cls}</span>`;
                     
                     let gvDisplay = window.formatGvName(item.gv);
 
