@@ -362,16 +362,16 @@
     <script src="js/layout.js"></script>
 
     <script type="module">
+        // QUAN TRỌNG: Thêm 'query', 'where', 'deleteDoc' vào danh sách import
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, collection, onSnapshot, getDocs, deleteField } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, collection, onSnapshot, getDocs, deleteField, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY", authDomain: "bmphcn-aa9c6.firebaseapp.com", projectId: "bmphcn-aa9c6", storageBucket: "bmphcn-aa9c6.firebasestorage.app", messagingSenderId: "749494392719", appId: "1:749494392719:web:f220c751ff541620045dfa" };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // THỨ TỰ NHÓM CỐ ĐỊNH CHUẨN XÁC
         const GROUP_ORDER = [
             "1. Kiến thức chung",
             "2. Kiến thức cơ sở",
@@ -627,10 +627,9 @@
             }
         }
 
-        // TÍNH TIẾN ĐỘ VỚI ĐIỀU KIỆN ĐÃ QUA NGÀY HÔM SAU
         window.getCompletedSessions = (cls, orient, subName, gv, task) => {
             const today = new Date();
-            today.setHours(0, 0, 0, 0); // Đặt mốc 00:00 ngày hôm nay
+            today.setHours(0, 0, 0, 0);
             
             let count = 0;
             let orientName = orient === 'NC' ? 'Nghiên cứu' : 'Ứng dụng';
@@ -650,7 +649,6 @@
 
                 if (e.class === cls && matchOrient && e.subject === subName && e.gv && e.gv.includes(gv) && e.task === task) {
                     let eventEnd = e.end ? new Date(e.end) : new Date(new Date(e.start).getTime() + 4 * 3600000);
-                    // Chỉ tính là hoàn thành khi lịch đã trôi qua ngày hôm sau (eventEnd < today)
                     if (eventEnd < today) { count++; }
                 }
             });
@@ -756,7 +754,11 @@
 
                 onSnapshot(collection(db, "calendar_events"), (snapshot) => {
                     calendarEventsDB = [];
-                    snapshot.forEach(doc => { calendarEventsDB.push(doc.data()); });
+                    snapshot.forEach(doc => { 
+                        let data = doc.data();
+                        data.id = doc.id; // Gắn ID vào để phục vụ tính năng dọn rác
+                        calendarEventsDB.push(data); 
+                    });
                     window.renderTable();
                 });
 
@@ -1262,7 +1264,7 @@
                 if (sumTH > currentSub.practiceSessions) { showToast(`Số buổi Thực hành (${sumTH}) vượt quá tối đa (${currentSub.practiceSessions})!`, "danger"); return; }
             }
 
-            // TỰ ĐỘNG PHÂN CÔNG CHÉO (Hệ thống tự nhận diện môn thuộc cả 2 hệ)
+            // TỰ ĐỘNG PHÂN CÔNG CHÉO
             let syncSibling = false;
             if (cls.toUpperCase().includes('THS') && orient !== 'ALL' && currentSub.orientations && currentSub.orientations.includes('NC') && currentSub.orientations.includes('UD')) {
                 syncSibling = true;
@@ -1271,7 +1273,6 @@
             for (let gv of externalGVsToSave) { try { await setDoc(doc(collection(db, "visiting_lecturers")), { name: gv }); } catch(e){} }
 
             const assignStatus = isHOD ? 'approved' : 'proposed';
-            
             let dbKey = window.getDbKey(currentSub);
             let updates = {};
 
@@ -1286,6 +1287,17 @@
                     let siblingKey = `${cls}_${siblingOrient}_${shortMajor}`;
                     updates[siblingKey] = deleteField();
                 }
+
+                // DỌN DẸP THẺ LỊCH MỒ CÔI TỪ BẢNG CALENDAR_EVENTS (CLEANUP)
+                try {
+                    let orphanEvents = calendarEventsDB.filter(e => e.subject === currentSub.name && e.class === cls);
+                    let delPromises = [];
+                    orphanEvents.forEach(e => {
+                        if(e.id) delPromises.push(deleteDoc(doc(db, "calendar_events", e.id)));
+                    });
+                    if (delPromises.length > 0) await Promise.all(delPromises);
+                } catch(err) { console.log("Lỗi dọn rác lịch: ", err); }
+
             } else {
                 let updateData = { 
                     semester: semester, 
@@ -1310,7 +1322,6 @@
 
                 updates[dbKey] = updateData;
 
-                // Thực thi lưu chéo
                 if (syncSibling) {
                     let siblingOrient = orient === 'NC' ? 'UD' : 'NC';
                     let major = currentSub.majorTag || 'ALL';
@@ -1455,7 +1466,6 @@
 
             if (hasError) { showToast("Vui lòng nhập đầy đủ Tên Học viên và Giảng viên!", "danger"); return; }
 
-            // TỰ ĐỘNG PHÂN CÔNG CHÉO
             let syncSibling = false;
             if (cls.toUpperCase().includes('THS') && orient !== 'ALL' && currentSub.orientations && currentSub.orientations.includes('NC') && currentSub.orientations.includes('UD')) {
                 syncSibling = true;
@@ -1478,6 +1488,17 @@
                     let siblingKey = `${cls}_${siblingOrient}_${shortMajor}`;
                     updates[siblingKey] = deleteField();
                 }
+
+                // DỌN DẸP THẺ LỊCH MỒ CÔI TỪ BẢNG CALENDAR_EVENTS (CLEANUP)
+                try {
+                    let orphanEvents = calendarEventsDB.filter(e => e.subject === currentSub.name && e.class === cls);
+                    let delPromises = [];
+                    orphanEvents.forEach(e => {
+                        if(e.id) delPromises.push(deleteDoc(doc(db, "calendar_events", e.id)));
+                    });
+                    if (delPromises.length > 0) await Promise.all(delPromises);
+                } catch(err) { console.log("Lỗi dọn rác lịch: ", err); }
+
             } else {
                 let updateData = { 
                     semester: semester, 
@@ -1519,7 +1540,6 @@
             } catch (e) { showToast("Lỗi khi lưu: " + e.message, "danger"); }
         };
 
-        // --- DASHBOARD THỐNG KÊ LẤY TỪ DB THỰC TẾ ---
         window.openMiniDashboard = () => {
             const fMajor = document.getElementById('filterMajor').value;
             const cls = window.getCurrentClass();
