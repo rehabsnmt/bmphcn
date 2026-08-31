@@ -200,8 +200,9 @@
         let thesesData = []; 
         let dynamicColumns = []; 
 
-        // Các trường ưu tiên hiển thị theo đúng thứ tự yêu cầu
-        const primaryColumns = ["studentId", "fullName", "className", "gender", "dob", "placeOfBirth", "ethnic", "orientation", "major", "workplace"];
+        // Các trường ưu tiên hiển thị theo đúng thứ tự yêu cầu.
+        // address ở DB cũ được map thành "Nơi sinh"
+        const primaryColumns = ["studentId", "fullName", "gender", "dob", "address", "ethnic", "orientation", "major", "workplace"];
 
         const columnTranslations = {
             "studentId": "Mã số",
@@ -209,14 +210,13 @@
             "className": "Lớp/Khóa",
             "gender": "Giới",
             "dob": "Ngày sinh",
-            "placeOfBirth": "Nơi sinh",
+            "address": "Nơi sinh",
             "ethnic": "Dân tộc",
             "orientation": "Định hướng",
             "major": "Chuyên ngành",
             "workplace": "Đơn vị công tác",
             "phone": "Điện thoại",
             "email": "Email",
-            "address": "Địa chỉ",
             "id": "ID Hệ thống"
         };
 
@@ -276,9 +276,8 @@
                 });
 
                 if(learnersData.length === 0) {
-                    // Dữ liệu mẫu thay đổi để phù hợp với các cột mới
                     learnersData = [
-                        { id: "SV01", studentId: "4012025001", fullName: "Nguyễn Văn A", className: "THS2025", gender: "Nam", dob: "15/04/1995", placeOfBirth: "TP.HCM", ethnic: "Kinh", orientation: "UD", major: "VLTL", workplace: "BV Chợ Rẫy", phone: "0901234567", email: "nva@ump.edu.vn" }
+                        { id: "SV01", studentId: "4012025001", fullName: "Nguyễn Văn A", className: "THS2025", gender: "Nam", dob: "15/04/1995", address: "TP.HCM", ethnic: "Kinh", orientation: "UD", major: "VLTL", workplace: "BV Chợ Rẫy", phone: "0901234567", email: "nva@ump.edu.vn" }
                     ];
                     learnersData.forEach(d => Object.keys(d).forEach(k => keySet.add(k)));
                 }
@@ -294,7 +293,7 @@
                 tSnap.forEach(doc => thesesData.push(doc.data()));
 
                 keySet.delete('id'); 
-                keySet.delete('system'); // Đảm bảo bỏ cột system nếu DB cũ còn
+                keySet.delete('system'); 
                 
                 dynamicColumns = [];
                 primaryColumns.forEach(pKey => {
@@ -432,7 +431,7 @@
                     let val = l[col] || '---';
                     let displayName = columnTranslations[col] || col.charAt(0).toUpperCase() + col.slice(1);
                     
-                    let widthClass = (col.toLowerCase().includes('address') || col.toLowerCase().includes('địa chỉ') || col.toLowerCase().includes('placeofbirth') || col.toLowerCase().includes('nơi sinh') || col.toLowerCase().includes('note') || col.toLowerCase().includes('ghi chú')) ? 'full-width' : '';
+                    let widthClass = (col.toLowerCase().includes('note') || col.toLowerCase().includes('ghi chú')) ? 'full-width' : '';
 
                     infoGrid.innerHTML += `
                         <div class="info-item ${widthClass}">
