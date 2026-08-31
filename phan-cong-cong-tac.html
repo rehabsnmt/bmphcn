@@ -364,7 +364,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, collection, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, collection, onSnapshot, getDocs, deleteField } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY", authDomain: "bmphcn-aa9c6.firebaseapp.com", projectId: "bmphcn-aa9c6", storageBucket: "bmphcn-aa9c6.firebasestorage.app", messagingSenderId: "749494392719", appId: "1:749494392719:web:f220c751ff541620045dfa" };
         const app = initializeApp(firebaseConfig);
@@ -1272,41 +1272,53 @@
 
             const assignStatus = isHOD ? 'approved' : 'proposed';
             
-            let updateData = { 
-                semester: semester, 
-                status: assignStatus,
-                name: currentSub.name,
-                credits: currentSub.credits || 0,
-                theory: currentSub.theory || 0,
-                practice: currentSub.practice || 0,
-                department: currentSub.department || '',
-                isPHCN: currentSub.isPHCN !== undefined ? currentSub.isPHCN : true,
-                orientations: currentSub.orientations || [],
-                class: cls,
-                group: currentSub.group || ''
-            };
-            
-            if (isHOD) {
-                updateData.allocations = allocations;
-                updateData.proposed_allocations = [];
-            } else {
-                updateData.proposed_allocations = allocations;
-            }
-
             let dbKey = window.getDbKey(currentSub);
-            let updates = { [dbKey]: updateData };
+            let updates = {};
 
-            // Thực thi lưu chéo
-            if (syncSibling) {
-                let siblingOrient = orient === 'NC' ? 'UD' : 'NC';
-                let major = currentSub.majorTag || 'ALL';
-                let shortMajor = major;
-                if (major === "Vật lý trị liệu") shortMajor = "VLTL";
-                else if (major === "Hoạt động trị liệu") shortMajor = "HĐTL";
-                else if (major === "Ngôn ngữ trị liệu") shortMajor = "NNTL";
+            if (allocations.length === 0 && (!semester || semester === '')) {
+                // XÓA DỮ LIỆU SẠCH SẼ KHỎI DB NẾU TRỐNG
+                updates[dbKey] = deleteField();
                 
-                let siblingKey = `${cls}_${siblingOrient}_${shortMajor}`;
-                updates[siblingKey] = updateData; 
+                if (syncSibling) {
+                    let siblingOrient = orient === 'NC' ? 'UD' : 'NC';
+                    let major = currentSub.majorTag || 'ALL';
+                    let shortMajor = major === "Vật lý trị liệu" ? "VLTL" : (major === "Hoạt động trị liệu" ? "HĐTL" : (major === "Ngôn ngữ trị liệu" ? "NNTL" : major));
+                    let siblingKey = `${cls}_${siblingOrient}_${shortMajor}`;
+                    updates[siblingKey] = deleteField();
+                }
+            } else {
+                let updateData = { 
+                    semester: semester, 
+                    status: assignStatus,
+                    name: currentSub.name,
+                    credits: currentSub.credits || 0,
+                    theory: currentSub.theory || 0,
+                    practice: currentSub.practice || 0,
+                    department: currentSub.department || '',
+                    isPHCN: currentSub.isPHCN !== undefined ? currentSub.isPHCN : true,
+                    orientations: currentSub.orientations || [],
+                    class: cls,
+                    group: currentSub.group || ''
+                };
+                
+                if (isHOD) {
+                    updateData.allocations = allocations;
+                    updateData.proposed_allocations = [];
+                } else {
+                    updateData.proposed_allocations = allocations;
+                }
+
+                updates[dbKey] = updateData;
+
+                // Thực thi lưu chéo
+                if (syncSibling) {
+                    let siblingOrient = orient === 'NC' ? 'UD' : 'NC';
+                    let major = currentSub.majorTag || 'ALL';
+                    let shortMajor = major === "Vật lý trị liệu" ? "VLTL" : (major === "Hoạt động trị liệu" ? "HĐTL" : (major === "Ngôn ngữ trị liệu" ? "NNTL" : major));
+                    
+                    let siblingKey = `${cls}_${siblingOrient}_${shortMajor}`;
+                    updates[siblingKey] = updateData; 
+                }
             }
 
             try {
@@ -1443,7 +1455,7 @@
 
             if (hasError) { showToast("Vui lòng nhập đầy đủ Tên Học viên và Giảng viên!", "danger"); return; }
 
-            // TỰ ĐỘNG PHÂN CÔNG CHÉO (Hệ thống tự nhận diện môn thuộc cả 2 hệ)
+            // TỰ ĐỘNG PHÂN CÔNG CHÉO
             let syncSibling = false;
             if (cls.toUpperCase().includes('THS') && orient !== 'ALL' && currentSub.orientations && currentSub.orientations.includes('NC') && currentSub.orientations.includes('UD')) {
                 syncSibling = true;
@@ -1453,40 +1465,51 @@
 
             const assignStatus = isHOD ? 'approved' : 'proposed';
             
-            let updateData = { 
-                semester: semester, 
-                status: assignStatus,
-                name: currentSub.name,
-                credits: currentSub.credits || 0,
-                theory: currentSub.theory || 0,
-                practice: currentSub.practice || 0,
-                department: currentSub.department || '',
-                isPHCN: currentSub.isPHCN !== undefined ? currentSub.isPHCN : true,
-                orientations: currentSub.orientations || [],
-                class: cls,
-                group: currentSub.group || ''
-            };
-            
-            if (isHOD) {
-                updateData.allocations = allocations;
-                updateData.proposed_allocations = [];
-            } else {
-                updateData.proposed_allocations = allocations;
-            }
-
             let dbKey = window.getDbKey(currentSub);
-            let updates = { [dbKey]: updateData };
+            let updates = {};
 
-            if (syncSibling) {
-                let siblingOrient = orient === 'NC' ? 'UD' : 'NC';
-                let major = currentSub.majorTag || 'ALL';
-                let shortMajor = major;
-                if (major === "Vật lý trị liệu") shortMajor = "VLTL";
-                else if (major === "Hoạt động trị liệu") shortMajor = "HĐTL";
-                else if (major === "Ngôn ngữ trị liệu") shortMajor = "NNTL";
+            if (allocations.length === 0) {
+                updates[dbKey] = deleteField();
                 
-                let siblingKey = `${cls}_${siblingOrient}_${shortMajor}`;
-                updates[siblingKey] = updateData; 
+                if (syncSibling) {
+                    let siblingOrient = orient === 'NC' ? 'UD' : 'NC';
+                    let major = currentSub.majorTag || 'ALL';
+                    let shortMajor = major === "Vật lý trị liệu" ? "VLTL" : (major === "Hoạt động trị liệu" ? "HĐTL" : (major === "Ngôn ngữ trị liệu" ? "NNTL" : major));
+                    let siblingKey = `${cls}_${siblingOrient}_${shortMajor}`;
+                    updates[siblingKey] = deleteField();
+                }
+            } else {
+                let updateData = { 
+                    semester: semester, 
+                    status: assignStatus,
+                    name: currentSub.name,
+                    credits: currentSub.credits || 0,
+                    theory: currentSub.theory || 0,
+                    practice: currentSub.practice || 0,
+                    department: currentSub.department || '',
+                    isPHCN: currentSub.isPHCN !== undefined ? currentSub.isPHCN : true,
+                    orientations: currentSub.orientations || [],
+                    class: cls,
+                    group: currentSub.group || ''
+                };
+                
+                if (isHOD) {
+                    updateData.allocations = allocations;
+                    updateData.proposed_allocations = [];
+                } else {
+                    updateData.proposed_allocations = allocations;
+                }
+
+                updates[dbKey] = updateData;
+
+                if (syncSibling) {
+                    let siblingOrient = orient === 'NC' ? 'UD' : 'NC';
+                    let major = currentSub.majorTag || 'ALL';
+                    let shortMajor = major === "Vật lý trị liệu" ? "VLTL" : (major === "Hoạt động trị liệu" ? "HĐTL" : (major === "Ngôn ngữ trị liệu" ? "NNTL" : major));
+                    
+                    let siblingKey = `${cls}_${siblingOrient}_${shortMajor}`;
+                    updates[siblingKey] = updateData; 
+                }
             }
 
             try {
