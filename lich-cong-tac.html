@@ -57,12 +57,14 @@
         /* CSS động cho màu lớp được xử lý bằng JS (inline style) */
         .evt-class { display: inline-block; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 0.75rem; margin: 0; line-height: 1; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
         
-        /* CSS Nổi bật Chuyên ngành */
+        /* CSS Nổi bật Chuyên ngành & Định hướng */
         .evt-major { display: inline-block; font-size: 0.7rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; margin: 2px 0; line-height: 1; border: 1px solid transparent;}
         .major-vltl { color: #0f766e; background: #ccfbf1; border-color: #99f6e4;}
         .major-hdtl { color: #b45309; background: #fef08a; border-color: #fde047;}
         .major-nntl { color: #6b21a8; background: #f3e8ff; border-color: #d8b4fe;}
         .major-chung { color: #475569; background: #f1f5f9; border-color: #cbd5e1;}
+
+        .evt-orientation { display: inline-block; font-size: 0.65rem; font-weight: 800; background: #e2e8f0; color: #475569; padding: 2px 5px; border-radius: 4px; line-height: 1;}
 
         .evt-time { font-weight: 800; color: var(--text-dark); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; margin: 0;}
 
@@ -169,10 +171,11 @@
         let allEvents = [];
         let gvCoHuuList = []; 
         let gvThinhGiangList = [];
-        let subjectsMap = {}; // Lưu trữ liên kết Tên môn -> Nhóm (Chuyên ngành)
+        let subjectsMap = {}; 
         
         let currentTab = 'cohuu'; 
         let currentMonday = new Date();
+        window.renderedEvents = {}; // Lưu trữ sự kiện đã gộp để hiển thị trong Modal
 
         // Danh sách màu tự động cho Lớp học
         const classColors = [
@@ -186,7 +189,6 @@
             { bg: '#e0e7ff', text: '#334155' }  // slate
         ];
 
-        // Hàm tạo màu nhất quán dựa trên tên lớp
         function getClassColor(className) {
             if (!className) return { bg: '#f1f5f9', text: '#475569' };
             let hash = 0;
@@ -197,22 +199,11 @@
             return classColors[index];
         }
 
-        // Cấu hình thứ tự sắp xếp cứng cho GV Cơ hữu
         const COHUU_ORDER = [
-            "lê thanh vân",
-            "phan thế nguyên",
-            "cao minh hạnh",
-            "nguyễn thanh duy",
-            "huỳnh chung",
-            "nguyễn minh sang",
-            "trần thị bích hạnh",
-            "nguyễn ngọc minh",
-            "phạm ngọc đạt",
-            "nguyễn huỳnh ngọc mai trâm",
-            "nguyễn đức sinh",
-            "trần long biên",
-            "trần hữu đức",
-            "nguyễn mai ngọc đoan"
+            "lê thanh vân", "phan thế nguyên", "cao minh hạnh", "nguyễn thanh duy",
+            "huỳnh chung", "nguyễn minh sang", "trần thị bích hạnh", "nguyễn ngọc minh",
+            "phạm ngọc đạt", "nguyễn huỳnh ngọc mai trâm", "nguyễn đức sinh",
+            "trần long biên", "trần hữu đức", "nguyễn mai ngọc đoan"
         ];
 
         window.showToast = (message, type = 'success') => {
@@ -244,7 +235,6 @@
             return n.replace(/ThS\.|TS\.|PGS\.|GS\./g, '').trim().toLowerCase();
         };
 
-        // Trích xuất chuyên ngành dựa trên từ khóa trong Group
         function getMajorFromSubject(subjectName) {
             if (!subjectName) return 'Chung';
             let normSubj = subjectName.toLowerCase().trim();
@@ -258,9 +248,18 @@
             return 'Chung';
         }
 
+        // Rút gọn định hướng để làm Tag (NC, UD)
+        function getShortOrientation(str) {
+            let upper = (str || '').toUpperCase();
+            let res = [];
+            if (upper.includes('NC') || upper.includes('NGHIÊN CỨU')) res.push('NC');
+            if (upper.includes('UD') || upper.includes('ỨNG DỤNG')) res.push('UD');
+            if (res.length === 0) return 'Chung';
+            return res.join(', ');
+        }
+
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                // KIỂM TRA QUYỀN TRUY CẬP: CHẶN HỌC VIÊN
                 if (user.email.toLowerCase() === 'ths.phcn26@ump.edu.vn') {
                     alert("Tài khoản học viên không có quyền truy cập trang này!");
                     window.location.href = "thoi-khoa-bieu.html";
@@ -276,7 +275,7 @@
 
         async function fetchData() {
             try {
-                // 1. Tải danh sách môn học để map chuyên ngành
+                // Tải Môn học
                 const subjSnap = await getDocs(collection(db, "subjects"));
                 subjectsMap = {};
                 subjSnap.forEach(doc => {
@@ -287,7 +286,7 @@
                     }
                 });
 
-                // 2. Tải danh sách GV Cơ hữu từ bảng users
+                // Tải GV
                 const userSnap = await getDocs(collection(db, "users"));
                 let coHuuBase = new Set();
                 let coHuuNormalized = new Set();
@@ -302,7 +301,7 @@
                     }
                 });
 
-                // 3. Lắng nghe Lịch giảng dạy
+                // Lắng nghe Lịch
                 onSnapshot(collection(db, "calendar_events"), (snapshot) => {
                     allEvents = [];
                     let activeCoHuu = new Set(coHuuBase); 
@@ -327,18 +326,14 @@
                         }
                     });
 
-                    // Sắp xếp
                     let sortFnCoHuu = (a, b) => {
                         let normA = normalizeName(a);
                         let normB = normalizeName(b);
                         let idxA = COHUU_ORDER.indexOf(normA);
                         let idxB = COHUU_ORDER.indexOf(normB);
-
                         if (idxA === -1) idxA = 999;
                         if (idxB === -1) idxB = 999;
-
                         if (idxA !== idxB) return idxA - idxB;
-
                         let nameA = a.split(' ').pop();
                         let nameB = b.split(' ').pop();
                         return nameA.localeCompare(nameB, 'vi');
@@ -402,6 +397,8 @@
         };
 
         function renderWeek() {
+            window.renderedEvents = {}; // Reset danh sách sự kiện đã gộp
+
             let sunday = new Date(currentMonday);
             sunday.setDate(currentMonday.getDate() + 6);
             
@@ -442,13 +439,11 @@
             });
 
             let baseGvList = currentTab === 'cohuu' ? gvCoHuuList : gvThinhGiangList;
-
             let matrix = {};
             baseGvList.forEach(gv => { matrix[gv] = {}; });
 
             eventsThisWeek.forEach(ev => {
                 if (!ev.gv) return;
-                
                 let gvs = ev.gv.split(/,|&/).map(s => s.trim()).filter(s => s);
                 let evDateStr = formatDateForInput(new Date(ev.start));
 
@@ -460,18 +455,13 @@
                 });
             });
 
-            // Lọc GV thỉnh giảng chỉ hiện khi có lịch
             let displayGvList = [];
             if (currentTab === 'thinhgiang') {
                 displayGvList = baseGvList.filter(gv => {
-                    let hasEventThisWeek = false;
                     for (let dStr in matrix[gv]) {
-                        if (matrix[gv][dStr] && matrix[gv][dStr].length > 0) {
-                            hasEventThisWeek = true;
-                            break;
-                        }
+                        if (matrix[gv][dStr] && matrix[gv][dStr].length > 0) return true;
                     }
-                    return hasEventThisWeek;
+                    return false;
                 });
             } else {
                 displayGvList = baseGvList; 
@@ -488,25 +478,58 @@
                     let dStr = formatDateForInput(dateObj);
                     let isToday = (dStr === todayStr);
                     let cellCls = isToday ? 'today-col' : '';
-                    
                     let cellContent = '';
+
                     if (matrix[gv][dStr] && matrix[gv][dStr].length > 0) {
                         matrix[gv][dStr].sort((a,b) => new Date(a.start).getTime() - new Date(b.start).getTime());
 
+                        // --- THUẬT TOÁN GỘP (MERGE) SỰ KIỆN ---
+                        let mergedEvents = [];
                         matrix[gv][dStr].forEach(ev => {
+                            let existing = mergedEvents.find(e => 
+                                e.start === ev.start && 
+                                e.end === ev.end && 
+                                e.class === ev.class && 
+                                e.subject === ev.subject && 
+                                e.room === ev.room && 
+                                e.task === ev.task
+                            );
+
+                            let newOrtStr = ev.orientation || 'Chung';
+
+                            if (existing) {
+                                let existingOrts = existing.mergedOrientation.split(',').map(s => s.trim());
+                                let newOrts = newOrtStr.split(',').map(s => s.trim());
+                                newOrts.forEach(no => {
+                                    if (!existingOrts.includes(no) && no !== '') {
+                                        existingOrts.push(no);
+                                    }
+                                });
+                                existing.mergedOrientation = existingOrts.join(', ');
+                            } else {
+                                let newEv = { ...ev, mergedOrientation: newOrtStr };
+                                mergedEvents.push(newEv);
+                            }
+                        });
+
+                        // Render sau khi đã gộp
+                        mergedEvents.forEach(ev => {
+                            window.renderedEvents[ev.id] = ev; // Lưu vào biến toàn cục để Popup gọi
+
                             let sTime = new Date(ev.start).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'});
                             let eTime = ev.end ? new Date(ev.end).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'}) : '';
                             let timeDisplay = eTime ? `${sTime} - ${eTime}` : `${sTime}`;
 
-                            let orientCode = (ev.orientation || '').toUpperCase();
-                            let borderClass = 'border-chung';
-                            if(orientCode === 'NGHIÊN CỨU' || orientCode === 'NC') borderClass = 'border-nc';
-                            else if(orientCode === 'ỨNG DỤNG' || orientCode === 'UD') borderClass = 'border-ud';
+                            // Xác định Tag Định Hướng
+                            let shortOrt = getShortOrientation(ev.mergedOrientation);
+                            let ortHtml = `<div class="evt-orientation">${shortOrt}</div>`;
 
-                            // Màu của Lớp
+                            let borderClass = 'border-chung';
+                            if(shortOrt.includes('NC')) borderClass = 'border-nc';
+                            else if(shortOrt.includes('UD')) borderClass = 'border-ud';
+
                             let classColor = getClassColor(ev.class);
                             
-                            // Trích xuất chuyên ngành
                             let majorText = getMajorFromSubject(ev.subject);
                             let majorClass = 'major-chung';
                             if(majorText === 'VLTL') majorClass = 'major-vltl';
@@ -519,6 +542,7 @@
                                 <div class="event-card compact ${borderClass}" onclick="showEventDetail('${ev.id}')">
                                     <div class="evt-class" style="background-color:${classColor.bg}; color:${classColor.text};">${ev.class || 'Chưa XĐ'}</div>
                                     ${majorHtml}
+                                    ${ortHtml}
                                     <div class="evt-time">${timeDisplay}</div>
                                 </div>
                             `;
@@ -542,7 +566,7 @@
         // CÁC HÀM XỬ LÝ POPUP CHI TIẾT
         // ==========================================
         window.showEventDetail = (id) => {
-            const ev = allEvents.find(e => e.id === id);
+            const ev = window.renderedEvents[id];
             if (!ev) return;
             
             let sTime = new Date(ev.start).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'});
@@ -566,11 +590,11 @@
                 
                 <div style="margin-bottom: 10px;"><strong>Khóa/Lớp:</strong> ${classBadge}</div>
                 <div style="margin-bottom: 10px;"><strong>Chuyên ngành:</strong> ${majorBadge}</div>
+                <div style="margin-bottom: 10px;"><strong>Định hướng:</strong> <span style="font-weight:bold; color: #b45309;">${ev.mergedOrientation}</span></div>
                 <div style="margin-bottom: 10px;"><strong>Thời gian:</strong> <span style="color:#b45309; font-weight:bold;">${timeDisplay}</span> <span style="font-size: 0.85rem; color:#64748b;">(${dateStr})</span></div>
                 <div style="margin-bottom: 10px;"><strong>Phòng học:</strong> ${ev.room || 'Chưa xếp'}</div>
                 <div style="margin-bottom: 10px;"><strong>Giảng viên:</strong> <span style="font-weight:bold;">${ev.gv || 'Chưa xếp'}</span></div>
                 <div style="margin-bottom: 10px;"><strong>Nhiệm vụ:</strong> ${ev.task || 'Giảng dạy'}</div>
-                <div style="margin-bottom: 10px;"><strong>Định hướng:</strong> ${ev.orientation || 'Chung'}</div>
             `;
             
             document.getElementById('eventModalBody').innerHTML = html;
