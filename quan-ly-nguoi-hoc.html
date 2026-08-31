@@ -107,6 +107,7 @@
         </div>
 
         <div id="dataWrapper" class="hidden">
+            <!-- BẢNG ĐIỀU KHIỂN LỌC DỮ LIỆU -->
             <div class="controls-wrapper">
                 <div class="filter-controls">
                     <div class="filter-group">
@@ -133,17 +134,21 @@
                 </div>
             </div>
 
+            <!-- BẢNG DANH SÁCH -->
             <div class="table-container">
                 <table>
                     <thead id="tableHead">
-                        </thead>
+                        <!-- JS tự động quét và render cột -->
+                    </thead>
                     <tbody id="tableBody">
-                        </tbody>
+                        <!-- JS render dữ liệu -->
+                    </tbody>
                 </table>
             </div>
         </div>
     </main>
 
+    <!-- MODAL CHI TIẾT NGƯỜI HỌC -->
     <div id="learnerModal" class="modal-overlay hidden">
         <div class="modal-content">
             <div class="modal-header-profile">
@@ -160,7 +165,8 @@
                 <div class="info-section">
                     <h4><i class="fas fa-address-book"></i> Hồ sơ chi tiết</h4>
                     <div class="info-grid" id="mdlDynamicInfo">
-                        </div>
+                        <!-- JS đổ dữ liệu động vào đây -->
+                    </div>
                 </div>
 
                 <div class="info-section" id="thesisSection" class="hidden">
@@ -194,22 +200,23 @@
         let thesesData = []; 
         let dynamicColumns = []; 
 
-        // Các trường ưu tiên hiển thị theo thứ tự
-        const primaryColumns = ["studentId", "fullName", "className", "major", "orientation", "dob", "gender", "ethnic", "phone", "email", "workplace"];
+        // Các trường ưu tiên hiển thị theo đúng thứ tự yêu cầu
+        const primaryColumns = ["studentId", "fullName", "className", "gender", "dob", "placeOfBirth", "ethnic", "orientation", "major", "workplace"];
 
         const columnTranslations = {
             "studentId": "Mã số",
             "fullName": "Họ và Tên",
             "className": "Lớp/Khóa",
-            "major": "Chuyên ngành",
-            "orientation": "Định hướng",
-            "gender": "Giới tính",
+            "gender": "Giới",
             "dob": "Ngày sinh",
+            "placeOfBirth": "Nơi sinh",
             "ethnic": "Dân tộc",
+            "orientation": "Định hướng",
+            "major": "Chuyên ngành",
+            "workplace": "Đơn vị công tác",
             "phone": "Điện thoại",
             "email": "Email",
             "address": "Địa chỉ",
-            "workplace": "Nơi công tác",
             "id": "ID Hệ thống"
         };
 
@@ -269,8 +276,9 @@
                 });
 
                 if(learnersData.length === 0) {
+                    // Dữ liệu mẫu thay đổi để phù hợp với các cột mới
                     learnersData = [
-                        { id: "SV01", studentId: "4012025001", fullName: "Nguyễn Văn A", className: "THS2025", major: "VLTL", orientation: "UD", dob: "15/04/1995", gender: "Nam", ethnic: "Kinh", phone: "0901234567", email: "nva@ump.edu.vn", workplace: "BV Chợ Rẫy", address: "Quận 5, TP.HCM" }
+                        { id: "SV01", studentId: "4012025001", fullName: "Nguyễn Văn A", className: "THS2025", gender: "Nam", dob: "15/04/1995", placeOfBirth: "TP.HCM", ethnic: "Kinh", orientation: "UD", major: "VLTL", workplace: "BV Chợ Rẫy", phone: "0901234567", email: "nva@ump.edu.vn" }
                     ];
                     learnersData.forEach(d => Object.keys(d).forEach(k => keySet.add(k)));
                 }
@@ -286,7 +294,7 @@
                 tSnap.forEach(doc => thesesData.push(doc.data()));
 
                 keySet.delete('id'); 
-                keySet.delete('system'); // Loại bỏ cột system
+                keySet.delete('system'); // Đảm bảo bỏ cột system nếu DB cũ còn
                 
                 dynamicColumns = [];
                 primaryColumns.forEach(pKey => {
@@ -424,7 +432,7 @@
                     let val = l[col] || '---';
                     let displayName = columnTranslations[col] || col.charAt(0).toUpperCase() + col.slice(1);
                     
-                    let widthClass = (col.toLowerCase().includes('address') || col.toLowerCase().includes('địa chỉ') || col.toLowerCase().includes('note') || col.toLowerCase().includes('ghi chú')) ? 'full-width' : '';
+                    let widthClass = (col.toLowerCase().includes('address') || col.toLowerCase().includes('địa chỉ') || col.toLowerCase().includes('placeofbirth') || col.toLowerCase().includes('nơi sinh') || col.toLowerCase().includes('note') || col.toLowerCase().includes('ghi chú')) ? 'full-width' : '';
 
                     infoGrid.innerHTML += `
                         <div class="info-item ${widthClass}">
