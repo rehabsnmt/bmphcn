@@ -167,9 +167,9 @@
             <div class="subtitle">CHƯƠNG TRÌNH THẠC SĨ KỸ THUẬT PHỤC HỒI CHỨC NĂNG</div>
         </div>
 
-        <!-- KHUNG THÔNG BÁO CHỜ DUYỆT (CHỈ HIỆN VỚI HOD KHI CÓ ĐỀ XUẤT) -->
+        <!-- KHUNG THÔNG BÁO CHỜ DUYỆT ĐƯỢC TỐI GIẢN -->
         <div id="pendingProposalsAlert" class="hidden">
-            <h4 style="margin: 0 0 10px 0; color: #b45309; font-size: 1.1rem;"><i class="fas fa-bell"></i> Phân công đang chờ Trưởng BM duyệt (<span id="pendingCount">0</span>)</h4>
+            <h4 style="margin: 0 0 10px 0; color: #b45309; font-size: 1.1rem;"><i class="fas fa-bell"></i> Đề xuất chờ duyệt (<span id="pendingCount">0</span>)</h4>
             <div id="pendingList" style="display: flex; flex-wrap: wrap; gap: 10px;">
                 <!-- Dữ liệu JS đổ vào -->
             </div>
@@ -706,90 +706,50 @@
             }
         }
 
-        // HÀM KIỂM TRA PHÂN CÔNG CHỜ DUYỆT ĐÃ KHẮC PHỤC TRÙNG LẶP & ĐỌC KEY CHUẨN
+        // HÀM KIỂM TRA PHÂN CÔNG CHỜ DUYỆT ĐÃ KHẮC PHỤC TRÙNG LẶP & TỐI GIẢN
         window.checkPendingProposals = () => {
             if (!isHOD) return; 
             
-            let pendingMap = new Map(); 
+            let pendingItems = []; 
 
             for (let subId in assignmentsDB) {
                 let asgDoc = assignmentsDB[subId];
                 for (let dbKey in asgDoc) {
                     if (asgDoc[dbKey].status === 'proposed') {
                         let asg = asgDoc[dbKey];
-                        let parts = dbKey.split('_');
-                        let cls = parts[0];
+                        
+                        // Rút gọn lấy tên lớp và định hướng
+                        let cls = asg.class || dbKey.split('_')[0];
+                        let name = asg.name || 'Môn học';
+                        
                         let orient = 'ALL';
-                        let majorKey = 'ALL';
-                        
-                        if (cls.toUpperCase().includes('THS')) {
-                            if (parts.length === 1) {
-                                orient = 'ALL'; // Fallback dữ liệu cũ
-                                majorKey = 'ALL';
-                            } else if (parts.length === 2 && !['NC', 'UD'].includes(parts[1])) {
-                                orient = 'ALL'; // Legacy key kiểu cũ ko có định hướng
-                                majorKey = parts[1];
-                            } else {
-                                orient = parts[1] || 'ALL';
-                                majorKey = parts.length > 2 ? parts.slice(2).join('_') : 'ALL';
-                            }
-                        } else {
-                            majorKey = parts.length > 1 ? parts.slice(1).join('_') : 'ALL';
-                        }
-                        
-                        let fullMajor = 'ALL';
-                        if (majorKey === 'VLTL') fullMajor = 'Vật lý trị liệu';
-                        else if (majorKey === 'HĐTL') fullMajor = 'Hoạt động trị liệu';
-                        else if (majorKey === 'NNTL') fullMajor = 'Ngôn ngữ trị liệu';
-                        else fullMajor = majorKey;
+                        if (dbKey.includes('_NC')) orient = 'NC';
+                        if (dbKey.includes('_UD')) orient = 'UD';
 
-                        let mapKey = `${subId}_${cls}_${fullMajor}`;
-
-                        if (!pendingMap.has(mapKey)) {
-                            pendingMap.set(mapKey, {
-                                subId: subId,
-                                name: asg.name || 'Môn học',
-                                cls: cls,
-                                orients: new Set([orient]),
-                                major: fullMajor
-                            });
-                        } else {
-                            pendingMap.get(mapKey).orients.add(orient);
+                        if (!pendingItems.find(item => item.subId === subId && item.cls === cls && item.orient === orient)) {
+                            pendingItems.push({ subId, name, cls, orient });
                         }
                     }
                 }
             }
 
             const alertBox = document.getElementById('pendingProposalsAlert');
-            let pendingItems = Array.from(pendingMap.values());
-            
             if (pendingItems.length > 0) {
                 document.getElementById('pendingCount').innerText = pendingItems.length;
                 let listHtml = '';
+                
                 pendingItems.forEach(item => {
-                    let mDisplay = item.major === 'ALL' ? 'Chung' : item.major;
-                    let oDisplay = '';
-                    if (item.cls.toUpperCase().includes('THS')) {
-                        if (item.orients.has('NC') && item.orients.has('UD')) {
-                            oDisplay = ' - NC & UD';
-                        } else if (item.orients.has('NC')) {
-                            oDisplay = ' - Nghiên cứu';
-                        } else if (item.orients.has('UD')) {
-                            oDisplay = ' - Ứng dụng';
-                        } else {
-                            oDisplay = ' | Chung';
-                        }
+                    let badgeText = `[${item.cls}]`;
+                    if (item.cls.toUpperCase().includes('THS') && item.orient !== 'ALL') {
+                        badgeText = `[${item.cls} - ${item.orient === 'NC' ? 'Nghiên cứu' : 'Ứng dụng'}]`;
                     }
-                    
-                    let targetOrient = 'ALL';
-                    if (item.orients.has('NC')) targetOrient = 'NC';
-                    else if (item.orients.has('UD')) targetOrient = 'UD';
 
-                    listHtml += `<button class="pending-chip" onclick="goToProposal('${item.cls}', '${targetOrient}', '${item.subId}')">
+                    listHtml += `<button class="pending-chip" onclick="goToProposal('${item.cls}', '${item.orient}', '${item.subId}')">
                         <i class="fas fa-hand-point-right" style="color: #f59e0b; font-size: 1.1rem;"></i> 
-                        <span>[${item.cls}${oDisplay} | ${mDisplay}] <b>${item.name}</b></span>
+                        <span>${badgeText} <b>${item.name}</b></span>
                     </button>`;
                 });
+                
                 document.getElementById('pendingList').innerHTML = listHtml;
                 alertBox.classList.remove('hidden');
             } else {
@@ -797,7 +757,7 @@
             }
         };
 
-        // ĐIỀU HƯỚNG NHANH KHÔNG CẦN ÉP BUỘC CHUYÊN NGÀNH
+        // ĐIỀU HƯỚNG NHANH KHÔNG CẦN CHUYÊN NGÀNH
         window.goToProposal = (cls, orient, subId) => {
             const classSel = document.getElementById('filterClass');
             classSel.value = cls;
@@ -1392,7 +1352,7 @@
                     updates[siblingKey] = deleteField();
                 }
 
-                // Fix bug data cũ: Dọn các thẻ rác bị sai cấu trúc
+                // DỌN DẸP THẺ RÁC "Chung" LỖI TỪ BẢN CŨ
                 if (cls.toUpperCase().includes('THS')) {
                     let major = currentSub.majorTag || 'ALL';
                     let shortMajor = major === "Vật lý trị liệu" ? "VLTL" : (major === "Hoạt động trị liệu" ? "HĐTL" : (major === "Ngôn ngữ trị liệu" ? "NNTL" : major));
@@ -1443,7 +1403,7 @@
                     updates[siblingKey] = updateData; 
                 }
 
-                // Dọn rác
+                // DỌN DẸP THẺ RÁC "Chung" LỖI TỪ BẢN CŨ NẾU LƯU THÀNH CÔNG
                 if (cls.toUpperCase().includes('THS')) {
                     let major = currentSub.majorTag || 'ALL';
                     let shortMajor = major === "Vật lý trị liệu" ? "VLTL" : (major === "Hoạt động trị liệu" ? "HĐTL" : (major === "Ngôn ngữ trị liệu" ? "NNTL" : major));
