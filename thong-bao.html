@@ -12,6 +12,9 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- Tích hợp Quill.js CSS cho giao diện soạn thảo -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    
     <style>
         /* --- CSS CHO TRANG THÔNG BÁO --- */
         main { max-width: 1000px; padding: 2rem 3%; margin: 0 auto; width: 100%; box-sizing: border-box; }
@@ -27,9 +30,15 @@
         .admin-form-box.active { display: block; animation: fadeIn 0.3s ease-in-out; }
         .input-group { margin-bottom: 1rem; }
         .input-group label { display: block; font-size: 0.9rem; font-weight: 600; margin-bottom: 5px; color: var(--text-dark); }
-        .input-group input, .input-group textarea { width: 100%; padding: 0.8rem; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 0.95rem; outline: none; box-sizing: border-box; }
-        .input-group input:focus, .input-group textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1); }
-        .input-group textarea { min-height: 150px; resize: vertical; }
+        .input-group input { width: 100%; padding: 0.8rem; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 0.95rem; outline: none; box-sizing: border-box; }
+        .input-group input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1); }
+        
+        /* Tùy chỉnh khung soạn thảo Quill */
+        #editor-container { height: 300px; background: #fff; font-family: inherit; font-size: 0.95rem; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; }
+        .ql-toolbar { border-top-left-radius: 8px; border-top-right-radius: 8px; background: #f8fafc; }
+        .ql-editor { text-align: justify; } /* Ép căn lề đều 2 bên mặc định khi soạn thảo */
+        .ql-editor p { text-align: justify; margin-bottom: 10px; }
+        .ql-editor img { max-width: 100%; border-radius: 8px; margin: 10px 0; }
 
         /* Danh sách thông báo */
         .news-list { display: flex; flex-direction: column; gap: 1.5rem; }
@@ -40,9 +49,9 @@
         .news-item.pinned { border-left: 4px solid #f97316; background: #fffedd; }
         .pinned-badge { display: inline-block; background: #f97316; color: white; padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; margin-bottom: 5px; align-self: flex-start; }
         
-        .news-title { font-size: 1.3rem; font-weight: 700; color: var(--text-dark); margin: 0; line-height: 1.4; }
+        .news-title { font-size: 1.3rem; font-weight: 700; color: var(--text-dark); margin: 0; line-height: 1.4; text-align: justify;}
         .news-meta { font-size: 0.85rem; color: var(--text-body); display: flex; gap: 15px; align-items: center; }
-        .news-excerpt { font-size: 0.95rem; color: var(--text-body); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .news-excerpt { font-size: 0.95rem; color: var(--text-body); line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-align: justify; }
 
         .empty-state { text-align: center; padding: 3rem; color: var(--text-body); }
         
@@ -74,7 +83,8 @@
                 </div>
                 <div class="input-group">
                     <label>Nội dung chi tiết *</label>
-                    <textarea id="newsContent" placeholder="Nhập nội dung bài viết..." required></textarea>
+                    <!-- Khung cho Quill Editor -->
+                    <div id="editor-container"></div>
                 </div>
                 <div style="display: flex; gap: 10px;">
                     <button type="submit" id="btnSubmitNews" class="btn-add" style="flex: 1;">
@@ -93,7 +103,7 @@
             <a href="thoi-khoa-bieu.html" class="news-item pinned">
                 <span class="pinned-badge"><i class="fas fa-thumbtack"></i> Đã ghim</span>
                 <h3 class="news-title">Thời khóa biểu</h3>
-                <div class="news-excerpt">Vui lòng click vào đây để xem chi tiết thời khóa biểu dự kiến.</div>
+                <div class="news-excerpt">Vui lòng click vào đây để xem chi tiết thời khóa biểu giảng dạy cập nhật mới nhất.</div>
                 <div class="news-meta">
                     <span><i class="fas fa-calendar-alt"></i> Hệ thống</span>
                     <span class="author-info"><i class="fas fa-pencil-alt"></i> Đăng bởi: Bộ môn PHCN</span>
@@ -113,7 +123,7 @@
             <button class="modal-close" onclick="closeDeleteModal()"><i class="fas fa-times"></i></button>
             <h3 style="color: var(--accent); margin-bottom: 15px;"><i class="fas fa-exclamation-triangle"></i> Xác nhận xóa</h3>
             <p style="font-size: 0.9rem; color: var(--text-body);">Thông báo:</p>
-            <p id="deleteNewsTitlePreview" style="font-weight: 700; color: var(--text-dark); margin-bottom: 20px; line-height: 1.4;"></p>
+            <p id="deleteNewsTitlePreview" style="font-weight: 700; color: var(--text-dark); margin-bottom: 20px; line-height: 1.4; text-align: justify;"></p>
             <p style="font-size: 0.85rem;">Mã xác nhận:</p>
             <div id="randomDeleteCodeDisplay" style="background: var(--bg-page); padding: 10px; border-radius: 6px; font-size: 1.5rem; font-weight: bold; color: var(--accent); letter-spacing: 5px; margin-bottom: 15px;">0000</div>
             <input type="text" id="inputDeleteCodeConfirm" placeholder="Nhập mã xác nhận..." style="text-align: center; letter-spacing: 2px; width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; margin-bottom: 15px;">
@@ -126,6 +136,9 @@
 
     <!-- 4. GỌI LAYOUT CHUNG -->
     <script src="js/layout.js"></script>
+
+    <!-- Tích hợp Script thư viện Quill.js -->
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
 
     <!-- FIREBASE MODULAR (V9) -->
     <script type="module">
@@ -147,29 +160,47 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // Khởi tạo Trình soạn thảo văn bản phong phú (Quill)
+        var quill = new Quill('#editor-container', {
+            theme: 'snow',
+            placeholder: 'Nhập nội dung thông báo... (Hỗ trợ chèn link, hình ảnh)',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'align': [] }], // Căn lề trái, phải, giữa, đều
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    ['link', 'image'],
+                    [{ 'color': [] }, { 'background': [] }],
+                    ['clean']
+                ]
+            }
+        });
+
         const btnToggleForm = document.getElementById('btnToggleForm');
         const adminFormBox = document.getElementById('adminFormBox');
         const dynamicNewsContainer = document.getElementById('dynamicNewsContainer');
         let currentAuthor = "Giảng viên";
         let isAdmin = false;
+        
+        // Dùng biến cache để lưu trữ tạm các bài viết tránh load Base64 lớn gây sập
+        let newsDataCache = {};
 
         // Xác thực người dùng
         onAuthStateChanged(auth, async (user) => {
-            // Sử dụng setTimeout để đợi file layout.js chèn nút Đăng nhập vào trang
             setTimeout(async () => {
                 const btnAuthNav = document.getElementById('btnAuthNav');
                 if (user) {
-                    // Nếu là tài khoản THS2026 thì xem như khách vãng lai
                     if (user.email.toLowerCase() === 'ths.phcn26@ump.edu.vn') {
                         isAdmin = false;
                         document.body.classList.remove('is-logged-in'); 
                         btnToggleForm.style.display = 'none';
                         if(btnAuthNav) btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 5px;"></i> Lớp Thạc sĩ 2026`;
-                        return; // Ngừng thực thi các logic Admin bên dưới
+                        return;
                     }
 
                     isAdmin = true;
-                    document.body.classList.add('is-logged-in'); // Hiện tên tác giả
+                    document.body.classList.add('is-logged-in'); 
                     btnToggleForm.style.display = 'flex'; 
                     try {
                         const userDoc = await getDoc(doc(db, "users", user.uid));
@@ -186,7 +217,7 @@
                     }
                 } else {
                     isAdmin = false;
-                    document.body.classList.remove('is-logged-in'); // Ẩn tên tác giả
+                    document.body.classList.remove('is-logged-in');
                     btnToggleForm.style.display = 'none';
                     if(btnAuthNav) {
                         btnAuthNav.innerHTML = 'Đăng nhập';
@@ -199,7 +230,7 @@
         // Bật/tắt Form (Tạo mới)
         btnToggleForm.addEventListener('click', () => {
             if(!adminFormBox.classList.contains('active')){
-                resetForm(); // Dọn dẹp form nếu đang ở chế độ sửa
+                resetForm();
                 adminFormBox.classList.add('active');
                 btnToggleForm.innerHTML = '<i class="fas fa-times"></i> Đóng khung soạn thảo';
                 btnToggleForm.style.backgroundColor = 'var(--text-body)';
@@ -214,24 +245,32 @@
         document.getElementById('formPostNews').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btnSubmit = document.getElementById('btnSubmitNews');
+            
+            const title = document.getElementById('newsTitle').value.trim();
+            // Lấy nội dung HTML đã được định dạng
+            const contentHTML = quill.root.innerHTML;
+            
+            // Xóa thẻ p rỗng mặc định của Quill nếu không có nội dung thực
+            if (contentHTML === '<p><br></p>') {
+                alert("Vui lòng nhập nội dung chi tiết!");
+                return;
+            }
+
             btnSubmit.disabled = true; 
             btnSubmit.innerHTML = "Đang xử lý...";
-
-            const title = document.getElementById('newsTitle').value.trim();
-            const content = document.getElementById('newsContent').value.trim();
             const editId = document.getElementById('editNewsId').value;
 
             try {
                 if (editId) {
                     await updateDoc(doc(db, "announcements", editId), {
                         title: title, 
-                        content: content
+                        content: contentHTML // Lưu chuỗi HTML
                     });
                     alert("Cập nhật thông báo thành công!");
                 } else {
                     await addDoc(collection(db, "announcements"), {
                         title: title, 
-                        content: content, 
+                        content: contentHTML, // Lưu chuỗi HTML 
                         author: currentAuthor,
                         createdAt: serverTimestamp()
                     });
@@ -249,14 +288,15 @@
             }
         });
 
-        // Dọn dẹp Form
         function resetForm() {
             document.getElementById('formPostNews').reset();
+            quill.root.innerHTML = ''; // Xóa sạch nội dung Quill
             document.getElementById('editNewsId').value = '';
             document.getElementById('formTitle').innerText = "Tạo thông báo mới";
             document.getElementById('btnSubmitNews').innerText = "Đăng tải bài viết";
             document.getElementById('btnCancelEdit').style.display = "none";
         }
+        
         document.getElementById('btnCancelEdit').addEventListener('click', () => {
             resetForm();
             adminFormBox.classList.remove('active');
@@ -268,10 +308,14 @@
         // CÁC HÀM XỬ LÝ SỰ KIỆN TỪ GIAO DIỆN HIỂN THỊ
         // ==========================================
         
-        window.triggerEdit = (id, enTitle, enContent) => {
+        window.triggerEdit = (id) => {
+            const data = newsDataCache[id];
+            if(!data) return;
+
             document.getElementById('editNewsId').value = id;
-            document.getElementById('newsTitle').value = decodeURIComponent(enTitle);
-            document.getElementById('newsContent').value = decodeURIComponent(enContent);
+            document.getElementById('newsTitle').value = data.title;
+            // Đổ nội dung HTML ngược lại vào trình soạn thảo Quill
+            quill.root.innerHTML = data.content; 
             
             document.getElementById('formTitle').innerText = "Sửa thông báo";
             document.getElementById('btnSubmitNews').innerHTML = '<i class="fas fa-save"></i> Cập nhật thay đổi';
@@ -288,10 +332,13 @@
         let targetDeleteId = null;
         let generatedSecurityCode = "";
 
-        window.triggerDeleteConfirm = (id, enTitle) => {
+        window.triggerDeleteConfirm = (id) => {
+            const data = newsDataCache[id];
+            if(!data) return;
+
             targetDeleteId = id;
             generatedSecurityCode = Math.floor(1000 + Math.random() * 9000).toString();
-            document.getElementById('deleteNewsTitlePreview').innerText = decodeURIComponent(enTitle);
+            document.getElementById('deleteNewsTitlePreview').innerText = data.title;
             document.getElementById('randomDeleteCodeDisplay').innerText = generatedSecurityCode;
             document.getElementById('inputDeleteCodeConfirm').value = '';
             document.getElementById('btnExecuteFinalDelete').disabled = true;
@@ -321,12 +368,17 @@
         onSnapshot(q, (snapshot) => {
             if (snapshot.empty) { 
                 dynamicNewsContainer.innerHTML = ''; 
+                newsDataCache = {};
                 return; 
             }
             dynamicNewsContainer.innerHTML = "";
+            newsDataCache = {}; // Reset cache
+
             snapshot.forEach((docSnap) => {
                 const data = docSnap.data();
                 const id = docSnap.id;
+                
+                newsDataCache[id] = data; // Lưu vào biến toàn cục để Sửa/Xóa lấy ra
                 
                 let dateStr = "Vừa xong";
                 if (data.createdAt) {
@@ -334,18 +386,20 @@
                     dateStr = dateObj.toLocaleDateString('vi-VN', {day:'2-digit', month:'2-digit', year:'numeric'}) + ' - ' + dateObj.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'});
                 }
                 
-                let excerpt = data.content.substring(0, 150);
-                if (data.content.length > 150) excerpt += "...";
-
-                const safeTitle = encodeURIComponent(data.title || '').replace(/'/g, "%27");
-                const safeContent = encodeURIComponent(data.content || '').replace(/'/g, "%27");
+                // Trích xuất văn bản thuần túy (Plain text) từ HTML để làm excerpt
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = data.content || '';
+                let plainText = tempDiv.textContent || tempDiv.innerText || '';
+                
+                let excerpt = plainText.substring(0, 150);
+                if (plainText.length > 150) excerpt += "...";
 
                 let actionHtml = '';
                 if (isAdmin) {
                     actionHtml = `
                         <div class="action-buttons" onclick="event.preventDefault();">
-                            <button class="btn-warning" onclick="event.preventDefault(); triggerEdit('${id}', '${safeTitle}', '${safeContent}')"><i class="fas fa-edit"></i> Sửa</button>
-                            <button class="btn-danger" onclick="event.preventDefault(); triggerDeleteConfirm('${id}', '${safeTitle}')"><i class="fas fa-trash"></i> Xóa</button>
+                            <button class="btn-warning" onclick="event.preventDefault(); triggerEdit('${id}')"><i class="fas fa-edit"></i> Sửa</button>
+                            <button class="btn-danger" onclick="event.preventDefault(); triggerDeleteConfirm('${id}')"><i class="fas fa-trash"></i> Xóa</button>
                         </div>
                     `;
                 }
