@@ -514,6 +514,7 @@
             if (!calendar) return;
             
             let viewStart = calendar.view.activeStart;
+            // FullCalendar's activeEnd is exclusive (midnight of the next day), so subtract 1 ms
             let viewEnd = new Date(calendar.view.activeEnd.getTime() - 1);
             
             let dateStrRange = `Từ ${viewStart.toLocaleDateString('vi-VN', {day:'2-digit', month:'2-digit', year:'numeric'})} đến ${viewEnd.toLocaleDateString('vi-VN', {day:'2-digit', month:'2-digit', year:'numeric'})}`;
@@ -525,6 +526,7 @@
                 if (e.extendedProps && e.extendedProps.type === 'grouped_normal') {
                     e.extendedProps.events.forEach(subEv => {
                         let evStart = new Date(subEv.start);
+                        // Chỉ lấy các sự kiện nằm trong tuần đang xem
                         if (evStart >= viewStart && evStart <= viewEnd) {
                             reportData.push({
                                 start: evStart,
@@ -541,6 +543,7 @@
                 }
             });
             
+            // Sắp xếp báo cáo theo thời gian
             reportData.sort((a, b) => a.start.getTime() - b.start.getTime());
             
             if (reportData.length === 0) {
@@ -572,6 +575,7 @@
                 `;
             });
             
+            // Xây dựng mã HTML chứa thẻ table cho Word
             let htmlContent = `
                 <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
                 <head><meta charset='utf-8'><title>Báo cáo Thời khóa biểu</title></head>
@@ -602,6 +606,7 @@
                 </html>
             `;
             
+            // Tạo file Word dạng msword (.doc)
             let blob = new Blob(['\ufeff', htmlContent], {
                 type: 'application/msword'
             });
@@ -609,6 +614,7 @@
             let downloadLink = document.createElement("a");
             document.body.appendChild(downloadLink);
             
+            // Định dạng tên file an toàn (đã sửa lỗi cú pháp)
             let sanitizedRange = dateStrRange.replace(/Từ /g, '').replace(/đến /g, '').replace(/[\/ ]/g, '_');
             let fileName = `Bao_Cao_TKB_${sanitizedRange}.doc`;
 
@@ -1434,7 +1440,8 @@
                         
                         asgData.allocations.forEach(a => {
                             const totalAssigned = parseInt(a.assigned) || 0;
-                            const mapKey = `${sub.id}_${a.gv}_${a.task}_${clsMatch}_${actualOrient}`;
+                            // Cập nhật tính năng gộp thông minh: Đã bỏ actualOrient khỏi mapKey
+                            const mapKey = `${sub.id}_${a.gv}_${a.task}_${clsMatch}`;
                             
                             if (!rawTaskMap.has(mapKey)) {
                                 rawTaskMap.set(mapKey, {
@@ -1474,6 +1481,13 @@
                         let shared = Math.min(remNC, remUD);
                         let onlyNC = remNC - shared;
                         let onlyUD = remUD - shared;
+
+                        // Tính năng thông minh: Nếu tổng số buổi của NC và UD ban đầu không giống nhau thì không gộp
+                        if (data.totalNC !== data.totalUD) {
+                            shared = 0;
+                            onlyNC = remNC;
+                            onlyUD = remUD;
+                        }
 
                         if (shared > 0 && (poolOrientFilter === 'ALL' || poolOrientFilter === 'NC' || poolOrientFilter === 'UD')) {
                             poolTasksList.push({ ...data, orientCode: 'Cả hai', remaining: shared });
