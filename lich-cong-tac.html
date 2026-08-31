@@ -162,8 +162,26 @@
         let allEvents = [];
         let gvCoHuuList = []; 
         let gvThinhGiangList = [];
-        let currentTab = 'cohuu'; // Tab hiện tại
+        let currentTab = 'cohuu'; 
         let currentMonday = new Date();
+
+        // 1. Cấu hình thứ tự sắp xếp cứng cho GV Cơ hữu
+        const COHUU_ORDER = [
+            "lê thanh vân",
+            "phan thế nguyên",
+            "cao minh hạnh",
+            "nguyễn thanh duy",
+            "huỳnh chung",
+            "nguyễn minh sang",
+            "trần thị bích hạnh",
+            "nguyễn ngọc minh",
+            "phạm ngọc đạt",
+            "nguyễn huỳnh ngọc mai trâm",
+            "nguyễn đức sinh",
+            "trần long biên",
+            "trần hữu đức",
+            "nguyễn mai ngọc đoan"
+        ];
 
         window.showToast = (message, type = 'success') => {
             const container = document.getElementById('toastContainer');
@@ -189,7 +207,6 @@
             return [year, month, day].join('-');
         }
 
-        // Loại bỏ học hàm học vị để so sánh tên
         const normalizeName = (n) => {
             if(!n) return '';
             return n.replace(/ThS\.|TS\.|PGS\.|GS\./g, '').trim().toLowerCase();
@@ -206,7 +223,7 @@
 
         async function fetchData() {
             try {
-                // Tải Base danh sách GV Cơ hữu
+                // Tải danh sách GV Cơ hữu từ bảng users
                 const userSnap = await getDocs(collection(db, "users"));
                 let coHuuBase = new Set();
                 let coHuuNormalized = new Set();
@@ -236,9 +253,8 @@
                             if (ev.gv) {
                                 let gvNames = ev.gv.split(/,|&/).map(s => s.trim()).filter(s => s);
                                 gvNames.forEach(name => {
-                                    // Kiểm tra xem tên này có nằm trong list cơ hữu không
                                     if (coHuuNormalized.has(normalizeName(name))) {
-                                        activeCoHuu.add(name);
+                                        activeCoHuu.add(name); // Thêm lại nếu vì lý do nào đó thiếu prefix
                                     } else {
                                         activeThinhGiang.add(name);
                                     }
@@ -247,15 +263,32 @@
                         }
                     });
 
-                    // Sort Alphabet
-                    let sortFn = (a, b) => {
+                    // Hàm sắp xếp cho Cơ hữu theo cấu hình thứ tự
+                    let sortFnCoHuu = (a, b) => {
+                        let normA = normalizeName(a);
+                        let normB = normalizeName(b);
+                        let idxA = COHUU_ORDER.indexOf(normA);
+                        let idxB = COHUU_ORDER.indexOf(normB);
+
+                        if (idxA === -1) idxA = 999;
+                        if (idxB === -1) idxB = 999;
+
+                        if (idxA !== idxB) return idxA - idxB;
+
                         let nameA = a.split(' ').pop();
                         let nameB = b.split(' ').pop();
                         return nameA.localeCompare(nameB, 'vi');
                     };
 
-                    gvCoHuuList = Array.from(activeCoHuu).sort(sortFn);
-                    gvThinhGiangList = Array.from(activeThinhGiang).sort(sortFn);
+                    // Sắp xếp Alphabet cho Thỉnh giảng
+                    let sortFnThinhGiang = (a, b) => {
+                        let nameA = a.split(' ').pop();
+                        let nameB = b.split(' ').pop();
+                        return nameA.localeCompare(nameB, 'vi');
+                    };
+
+                    gvCoHuuList = Array.from(activeCoHuu).sort(sortFnCoHuu);
+                    gvThinhGiangList = Array.from(activeThinhGiang).sort(sortFnThinhGiang);
 
                     document.getElementById('loadingScreen').classList.add('hidden');
                     document.getElementById('dataWrapper').classList.remove('hidden');
@@ -306,8 +339,6 @@
         };
 
         function renderWeek() {
-            let currentGvList = currentTab === 'cohuu' ? gvCoHuuList : gvThinhGiangList;
-
             let sunday = new Date(currentMonday);
             sunday.setDate(currentMonday.getDate() + 6);
             
@@ -347,8 +378,11 @@
                 return evStart >= currentMonday.getTime() && evStart <= endOfWeek.getTime();
             });
 
+            // Lấy danh sách GV đang cần duyệt (Cơ hữu hoặc Thỉnh giảng)
+            let baseGvList = currentTab === 'cohuu' ? gvCoHuuList : gvThinhGiangList;
+
             let matrix = {};
-            currentGvList.forEach(gv => { matrix[gv] = {}; });
+            baseGvList.forEach(gv => { matrix[gv] = {}; });
 
             eventsThisWeek.forEach(ev => {
                 if (!ev.gv) return;
@@ -364,10 +398,27 @@
                 });
             });
 
+            // LỌC THÔNG MINH ĐỐI VỚI GV THỈNH GIẢNG: CHỈ HIỆN KHI CÓ LỊCH
+            let displayGvList = [];
+            if (currentTab === 'thinhgiang') {
+                displayGvList = baseGvList.filter(gv => {
+                    let hasEventThisWeek = false;
+                    for (let dStr in matrix[gv]) {
+                        if (matrix[gv][dStr] && matrix[gv][dStr].length > 0) {
+                            hasEventThisWeek = true;
+                            break;
+                        }
+                    }
+                    return hasEventThisWeek;
+                });
+            } else {
+                displayGvList = baseGvList; // Cơ hữu hiện hết
+            }
+
             const tbody = document.getElementById('tableBody');
             let bodyHtml = '';
 
-            currentGvList.forEach(gv => {
+            displayGvList.forEach(gv => {
                 let rowHtml = `<tr>`;
                 rowHtml += `<td><i class="fas fa-user-circle" style="color:var(--primary); margin-right:5px;"></i> <b style="font-size:0.9rem;">${gv}</b></td>`;
 
@@ -390,7 +441,6 @@
                             if(orientCode === 'NGHIÊN CỨU' || orientCode === 'NC') borderClass = 'border-nc';
                             else if(orientCode === 'ỨNG DỤNG' || orientCode === 'UD') borderClass = 'border-ud';
 
-                            // Thẻ sự kiện siêu gọn
                             cellContent += `
                                 <div class="event-card compact ${borderClass}" onclick="showEventDetail('${ev.id}')">
                                     <div class="evt-class">${ev.class || 'Chưa XĐ'}</div>
@@ -407,7 +457,7 @@
             });
 
             if (bodyHtml === '') {
-                bodyHtml = `<tr><td colspan="8" style="text-align:center; padding:30px; color:#64748b;">Danh sách giảng viên đang trống.</td></tr>`;
+                bodyHtml = `<tr><td colspan="8" style="text-align:center; padding:30px; color:#64748b;">Danh sách đang trống. (Không có lịch giảng dạy trong tuần này)</td></tr>`;
             }
 
             tbody.innerHTML = bodyHtml;
