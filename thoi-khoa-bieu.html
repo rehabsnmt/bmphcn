@@ -98,7 +98,7 @@
         #eventTooltip { position: fixed; z-index: 9999; background: rgba(15, 23, 42, 0.95); color: white; padding: 12px 15px; border-radius: 8px; font-size: 0.9rem; pointer-events: none; display: none; box-shadow: 0 10px 25px rgba(0,0,0,0.3); line-height: 1.6; max-width: 350px; border-left: 4px solid var(--primary); }
 
         .toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
-        .toast { min-width: 250px; background-color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: 0.4s; font-weight: 600; border-left: 5px solid #22c55e; opacity: 0; }
+        .toast { min-width: 250px; background-color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: 0.4s; font-weight: 600; border-left: 5px solid #22c55e; opacity: 0; pointer-events: auto; }
         .toast.show { transform: translateX(0); opacity: 1; }
         .toast.danger { border-left-color: #ef4444; }
 
@@ -289,6 +289,7 @@
 
         let calendar;
         let isCalendarAdmin = false;
+        let isRestrictedUser = false;
         let isLoggedIn = false;
         let currentUserEmail = '';
         let currentUserName = '';
@@ -383,7 +384,6 @@
             }
         };
 
-        // --- ĐẾM SỐ BUỔI ĐÃ XẾP TÍNH TIẾN ĐỘ ---
         window.getScheduledCount = (cls, targetOrientCode, subName, gv, task) => {
             let count = 0;
             let targetNorm = window.normalizeOrient(targetOrientCode);
@@ -410,7 +410,6 @@
             return count;
         };
 
-        // --- HÀM KIỂM TRA TRÙNG LẶP THÔNG MINH ---
         function hasOverlap(targetStartStr, targetEndStr, gvStr, targetClass, targetTask, targetRoom, targetSubject, targetOrient, ignoreEventIds) {
             let ignoreList = Array.isArray(ignoreEventIds) ? ignoreEventIds : [ignoreEventIds];
             let tStart = new Date(targetStartStr).getTime();
@@ -489,13 +488,19 @@
                 isLoggedIn = true;
                 currentUserEmail = user.email.toLowerCase();
                 const adminEmails = ['lethanhvan@ump.edu.vn', 'phanthenguyenpt@ump.edu.vn', 'thduypt@ump.edu.vn', 'hoangtran1483@gmail.com', 'minhngpt@ump.edu.vn'];
+                
                 if (adminEmails.includes(currentUserEmail)) isCalendarAdmin = true;
+                if (currentUserEmail === 'ths.phcn26@ump.edu.vn') isRestrictedUser = true;
 
                 if(isCalendarAdmin) {
                     document.getElementById('btnToggleSidebar').classList.remove('hidden');
                 } else {
-                    window.location.href = "tkb-ths2026.html";
-                    return;
+                    const sidebar = document.getElementById('external-events');
+                    if(sidebar) {
+                        sidebar.style.display = 'none';
+                        sidebar.classList.add('hidden');
+                        sidebar.setAttribute('data-manually-hidden', 'true');
+                    }
                 }
 
                 gvShortNameMap = {};
@@ -555,6 +560,10 @@
                     });
 
                     managedClasses = Array.from(tempClasses).sort((a,b) => b.localeCompare(a));
+                    
+                    if (isRestrictedUser) {
+                        managedClasses = managedClasses.filter(c => c === 'THS2026' || c === 'THS2026-ĐỢT 1' || c === 'THS2026-ĐỢT 2');
+                    }
                     
                     const calClassSelect = document.getElementById('calendarClassFilter');
                     const poolClassSelect = document.getElementById('poolClassFilter');
@@ -641,27 +650,29 @@
         });
 
         function initCalendar() {
-            const containerEl = document.getElementById('external-events');
-            new FullCalendar.Draggable(containerEl, {
-                itemSelector: '.fc-event',
-                eventData: function(eventEl) {
-                    return {
-                        title: eventEl.getAttribute('data-title'), 
-                        id: eventEl.getAttribute('data-id'),
-                        extendedProps: {
-                            subject: eventEl.getAttribute('data-subject'),
-                            gv: eventEl.getAttribute('data-gv'),
-                            task: eventEl.getAttribute('data-task'),
-                            originalId: eventEl.getAttribute('data-original-id') || eventEl.getAttribute('data-id'),
-                            eventClass: eventEl.getAttribute('data-class'),
-                            orientations: eventEl.getAttribute('data-orientations'), 
-                            semester: eventEl.getAttribute('data-semester'),
-                            maxRem: parseInt(eventEl.getAttribute('data-max-rem')) || 1,
-                            type: 'normal' 
-                        }
-                    };
-                }
-            });
+            if (isCalendarAdmin) {
+                const containerEl = document.getElementById('external-events');
+                new FullCalendar.Draggable(containerEl, {
+                    itemSelector: '.fc-event',
+                    eventData: function(eventEl) {
+                        return {
+                            title: eventEl.getAttribute('data-title'), 
+                            id: eventEl.getAttribute('data-id'),
+                            extendedProps: {
+                                subject: eventEl.getAttribute('data-subject'),
+                                gv: eventEl.getAttribute('data-gv'),
+                                task: eventEl.getAttribute('data-task'),
+                                originalId: eventEl.getAttribute('data-original-id') || eventEl.getAttribute('data-id'),
+                                eventClass: eventEl.getAttribute('data-class'),
+                                orientations: eventEl.getAttribute('data-orientations'), 
+                                semester: eventEl.getAttribute('data-semester'),
+                                maxRem: parseInt(eventEl.getAttribute('data-max-rem')) || 1,
+                                type: 'normal' 
+                            }
+                        };
+                    }
+                });
+            }
 
             const calendarEl = document.getElementById('calendar');
             calendar = new FullCalendar.Calendar(calendarEl, {
@@ -678,9 +689,9 @@
                 allDaySlot: false, 
                 slotLabelFormat: { hour: 'numeric', minute: '2-digit', omitZeroMinute: false, meridiem: false, hour12: false },
                 eventTimeFormat: { hour: 'numeric', minute: '2-digit', meridiem: false, hour12: false },
-                editable: true,       
-                eventDurationEditable: true, 
-                droppable: true, 
+                editable: isCalendarAdmin,       
+                eventDurationEditable: isCalendarAdmin, 
+                droppable: isCalendarAdmin, 
                 events: [],
 
                 eventContent: function(arg) {
@@ -707,7 +718,7 @@
 
                         let itemsHtml = props.events.map(e => {
                             let gvDisplay = window.formatGvName(e.gv);
-                            let shortRoom = e.room && e.room !== 'Khác...' && e.room !== 'OTHER' ? e.room.replace('Phòng ', 'P').replace('Hội trường', 'HT') : e.room;
+                            let shortRoom = e.room || 'Chưa XĐ';
                             
                             let eNorm = window.normalizeOrient(e.orientation);
                             let orientHtml = '';
@@ -871,11 +882,13 @@
                         let dateInputVal = startObj.getFullYear() + '-' + String(startObj.getMonth()+1).padStart(2,'0') + '-' + String(startObj.getDate()).padStart(2,'0');
 
                         let hasEditRight = false;
-                        props.events.forEach(e => {
-                            if (e.scheduledByEmail === currentUserEmail || currentUserEmail === 'hoangtran1483@gmail.com') {
-                                hasEditRight = true;
-                            }
-                        });
+                        if (isCalendarAdmin) {
+                            props.events.forEach(e => {
+                                if (e.scheduledByEmail === currentUserEmail || currentUserEmail === 'hoangtran1483@gmail.com') {
+                                    hasEditRight = true;
+                                }
+                            });
+                        }
 
                         let html = `
                             <div style="color: var(--primary); font-weight:bold; font-size:1.1rem; margin-bottom:15px; border-bottom: 2px solid var(--border); padding-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
@@ -1040,7 +1053,7 @@
                     return setDoc(doc(db, "calendar_events", e.id), { start: newStartStr, end: newEndStr, room: roomVal }, { merge: true });
                 });
                 await Promise.all(promises);
-                showToast("Đã cập nhật thời khóa biểu thành công!");
+                showToast("Đã cập nhật lịch thành công!");
                 document.getElementById('multiEventModal').classList.add('hidden');
             } catch(err) {
                 showToast("Lỗi cập nhật: " + err.message, "danger");
@@ -1117,7 +1130,7 @@
                     showToast(`Đã xếp thời khóa biểu thành công (${selectedRoom})!`);
                 }
             } catch(e) {
-                showToast("Lỗi khi lưu: " + e.message, "danger");
+                showToast("Lỗi khi lưu lịch: " + e.message, "danger");
             }
         };
 
@@ -1148,6 +1161,10 @@
 
             // --------- 1. RENDER LỊCH CHÍNH ---------
             let scheduledEventsNormal = scheduledEventsDB.filter(e => e.status !== 'returned' && e.start);
+
+            if (isRestrictedUser) {
+                scheduledEventsNormal = scheduledEventsNormal.filter(e => e.class === 'THS2026' || e.class === 'THS2026-ĐỢT 1' || e.class === 'THS2026-ĐỢT 2');
+            }
 
             if (calendarClassFilter !== 'ALL') {
                 scheduledEventsNormal = scheduledEventsNormal.filter(e => window.isClassMatch(e.class, calendarClassFilter));
@@ -1446,13 +1463,18 @@
             const btnToggle = document.getElementById('btnToggleSidebar');
 
             if (btnToggle && extEventsPanel) {
-                btnToggle.classList.remove('hidden'); 
-                if (unscheduledCount === 0) {
-                    extEventsPanel.style.display = 'none';
-                } else {
-                    if (!extEventsPanel.hasAttribute('data-manually-hidden')) {
-                        extEventsPanel.style.display = 'flex';
+                if (isCalendarAdmin) {
+                    btnToggle.classList.remove('hidden'); 
+                    if (unscheduledCount === 0) {
+                        extEventsPanel.style.display = 'none';
+                    } else {
+                        if (!extEventsPanel.hasAttribute('data-manually-hidden')) {
+                            extEventsPanel.style.display = 'flex';
+                        }
                     }
+                } else {
+                    btnToggle.classList.add('hidden');
+                    extEventsPanel.style.display = 'none';
                 }
             }
             setTimeout(() => { calendar.updateSize(); }, 50);
