@@ -160,8 +160,8 @@
             </select>
             <select id="calendarOrientFilter" class="filter-select" onchange="processAndRenderEvents()">
                 <option value="ALL">Tất cả Định hướng</option>
-                <option value="Nghiên cứu">Hướng Nghiên cứu</option>
-                <option value="Ứng dụng">Hướng Ứng dụng</option>
+                <option value="NC">Hướng Nghiên cứu</option>
+                <option value="UD">Hướng Ứng dụng</option>
             </select>
             <select id="calendarMajorFilter" class="filter-select" onchange="processAndRenderEvents()">
                 <option value="ALL">Tất cả Ngành</option>
@@ -325,7 +325,7 @@
             return `background:${color.bg}; color:${color.text}; border: 1px solid ${color.text}40;`;
         };
 
-        // --- HÀM CHUẨN HÓA ĐỊNH HƯỚNG TOÀN CỤC ---
+        // --- HÀM CHUẨN HÓA ĐỊNH HƯỚNG ---
         window.normalizeOrient = (orient) => {
             if (!orient) return 'CHUNG';
             let str = String(orient).toUpperCase().trim();
@@ -335,7 +335,7 @@
             return 'CHUNG';
         };
 
-        // --- HÀM KIỂM TRA LỚP MẸ/CON CHUẨN XÁC ---
+        // --- HÀM KIỂM TRA LỚP MẸ/CON ---
         window.isClassMatch = (eventClass, filterClass) => {
             if (!eventClass || !filterClass) return false;
             if (eventClass === filterClass) return true;
@@ -408,6 +408,7 @@
             }
         };
 
+        // --- CƠ CHẾ ĐỌC VÀ ĐẾM SỐ BUỔI CHUẨN XÁC THEO LUẬT MỚI ---
         window.getScheduledCount = (cls, targetOrientCode, subName, gv, task) => {
             let count = 0;
             let targetNorm = window.normalizeOrient(targetOrientCode);
@@ -529,7 +530,6 @@
 
                 gvShortNameMap = {};
                 
-                // Tách biệt các khối tải dữ liệu để tránh lỗi Permission Denied từ Firebase làm sập App
                 try {
                     const snapSubjects = await getDocs(collection(db, "subjects"));
                     let tempClasses = new Set();
@@ -539,6 +539,7 @@
                     snapSubjects.forEach(doc => {
                         const d = doc.data();
                         d.id = d.id || doc.id;
+                        
                         if (typeof d.orientations === 'string') {
                             d.orientations = d.orientations.split(',').map(s => s.trim()).filter(s => s);
                         } else if (!d.orientations) {
@@ -669,13 +670,13 @@
                     assignmentsData = {};
                     snapshot.forEach(doc => { assignmentsData[doc.id] = doc.data(); });
                     window.processAndRenderEvents();
-                }, (error) => console.error(error));
+                });
 
                 onSnapshot(collection(db, "calendar_events"), (snapshot) => {
                     scheduledEventsDB = [];
                     snapshot.forEach(doc => { scheduledEventsDB.push(doc.data()); });
                     window.processAndRenderEvents();
-                }, (error) => console.error("Lỗi lấy lịch:", error));
+                });
 
             } else {
                 window.location.href = "login.html";
@@ -1277,7 +1278,7 @@
             calendar.addEventSource(currentClassEvents);
 
 
-            // --------- 2. RENDER KHO SỰ KIỆN ---------
+            // --------- 2. RENDER KHO SỰ KIỆN CHUẨN XÁC HÓA ---------
             let rawTaskMap = new Map();
 
             subjectsData.forEach(sub => {
@@ -1292,6 +1293,7 @@
                 const asgObj = assignmentsData[sub.id];
                 if (!asgObj) return;
 
+                // QUAN TRỌNG: Quét chuẩn xác từng key DB đã được gán sẵn NC/UD
                 Object.keys(asgObj).forEach(dbKey => {
                     let clsMatch = null;
                     managedClasses.forEach(c => { 
@@ -1314,18 +1316,11 @@
                         if (poolSemesterFilter !== 'ALL' && semester !== poolSemesterFilter) return; 
 
                         let actualOrient = dbOrientCode;
-                        if (!actualOrient) {
-                            let orients = asgData.orientations || sub.orientations || [];
-                            if (typeof orients === 'string') orients = orients.split(',').map(s => s.trim());
-                            if (orients.length === 1) {
-                                let singleO = window.normalizeOrient(orients[0]);
-                                if (singleO === 'NC' || singleO === 'UD') actualOrient = singleO;
-                            }
-                        }
-
+                        
                         asgData.allocations.forEach(a => {
                             const totalAssigned = parseInt(a.assigned) || 0;
-                            const mapKey = `${sub.id}_${a.gv}_${a.task}_${clsMatch}`;
+                            // Thêm actualOrient vào mapKey để tách biệt hoàn toàn thẻ NC và UD
+                            const mapKey = `${sub.id}_${a.gv}_${a.task}_${clsMatch}_${actualOrient}`;
                             
                             if (!rawTaskMap.has(mapKey)) {
                                 rawTaskMap.set(mapKey, {
