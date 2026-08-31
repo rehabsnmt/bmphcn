@@ -786,12 +786,9 @@
                 window.handleOrientChange();
             }
             
-            const majorSel = document.getElementById('filterMajor');
-            if (Array.from(majorSel.options).some(opt => opt.value === major)) {
-                majorSel.value = major;
-            } else {
-                majorSel.value = 'ALL';
-            }
+            // XÓA ĐIỀU HƯỚNG CHUYÊN NGÀNH ĐỂ TRÁNH LỖI (Môn Chung không có chuyên ngành sẽ bị lỗi nếu ép lọc)
+            // Không gán lại filterMajor.value = major nữa. Để nguyên ALL hoặc giá trị hiện tại.
+            
             window.renderTable();
             
             setTimeout(() => {
@@ -1093,14 +1090,9 @@
         };
 
         window.openAssignModal = (id) => {
-            const fMajor = document.getElementById('filterMajor').value;
             const cls = window.getCurrentClass();
             const orient = window.getCurrentOrient();
 
-            if (fMajor === 'ALL') {
-                showToast("Vui lòng Chọn cụ thể CHUYÊN NGÀNH trên thanh công cụ trước khi phân công!", "danger");
-                return;
-            }
             if (cls.toUpperCase().includes('THS') && orient === 'ALL') {
                 showToast("Vui lòng Chọn cụ thể ĐỊNH HƯỚNG trên thanh công cụ trước khi phân công!", "danger");
                 return;
