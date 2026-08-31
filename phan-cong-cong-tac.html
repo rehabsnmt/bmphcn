@@ -729,7 +729,7 @@
             }
         }
 
-        // HÀM KIỂM TRA PHÂN CÔNG CHỜ DUYỆT - ĐÃ SỬA LỖI
+        // HÀM KIỂM TRA PHÂN CÔNG CHỜ DUYỆT ĐÃ KHẮC PHỤC TRÙNG LẶP VÀ TÁCH MÔN KHÁC TÍN CHỈ
         window.checkPendingProposals = () => {
             if (!isHOD) return; 
             
@@ -742,8 +742,11 @@
                 for (let dbKey in asgDoc) {
                     if (asgDoc[dbKey].status === 'proposed') {
                         let asg = asgDoc[dbKey];
+                        
+                        // Rút gọn lấy tên lớp, tên môn và số tín chỉ
                         let cls = asg.class || dbKey.split('_')[0];
                         let name = asg.name || (sub ? sub.name : 'Môn học');
+                        let credits = asg.credits || (sub ? sub.credits : 0);
                         
                         let orient = 'ALL';
                         if (cls.toUpperCase().includes('THS')) {
@@ -751,11 +754,11 @@
                             else if (dbKey.includes('_UD')) orient = 'UD';
                         }
 
-                        // Tính năng thông minh: Gộp chung 1 thẻ nếu cùng lớp, cùng môn
-                        let mapKey = `${cls}_${name}`;
+                        // Tính năng thông minh: Gộp chung 1 thẻ nếu cùng lớp, cùng môn VÀ CÙNG SỐ TÍN CHỈ
+                        let mapKey = `${cls}_${name}_${credits}`;
 
                         if (!pendingMap.has(mapKey)) {
-                            pendingMap.set(mapKey, { subId, name, cls, orients: new Set([orient]) });
+                            pendingMap.set(mapKey, { subId, name, cls, credits, orients: new Set([orient]) });
                         } else {
                             pendingMap.get(mapKey).orients.add(orient);
                         }
@@ -788,11 +791,13 @@
                     if (item.orients.has('NC') && !item.orients.has('UD')) targetOrient = 'NC';
                     if (item.orients.has('UD') && !item.orients.has('NC')) targetOrient = 'UD';
 
+                    // Hiển thị thêm số TC để phân biệt rõ ràng các môn trùng tên
                     listHtml += `<button class="pending-chip" onclick="goToProposal('${item.cls}', '${targetOrient}', '${item.subId}')">
                         <i class="fas fa-hand-point-right" style="color: #f59e0b; font-size: 1.1rem;"></i> 
-                        <span>${badgeText} <b style="color: var(--primary);">${item.name}</b></span>
+                        <span>${badgeText} <b style="color: var(--primary);">${item.name}</b> <span style="font-size: 0.8rem; color: #64748b;">(${item.credits} TC)</span></span>
                     </button>`;
                 });
+                
                 document.getElementById('pendingList').innerHTML = listHtml;
                 alertBox.classList.remove('hidden');
             } else {
