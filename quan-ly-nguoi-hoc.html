@@ -59,7 +59,6 @@
         /* Ẩn background giả lập khi gõ vào MSSV */
         td[contenteditable="true"].key-studentId:focus { background: #fff; border: none; }
 
-        .badge-thesis { background: #dcfce7; color: #16a34a; border: 1px solid #86efac; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; }
         .btn-delete-row { background: none; border: none; color: #ef4444; cursor: pointer; padding: 5px; border-radius: 4px; transition: 0.2s; }
         .btn-delete-row:hover { background: #fee2e2; transform: scale(1.1); }
         .btn-view-row { background: none; border: none; color: var(--primary); cursor: pointer; padding: 5px; border-radius: 4px; transition: 0.2s; font-size: 1.1rem;}
@@ -201,23 +200,28 @@
 
         let currentUserName = '';
         let currentUserEmail = '';
-        let isReadOnly = false; // Phân quyền khóa Edit
+        let isReadOnly = true; 
         
         let learnersData = [];
         let thesesData = []; 
         let dynamicColumns = []; 
 
-        const primaryColumns = ["studentId", "fullName", "className", "gender", "dob", "phone", "email"];
+        // Các trường ưu tiên hiển thị theo thứ tự
+        const primaryColumns = ["studentId", "fullName", "className", "major", "orientation", "dob", "gender", "ethnic", "phone", "email", "workplace"];
 
         const columnTranslations = {
             "studentId": "Mã số",
             "fullName": "Họ và Tên",
             "className": "Lớp/Khóa",
+            "major": "Chuyên ngành",
+            "orientation": "Định hướng",
             "gender": "Giới tính",
             "dob": "Ngày sinh",
+            "ethnic": "Dân tộc",
             "phone": "Điện thoại",
             "email": "Email",
             "address": "Địa chỉ",
+            "workplace": "Nơi công tác",
             "system": "Hệ đào tạo",
             "id": "ID Hệ thống"
         };
@@ -236,13 +240,22 @@
             if (user) {
                 currentUserEmail = user.email.toLowerCase();
                 
-                // KHOÁ CHỨC NĂNG SỬA/THÊM/XÓA NẾU LÀ HỌC VIÊN
+                // KHÓA HOÀN TOÀN TRUY CẬP ĐỐI VỚI TÀI KHOẢN HỌC VIÊN
                 if (currentUserEmail === 'ths.phcn26@ump.edu.vn') {
-                    isReadOnly = true;
-                } else {
+                    alert("Tài khoản học viên không có quyền truy cập trang này!");
+                    window.location.href = "thoi-khoa-bieu.html";
+                    return; 
+                }
+
+                // PHÂN QUYỀN: CHỈ CÓ ADMIN TỐI CAO MỚI ĐƯỢC CHỈNH SỬA
+                if (currentUserEmail === 'hoangtran1483@gmail.com') {
                     isReadOnly = false;
                     document.getElementById('btnAddRow').classList.remove('hidden');
                     document.getElementById('subHeaderText').innerHTML = "Danh sách học viên / sinh viên <br><span style='font-size:0.85rem; color:#f59e0b;'><i class='fas fa-info-circle'></i> Click trực tiếp vào ô bất kỳ để chỉnh sửa dữ liệu (như Excel). Bấm Enter để lưu.</span>";
+                } else {
+                    isReadOnly = true;
+                    document.getElementById('btnAddRow').classList.add('hidden');
+                    document.getElementById('subHeaderText').innerHTML = "Danh sách học viên / sinh viên thuộc Bộ môn quản lý";
                 }
 
                 try {
@@ -281,7 +294,7 @@
 
                 if(learnersData.length === 0) {
                     learnersData = [
-                        { id: "SV01", studentId: "4012025001", fullName: "Nguyễn Văn A", system: "THS", className: "THS2025", dob: "15/04/1995", gender: "Nam", phone: "0901234567", email: "nva@ump.edu.vn", address: "Quận 5, TP.HCM", "ghiChu": "Lớp trưởng" }
+                        { id: "SV01", studentId: "4012025001", fullName: "Nguyễn Văn A", className: "THS2025", major: "VLTL", orientation: "UD", dob: "15/04/1995", gender: "Nam", ethnic: "Kinh", phone: "0901234567", email: "nva@ump.edu.vn", workplace: "BV Chợ Rẫy", address: "Quận 5, TP.HCM" }
                     ];
                     learnersData.forEach(d => Object.keys(d).forEach(k => keySet.add(k)));
                 }
@@ -333,13 +346,13 @@
             Array.from(classes).sort().forEach(c => {
                 classSelect.innerHTML += `<option value="${c}">${c}</option>`;
             });
-            classSelect.value = currentVal; // Giữ lại bộ lọc cũ
+            classSelect.value = currentVal;
         }
 
         function buildTableHeaders() {
             const thead = document.getElementById('tableHead');
             let tr = '<tr>';
-            if(!isReadOnly) tr += '<th style="width: 40px; text-align: center;"><i class="fas fa-eye"></i></th>'; // Cột Xem chi tiết
+            tr += '<th style="width: 40px; text-align: center;"><i class="fas fa-eye"></i></th>';
             tr += '<th style="width: 50px; text-align: center;">STT</th>';
             
             dynamicColumns.forEach(col => {
@@ -347,8 +360,8 @@
                 tr += `<th>${displayName}</th>`;
             });
             
-            tr += '<th style="text-align:center; width: 100px;">Luận văn</th>';
-            if(!isReadOnly) tr += '<th style="text-align:center; width: 60px;">Xóa</th>';
+            // Xóa cột Luận văn, nếu không phải ReadOnly thì hiện cột Xóa
+            if (!isReadOnly) tr += '<th style="text-align:center; width: 60px;">Xóa</th>';
             
             tr += '</tr>';
             thead.innerHTML = tr;
@@ -372,13 +385,11 @@
                     try {
                         await updateDoc(doc(db, "learners", id), { [key]: newVal });
                         
-                        // Cập nhật lại mảng local để không cần reload server
                         let learner = learnersData.find(x => x.id === id);
                         if(learner) learner[key] = newVal;
                         
                         showToast(`Đã lưu thay đổi!`);
                         
-                        // Cập nhật Dropdown nếu sửa tên Lớp
                         if(key === 'className') updateClassOptions();
                     } catch (error) {
                         showToast("Lỗi lưu dữ liệu: " + error.message, "danger");
@@ -391,7 +402,7 @@
         document.getElementById('tableBody').addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && e.target.hasAttribute('contenteditable')) {
                 e.preventDefault(); 
-                e.target.blur(); // Thoát focus tự động trigger focusout lưu DB
+                e.target.blur(); 
             }
         });
 
@@ -419,44 +430,36 @@
             });
 
             if (filtered.length === 0) {
-                let colSpan = dynamicColumns.length + 2 + (!isReadOnly ? 2 : 0);
+                let colSpan = dynamicColumns.length + (isReadOnly ? 2 : 3); 
                 tbody.innerHTML = `<tr><td colspan="${colSpan}" style="text-align:center; padding:30px; color:var(--text-body);">Không tìm thấy người học nào phù hợp.</td></tr>`;
                 return;
             }
 
             let stt = 1;
             filtered.forEach(l => {
-                const hasThesis = thesesData.some(t => t.author && t.author.toLowerCase() === (l.fullName || '').toLowerCase());
-                let thesisBadge = hasThesis ? `<span class="badge-thesis"><i class="fas fa-check"></i> Đang làm</span>` : `<span style="color:#cbd5e1;">-</span>`;
-
                 let rowHtml = `<tr data-row-id="${l.id}">`;
                 
-                if (!isReadOnly) {
-                    rowHtml += `<td align="center"><button class="btn-view-row" onclick="openLearnerModal('${l.id}')" title="Xem chi tiết"><i class="fas fa-eye"></i></button></td>`;
-                }
-
-                rowHtml += `<td align="center" style="color:#94a3b8; font-weight:bold; cursor: ${isReadOnly ? 'pointer' : 'default'};" ${isReadOnly ? `onclick="openLearnerModal('${l.id}')"` : ''}>${stt++}</td>`;
+                rowHtml += `<td align="center"><button class="btn-view-row" onclick="openLearnerModal('${l.id}')" title="Xem chi tiết"><i class="fas fa-eye"></i></button></td>`;
+                rowHtml += `<td align="center" style="color:#94a3b8; font-weight:bold;">${stt++}</td>`;
 
                 dynamicColumns.forEach(col => {
                     let val = l[col] || '';
                     let editableAttr = !isReadOnly ? `contenteditable="true" data-id="${l.id}" data-key="${col}"` : '';
                     let extraClass = `key-${col}`;
                     
-                    rowHtml += `<td ${editableAttr} class="${extraClass}" ${isReadOnly ? `onclick="openLearnerModal('${l.id}')"` : ''}>${val}</td>`;
+                    rowHtml += `<td ${editableAttr} class="${extraClass}">${val}</td>`;
                 });
-
-                rowHtml += `<td align="center" ${isReadOnly ? `onclick="openLearnerModal('${l.id}')"` : ''}>${thesisBadge}</td>`;
 
                 if (!isReadOnly) {
                     rowHtml += `<td align="center"><button class="btn-delete-row" onclick="deleteLearnerRow('${l.id}', '${l.fullName || 'Người học này'}')" title="Xóa học viên"><i class="fas fa-trash"></i></button></td>`;
                 }
-
+                
                 rowHtml += `</tr>`;
+                
                 tbody.innerHTML += rowHtml;
             });
         };
 
-        // CHỨC NĂNG THÊM HÀNG MỚI (CHỈ ADMIN)
         window.addNewLearner = async () => {
             try {
                 const currentFilterCls = document.getElementById('filterClass').value;
@@ -475,7 +478,7 @@
                     className: newCls
                 };
 
-                learnersData.unshift(newData); // Đẩy lên đầu bảng
+                learnersData.unshift(newData); 
                 showToast("Đã thêm một hàng mới. Hãy nhập dữ liệu!");
                 updateClassOptions();
                 renderTable();
@@ -484,12 +487,10 @@
             }
         };
 
-        // CHỨC NĂNG XÓA HÀNG (CHỈ ADMIN)
         window.deleteLearnerRow = async (id, name) => {
             if(confirm(`Bạn có CHẮC CHẮN muốn xóa dữ liệu của [${name}] không? Hành động này không thể hoàn tác.`)) {
                 try {
                     await deleteDoc(doc(db, "learners", id));
-                    // Xóa trên local array
                     learnersData = learnersData.filter(l => l.id !== id);
                     showToast(`Đã xóa học viên [${name}] thành công!`);
                     updateClassOptions();
@@ -530,6 +531,7 @@
                 }
             });
 
+            // Mặc dù bỏ cột luận văn ở bảng, thông tin chi tiết này trong modal vẫn rất hữu ích nên được giữ lại
             const thesisSection = document.getElementById('thesisSection');
             const thesisContainer = document.getElementById('thesisContent');
             const myTheses = thesesData.filter(t => t.author && t.author.toLowerCase() === (l.fullName || '').toLowerCase());
