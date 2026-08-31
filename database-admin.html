@@ -2,553 +2,289 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Database Manager - BM PHCN</title>
-    <link rel="icon" href="images/logo_Bộ môn.png" type="image/png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Quản trị Dữ liệu (Database Admin) - Bộ môn PHCN</title>
     
+    <link rel="icon" href="images/logo_Bộ môn.png" type="image/png">
+    <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
-
-    <!-- Thư viện Jspreadsheet (Excel-like UI) - ĐÃ FIX NGUỒN CDN ỔN ĐỊNH -->
-    <script src="https://cdn.jsdelivr.net/npm/jspreadsheet-ce@4.13.3/dist/index.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jspreadsheet-ce@4.13.3/dist/jspreadsheet.min.css" type="text/css" />
-    <script src="https://cdn.jsdelivr.net/npm/jsuites@4.3.0/dist/jsuites.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsuites@4.3.0/dist/jsuites.min.css" type="text/css" />
-
+    
     <style>
-        :root {
-            --primary: #0284c7;
-            --primary-hover: #0369a1;
-            --accent: #e11d48;
-            --bg-page: #f8fafc;
-            --surface: #ffffff;
-            --border: #cbd5e1;
-            --text-dark: #0f172a;
-            --text-body: #475569;
-        }
-
-        body, html { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; height: 100vh; background-color: var(--bg-page); overflow: hidden; }
-
-        .app-container { display: flex; height: 100vh; width: 100vw; }
-
-        /* Sidebar - Danh sách Table */
-        .sidebar { width: 260px; background-color: #1e293b; color: #f8fafc; display: flex; flex-direction: column; flex-shrink: 0; }
-        .sidebar-header { padding: 20px; background-color: #0f172a; font-weight: bold; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #334155; }
-        .table-list { list-style: none; padding: 0; margin: 0; overflow-y: auto; flex: 1; }
-        .table-item { padding: 12px 20px; cursor: pointer; border-bottom: 1px solid #334155; display: flex; align-items: center; gap: 10px; transition: 0.2s; font-size: 0.95rem; }
-        .table-item:hover { background-color: #334155; }
-        .table-item.active { background-color: var(--primary); border-left: 4px solid #38bdf8; }
+        main { max-width: 900px; padding: 2rem 3%; margin: 0 auto; min-height: 75vh; }
         
-        .sidebar-footer { padding: 15px 20px; background-color: #0f172a; font-size: 0.8rem; color: #94a3b8; text-align: center; }
-
-        /* Main Content */
-        .main-content { flex: 1; display: flex; flex-direction: column; background-color: var(--surface); overflow: hidden; }
-        
-        .toolbar { padding: 12px 20px; background-color: #f1f5f9; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; height: 60px; box-sizing: border-box;}
-        .toolbar-title { font-weight: bold; font-size: 1.2rem; color: var(--primary); display: flex; align-items: center; gap: 10px; }
-        .toolbar-actions { display: flex; gap: 10px; align-items: center;}
-        
-        button { padding: 8px 15px; border-radius: 4px; border: none; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
-        .btn-primary { background-color: var(--primary); color: white; }
-        .btn-primary:hover { background-color: var(--primary-hover); }
-        .btn-danger { background-color: var(--accent); color: white; }
-        .btn-danger:hover { background-color: #be123c; }
-        .btn-success { background-color: #10b981; color: white; }
-        .btn-success:hover { background-color: #059669; }
-        .btn-secondary { background-color: white; color: var(--text-dark); border: 1px solid var(--border); }
-        .btn-secondary:hover { background-color: #e2e8f0; }
-
-        .btn-icon { padding: 8px; border-radius: 4px; background: white; border: 1px solid var(--border); cursor: pointer; color: var(--text-body); transition: 0.2s; }
-        .btn-icon:hover { background: #e2e8f0; color: var(--text-dark); }
-
-        /* Data Container cho Jspreadsheet */
-        .data-container { flex: 1; overflow: auto; position: relative; padding: 10px; background: var(--surface); }
-        
-        /* Chỉnh lại style cho jExcel hòa hợp với theme */
-        .jexcel > thead > tr > td { background-color: #e2e8f0; color: var(--text-dark); font-weight: 600; font-family: inherit; }
-        .jexcel > tbody > tr > td { font-family: inherit; font-size: 0.95rem; color: var(--text-body); }
-        .jexcel > tbody > tr > td.readonly { background-color: #f8fafc; color: #94a3b8; font-family: monospace; }
-
-        /* ER Diagram View */
-        .erd-container { flex: 1; overflow: auto; background-color: white; display: flex; flex-direction: column; align-items: center; padding: 30px 20px; }
-        .erd-note { font-size: 0.9rem; color: #64748b; margin-bottom: 20px; text-align: center; max-width: 800px; line-height: 1.5; background: #f8fafc; padding: 20px; border-radius: 8px; border: 1px dashed #cbd5e1; }
-        #mermaid-render-area { width: 100%; display: flex; justify-content: center; margin-top: 20px; }
-
-        /* Màn hình khóa */
-        #accessDenied { position: fixed; top:0; left:0; width:100%; height:100%; background:var(--surface); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
-        #accessDenied i { font-size: 5rem; color: var(--accent); margin-bottom: 20px; }
+        .page-header { text-align: center; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 2px solid var(--border); }
+        .page-header h2 { font-size: 1.8rem; color: var(--accent); margin: 0; font-weight: 800; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 10px;}
+        .page-header p { font-size: 1rem; color: var(--text-body); font-weight: 600; margin-top: 5px; }
 
         .hidden { display: none !important; }
 
-        .toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
-        .toast { min-width: 250px; background-color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: 0.4s; font-weight: 600; border-left: 5px solid #22c55e; opacity: 0; }
+        .admin-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; box-shadow: var(--shadow-sm); margin-bottom: 2rem; }
+        .admin-card h3 { color: var(--primary); font-size: 1.2rem; margin-top: 0; margin-bottom: 1.5rem; border-bottom: 1px dashed var(--border); padding-bottom: 10px; display: flex; align-items: center; gap: 8px;}
+
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label { display: block; font-weight: 600; color: var(--text-dark); margin-bottom: 8px; font-size: 0.95rem; }
+        .form-group select { width: 100%; padding: 10px 15px; border-radius: 6px; border: 1px solid var(--border); font-size: 0.95rem; outline: none; background: var(--bg-page); cursor: pointer; }
+        .form-group select:focus { border-color: var(--primary); }
+
+        /* File Upload Styling */
+        .file-upload-wrapper { position: relative; width: 100%; height: 120px; border: 2px dashed #cbd5e1; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f8fafc; transition: 0.2s; cursor: pointer; }
+        .file-upload-wrapper:hover { border-color: var(--primary); background: #f0f9ff; }
+        .file-upload-wrapper input[type="file"] { position: absolute; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+        .file-upload-icon { font-size: 2rem; color: #94a3b8; margin-bottom: 10px; }
+        .file-upload-text { font-size: 0.95rem; color: var(--text-body); font-weight: 600; }
+        .file-name-display { margin-top: 10px; font-size: 0.9rem; font-weight: bold; color: var(--primary); text-align: center;}
+
+        .btn-group { display: flex; gap: 15px; flex-wrap: wrap; margin-top: 1.5rem; }
+        .btn-export { flex: 1; background: #10b981; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-weight: bold; font-size: 1rem; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-export:hover { background: #059669; }
+        
+        .btn-import { flex: 1; background: #f59e0b; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-weight: bold; font-size: 1rem; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-import:hover { background: #d97706; }
+        .btn-import:disabled { background: #cbd5e1; cursor: not-allowed; }
+
+        /* Toast */
+        .toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;}
+        .toast { min-width: 250px; background-color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: 0.4s; font-weight: 600; border-left: 5px solid #22c55e; opacity: 0; pointer-events: auto; }
         .toast.show { transform: translateX(0); opacity: 1; }
         .toast.danger { border-left-color: #ef4444; }
 
-        /* Loading Overlay Overlay */
-        .loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); z-index: 100; display: flex; justify-content: center; align-items: center; flex-direction: column; color: var(--primary); font-weight: bold; font-size: 1.2rem; backdrop-filter: blur(2px); }
+        .warning-box { background: #fef2f2; border: 1px solid #fca5a5; color: #b91c1c; padding: 15px; border-radius: 6px; font-size: 0.9rem; line-height: 1.5; margin-bottom: 1.5rem; display: flex; gap: 10px; align-items: flex-start; }
     </style>
 </head>
 <body>
 
-    <!-- MÀN HÌNH KHÓA TRUY CẬP -->
-    <div id="accessDenied">
-        <i class="fas fa-shield-alt"></i>
-        <h1 style="color: var(--text-dark); margin: 0;">Truy cập bị từ chối</h1>
-        <p style="color: var(--text-body); margin: 10px 0 30px 0; font-size: 1.1rem;">Chỉ có tài khoản Quản trị viên cấp cao (hoangtran1483@gmail.com) mới được phép truy cập System Database.</p>
-        <button class="btn-primary" onclick="window.location.href='dashboard.html'"><i class="fas fa-home"></i> Trở về Dashboard</button>
-    </div>
-
+    <div id="header-placeholder"></div>
     <div id="toastContainer" class="toast-container"></div>
 
-    <div class="app-container hidden" id="appMain">
-        <!-- SIDEBAR -->
-        <div class="sidebar">
-            <div class="sidebar-header">
-                <i class="fas fa-database" style="color: #38bdf8;"></i> DB Explorer
-            </div>
-            <ul class="table-list" id="tableList">
-                <li class="table-item" style="background-color: #334155; border-bottom: 2px solid #0f172a; color: #38bdf8; font-weight: bold;" onclick="showErdView(this)">
-                    <i class="fas fa-project-diagram"></i> Xem liên kết (ERD)
-                </li>
-                <!-- NÚT TẠO BẢNG MỚI -->
-                <li class="table-item" id="btnCreateTable" style="background-color: #e0f2fe; color: #0284c7; font-weight: bold;" onclick="createNewTable()">
-                    <i class="fas fa-plus-circle"></i> + Tạo bảng mới
-                </li>
-                
-                <li class="table-item active" onclick="loadTable('users', this)"><i class="fas fa-table"></i> users</li>
-                <li class="table-item" onclick="loadTable('theses', this)"><i class="fas fa-table"></i> theses</li>
-                <li class="table-item" onclick="loadTable('assignments', this)"><i class="fas fa-table"></i> assignments</li>
-                <li class="table-item" onclick="loadTable('visiting_lecturers', this)"><i class="fas fa-table"></i> visiting_lecturers</li>
-                <li class="table-item" onclick="loadTable('announcements', this)"><i class="fas fa-table"></i> announcements</li>
-                <li class="table-item" onclick="loadTable('logs', this)"><i class="fas fa-table"></i> logs</li>
-                <li class="table-item" onclick="loadTable('recycle', this)"><i class="fas fa-trash-alt"></i> recycle (Thùng rác)</li>
-                <li class="table-item" onclick="loadTable('settings', this)"><i class="fas fa-cog"></i> settings</li>
-                
-                <!-- Khu vực chứa các bảng tự tạo sẽ được JS đổ vào đây -->
-                <div id="customTablesContainer"></div>
-            </ul>
-            <div class="sidebar-footer">
-                Logged in as Super Admin
-            </div>
-        </div>
-
-        <!-- MAIN CONTENT -->
-        <div class="main-content">
-            <div class="toolbar">
-                <div class="toolbar-title" id="mainTitle">
-                    <i class="fas fa-table"></i> <span id="currentTableName">users</span>
-                    <span style="font-size: 0.85rem; color: #94a3b8; font-weight: normal; margin-left: 10px;" id="recordCount">0 records</span>
-                </div>
-                <div class="toolbar-actions" id="tableActions">
-                    <button class="btn-icon" onclick="undoSheet()" title="Hoàn tác (Ctrl+Z)"><i class="fas fa-undo"></i></button>
-                    <button class="btn-icon" onclick="redoSheet()" title="Tiến tới (Ctrl+Y)"><i class="fas fa-redo"></i></button>
-                    <div style="width: 1px; height: 30px; background: var(--border); margin: 0 5px;"></div>
-                    
-                    <button class="btn-secondary" onclick="refreshTable()"><i class="fas fa-sync-alt"></i> Làm mới</button>
-                    <button class="btn-success" onclick="addNewRow()"><i class="fas fa-plus"></i> Thêm Dòng</button>
-                    <button class="btn-primary" onclick="saveChanges()"><i class="fas fa-save"></i> Lưu Thay Đổi</button>
-                </div>
-            </div>
-
-            <!-- CHẾ ĐỘ XEM DATA BẢNG (JSPREADSHEET) -->
-            <div id="dataContainer" class="data-container">
-                <div id="loadingOverlay" class="loading-overlay hidden">
-                    <i class="fas fa-spinner fa-spin fa-2x" style="margin-bottom: 10px;"></i>
-                    <span id="loadingText">Đang tải dữ liệu...</span>
-                </div>
-                <div id="spreadsheet"></div>
-            </div>
-
-            <!-- CHẾ ĐỘ XEM SƠ ĐỒ LIÊN KẾT ĐỘNG -->
-            <div id="erdContainer" class="erd-container hidden">
-                <div class="erd-note">
-                    <i class="fas fa-magic" style="color: var(--primary); font-size: 1.2rem; margin-bottom: 5px;"></i><br>
-                    <b>AI Auto-Discovery (Trí tuệ nhân tạo dò tìm cấu trúc):</b><br>
-                    Hệ thống đang tự động quét nội dung dữ liệu (Values) của tất cả các bảng. Nếu 2 bảng có bất kỳ dữ liệu nào trùng khớp hoàn toàn với nhau (VD: Chung tên Giảng viên, Email, hoặc Mã ID), hệ thống sẽ tự động vẽ đường liên kết logic giữa chúng.
-                </div>
-                <div id="mermaid-render-area"></div>
-            </div>
-        </div>
+    <div id="loadingScreen" style="text-align: center; padding: 5rem 0; color: var(--primary); font-weight: 600; font-size: 1.2rem;">
+        <i class="fas fa-spinner fa-spin fa-2x"></i><br><br>Đang xác thực quyền Admin...
     </div>
+
+    <main id="mainContent" class="hidden">
+        <div class="page-header">
+            <h2><i class="fas fa-database"></i> Quản Trị Hệ Thống Cơ Sở Dữ Liệu</h2>
+            <p>Trang công cụ dành riêng cho Super Admin</p>
+        </div>
+
+        <!-- KHUNG XUẤT DỮ LIỆU -->
+        <div class="admin-card">
+            <h3><i class="fas fa-file-export"></i> 1. Sao lưu & Xuất Dữ liệu (Export JSON)</h3>
+            <p style="font-size: 0.9rem; color: var(--text-body); margin-bottom: 15px; line-height: 1.5;">Hệ thống sẽ đóng gói dữ liệu của các bảng đã chọn thành một file JSON duy nhất để lưu trữ an toàn trên máy tính của bạn.</p>
+            
+            <div class="form-group">
+                <label>Chọn bảng dữ liệu (Collection) cần sao lưu:</label>
+                <select id="exportColSelect">
+                    <option value="ALL">-- Tất cả các bảng (Full Backup) --</option>
+                    <option value="calendar_events">Thời khóa biểu (calendar_events)</option>
+                    <option value="assignments">Phân công công tác (assignments)</option>
+                    <option value="subjects">Danh mục Môn học (subjects)</option>
+                    <option value="learners">Danh sách Người học (learners)</option>
+                    <option value="theses">Danh sách Luận văn (theses)</option>
+                    <option value="announcements">Thông báo (announcements)</option>
+                    <option value="users">Tài khoản Giảng viên (users)</option>
+                    <option value="visiting_lecturers">Giảng viên Thỉnh giảng (visiting_lecturers)</option>
+                </select>
+            </div>
+            
+            <button class="btn-export" onclick="exportDataToJSON()" id="btnExport">
+                <i class="fas fa-download"></i> Tải xuống File Backup (.json)
+            </button>
+        </div>
+
+        <!-- KHUNG NHẬP DỮ LIỆU -->
+        <div class="admin-card">
+            <h3><i class="fas fa-file-import"></i> 2. Phục hồi & Nhập Dữ liệu (Import JSON)</h3>
+            
+            <div class="warning-box">
+                <i class="fas fa-exclamation-triangle" style="font-size: 1.2rem; margin-top: 2px;"></i>
+                <div>
+                    <strong>CẢNH BÁO NGUY HIỂM:</strong> Hành động này sẽ <b>Ghi Đè</b> toàn bộ dữ liệu hiện có trên Firestore nếu trùng ID. Hãy chắc chắn file JSON bạn tải lên là file Backup chuẩn từ hệ thống này.
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Tải lên file Backup (.json):</label>
+                <div class="file-upload-wrapper">
+                    <input type="file" id="jsonFileInput" accept=".json" onchange="handleFileSelect(event)">
+                    <i class="fas fa-cloud-upload-alt file-upload-icon"></i>
+                    <span class="file-upload-text">Click hoặc Kéo thả file JSON vào đây</span>
+                </div>
+                <div class="file-name-display" id="fileNameDisplay">Chưa có file nào được chọn.</div>
+            </div>
+            
+            <button class="btn-import" onclick="importDataFromJSON()" id="btnImport" disabled>
+                <i class="fas fa-upload"></i> Thực hiện Phục hồi (Restore)
+            </button>
+        </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <script src="js/layout.js"></script>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
-        import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc, query, limit } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
-        
+        import { getFirestore, collection, getDocs, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+
         const firebaseConfig = { apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY", authDomain: "bmphcn-aa9c6.firebaseapp.com", projectId: "bmphcn-aa9c6", storageBucket: "bmphcn-aa9c6.firebasestorage.app", messagingSenderId: "749494392719", appId: "1:749494392719:web:f220c751ff541620045dfa" };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        mermaid.initialize({ startOnLoad: false, theme: 'default' });
+        // Danh sách các bảng chính của hệ thống để Full Backup
+        const ALL_COLLECTIONS = [
+            'calendar_events', 'assignments', 'subjects', 'learners', 
+            'theses', 'announcements', 'users', 'visiting_lecturers', 'clinical_schedules'
+        ];
 
-        let currentTable = 'users';
-        let originalIds = []; // Mảng lưu các ID ban đầu để check xóa
-        let currentSheetInstance = null; // Biến giữ thể hiện của Jspreadsheet
-        let tableColumnsObj = []; // Dùng để cấu hình cột Jspreadsheet
-
-        let customTables = JSON.parse(localStorage.getItem('bmphcn_custom_tables') || '[]');
-
-        function showToast(message, type = 'success') {
+        window.showToast = (message, type = 'success') => {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
-            toast.innerHTML = `<i class="fas ${type === 'danger' ? 'fa-times-circle' : 'fa-check-circle'}"></i><span>${message}</span>`;
+            let icon = type === 'danger' ? 'fa-exclamation-triangle' : 'fa-check-circle';
+            toast.innerHTML = `<i class="fas ${icon}" style="font-size: 1.2rem; color: ${type==='danger'?'#ef4444':'#22c55e'};"></i> <span>${message}</span>`;
             container.appendChild(toast);
             setTimeout(() => toast.classList.add('show'), 10);
             setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
-        }
-
-        function showLoading(text = "Đang xử lý dữ liệu...") {
-            document.getElementById('loadingText').innerText = text;
-            document.getElementById('loadingOverlay').classList.remove('hidden');
-        }
-
-        function hideLoading() {
-            document.getElementById('loadingOverlay').classList.add('hidden');
-        }
-
-        function renderCustomTables() {
-            const container = document.getElementById('customTablesContainer');
-            container.innerHTML = '';
-            customTables.forEach(tName => {
-                const li = document.createElement('li');
-                li.className = 'table-item custom-table-item';
-                li.innerHTML = `<i class="fas fa-table"></i> ${tName}`;
-                li.onclick = function() { loadTable(tName, this); };
-                container.appendChild(li);
-            });
-        }
+        };
 
         onAuthStateChanged(auth, (user) => {
-            if (user && user.email.toLowerCase() === 'hoangtran1483@gmail.com') {
-                document.getElementById('accessDenied').classList.add('hidden');
-                document.getElementById('appMain').classList.remove('hidden');
-                renderCustomTables(); 
-                refreshTable();
+            if (user) {
+                // CHỈ DUY NHẤT TÀI KHOẢN NÀY ĐƯỢC TRUY CẬP
+                if (user.email.toLowerCase() === 'hoangtran1483@gmail.com') {
+                    document.getElementById('loadingScreen').classList.add('hidden');
+                    document.getElementById('mainContent').classList.remove('hidden');
+                } else {
+                    alert("Bạn không có quyền Super Admin để truy cập khu vực này!");
+                    window.location.href = "dashboard.html";
+                }
             } else {
-                document.getElementById('accessDenied').classList.remove('hidden');
-                document.getElementById('appMain').classList.add('hidden');
+                window.location.href = "login.html";
             }
         });
 
-        window.createNewTable = () => {
-            const tName = prompt("Nhập tên Bảng (Collection) mới:\nLưu ý: Chỉ dùng chữ cái không dấu, số và dấu gạch dưới (_).");
-            if (tName && tName.trim()) {
-                const safeName = tName.trim().replace(/[^a-zA-Z0-9_]/g, '');
-                if (safeName) {
-                    if(!customTables.includes(safeName)) {
-                        customTables.push(safeName);
-                        localStorage.setItem('bmphcn_custom_tables', JSON.stringify(customTables));
-                        renderCustomTables();
-                    }
-                    const allItems = document.querySelectorAll('.table-item');
-                    allItems[allItems.length - 1].click();
-                } else {
-                    alert("Tên bảng không hợp lệ!");
-                }
-            }
-        };
-
-        window.showErdView = async (el) => {
-            document.querySelectorAll('.table-item').forEach(li => li.classList.remove('active'));
-            el.classList.add('active');
+        // ----------------------------------------------------
+        // CHỨC NĂNG XUẤT JSON (EXPORT)
+        // ----------------------------------------------------
+        window.exportDataToJSON = async () => {
+            const btn = document.getElementById('btnExport');
+            const colSelect = document.getElementById('exportColSelect').value;
             
-            document.getElementById('dataContainer').classList.add('hidden');
-            document.getElementById('tableActions').classList.add('hidden');
-            document.getElementById('erdContainer').classList.remove('hidden');
-            document.getElementById('mainTitle').innerHTML = '<i class="fas fa-project-diagram"></i> Sơ đồ liên kết Database';
-
-            const erdDiv = document.getElementById('mermaid-render-area');
-            erdDiv.innerHTML = '<div style="text-align:center;"><i class="fas fa-spinner fa-spin" style="font-size:2.5rem; color:var(--primary); margin-bottom:15px;"></i><br><strong style="color:var(--text-dark);">Đang phân tích cấu trúc dữ liệu...</strong></div>';
-
+            const colsToExport = colSelect === 'ALL' ? ALL_COLLECTIONS : [colSelect];
+            
             try {
-                let allTables = ['users', 'theses', 'assignments', 'visiting_lecturers', 'announcements', 'logs', 'recycle', 'settings', ...customTables];
-                let schemas = {}; 
-                let tableValues = {}; 
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang trích xuất dữ liệu...';
+                
+                let exportData = {};
+                let totalRecords = 0;
 
-                const ignoreVals = ['Lý thuyết', 'Thực hành', 'Thực tế', 'Ra đề thi', 'Coi thi', 'Chấm thi', 'Soạn mới, sửa BG/GT', 'Công việc khác', 'Hướng dẫn LV, LATS', 'Học kỳ 1', 'Học kỳ 2', 'Học kỳ 3', 'Học kỳ 4', 'THÊM', 'SỬA', 'XÓA', 'Khác'];
-
-                for (let t of allTables) {
-                    const snap = await getDocs(query(collection(db, t), limit(50)));
-                    schemas[t] = new Set();
-                    tableValues[t] = new Set();
-                    
+                for (const colName of colsToExport) {
+                    exportData[colName] = {};
+                    const snap = await getDocs(collection(db, colName));
                     snap.forEach(docSnap => {
-                        let data = docSnap.data();
-                        Object.keys(data).forEach(k => schemas[t].add(k));
-                        
-                        const extractVals = (obj) => {
-                            if (Array.isArray(obj)) {
-                                obj.forEach(item => extractVals(item));
-                            } else if (obj && typeof obj === 'object' && !obj.seconds) {
-                                for (let k in obj) extractVals(obj[k]);
-                            } else if (typeof obj === 'string') {
-                                let str = obj.trim();
-                                if (str.length > 3 && str.length < 80 && !str.startsWith('http') && !ignoreVals.includes(str)) {
-                                    tableValues[t].add(str);
-                                }
-                            }
-                        };
-                        
-                        extractVals(data);
-                        tableValues[t].add(docSnap.id); 
+                        exportData[colName][docSnap.id] = docSnap.data();
+                        totalRecords++;
                     });
                 }
 
-                let mCode = 'erDiagram\n';
+                // Xử lý tạo file JSON tải xuống
+                const jsonString = JSON.stringify(exportData, null, 2);
+                const blob = new Blob([jsonString], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
                 
-                for (let t in schemas) {
-                    mCode += `  ${t} {\n`;
-                    if (schemas[t].size === 0) {
-                        mCode += `    string empty_table\n`;
-                    } else {
-                        schemas[t].forEach(k => {
-                            mCode += `    string ${k.replace(/[^a-zA-Z0-9_]/g, '')}\n`;
-                        });
-                    }
-                    mCode += `  }\n`;
-                }
+                const link = document.createElement("a");
+                link.href = url;
+                let dateStr = new Date().toLocaleDateString('vi-VN').replace(/\//g, '-');
+                link.download = `Backup_DB_${colSelect}_${dateStr}.json`;
+                
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
 
-                let links = [];
-                let tNames = Object.keys(schemas);
-                for(let i=0; i<tNames.length; i++) {
-                    for(let j=i+1; j<tNames.length; j++) {
-                        let t1 = tNames[i];
-                        let t2 = tNames[j];
-                        
-                        let v1 = Array.from(tableValues[t1]);
-                        let v2 = tableValues[t2];
-                        
-                        let common = v1.filter(v => v2.has(v));
-                        
-                        if (common.length > 0) {
-                            let displayVals = common.slice(0, 2).join(', ');
-                            if (common.length > 2) displayVals += '...';
-                            displayVals = displayVals.replace(/["\\[\\]{}()]/g, '');
-                            links.push(`  ${t1} ||--o{ ${t2} : "Khớp Value: ${displayVals}"`);
-                        }
-                    }
-                }
-
-                if(links.length === 0) {
-                    mCode += `  NO_LINKS { string note }\n  NO_LINKS ||--o{ NO_LINKS : "Không tìm thấy Value chung"\n`;
-                } else {
-                    mCode += links.join('\n');
-                }
-
-                const graphId = 'erdGraph_' + Date.now();
-                const { svg } = await mermaid.render(graphId, mCode);
-                erdDiv.innerHTML = svg;
-
-            } catch (err) {
-                erdDiv.innerHTML = '<span style="color:red; font-weight:bold;">Lỗi phân tích cơ sở dữ liệu: ' + err.message + '</span>';
-            }
-        };
-
-        window.loadTable = (tableName, el) => {
-            document.querySelectorAll('.table-item').forEach(li => li.classList.remove('active'));
-            el.classList.add('active');
-            document.getElementById('erdContainer').classList.add('hidden');
-            document.getElementById('dataContainer').classList.remove('hidden');
-            document.getElementById('tableActions').classList.remove('hidden');
-
-            currentTable = tableName;
-            document.getElementById('mainTitle').innerHTML = `<i class="fas fa-table"></i> <span id="currentTableName">${tableName}</span> <span style="font-size: 0.85rem; color: #94a3b8; font-weight: normal; margin-left: 10px;" id="recordCount">0 records</span>`;
-            refreshTable();
-        };
-
-        window.refreshTable = async () => {
-            showLoading("Đang tải dữ liệu từ Database...");
-            
-            // Xóa sạch vùng chứa bảng để khởi tạo lại an toàn
-            const container = document.getElementById('dataContainer');
-            let oldSheet = document.getElementById('spreadsheet');
-            if (oldSheet) {
-                if (currentSheetInstance) {
-                    try { jspreadsheet.destroy(oldSheet); } catch(e) {}
-                }
-                oldSheet.remove();
-            }
-
-            // Tạo lại DOM element mới
-            const newSheetEl = document.createElement('div');
-            newSheetEl.id = 'spreadsheet';
-            container.appendChild(newSheetEl);
-            currentSheetInstance = null;
-
-            try {
-                const snapshot = await getDocs(collection(db, currentTable));
-                let rawData = [];
-                let keySet = new Set();
-                originalIds = [];
-
-                snapshot.forEach(docSnap => {
-                    const data = docSnap.data();
-                    data['_id'] = docSnap.id; 
-                    originalIds.push(docSnap.id);
-                    rawData.push(data);
-                    Object.keys(data).forEach(k => { if(k !== '_id') keySet.add(k); });
-                });
-
-                let columns = ['_id', ...Array.from(keySet).sort()];
-                document.getElementById('recordCount').innerText = `${rawData.length} records`;
-
-                // Cấu hình bảng jExcel, nếu bảng trống hoàn toàn thì thêm 1 cột giả định
-                if (columns.length === 1 && columns[0] === '_id') {
-                    columns.push('field_1'); 
-                }
-
-                tableColumnsObj = columns.map(col => {
-                    if(col === '_id') return { type: 'text', title: '_id (Auto)', width: 220, readOnly: true };
-                    return { type: 'text', title: col, width: 200, wordWrap: true };
-                });
-
-                // Chuyển object thành Array 2 chiều cho Spreadsheet
-                let jexcelData = [];
-                rawData.forEach(row => {
-                    let rowArray = [];
-                    columns.forEach(col => {
-                        let val = row[col];
-                        if (val === undefined || val === null) {
-                            rowArray.push('');
-                        } else if (typeof val === 'object') {
-                            if (val.toDate && typeof val.toDate === 'function') { // Support native Firestore Timestamp
-                                rowArray.push(val.toDate().toISOString());
-                            } else if (val.seconds) { // Fallback
-                                rowArray.push(new Date(val.seconds * 1000).toISOString());
-                            } else {
-                                rowArray.push(JSON.stringify(val));
-                            }
-                        } else {
-                            rowArray.push(String(val));
-                        }
-                    });
-                    jexcelData.push(rowArray);
-                });
-
-                if (jexcelData.length === 0) {
-                    jexcelData = [Array(columns.length).fill('')]; // Row trống
-                }
-
-                currentSheetInstance = jspreadsheet(document.getElementById('spreadsheet'), {
-                    data: jexcelData,
-                    columns: tableColumnsObj,
-                    search: true,
-                    pagination: 50,
-                    columnDrag: true,
-                    rowResize: true,
-                    columnResize: true,
-                    contextMenu: function(obj, x, y, e) {
-                        let items = [];
-                        if (y !== null) {
-                            items.push({ title: 'Xóa dòng (Delete Row)', onclick: () => { obj.deleteRow(parseInt(y)); } });
-                            items.push({ title: 'Thêm dòng trên (Insert Row Above)', onclick: () => { obj.insertRow(1, parseInt(y), 1); } });
-                            items.push({ title: 'Thêm dòng dưới (Insert Row Below)', onclick: () => { obj.insertRow(1, parseInt(y)); } });
-                        }
-                        if (x !== null) {
-                            items.push({ type: 'line' });
-                            items.push({ title: 'Thêm Cột mới (Add Column)', onclick: () => { 
-                                const colName = prompt("Nhập tên trường (Key) mới:");
-                                if(colName && colName.trim()) {
-                                    obj.insertColumn(1, parseInt(x), 1, {title: colName.trim(), width: 200});
-                                }
-                            } });
-                            if (x > 0) { // Không cho xóa cột _id
-                                items.push({ title: 'Xóa Cột (Delete Column)', onclick: () => { obj.deleteColumn(parseInt(x)); } });
-                            }
-                        }
-                        return items;
-                    },
-                    text: { noRecordsFound: 'Không tìm thấy dữ liệu', search: 'Tìm kiếm nhanh...' }
-                });
-
-                hideLoading();
-
+                showToast(`Đã sao lưu thành công ${totalRecords} bản ghi!`);
             } catch (error) {
-                hideLoading();
-                showToast(`Lỗi tải dữ liệu: ${error.message}`, "danger");
+                console.error(error);
+                showToast("Lỗi khi xuất dữ liệu: " + error.message, "danger");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-download"></i> Tải xuống File Backup (.json)';
             }
         };
 
-        // --- CÁC HÀM TƯƠNG TÁC SPREADSHEET ---
-        window.undoSheet = () => { if(currentSheetInstance) currentSheetInstance.undo(); };
-        window.redoSheet = () => { if(currentSheetInstance) currentSheetInstance.redo(); };
-        window.addNewRow = () => { if(currentSheetInstance) currentSheetInstance.insertRow(); };
+        // ----------------------------------------------------
+        // CHỨC NĂNG NHẬP JSON (IMPORT)
+        // ----------------------------------------------------
+        let selectedFile = null;
 
-        window.saveChanges = async () => {
-            if (!currentSheetInstance) return;
+        window.handleFileSelect = (event) => {
+            selectedFile = event.target.files[0];
+            const display = document.getElementById('fileNameDisplay');
+            const btnImport = document.getElementById('btnImport');
             
-            showLoading("Đang đồng bộ thay đổi lên hệ thống...");
-            
-            const headers = currentSheetInstance.getHeaders().split(',');
-            const data = currentSheetInstance.getData();
-            let currentIds = [];
-            let updatePromises = [];
+            if (selectedFile && selectedFile.name.endsWith('.json')) {
+                display.innerHTML = `<i class="fas fa-file-code"></i> File đã chọn: ${selectedFile.name}`;
+                display.style.color = '#10b981';
+                btnImport.disabled = false;
+            } else {
+                display.innerHTML = 'File không hợp lệ. Vui lòng chọn file .json';
+                display.style.color = '#ef4444';
+                btnImport.disabled = true;
+                selectedFile = null;
+            }
+        };
 
-            // 1. Quét dữ liệu hiện tại để Tạo/Cập nhật
-            for (let i = 0; i < data.length; i++) {
-                let rowData = data[i];
-                // Kiểm tra xem dòng có trống hoàn toàn không (trừ _id)
-                let isRowEmpty = true;
-                for (let j = 1; j < rowData.length; j++) {
-                    if (rowData[j].trim() !== '') { isRowEmpty = false; break; }
-                }
-                
-                if (isRowEmpty) continue; // Bỏ qua dòng trống
+        window.importDataFromJSON = () => {
+            if (!selectedFile) {
+                showToast("Vui lòng chọn file JSON để phục hồi!", "danger");
+                return;
+            }
 
-                let docId = rowData[0]; // Cột _id
-                let docObj = {};
+            if (!confirm(`Bạn có CHẮC CHẮN muốn phục hồi dữ liệu từ file [${selectedFile.name}] không? Dữ liệu hiện tại trên máy chủ nếu trùng ID sẽ bị ghi đè hoàn toàn!`)) {
+                return;
+            }
 
-                for (let j = 1; j < headers.length; j++) {
-                    let key = headers[j].trim();
-                    let val = rowData[j].trim();
-                    
-                    if (key === '' || val === '') continue; // Skip rỗng
-                    
-                    // Auto parse types
-                    if (val === 'true') val = true;
-                    else if (val === 'false') val = false;
-                    else if (val === 'null') val = null;
-                    else if (!isNaN(val) && val !== '') val = Number(val);
-                    else {
-                        if (val.startsWith('{') || val.startsWith('[')) {
-                            try { val = JSON.parse(val); } catch(e) {}
+            const btn = document.getElementById('btnImport');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang tải dữ liệu lên Server...';
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    let promises = [];
+                    let totalDocs = 0;
+
+                    // Parse JSON: expected format { "collectionName": { "docId": { data }, "docId2": { data } } }
+                    for (const [colName, docsObj] of Object.entries(data)) {
+                        for (const [docId, docData] of Object.entries(docsObj)) {
+                            // Dùng setDoc để ghi đè (hoặc tạo mới) dữ liệu với ID gốc
+                            promises.push(setDoc(doc(db, colName, docId), docData));
+                            totalDocs++;
                         }
                     }
-                    docObj[key] = val;
+
+                    // Chờ tất cả lệnh ghi hoàn thành
+                    await Promise.all(promises);
+                    
+                    showToast(`Phục hồi thành công ${totalDocs} bản ghi vào hệ thống!`);
+                    
+                    // Reset form upload
+                    document.getElementById('jsonFileInput').value = '';
+                    selectedFile = null;
+                    document.getElementById('fileNameDisplay').innerText = 'Chưa có file nào được chọn.';
+                    document.getElementById('fileNameDisplay').style.color = 'var(--primary)';
+
+                } catch (err) {
+                    console.error(err);
+                    showToast("Lỗi nhập dữ liệu (Sai định dạng JSON hoặc rớt mạng): " + err.message, "danger");
+                } finally {
+                    btn.innerHTML = '<i class="fas fa-upload"></i> Thực hiện Phục hồi (Restore)';
                 }
-
-                // Nếu có Object thì lưu lên Firebase
-                if (Object.keys(docObj).length > 0) {
-                    if (docId) {
-                        currentIds.push(docId);
-                        updatePromises.push(setDoc(doc(db, currentTable, docId), docObj));
-                    } else {
-                        // Tự động sinh ID mới nếu dòng này mới được thêm hoặc paste vào
-                        let newDocRef = doc(collection(db, currentTable));
-                        currentIds.push(newDocRef.id);
-                        updatePromises.push(setDoc(newDocRef, docObj));
-                    }
-                }
-            }
-
-            // 2. Kiểm tra xem có ID nào ban đầu có mà giờ bị xóa mất trên Spreadsheet không
-            let idsToDelete = originalIds.filter(id => !currentIds.includes(id));
-            idsToDelete.forEach(id => {
-                updatePromises.push(deleteDoc(doc(db, currentTable, id)));
-            });
-
-            try {
-                await Promise.all(updatePromises);
-                showToast(`Lưu thành công! Đã đồng bộ ${updatePromises.length} thay đổi.`);
-                refreshTable(); // Refresh để gán lại ID mới vào giao diện
-            } catch (err) {
-                hideLoading();
-                showToast(`Lỗi khi lưu: ${err.message}`, "danger");
-            }
+            };
+            
+            reader.readAsText(selectedFile);
         };
 
     </script>
