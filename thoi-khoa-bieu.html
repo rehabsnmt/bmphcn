@@ -98,7 +98,7 @@
         #eventTooltip { position: fixed; z-index: 9999; background: rgba(15, 23, 42, 0.95); color: white; padding: 12px 15px; border-radius: 8px; font-size: 0.9rem; pointer-events: none; display: none; box-shadow: 0 10px 25px rgba(0,0,0,0.3); line-height: 1.6; max-width: 350px; border-left: 4px solid var(--primary); }
 
         .toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
-        .toast { min-width: 250px; background-color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: 0.4s; font-weight: 600; border-left: 5px solid #22c55e; opacity: 0; }
+        .toast { min-width: 250px; background-color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: 0.4s; font-weight: 600; border-left: 5px solid #22c55e; opacity: 0; pointer-events: auto; }
         .toast.show { transform: translateX(0); opacity: 1; }
         .toast.danger { border-left-color: #ef4444; }
 
@@ -528,6 +528,8 @@
                 }
 
                 gvShortNameMap = {};
+                
+                // Tách biệt các khối tải dữ liệu để tránh lỗi Permission Denied từ Firebase làm sập App
                 try {
                     const snapSubjects = await getDocs(collection(db, "subjects"));
                     let tempClasses = new Set();
@@ -614,6 +616,9 @@
                     if(poolMajorSelect) poolMajorSelect.innerHTML = majorHtml;
                     if(calendarMajorSelect) calendarMajorSelect.innerHTML = majorHtml;
 
+                } catch(e) { console.error("Lỗi lấy dữ liệu Subjects:", e); }
+
+                try {
                     const snapUser = await getDocs(collection(db, "users"));
                     snapUser.forEach(doc => {
                         const d = doc.data();
@@ -626,7 +631,9 @@
                             gvShortNameMap[savedName] = `${genderPref}${firstName}`;
                         }
                     });
+                } catch(e) { console.error("Lỗi lấy dữ liệu Users:", e); }
 
+                try {
                     const snapVisiting = await getDocs(collection(db, "visiting_lecturers"));
                     snapVisiting.forEach(doc => {
                         const d = doc.data();
@@ -637,7 +644,9 @@
                             gvShortNameMap[d.name] = `${d.name}`; 
                         }
                     });
+                } catch(e) { console.error("Lỗi lấy dữ liệu Visiting:", e); }
 
+                try {
                     const userDoc = await getDoc(doc(db, "users", user.uid));
                     if (userDoc.exists()) {
                         const data = userDoc.data();
@@ -651,7 +660,7 @@
                             }
                         }, 300);
                     }
-                } catch(e) { console.error("Lỗi lấy dữ liệu:", e); }
+                } catch(e) { console.error("Lỗi lấy dữ liệu Profile:", e); }
 
                 initRoomSelect(); 
                 initCalendar();
