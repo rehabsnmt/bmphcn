@@ -55,8 +55,15 @@
         .event-card.compact:hover { transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.1); filter: brightness(0.96);}
         
         /* CSS động cho màu lớp được xử lý bằng JS (inline style) */
-        .evt-class { display: inline-block; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 0.75rem; margin: 0; line-height: 1;}
-        .evt-major { font-size: 0.7rem; font-weight: bold; color: #475569; margin: 1px 0; }
+        .evt-class { display: inline-block; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 0.75rem; margin: 0; line-height: 1; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
+        
+        /* CSS Nổi bật Chuyên ngành */
+        .evt-major { display: inline-block; font-size: 0.7rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; margin: 2px 0; line-height: 1; border: 1px solid transparent;}
+        .major-vltl { color: #0f766e; background: #ccfbf1; border-color: #99f6e4;}
+        .major-hdtl { color: #b45309; background: #fef08a; border-color: #fde047;}
+        .major-nntl { color: #6b21a8; background: #f3e8ff; border-color: #d8b4fe;}
+        .major-chung { color: #475569; background: #f1f5f9; border-color: #cbd5e1;}
+
         .evt-time { font-weight: 800; color: var(--text-dark); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; margin: 0;}
 
         /* Phân biệt màu theo Định hướng */
@@ -70,7 +77,7 @@
         .modal-header { padding: 15px 20px; background: var(--primary); color: white; display: flex; justify-content: space-between; align-items: center; }
         .modal-header h3 { margin: 0; font-size: 1.1rem; }
         .modal-body { padding: 20px; line-height: 1.8; color: var(--text-dark); font-size: 0.95rem; text-align: left; }
-        .modal-body strong { color: #475569; display: inline-block; width: 110px; }
+        .modal-body strong { color: #475569; display: inline-block; width: 120px; }
 
         /* Toast */
         .toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;}
@@ -162,6 +169,8 @@
         let allEvents = [];
         let gvCoHuuList = []; 
         let gvThinhGiangList = [];
+        let subjectsMap = {}; // Lưu trữ liên kết Tên môn -> Nhóm (Chuyên ngành)
+        
         let currentTab = 'cohuu'; 
         let currentMonday = new Date();
 
@@ -235,6 +244,20 @@
             return n.replace(/ThS\.|TS\.|PGS\.|GS\./g, '').trim().toLowerCase();
         };
 
+        // Trích xuất chuyên ngành dựa trên từ khóa trong Group
+        function getMajorFromSubject(subjectName) {
+            if (!subjectName) return 'Chung';
+            let normSubj = subjectName.toLowerCase().trim();
+            let group = subjectsMap[normSubj] || '';
+            let groupUp = group.toUpperCase();
+            
+            if (groupUp.includes('VẬT LÝ TRỊ LIỆU') || groupUp.includes('VLTL')) return 'VLTL';
+            if (groupUp.includes('HOẠT ĐỘNG TRỊ LIỆU') || groupUp.includes('HĐTL') || groupUp.includes('HDTL')) return 'HĐTL';
+            if (groupUp.includes('NGÔN NGỮ TRỊ LIỆU') || groupUp.includes('NNTL')) return 'NNTL';
+            
+            return 'Chung';
+        }
+
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 // KIỂM TRA QUYỀN TRUY CẬP: CHẶN HỌC VIÊN
@@ -253,7 +276,18 @@
 
         async function fetchData() {
             try {
-                // Tải danh sách GV Cơ hữu từ bảng users
+                // 1. Tải danh sách môn học để map chuyên ngành
+                const subjSnap = await getDocs(collection(db, "subjects"));
+                subjectsMap = {};
+                subjSnap.forEach(doc => {
+                    let s = doc.data();
+                    let sName = s.tenMonHoc || s.name || s.subjectName || s.subject || s.title || '';
+                    if (sName) {
+                        subjectsMap[sName.toLowerCase().trim()] = s.group || s.Group || s.nhom || '';
+                    }
+                });
+
+                // 2. Tải danh sách GV Cơ hữu từ bảng users
                 const userSnap = await getDocs(collection(db, "users"));
                 let coHuuBase = new Set();
                 let coHuuNormalized = new Set();
@@ -268,7 +302,7 @@
                     }
                 });
 
-                // Lắng nghe Lịch
+                // 3. Lắng nghe Lịch giảng dạy
                 onSnapshot(collection(db, "calendar_events"), (snapshot) => {
                     allEvents = [];
                     let activeCoHuu = new Set(coHuuBase); 
@@ -293,7 +327,7 @@
                         }
                     });
 
-                    // Hàm sắp xếp cho Cơ hữu
+                    // Sắp xếp
                     let sortFnCoHuu = (a, b) => {
                         let normA = normalizeName(a);
                         let normB = normalizeName(b);
@@ -310,7 +344,6 @@
                         return nameA.localeCompare(nameB, 'vi');
                     };
 
-                    // Sắp xếp Alphabet cho Thỉnh giảng
                     let sortFnThinhGiang = (a, b) => {
                         let nameA = a.split(' ').pop();
                         let nameB = b.split(' ').pop();
@@ -470,10 +503,17 @@
                             if(orientCode === 'NGHIÊN CỨU' || orientCode === 'NC') borderClass = 'border-nc';
                             else if(orientCode === 'ỨNG DỤNG' || orientCode === 'UD') borderClass = 'border-ud';
 
-                            // Lấy màu tự động cho Khóa/Lớp
+                            // Màu của Lớp
                             let classColor = getClassColor(ev.class);
-                            let majorText = (ev.major || ev.chuyenNganh || '');
-                            let majorHtml = majorText ? `<div class="evt-major">${majorText}</div>` : '';
+                            
+                            // Trích xuất chuyên ngành
+                            let majorText = getMajorFromSubject(ev.subject);
+                            let majorClass = 'major-chung';
+                            if(majorText === 'VLTL') majorClass = 'major-vltl';
+                            else if(majorText === 'HĐTL') majorClass = 'major-hdtl';
+                            else if(majorText === 'NNTL') majorClass = 'major-nntl';
+
+                            let majorHtml = `<div class="evt-major ${majorClass}">${majorText}</div>`;
 
                             cellContent += `
                                 <div class="event-card compact ${borderClass}" onclick="showEventDetail('${ev.id}')">
@@ -513,13 +553,19 @@
             let classColor = getClassColor(ev.class);
             let classBadge = `<span class="evt-class" style="font-size: 0.9rem; background-color:${classColor.bg}; color:${classColor.text}; padding: 3px 8px;">${ev.class || 'Chưa rõ'}</span>`;
             
-            let majorText = (ev.major || ev.chuyenNganh || '');
+            let majorText = getMajorFromSubject(ev.subject);
+            let majorClass = 'major-chung';
+            if(majorText === 'VLTL') majorClass = 'major-vltl';
+            else if(majorText === 'HĐTL') majorClass = 'major-hdtl';
+            else if(majorText === 'NNTL') majorClass = 'major-nntl';
+            
+            let majorBadge = `<span class="evt-major ${majorClass}" style="font-size: 0.85rem; padding: 3px 8px;">${majorText}</span>`;
 
             let html = `
                 <div style="font-size: 1.2rem; color: var(--primary); font-weight: bold; margin-bottom: 15px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 10px;">${ev.subject || 'Chưa có tên môn'}</div>
                 
                 <div style="margin-bottom: 10px;"><strong>Khóa/Lớp:</strong> ${classBadge}</div>
-                ${majorText ? `<div style="margin-bottom: 10px;"><strong>Chuyên ngành:</strong> ${majorText}</div>` : ''}
+                <div style="margin-bottom: 10px;"><strong>Chuyên ngành:</strong> ${majorBadge}</div>
                 <div style="margin-bottom: 10px;"><strong>Thời gian:</strong> <span style="color:#b45309; font-weight:bold;">${timeDisplay}</span> <span style="font-size: 0.85rem; color:#64748b;">(${dateStr})</span></div>
                 <div style="margin-bottom: 10px;"><strong>Phòng học:</strong> ${ev.room || 'Chưa xếp'}</div>
                 <div style="margin-bottom: 10px;"><strong>Giảng viên:</strong> <span style="font-weight:bold;">${ev.gv || 'Chưa xếp'}</span></div>
