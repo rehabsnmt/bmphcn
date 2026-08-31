@@ -469,7 +469,7 @@
             return count;
         };
 
-        // HÀM KIỂM TRA TRÙNG LẶP GLOBAL (QUÉT TOÀN BỘ CÁC LỚP TRÊN HỆ THỐNG)
+        // HÀM KIỂM TRA TRÙNG LẶP GLOBAL (CHỈ KIỂM TRA KHI XÁC NHẬN XẾP LỊCH, KHÔNG CHẶN SỚM TRƯỚC KHI CHỌN PHÒNG)
         function hasOverlap(targetStartStr, targetEndStr, gvStr, targetClass, targetTask, targetRoom, targetSubject, targetOrient, ignoreEventIds) {
             let ignoreList = Array.isArray(ignoreEventIds) ? ignoreEventIds : [ignoreEventIds];
             let tStart = new Date(targetStartStr).getTime();
@@ -478,7 +478,6 @@
             
             let allSubEvents = [];
             
-            // Quét từ database trực tiếp để đảm bảo kiểm tra được toàn bộ lớp (kể cả lớp đang không hiển thị trên màn hình lọc)
             scheduledEventsDB.forEach(e => {
                 if (e.status === 'returned' || !e.start) return;
                 let eStart = new Date(e.start).getTime();
@@ -501,7 +500,6 @@
                         continue; 
                     }
 
-                    let timeFormatOpts = { hour: '2-digit', minute:'2-digit', day:'2-digit', month:'2-digit' };
                     let timeRangeStr = `${new Date(e.start).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'})} - ${new Date(e.end || e.startMs + 4.5*3600000).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'})} (${new Date(e.start).toLocaleDateString('vi-VN')})`;
 
                     // 1. Kiểm tra trùng Phòng
@@ -963,25 +961,14 @@
                 eventReceive: function(info) {
                     try {
                         const props = info.event.extendedProps;
-                        
-                        // Kiểm tra xung đột trước khi bật Modal chọn phòng
-                        let startStr = toLocalISOString(info.event.start);
-                        let endStr = info.event.end ? toLocalISOString(info.event.end) : toLocalISOString(new Date(info.event.start.getTime() + 4.5 * 3600000));
-                        
-                        let finalOrientation = props.orientations === 'Nghiên cứu' ? 'Nghiên cứu' : (props.orientations === 'Ứng dụng' ? 'Ứng dụng' : 'Cả hai');
-                        
-                        const overlapCheck = hasOverlap(startStr, endStr, props.gv, props.eventClass, props.task, ROOM_LIST[0], props.subject, finalOrientation, []);
-                        if (overlapCheck.hasOverlap) {
-                            showConflictModal(overlapCheck);
-                            info.revert(); return;
-                        }
+                        const orientAttr = props.orientations || '';
+                        const normCode = window.normalizeOrient(orientAttr);
 
                         const orientContainer = document.getElementById('modalOrientContainer');
                         const orientGroup = document.getElementById('orientGroup');
 
                         let orientLabelText = '';
                         let finalOrientVal = '';
-                        let normCode = window.normalizeOrient(props.orientations);
 
                         if (normCode === 'NC') {
                             orientLabelText = `Chỉ hướng Nghiên cứu (NC) - Tối đa ${props.maxRem} buổi`;
@@ -1312,6 +1299,7 @@
                 let startStr = toLocalISOString(currentStart);
                 let endStr = toLocalISOString(currentEnd);
 
+                // KIỂM TRA TRÙNG LẶP THỰC TẾ NGAY TẠI ĐÂY (SAU KHI ĐÃ CHỌN PHÒNG & XÁC NHẬN)
                 const overlapCheck = hasOverlap(startStr, endStr, props.gv, props.eventClass, props.task, selectedRoom, props.subject, finalOrientation, []);
                 if (overlapCheck.hasOverlap) {
                     showConflictModal(overlapCheck);
