@@ -9,80 +9,57 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- Handsontable CSS & JS (Thư viện tạo bảng Excel mạnh nhất) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
+    
     <style>
-        main { max-width: 1400px; padding: 2rem 2%; margin: 0 auto; min-height: 75vh; }
+        /* Mở rộng main để khung Excel chiếm toàn màn hình */
+        main { max-width: 98%; padding: 1.5rem 1%; margin: 0 auto; display: flex; flex-direction: column; height: calc(100vh - 70px); box-sizing: border-box;}
         
-        .page-header { text-align: center; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 2px solid var(--border); }
-        .page-header h2 { font-size: 1.8rem; color: var(--accent); margin: 0; font-weight: 800; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 10px;}
-        .page-header p { font-size: 1rem; color: var(--text-body); font-weight: 600; margin-top: 5px; }
-
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid var(--border); }
+        .page-header h2 { font-size: 1.5rem; color: var(--accent); margin: 0; font-weight: 800; text-transform: uppercase; display: flex; align-items: center; gap: 10px;}
+        
         .hidden { display: none !important; }
 
-        .admin-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem 2rem; box-shadow: var(--shadow-sm); margin-bottom: 2rem; }
-        .admin-card h3 { color: var(--primary); font-size: 1.2rem; margin-top: 0; margin-bottom: 1.2rem; border-bottom: 1px dashed var(--border); padding-bottom: 10px; display: flex; align-items: center; gap: 8px;}
+        /* Toolbar công cụ */
+        .toolbar { display: flex; justify-content: space-between; align-items: center; background: var(--surface); padding: 10px 15px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 15px; box-shadow: var(--shadow-sm); flex-wrap: wrap; gap: 10px; }
+        
+        .toolbar-left { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .toolbar-right { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; border-left: 2px dashed #cbd5e1; padding-left: 15px;}
 
-        .form-group { margin-bottom: 1rem; }
-        .form-group label { display: block; font-weight: 600; color: var(--text-dark); margin-bottom: 8px; font-size: 0.95rem; }
-        .form-group select, .form-group input { width: 100%; padding: 10px 15px; border-radius: 6px; border: 1px solid var(--border); font-size: 0.95rem; outline: none; background: var(--bg-page); box-sizing: border-box;}
-        .form-group select:focus, .form-group input:focus { border-color: var(--primary); }
+        .form-select { padding: 8px 12px; border-radius: 6px; border: 1px solid var(--primary); font-size: 0.95rem; outline: none; background: #f0f9ff; color: var(--primary); font-weight: 600; cursor: pointer; min-width: 250px;}
+        .form-select:focus { box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2); }
 
-        /* File Upload Styling */
-        .file-upload-wrapper { position: relative; width: 100%; height: 100px; border: 2px dashed #cbd5e1; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f8fafc; transition: 0.2s; cursor: pointer; }
-        .file-upload-wrapper:hover { border-color: var(--primary); background: #f0f9ff; }
-        .file-upload-wrapper input[type="file"] { position: absolute; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
-        .file-upload-icon { font-size: 2rem; color: #94a3b8; margin-bottom: 10px; }
-        .file-upload-text { font-size: 0.95rem; color: var(--text-body); font-weight: 600; }
-        .file-name-display { margin-top: 10px; font-size: 0.9rem; font-weight: bold; color: var(--primary); text-align: center;}
-
-        /* Nút công cụ */
-        .btn { padding: 8px 15px; border-radius: 6px; font-weight: bold; font-size: 0.95rem; cursor: pointer; transition: 0.2s; border: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+        .btn { padding: 8px 15px; border-radius: 6px; font-weight: bold; font-size: 0.9rem; cursor: pointer; transition: 0.2s; border: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
         .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
+        .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px);}
         .btn-success { background: #10b981; color: white; }
-        .btn-success:hover { background: #059669; transform: translateY(-1px); }
-        .btn-warning { background: #f59e0b; color: white; }
-        .btn-warning:hover { background: #d97706; transform: translateY(-1px); }
+        .btn-success:hover { background: #059669; transform: translateY(-1px);}
         .btn-danger { background: var(--accent); color: white; }
-        .btn-danger:hover { background: #dc2626; transform: translateY(-1px); }
-        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important;}
+        .btn-danger:hover { background: #dc2626; transform: translateY(-1px);}
+        .btn-outline { background: white; color: #475569; border: 1px solid #cbd5e1; }
+        .btn-outline:hover { background: #f1f5f9; color: var(--text-dark); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none;}
 
-        /* BẢNG CHỈNH SỬA NHƯ EXCEL */
-        .table-container { overflow: auto; max-height: 600px; border-radius: 6px; border: 1px solid var(--border); background: white; margin-top: 15px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
-        table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.85rem; }
-        th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; vertical-align: middle; }
-        th { background: #f1f5f9; font-weight: bold; color: var(--text-dark); position: sticky; top: 0; z-index: 5; box-shadow: 0 1px 0 #cbd5e1; }
-        td { background: white; }
-        
-        tbody tr:hover td { background: #f8fafc; }
-        
-        /* Cột hành động (Sticky right) */
-        .col-sticky-right { position: sticky; right: 0; background: #f8fafc !important; z-index: 4; box-shadow: -1px 0 0 #e2e8f0; }
-        th.col-sticky-right { z-index: 6; }
-        tbody tr:hover td.col-sticky-right { background: #e2e8f0 !important; }
+        /* Khung Excel */
+        .excel-wrapper { flex: 1; width: 100%; background: white; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; position: relative; box-shadow: var(--shadow-sm); z-index: 1;}
+        #hot-container { width: 100%; height: 100%; overflow: hidden; }
 
-        /* Khung nhập liệu Excel */
-        td[contenteditable="true"] { transition: background 0.2s, outline 0.2s; cursor: text; border-radius: 2px; white-space: pre-wrap; word-break: break-word; min-width: 120px; }
-        td[contenteditable="true"]:hover { background: #f0fdf4; outline: 1px dashed #22c55e; }
-        td[contenteditable="true"]:focus { background: #fff !important; outline: 2px solid #3b82f6; box-shadow: inset 0 0 8px rgba(0,0,0,0.05); z-index: 10; position: relative; }
-
-        /* Modal JSON Editor */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.7); display: flex; justify-content: center; align-items: center; z-index: 2000; padding: 10px; }
-        .modal-content { background: white; width: 100%; max-width: 700px; border-radius: 8px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); display: flex; flex-direction: column; overflow: hidden;}
-        .modal-header { padding: 15px 20px; background: var(--primary); color: white; display: flex; justify-content: space-between; align-items: center; }
-        .modal-header h3 { margin: 0; font-size: 1.1rem; }
-        .modal-body { padding: 20px; flex: 1; display: flex; flex-direction: column; gap: 15px;}
-        .modal-footer { padding: 15px 20px; background: #f1f5f9; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border); }
-        
-        textarea.json-editor { width: 100%; height: 350px; font-family: 'Courier New', Courier, monospace; font-size: 0.9rem; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; background: #0f172a; color: #38bdf8; outline: none; box-sizing: border-box; resize: vertical;}
-        textarea.json-editor:focus { border-color: var(--primary); }
+        /* Tùy chỉnh Handsontable */
+        .handsontable th { font-weight: bold; background-color: #f1f5f9; color: var(--text-dark); text-transform: uppercase; font-size: 0.85rem;}
+        .htDimmed { background-color: #f8fafc !important; color: #94a3b8 !important; font-family: monospace; font-size: 0.85rem;}
 
         /* Toast */
         .toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;}
-        .toast { min-width: 250px; background-color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: 0.4s; font-weight: 600; border-left: 5px solid #22c55e; opacity: 0; pointer-events: auto; }
+        .toast { min-width: 250px; background-color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: 0.4s; font-weight: 600; border-left: 5px solid #22c55e; opacity: 0; pointer-events: auto; }
         .toast.show { transform: translateX(0); opacity: 1; }
         .toast.danger { border-left-color: #ef4444; }
 
-        .warning-box { background: #fef2f2; border: 1px solid #fca5a5; color: #b91c1c; padding: 12px; border-radius: 6px; font-size: 0.85rem; line-height: 1.4; display: flex; gap: 10px; align-items: flex-start; }
+        @media (max-width: 768px) {
+            .toolbar { flex-direction: column; align-items: flex-start; }
+            .toolbar-right { border-left: none; padding-left: 0; border-top: 2px dashed #cbd5e1; padding-top: 10px; width: 100%;}
+        }
     </style>
 </head>
 <body>
@@ -96,59 +73,15 @@
 
     <main id="mainContent" class="hidden">
         <div class="page-header">
-            <h2><i class="fas fa-database"></i> Quản Trị Hệ Thống CSDL</h2>
-            <p>Giao diện thao tác hệ thống dành riêng cho Admin tối cao</p>
-        </div>
-
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px;">
-            <!-- KHUNG XUẤT DỮ LIỆU -->
-            <div class="admin-card" style="margin-bottom: 0;">
-                <h3><i class="fas fa-file-export"></i> 1. Sao lưu Dữ liệu (Export)</h3>
-                <div class="form-group">
-                    <label>Bảng dữ liệu cần sao lưu:</label>
-                    <select id="exportColSelect">
-                        <option value="ALL">-- Tất cả các bảng (Full Backup) --</option>
-                        <option value="calendar_events">Lịch giảng dạy (calendar_events)</option>
-                        <option value="assignments">Phân công công tác (assignments)</option>
-                        <option value="subjects">Danh mục Môn học (subjects)</option>
-                        <option value="learners">Danh sách Người học (learners)</option>
-                        <option value="theses">Đề tài Luận văn (theses)</option>
-                        <option value="announcements">Thông báo (announcements)</option>
-                        <option value="users">Tài khoản Giảng viên (users)</option>
-                        <option value="visiting_lecturers">GV Thỉnh giảng (visiting_lecturers)</option>
-                    </select>
-                </div>
-                <button class="btn btn-success" style="width: 100%;" onclick="exportDataToJSON()" id="btnExport">
-                    <i class="fas fa-download"></i> Tải xuống File Backup (.json)
-                </button>
-            </div>
-
-            <!-- KHUNG NHẬP DỮ LIỆU -->
-            <div class="admin-card" style="margin-bottom: 0;">
-                <h3><i class="fas fa-file-import"></i> 2. Phục hồi Dữ liệu (Import)</h3>
-                <div class="warning-box" style="margin-bottom: 10px;">
-                    <i class="fas fa-exclamation-triangle" style="font-size: 1.2rem;"></i>
-                    <span>Tải file JSON lên sẽ <b>Ghi Đè</b> toàn bộ dữ liệu có trùng ID hiện tại!</span>
-                </div>
-                <div class="file-upload-wrapper">
-                    <input type="file" id="jsonFileInput" accept=".json" onchange="handleFileSelect(event)">
-                    <i class="fas fa-cloud-upload-alt file-upload-icon"></i>
-                    <span class="file-upload-text">Kéo thả file JSON vào đây</span>
-                </div>
-                <div class="file-name-display" id="fileNameDisplay">Chưa chọn file</div>
-                <button class="btn btn-warning" style="width: 100%; margin-top: 10px;" onclick="importDataFromJSON()" id="btnImport" disabled>
-                    <i class="fas fa-upload"></i> Bắt đầu Phục hồi (Restore)
-                </button>
+            <h2><i class="fas fa-database"></i> Quản Trị CSDL Nâng Cao</h2>
+            <div style="font-size: 0.9rem; color: #64748b;">
+                <i class="fas fa-info-circle"></i> Click đúp để sửa. Chuột phải để <b>Chèn Cột, Chèn Hàng, Xóa, Undo/Redo</b>.
             </div>
         </div>
 
-        <!-- KHUNG CHỈNH SỬA DỮ LIỆU TRỰC TIẾP -->
-        <div class="admin-card" style="margin-top: 20px;">
-            <h3><i class="fas fa-table"></i> 3. Chỉnh sửa dữ liệu trực tiếp (Excel Editor)</h3>
-            <p style="font-size: 0.9rem; color: var(--text-body); margin-bottom: 15px;">Chọn bảng và click trực tiếp vào từng ô để chỉnh sửa. Nhấn <b style="color:var(--primary);">Enter</b> để lưu. Bảng sẽ tự động co giãn để hiển thị toàn bộ thuộc tính.</p>
-            
-            <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
-                <select id="editorColSelect" class="form-control" style="flex: 1; min-width: 250px; padding: 10px; border-radius: 6px; border: 1px solid var(--border);">
+        <div class="toolbar">
+            <div class="toolbar-left">
+                <select id="colSelect" class="form-select" onchange="clearTable()">
                     <option value="subjects">Danh mục Môn học (subjects)</option>
                     <option value="learners">Danh sách Người học (learners)</option>
                     <option value="theses">Đề tài Luận văn (theses)</option>
@@ -158,46 +91,27 @@
                     <option value="users">Tài khoản (users)</option>
                     <option value="visiting_lecturers">GV Thỉnh giảng (visiting_lecturers)</option>
                 </select>
-                <button class="btn btn-primary" onclick="loadCollectionData()"><i class="fas fa-sync"></i> Tải bảng dữ liệu</button>
-                <button class="btn btn-success" onclick="openAddModal()"><i class="fas fa-plus"></i> Thêm Hàng Mới</button>
+                <button class="btn btn-primary" onclick="loadData()"><i class="fas fa-sync"></i> Tải dữ liệu bảng</button>
+                <button class="btn btn-success" onclick="saveData()"><i class="fas fa-save"></i> Lưu Thay Đổi Của Bảng Lên DB</button>
             </div>
+            
+            <div class="toolbar-right">
+                <span style="font-size: 0.85rem; color: #94a3b8; font-weight: bold;">Toàn hệ thống:</span>
+                <button class="btn btn-outline" onclick="exportDataToJSON()"><i class="fas fa-file-export"></i> Xuất JSON</button>
+                <input type="file" id="jsonFileInput" accept=".json" hidden onchange="importDataFromJSON(event)">
+                <button class="btn btn-danger" onclick="document.getElementById('jsonFileInput').click()"><i class="fas fa-file-import"></i> Nhập JSON (Ghi đè)</button>
+            </div>
+        </div>
 
-            <div class="table-container">
-                <table id="dataTable">
-                    <thead id="dataTableHead">
-                        <tr><th style="text-align:center;">Vui lòng tải dữ liệu.</th></tr>
-                    </thead>
-                    <tbody id="dataTableBody">
-                        <tr><td style="text-align:center; padding: 20px; color: #64748b;">Chưa có dữ liệu</td></tr>
-                    </tbody>
-                </table>
+        <div class="excel-wrapper">
+            <div id="hot-container">
+                <div style="text-align: center; padding-top: 100px; color: #94a3b8;">
+                    <i class="fas fa-table" style="font-size: 3rem; margin-bottom: 10px; opacity: 0.5;"></i><br>
+                    Chọn bảng và bấm "Tải dữ liệu bảng" để bắt đầu làm việc.
+                </div>
             </div>
         </div>
     </main>
-
-    <!-- MODAL EDITOR JSON -->
-    <div id="editModal" class="modal-overlay hidden">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="modalEditorTitle">Chỉnh sửa Bản ghi Bằng JSON</h3>
-                <span style="cursor:pointer; font-weight:bold; padding: 0 5px;" onclick="document.getElementById('editModal').classList.add('hidden')">✕</span>
-            </div>
-            <div class="modal-body">
-                <div class="form-group" style="margin-bottom: 0;">
-                    <label>Document ID (Để trống nếu tạo mới, hệ thống tự cấp ID)</label>
-                    <input type="text" id="editDocId" placeholder="Nhập mã ID bản ghi...">
-                </div>
-                <div class="form-group" style="margin-bottom: 0;">
-                    <label>Nội dung Data (Định dạng JSON hợp lệ)</label>
-                    <textarea id="editDocData" class="json-editor"></textarea>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn" style="background:#cbd5e1; color:#0f172a;" onclick="document.getElementById('editModal').classList.add('hidden')">Hủy bỏ</button>
-                <button class="btn btn-primary" onclick="saveDocument()"><i class="fas fa-save"></i> Lưu Dữ Liệu</button>
-            </div>
-        </div>
-    </div>
 
     <div id="footer-placeholder"></div>
 
@@ -206,7 +120,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
-        import { getFirestore, collection, getDocs, doc, setDoc, updateDoc, deleteDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY", authDomain: "bmphcn-aa9c6.firebaseapp.com", projectId: "bmphcn-aa9c6", storageBucket: "bmphcn-aa9c6.firebasestorage.app", messagingSenderId: "749494392719", appId: "1:749494392719:web:f220c751ff541620045dfa" };
         const app = initializeApp(firebaseConfig);
@@ -217,6 +131,11 @@
             'calendar_events', 'assignments', 'subjects', 'learners', 
             'theses', 'announcements', 'users', 'visiting_lecturers', 'clinical_schedules'
         ];
+
+        let hotInstance = null;
+        let currentCollection = '';
+        let headers = [];
+        let originalIds = [];
 
         window.showToast = (message, type = 'success') => {
             const container = document.getElementById('toastContainer');
@@ -235,7 +154,7 @@
                     document.getElementById('loadingScreen').classList.add('hidden');
                     document.getElementById('mainContent').classList.remove('hidden');
                 } else {
-                    alert("Chỉ có tài khoản Super Admin mới có quyền truy cập khu vực này!");
+                    alert("Chỉ Super Admin mới có quyền truy cập khu vực này!");
                     window.location.href = "dashboard.html";
                 }
             } else {
@@ -244,26 +163,216 @@
         });
 
         // ----------------------------------------------------
-        // 1. CHỨC NĂNG XUẤT JSON (EXPORT)
+        // 1. TẢI DỮ LIỆU LÊN BẢNG HANDSONTABLE (EXCEL)
         // ----------------------------------------------------
-        window.exportDataToJSON = async () => {
-            const btn = document.getElementById('btnExport');
-            const colSelect = document.getElementById('exportColSelect').value;
-            const colsToExport = colSelect === 'ALL' ? ALL_COLLECTIONS : [colSelect];
+        window.clearTable = () => {
+            if(hotInstance) {
+                hotInstance.destroy();
+                hotInstance = null;
+            }
+            document.getElementById('hot-container').innerHTML = `
+                <div style="text-align: center; padding-top: 100px; color: #94a3b8;">
+                    <i class="fas fa-table" style="font-size: 3rem; margin-bottom: 10px; opacity: 0.5;"></i><br>
+                    Chọn bảng và bấm "Tải dữ liệu bảng" để bắt đầu làm việc.
+                </div>`;
+        };
+
+        window.loadData = async () => {
+            const col = document.getElementById('colSelect').value;
+            currentCollection = col;
+            const container = document.getElementById('hot-container');
+            
+            container.innerHTML = '<div style="text-align:center; padding: 50px;"><i class="fas fa-spinner fa-spin fa-2x"></i></div>';
             
             try {
-                btn.disabled = true;
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang trích xuất...';
+                const snap = await getDocs(collection(db, col));
+                let rawDocs = [];
+                let keySet = new Set();
                 
-                let exportData = {};
-                let totalRecords = 0;
+                snap.forEach(d => {
+                    let data = d.data();
+                    rawDocs.push({ _docId: d.id, ...data });
+                    Object.keys(data).forEach(k => keySet.add(k));
+                });
 
-                for (const colName of colsToExport) {
+                headers = ["_docId", ...Array.from(keySet).sort()];
+                originalIds = rawDocs.map(d => d._docId);
+
+                // Chuyển Data thành mảng 2 chiều
+                let dataMatrix = rawDocs.map(doc => {
+                    return headers.map(h => {
+                        let val = doc[h];
+                        if (val === undefined || val === null) return '';
+                        if (typeof val === 'object') return JSON.stringify(val);
+                        return String(val);
+                    });
+                });
+
+                // Nếu bảng trống
+                if (dataMatrix.length === 0) {
+                    dataMatrix = [ headers.map(h => '') ];
+                }
+
+                container.innerHTML = '';
+                
+                hotInstance = new Handsontable(container, {
+                    data: dataMatrix,
+                    colHeaders: headers,
+                    rowHeaders: true, // Đánh số thứ tự 1, 2, 3...
+                    manualColumnResize: true,
+                    manualRowResize: true,
+                    undo: true,
+                    width: '100%',
+                    height: '100%',
+                    licenseKey: 'non-commercial-and-evaluation', // Phiên bản miễn phí
+                    contextMenu: {
+                        items: {
+                            "row_above": { name: '<i class="fas fa-arrow-up"></i> Chèn hàng lên trên' },
+                            "row_below": { name: '<i class="fas fa-arrow-down"></i> Chèn hàng xuống dưới' },
+                            "col_left": { name: '<i class="fas fa-arrow-left"></i> Chèn cột sang trái' },
+                            "col_right": { name: '<i class="fas fa-arrow-right"></i> Chèn cột sang phải' },
+                            "hsep1": "---------",
+                            "remove_row": { name: '<i class="fas fa-trash" style="color:red;"></i> Xóa hàng' },
+                            "remove_col": { name: '<i class="fas fa-times" style="color:red;"></i> Xóa cột' },
+                            "hsep2": "---------",
+                            "rename_col": {
+                                name: '<i class="fas fa-edit"></i> <b>Đổi Tên Thuộc Tính (Key Cột)</b>',
+                                callback: function(key, selection) {
+                                    let colIndex = selection[0].start.col;
+                                    if (colIndex === 0) {
+                                        alert("Không thể đổi tên cột khóa chính (_docId)!");
+                                        return;
+                                    }
+                                    let currentName = headers[colIndex] || hotInstance.getColHeader(colIndex);
+                                    let newName = prompt("Nhập tên trường dữ liệu (field key) mới:", currentName);
+                                    if (newName && newName.trim() !== '') {
+                                        headers[colIndex] = newName.trim();
+                                        hotInstance.updateSettings({ colHeaders: headers });
+                                        showToast(`Đã đổi tên cột thành [${newName}]`);
+                                    }
+                                }
+                            },
+                            "hsep3": "---------",
+                            "undo": { name: '<i class="fas fa-undo"></i> Hoàn tác (Undo)' },
+                            "redo": { name: '<i class="fas fa-redo"></i> Làm lại (Redo)' }
+                        }
+                    },
+                    cells: function(row, col) {
+                        let cellProperties = {};
+                        if (col === 0) {
+                            // Khóa cột _docId
+                            cellProperties.readOnly = true;
+                            cellProperties.className = 'htDimmed';
+                        }
+                        return cellProperties;
+                    },
+                    afterCreateCol: function(index, amount) {
+                        for(let i = 0; i < amount; i++) {
+                            headers.splice(index + i, 0, 'new_field_' + Date.now() + i);
+                        }
+                        this.updateSettings({ colHeaders: headers });
+                    },
+                    afterRemoveCol: function(index, amount) {
+                        headers.splice(index, amount);
+                        this.updateSettings({ colHeaders: headers });
+                    }
+                });
+                
+                showToast(`Tải thành công ${rawDocs.length} bản ghi.`);
+            } catch(e) {
+                showToast("Lỗi tải bảng: " + e.message, 'danger');
+            }
+        };
+
+        // ----------------------------------------------------
+        // 2. LƯU TOÀN BỘ THAY ĐỔI LÊN FIREBASE
+        // ----------------------------------------------------
+        window.saveData = async () => {
+            if(!hotInstance) {
+                showToast("Chưa có bảng nào được tải!", "danger");
+                return;
+            }
+            if(!confirm(`Lưu ý: Hệ thống sẽ quét toàn bộ bảng Excel và cập nhật lên Firebase. Hành động này sẽ CẬP NHẬT hàng đã sửa, THÊM hàng mới và XÓA các hàng bạn đã xóa trên Excel. Xác nhận lưu?`)){
+                return;
+            }
+
+            const data = hotInstance.getData();
+            let currentIds = [];
+            let promises = [];
+            let countAdd = 0, countUpdate = 0;
+
+            try {
+                // Bước 1: Quét từng dòng Excel để Update hoặc Add
+                for (let r = 0; r < data.length; r++) {
+                    let row = data[r];
+                    // Bỏ qua hàng nếu tất cả các ô đều rỗng
+                    let isEmpty = row.every(cell => cell === null || cell === '');
+                    if (isEmpty) continue;
+
+                    let docId = row[0];
+                    let docData = {};
+
+                    // Ghép cột thành Object JSON
+                    for (let c = 1; c < headers.length; c++) {
+                        let key = headers[c];
+                        let val = row[c];
+                        if (val !== null && val !== '') {
+                            // Tự động ép kiểu dữ liệu chuẩn Firebase
+                            if (val === 'true') val = true;
+                            else if (val === 'false') val = false;
+                            else if (!isNaN(val) && val !== '') val = Number(val);
+                            else {
+                                try {
+                                    let parsed = JSON.parse(val);
+                                    if (typeof parsed === 'object') val = parsed;
+                                } catch(e) {}
+                            }
+                            docData[key] = val;
+                        }
+                    }
+
+                    // Lưu Firestore
+                    if (docId) {
+                        currentIds.push(docId);
+                        promises.push(setDoc(doc(db, currentCollection, docId), docData));
+                        countUpdate++;
+                    } else {
+                        // Tạo mới nếu chưa có _docId
+                        let newDocRef = doc(collection(db, currentCollection));
+                        promises.push(setDoc(newDocRef, docData));
+                        currentIds.push(newDocRef.id);
+                        countAdd++;
+                    }
+                }
+
+                // Bước 2: Dò tìm các dòng đã bị xóa trên Excel để xóa khỏi Firebase
+                let deletedIds = originalIds.filter(id => !currentIds.includes(id));
+                for (let id of deletedIds) {
+                    promises.push(deleteDoc(doc(db, currentCollection, id)));
+                }
+
+                await Promise.all(promises);
+                showToast(`Lưu DB thành công! (Thêm mới: ${countAdd}, Cập nhật: ${countUpdate}, Xóa: ${deletedIds.length})`);
+                
+                // Tải lại bảng để nhận _docId mới cho các hàng vừa chèn
+                loadData(); 
+
+            } catch(e) {
+                showToast("Lỗi trong quá trình lưu: " + e.message, "danger");
+            }
+        };
+
+        // ----------------------------------------------------
+        // 3. XUẤT / NHẬP JSON (TOÀN HỆ THỐNG)
+        // ----------------------------------------------------
+        window.exportDataToJSON = async () => {
+            try {
+                let exportData = {};
+                for (const colName of ALL_COLLECTIONS) {
                     exportData[colName] = {};
                     const snap = await getDocs(collection(db, colName));
                     snap.forEach(docSnap => {
                         exportData[colName][docSnap.id] = docSnap.data();
-                        totalRecords++;
                     });
                 }
 
@@ -274,290 +383,50 @@
                 const link = document.createElement("a");
                 link.href = url;
                 let dateStr = new Date().toLocaleDateString('vi-VN').replace(/\//g, '-');
-                link.download = `DB_Backup_${colSelect}_${dateStr}.json`;
+                link.download = `Full_DB_Backup_${dateStr}.json`;
                 
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
 
-                showToast(`Đã sao lưu thành công ${totalRecords} bản ghi!`);
+                showToast("Đã tải xuống toàn bộ CSDL!");
             } catch (error) {
                 showToast("Lỗi xuất dữ liệu: " + error.message, "danger");
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-download"></i> Tải xuống File Backup (.json)';
             }
         };
 
-        // ----------------------------------------------------
-        // 2. CHỨC NĂNG NHẬP JSON (IMPORT)
-        // ----------------------------------------------------
-        let selectedFile = null;
-        window.handleFileSelect = (event) => {
-            selectedFile = event.target.files[0];
-            const display = document.getElementById('fileNameDisplay');
-            const btnImport = document.getElementById('btnImport');
-            
-            if (selectedFile && selectedFile.name.endsWith('.json')) {
-                display.innerHTML = `<i class="fas fa-file-code"></i> File: ${selectedFile.name}`;
-                display.style.color = '#10b981';
-                btnImport.disabled = false;
-            } else {
-                display.innerHTML = 'File không hợp lệ. Hãy chọn file .json';
-                display.style.color = '#ef4444';
-                btnImport.disabled = true;
-                selectedFile = null;
+        window.importDataFromJSON = (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (!confirm(`CẢNH BÁO TỐI CAO: Khôi phục từ file [${file.name}] sẽ ghi đè toàn bộ các bảng trong CSDL. Bạn có chắc không?`)) {
+                event.target.value = ''; // Reset input
+                return;
             }
-        };
-
-        window.importDataFromJSON = () => {
-            if (!selectedFile) return;
-            if (!confirm(`CẢNH BÁO: Phục hồi từ file [${selectedFile.name}] sẽ ghi đè dữ liệu hiện tại. Bạn có chắc không?`)) return;
-
-            const btn = document.getElementById('btnImport');
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang ghi đè...';
 
             const reader = new FileReader();
             reader.onload = async (e) => {
                 try {
                     const data = JSON.parse(e.target.result);
                     let promises = [];
-                    let totalDocs = 0;
-
+                    
                     for (const [colName, docsObj] of Object.entries(data)) {
                         for (const [docId, docData] of Object.entries(docsObj)) {
                             promises.push(setDoc(doc(db, colName, docId), docData));
-                            totalDocs++;
                         }
                     }
 
                     await Promise.all(promises);
-                    showToast(`Phục hồi thành công ${totalDocs} bản ghi!`);
+                    showToast(`Khôi phục dữ liệu toàn hệ thống thành công!`);
+                    event.target.value = ''; 
                     
-                    document.getElementById('jsonFileInput').value = '';
-                    selectedFile = null;
-                    document.getElementById('fileNameDisplay').innerText = 'Chưa chọn file';
-                    document.getElementById('fileNameDisplay').style.color = 'var(--primary)';
+                    if(currentCollection) loadData(); // Load lại bảng Excel nếu đang mở
 
-                    if(currentCollection) loadCollectionData(); 
                 } catch (err) {
-                    showToast("Lỗi nhập dữ liệu: " + err.message, "danger");
-                } finally {
-                    btn.innerHTML = '<i class="fas fa-upload"></i> Bắt đầu Phục hồi (Restore)';
+                    showToast("Lỗi nhập dữ liệu: JSON sai định dạng.", "danger");
                 }
             };
-            reader.readAsText(selectedFile);
-        };
-
-        // ----------------------------------------------------
-        // 3. CHỨC NĂNG CHỈNH SỬA DỮ LIỆU EXCEL ĐỘNG
-        // ----------------------------------------------------
-        let currentCollection = '';
-        let currentDocs = [];
-        let dynamicKeys = [];
-
-        window.loadCollectionData = async () => {
-            const col = document.getElementById('editorColSelect').value;
-            currentCollection = col;
-            const thead = document.getElementById('dataTableHead');
-            const tbody = document.getElementById('dataTableBody');
-            
-            tbody.innerHTML = '<tr><td style="text-align:center;"><i class="fas fa-spinner fa-spin"></i> Đang tải và tạo bảng...</td></tr>';
-            
-            try {
-                const snap = await getDocs(collection(db, col));
-                currentDocs = [];
-                let keySet = new Set();
-                
-                snap.forEach(d => {
-                    const data = d.data();
-                    currentDocs.push({ id: d.id, data: data });
-                    Object.keys(data).forEach(k => keySet.add(k));
-                });
-
-                dynamicKeys = Array.from(keySet).sort(); // Lấy mảng tên cột
-
-                // Xây dựng Header động
-                let trHead = '<tr><th style="min-width: 150px; background: #e0f2fe; color: #0284c7;">Document ID (Khóa)</th>';
-                dynamicKeys.forEach(k => {
-                    trHead += `<th style="min-width: 120px;">${k}</th>`;
-                });
-                trHead += '<th class="col-sticky-right" style="width: 100px; text-align: center;">Thao tác</th></tr>';
-                thead.innerHTML = trHead;
-
-                // Xây dựng Body
-                tbody.innerHTML = '';
-                if(currentDocs.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="${dynamicKeys.length + 2}" style="text-align:center; color:#64748b; padding: 20px;">Bảng <b>${col}</b> chưa có dữ liệu. Hãy bấm "Thêm Hàng Mới".</td></tr>`;
-                    return;
-                }
-
-                currentDocs.forEach(item => {
-                    let tr = `<tr>`;
-                    tr += `<td style="font-family:monospace; font-weight:bold; color:var(--primary); cursor:not-allowed;">${item.id}</td>`;
-                    
-                    dynamicKeys.forEach(k => {
-                        let val = item.data[k];
-                        let displayVal = '';
-                        if (val === undefined || val === null) {
-                            displayVal = '';
-                        } else if (typeof val === 'object') {
-                            displayVal = JSON.stringify(val); // Hiển thị Object/Array thành Text
-                        } else {
-                            displayVal = String(val);
-                        }
-
-                        // Escape HTML an toàn
-                        displayVal = displayVal.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-
-                        tr += `<td contenteditable="true" data-id="${item.id}" data-key="${k}">${displayVal}</td>`;
-                    });
-
-                    tr += `
-                        <td align="center" class="col-sticky-right">
-                            <button class="btn btn-warning" style="padding: 5px 8px; font-size: 0.8rem;" onclick="openEditModal('${item.id}')" title="Sửa bằng mã JSON"><i class="fas fa-code"></i></button>
-                            <button class="btn btn-danger" style="padding: 5px 8px; font-size: 0.8rem;" onclick="deleteDocument('${item.id}')" title="Xóa hàng này"><i class="fas fa-trash"></i></button>
-                        </td>
-                    `;
-                    tr += `</tr>`;
-                    tbody.innerHTML += tr;
-                });
-                
-            } catch(e) {
-                showToast("Lỗi tải bảng: " + e.message, 'danger');
-            }
-        };
-
-        // BẮT SỰ KIỆN LƯU KHI GÕ CHỮ TRÊN BẢNG (EXCEL)
-        document.getElementById('dataTableBody').addEventListener('focusin', (e) => {
-            if (e.target.hasAttribute('contenteditable')) {
-                e.target.setAttribute('data-old-val', e.target.innerText.trim());
-            }
-        });
-
-        document.getElementById('dataTableBody').addEventListener('focusout', async (e) => {
-            if (e.target.hasAttribute('contenteditable')) {
-                const id = e.target.getAttribute('data-id');
-                const key = e.target.getAttribute('data-key');
-                let newVal = e.target.innerText.trim();
-                const oldVal = e.target.getAttribute('data-old-val');
-
-                if (newVal !== oldVal) {
-                    try {
-                        // Cố gắng tự động nhận dạng kiểu dữ liệu (Data Type Inference)
-                        let parsedVal = newVal;
-                        if (newVal === 'true') parsedVal = true;
-                        else if (newVal === 'false') parsedVal = false;
-                        else if (newVal === 'null') parsedVal = null;
-                        else if (!isNaN(newVal) && newVal !== '') parsedVal = Number(newVal);
-                        else {
-                            try {
-                                let jsonParsed = JSON.parse(newVal);
-                                if (typeof jsonParsed === 'object') parsedVal = jsonParsed;
-                            } catch(err) {
-                                // Nếu không phải JSON hợp lệ thì giữ nguyên là String
-                            }
-                        }
-
-                        await updateDoc(doc(db, currentCollection, id), { [key]: parsedVal });
-                        showToast(`Đã lưu [${key}] thành công!`);
-                        
-                        // Cập nhật mảng local
-                        let docItem = currentDocs.find(x => x.id === id);
-                        if(docItem) docItem.data[key] = parsedVal;
-
-                    } catch (error) {
-                        showToast("Lỗi lưu dữ liệu: " + error.message, "danger");
-                        e.target.innerText = oldVal; 
-                    }
-                }
-            }
-        });
-
-        document.getElementById('dataTableBody').addEventListener('keydown', (e) => {
-            // Khi ấn Enter mà không giữ Shift -> Tự động bỏ focus để lưu
-            if (e.key === 'Enter' && !e.shiftKey && e.target.hasAttribute('contenteditable')) {
-                e.preventDefault(); 
-                e.target.blur(); 
-            }
-        });
-
-        // ----------------------------------------------------
-        // CÁC HÀM CỦA MODAL (SỬA JSON RAW) VÀ THÊM XÓA
-        // ----------------------------------------------------
-        window.openEditModal = (id) => {
-            const item = currentDocs.find(d => d.id === id);
-            document.getElementById('modalEditorTitle').innerText = 'Sửa Bản ghi JSON';
-            
-            const idInput = document.getElementById('editDocId');
-            idInput.value = id;
-            idInput.disabled = true; 
-            
-            document.getElementById('editDocData').value = JSON.stringify(item.data, null, 2);
-            document.getElementById('editModal').classList.remove('hidden');
-        };
-
-        window.openAddModal = () => {
-            if(!currentCollection) {
-                showToast("Vui lòng Tải một bảng dữ liệu trước khi thêm mới!", "danger");
-                return;
-            }
-            document.getElementById('modalEditorTitle').innerText = `Thêm mới vào bảng [${currentCollection}]`;
-            
-            const idInput = document.getElementById('editDocId');
-            idInput.value = '';
-            idInput.disabled = false; 
-            
-            document.getElementById('editDocData').value = '{\n  "moi_tao": "Giá trị"\n}';
-            document.getElementById('editModal').classList.remove('hidden');
-        };
-
-        window.saveDocument = async () => {
-            const idInput = document.getElementById('editDocId').value.trim();
-            const dataInput = document.getElementById('editDocData').value;
-            let parsedData;
-            
-            try {
-                parsedData = JSON.parse(dataInput);
-            } catch(e) {
-                showToast("Mã JSON không hợp lệ! Vui lòng kiểm tra lại.", "danger");
-                return;
-            }
-
-            try {
-                if(document.getElementById('editDocId').disabled) {
-                    // Sửa bản ghi cũ
-                    await setDoc(doc(db, currentCollection, idInput), parsedData);
-                    showToast(`Đã cập nhật bản ghi thành công!`);
-                } else {
-                    // Thêm mới bản ghi
-                    if(idInput) {
-                        await setDoc(doc(db, currentCollection, idInput), parsedData);
-                    } else {
-                        await addDoc(collection(db, currentCollection), parsedData);
-                    }
-                    showToast(`Đã tạo hàng mới!`);
-                }
-                document.getElementById('editModal').classList.add('hidden');
-                loadCollectionData(); // Reset lại toàn bộ bảng để vẽ lại các cột
-            } catch(e) {
-                showToast("Lỗi lưu DB: " + e.message, "danger");
-            }
-        };
-
-        window.deleteDocument = async (id) => {
-            if(confirm(`Cảnh báo: XÓA VĨNH VIỄN hàng [${id}] khỏi bảng [${currentCollection}]?`)) {
-                try {
-                    await deleteDoc(doc(db, currentCollection, id));
-                    showToast(`Đã xóa bản ghi [${id}]!`);
-                    // Xóa trên local và render lại để khỏi fetch server
-                    currentDocs = currentDocs.filter(d => d.id !== id);
-                    loadCollectionData(); 
-                } catch(e) {
-                    showToast("Lỗi xóa DB: " + e.message, "danger");
-                }
-            }
+            reader.readAsText(file);
         };
 
     </script>
