@@ -416,17 +416,14 @@
         window.getCurrentClass = () => document.getElementById('filterClass').value;
         window.getCurrentOrient = () => document.getElementById('filterOrient').value;
         
+        // HÀM TẠO KEY CHUẨN XÁC LUÔN CÓ ĐỊNH HƯỚNG
         window.getDbKey = (sub) => {
             const c = window.getCurrentClass();
             const o = window.getCurrentOrient();
 
-            const isNotPHCN = (sub.isPHCN === false) || (sub.department && sub.department !== 'Bộ môn Phục hồi chức năng' && sub.department !== 'Bộ môn PHCN');
-
-            if (isNotPHCN) return c;
-
             let key = c;
             if (c.toUpperCase().includes('THS')) {
-                key += `_${o === 'ALL' ? 'NC' : o}`; 
+                key += `_${o || 'NC'}`; // Luôn gắn NC hoặc UD
             }
 
             let major = sub.majorTag || 'ALL';
@@ -644,17 +641,10 @@
             let count = 0;
             let orientName = orient === 'NC' ? 'Nghiên cứu' : 'Ứng dụng';
             
-            const sub = subjectsData.find(s => s.name === subName);
-            const isNotPHCN = sub && ((sub.isPHCN === false) || (sub.department && sub.department !== 'Bộ môn Phục hồi chức năng' && sub.department !== 'Bộ môn PHCN'));
-
             calendarEventsDB.forEach(e => {
                 let matchOrient = true;
                 if (cls.toUpperCase().includes('THS')) {
-                    if (isNotPHCN) {
-                        matchOrient = true;
-                    } else {
-                        matchOrient = (!e.orientation || e.orientation === 'Cả hai' || e.orientation === 'Học chung (NC & UD)' || e.orientation === 'Học chung / Không phân định hướng' || e.orientation === orientName || e.orientation.trim() === '');
-                    }
+                    matchOrient = (!e.orientation || e.orientation === 'Cả hai' || e.orientation.includes('Học chung') || e.orientation === orientName || e.orientation.trim() === '');
                 }
 
                 if (e.class === cls && matchOrient && e.subject === subName && e.gv && e.gv.includes(gv) && e.task === task) {
@@ -716,7 +706,7 @@
             }
         }
 
-        // HÀM KIỂM TRA PHÂN CÔNG CHỜ DUYỆT ĐÃ KHẮC PHỤC TRÙNG LẶP
+        // HÀM KIỂM TRA PHÂN CÔNG CHỜ DUYỆT ĐÃ KHẮC PHỤC TRÙNG LẶP & ĐỌC KEY CHUẨN
         window.checkPendingProposals = () => {
             if (!isHOD) return; 
             
@@ -734,7 +724,11 @@
                         
                         if (cls.toUpperCase().includes('THS')) {
                             if (parts.length === 1) {
-                                orient = 'ALL';
+                                orient = 'ALL'; // Fallback dữ liệu cũ
+                                majorKey = 'ALL';
+                            } else if (parts.length === 2 && !['NC', 'UD'].includes(parts[1])) {
+                                orient = 'ALL'; // Legacy key kiểu cũ ko có định hướng
+                                majorKey = parts[1];
                             } else {
                                 orient = parts[1] || 'ALL';
                                 majorKey = parts.length > 2 ? parts.slice(2).join('_') : 'ALL';
@@ -776,14 +770,14 @@
                     let mDisplay = item.major === 'ALL' ? 'Chung' : item.major;
                     let oDisplay = '';
                     if (item.cls.toUpperCase().includes('THS')) {
-                        if (item.orients.has('ALL')) {
-                            oDisplay = ' | Chung';
-                        } else if (item.orients.has('NC') && item.orients.has('UD')) {
+                        if (item.orients.has('NC') && item.orients.has('UD')) {
                             oDisplay = ' - NC & UD';
                         } else if (item.orients.has('NC')) {
                             oDisplay = ' - Nghiên cứu';
                         } else if (item.orients.has('UD')) {
                             oDisplay = ' - Ứng dụng';
+                        } else {
+                            oDisplay = ' | Chung';
                         }
                     }
                     
@@ -791,7 +785,7 @@
                     if (item.orients.has('NC')) targetOrient = 'NC';
                     else if (item.orients.has('UD')) targetOrient = 'UD';
 
-                    listHtml += `<button class="pending-chip" onclick="goToProposal('${item.cls}', '${targetOrient}', '${item.major}', '${item.subId}')">
+                    listHtml += `<button class="pending-chip" onclick="goToProposal('${item.cls}', '${targetOrient}', '${item.subId}')">
                         <i class="fas fa-hand-point-right" style="color: #f59e0b; font-size: 1.1rem;"></i> 
                         <span>[${item.cls}${oDisplay} | ${mDisplay}] <b>${item.name}</b></span>
                     </button>`;
@@ -803,7 +797,8 @@
             }
         };
 
-        window.goToProposal = (cls, orient, major, subId) => {
+        // ĐIỀU HƯỚNG NHANH KHÔNG CẦN ÉP BUỘC CHUYÊN NGÀNH
+        window.goToProposal = (cls, orient, subId) => {
             const classSel = document.getElementById('filterClass');
             classSel.value = cls;
             window.handleClassChange();
@@ -1117,6 +1112,11 @@
             const cls = window.getCurrentClass();
             const orient = window.getCurrentOrient();
 
+            if (cls.toUpperCase().includes('THS') && orient === 'ALL') {
+                showToast("Vui lòng Chọn cụ thể ĐỊNH HƯỚNG trên thanh công cụ trước khi phân công!", "danger");
+                return;
+            }
+
             currentEditingSubId = id;
             const sub = subjectsData.find(s => s.id === id);
             
@@ -1370,11 +1370,8 @@
                 if (sumTH > currentSub.practiceSessions) { showToast(`Số buổi Thực hành (${sumTH}) vượt quá tối đa (${currentSub.practiceSessions})!`, "danger"); return; }
             }
 
-            // XỬ LÝ LỖI MÔN CHUNG VÀ TỰ ĐỘNG PHÂN CÔNG CHÉO
-            const isNotPHCN = (currentSub.isPHCN === false) || (currentSub.department && currentSub.department !== 'Bộ môn Phục hồi chức năng' && currentSub.department !== 'Bộ môn PHCN');
-
             let syncSibling = false;
-            if (!isNotPHCN && cls.toUpperCase().includes('THS') && orient !== 'ALL' && currentSub.orientations && currentSub.orientations.includes('NC') && currentSub.orientations.includes('UD')) {
+            if (cls.toUpperCase().includes('THS') && orient !== 'ALL' && currentSub.orientations && currentSub.orientations.includes('NC') && currentSub.orientations.includes('UD')) {
                 syncSibling = true;
             }
 
@@ -1395,12 +1392,13 @@
                     updates[siblingKey] = deleteField();
                 }
 
-                // FIX BUG: Xóa rác lỗi cũ nếu tồn tại key ảo của isNotPHCN
-                if (isNotPHCN && cls.toUpperCase().includes('THS')) {
+                // Fix bug data cũ: Dọn các thẻ rác bị sai cấu trúc
+                if (cls.toUpperCase().includes('THS')) {
                     let major = currentSub.majorTag || 'ALL';
                     let shortMajor = major === "Vật lý trị liệu" ? "VLTL" : (major === "Hoạt động trị liệu" ? "HĐTL" : (major === "Ngôn ngữ trị liệu" ? "NNTL" : major));
-                    updates[`${cls}_NC_${shortMajor}`] = deleteField();
-                    updates[`${cls}_UD_${shortMajor}`] = deleteField();
+                    let legacyKey = `${cls}_${shortMajor}`;
+                    if (dbKey !== legacyKey) updates[legacyKey] = deleteField();
+                    if (dbKey !== cls) updates[cls] = deleteField();
                 }
 
                 try {
@@ -1445,12 +1443,13 @@
                     updates[siblingKey] = updateData; 
                 }
 
-                // FIX BUG: Xóa rác lỗi cũ nếu tồn tại key ảo của isNotPHCN
-                if (isNotPHCN && cls.toUpperCase().includes('THS')) {
+                // Dọn rác
+                if (cls.toUpperCase().includes('THS')) {
                     let major = currentSub.majorTag || 'ALL';
                     let shortMajor = major === "Vật lý trị liệu" ? "VLTL" : (major === "Hoạt động trị liệu" ? "HĐTL" : (major === "Ngôn ngữ trị liệu" ? "NNTL" : major));
-                    updates[`${cls}_NC_${shortMajor}`] = deleteField();
-                    updates[`${cls}_UD_${shortMajor}`] = deleteField();
+                    let legacyKey = `${cls}_${shortMajor}`;
+                    if (dbKey !== legacyKey) updates[legacyKey] = deleteField();
+                    if (dbKey !== cls) updates[cls] = deleteField();
                 }
             }
 
@@ -1588,10 +1587,8 @@
 
             if (hasError) { showToast("Vui lòng nhập đầy đủ Tên Học viên và Giảng viên!", "danger"); return; }
 
-            const isNotPHCN = (currentSub.isPHCN === false) || (currentSub.department && currentSub.department !== 'Bộ môn Phục hồi chức năng' && currentSub.department !== 'Bộ môn PHCN');
-
             let syncSibling = false;
-            if (!isNotPHCN && cls.toUpperCase().includes('THS') && orient !== 'ALL' && currentSub.orientations && currentSub.orientations.includes('NC') && currentSub.orientations.includes('UD')) {
+            if (cls.toUpperCase().includes('THS') && orient !== 'ALL' && currentSub.orientations && currentSub.orientations.includes('NC') && currentSub.orientations.includes('UD')) {
                 syncSibling = true;
             }
 
@@ -1613,11 +1610,12 @@
                     updates[siblingKey] = deleteField();
                 }
 
-                if (isNotPHCN && cls.toUpperCase().includes('THS')) {
+                if (cls.toUpperCase().includes('THS')) {
                     let major = currentSub.majorTag || 'ALL';
                     let shortMajor = major === "Vật lý trị liệu" ? "VLTL" : (major === "Hoạt động trị liệu" ? "HĐTL" : (major === "Ngôn ngữ trị liệu" ? "NNTL" : major));
-                    updates[`${cls}_NC_${shortMajor}`] = deleteField();
-                    updates[`${cls}_UD_${shortMajor}`] = deleteField();
+                    let legacyKey = `${cls}_${shortMajor}`;
+                    if (dbKey !== legacyKey) updates[legacyKey] = deleteField();
+                    if (dbKey !== cls) updates[cls] = deleteField();
                 }
 
                 try {
@@ -1662,11 +1660,12 @@
                     updates[siblingKey] = updateData; 
                 }
 
-                if (isNotPHCN && cls.toUpperCase().includes('THS')) {
+                if (cls.toUpperCase().includes('THS')) {
                     let major = currentSub.majorTag || 'ALL';
                     let shortMajor = major === "Vật lý trị liệu" ? "VLTL" : (major === "Hoạt động trị liệu" ? "HĐTL" : (major === "Ngôn ngữ trị liệu" ? "NNTL" : major));
-                    updates[`${cls}_NC_${shortMajor}`] = deleteField();
-                    updates[`${cls}_UD_${shortMajor}`] = deleteField();
+                    let legacyKey = `${cls}_${shortMajor}`;
+                    if (dbKey !== legacyKey) updates[legacyKey] = deleteField();
+                    if (dbKey !== cls) updates[cls] = deleteField();
                 }
             }
 
