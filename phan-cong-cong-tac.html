@@ -167,7 +167,7 @@
             <div class="subtitle">CHƯƠNG TRÌNH THẠC SĨ KỸ THUẬT PHỤC HỒI CHỨC NĂNG</div>
         </div>
 
-        <!-- KHUNG THÔNG BÁO CHỜ DUYỆT ĐƯỢC TỐI GIẢN -->
+        <!-- KHUNG THÔNG BÁO CHỜ DUYỆT (CHỈ HIỆN VỚI HOD KHI CÓ ĐỀ XUẤT) -->
         <div id="pendingProposalsAlert" class="hidden">
             <h4 style="margin: 0 0 10px 0; color: #b45309; font-size: 1.1rem;"><i class="fas fa-bell"></i> Đề xuất chờ duyệt (<span id="pendingCount">0</span>)</h4>
             <div id="pendingList" style="display: flex; flex-wrap: wrap; gap: 10px;">
@@ -416,21 +416,44 @@
         window.getCurrentClass = () => document.getElementById('filterClass').value;
         window.getCurrentOrient = () => document.getElementById('filterOrient').value;
         
-        // HÀM TẠO KEY CHUẨN XÁC LUÔN CÓ ĐỊNH HƯỚNG
+        // HÀM TẠO KEY CHUẨN (Ép buộc gắn thêm NC/UD đối với Thạc sĩ)
         window.getDbKey = (sub) => {
             const c = window.getCurrentClass();
             const o = window.getCurrentOrient();
 
             let key = c;
+            
+            // LUÔN LUÔN GẮN ĐỊNH HƯỚNG VỚI LỚP THẠC SĨ (kể cả môn chung hay môn của bộ môn khác)
             if (c.toUpperCase().includes('THS')) {
-                key += `_${o || 'NC'}`; // Luôn gắn NC hoặc UD
+                key += `_${o || 'NC'}`; 
             }
+
+            const isNotPHCN = (sub.isPHCN === false) || (sub.department && sub.department !== 'Bộ môn Phục hồi chức năng' && sub.department !== 'Bộ môn PHCN');
+
+            if (isNotPHCN) return key;
 
             let major = sub.majorTag || 'ALL';
             let shortMajor = major;
             if (major === "Vật lý trị liệu") shortMajor = "VLTL";
             else if (major === "Hoạt động trị liệu") shortMajor = "HĐTL";
             else if (major === "Ngôn ngữ trị liệu") shortMajor = "NNTL";
+
+            return `${key}_${shortMajor}`;
+        };
+
+        // Hàm hỗ trợ tạo dbKey cho hệ chéo (khi nhân bản NC/UD)
+        const getSiblingDbKey = (sub, cls, orient) => {
+            let siblingOrient = orient === 'NC' ? 'UD' : 'NC';
+            let key = cls;
+            if (cls.toUpperCase().includes('THS')) {
+                key += `_${siblingOrient}`;
+            }
+
+            const isNotPHCN = (sub.isPHCN === false) || (sub.department && sub.department !== 'Bộ môn Phục hồi chức năng' && sub.department !== 'Bộ môn PHCN');
+            if (isNotPHCN) return key;
+
+            let major = sub.majorTag || 'ALL';
+            let shortMajor = major === "Vật lý trị liệu" ? "VLTL" : (major === "Hoạt động trị liệu" ? "HĐTL" : (major === "Ngôn ngữ trị liệu" ? "NNTL" : major));
 
             return `${key}_${shortMajor}`;
         };
@@ -706,7 +729,7 @@
             }
         }
 
-        // HÀM KIỂM TRA PHÂN CÔNG CHỜ DUYỆT ĐÃ KHẮC PHỤC TRÙNG LẶP & TỐI GIẢN
+        // HÀM KIỂM TRA PHÂN CÔNG CHỜ DUYỆT - ĐÃ SỬA LỖI
         window.checkPendingProposals = () => {
             if (!isHOD) return; 
             
@@ -714,18 +737,22 @@
 
             for (let subId in assignmentsDB) {
                 let asgDoc = assignmentsDB[subId];
+                const sub = subjectsData.find(s => s.id === subId);
+                
                 for (let dbKey in asgDoc) {
                     if (asgDoc[dbKey].status === 'proposed') {
                         let asg = asgDoc[dbKey];
                         
-                        // Rút gọn lấy tên lớp và định hướng
                         let cls = asg.class || dbKey.split('_')[0];
-                        let name = asg.name || 'Môn học';
+                        let name = asg.name || (sub ? sub.name : 'Môn học');
                         
                         let orient = 'ALL';
-                        if (dbKey.includes('_NC')) orient = 'NC';
-                        if (dbKey.includes('_UD')) orient = 'UD';
+                        if (cls.toUpperCase().includes('THS')) {
+                            if (dbKey.includes('_NC')) orient = 'NC';
+                            else if (dbKey.includes('_UD')) orient = 'UD';
+                        }
 
+                        // Chống lặp nếu 1 môn bị nhân đôi ra 2 dòng cho 2 hệ
                         if (!pendingItems.find(item => item.subId === subId && item.cls === cls && item.orient === orient)) {
                             pendingItems.push({ subId, name, cls, orient });
                         }
@@ -740,13 +767,17 @@
                 
                 pendingItems.forEach(item => {
                     let badgeText = `[${item.cls}]`;
-                    if (item.cls.toUpperCase().includes('THS') && item.orient !== 'ALL') {
-                        badgeText = `[${item.cls} - ${item.orient === 'NC' ? 'Nghiên cứu' : 'Ứng dụng'}]`;
+                    if (item.cls.toUpperCase().includes('THS')) {
+                        if (item.orient === 'ALL') {
+                            badgeText = `[${item.cls} - Dữ liệu cũ]`;
+                        } else {
+                            badgeText = `[${item.cls} - ${item.orient === 'NC' ? 'Nghiên cứu' : 'Ứng dụng'}]`;
+                        }
                     }
 
                     listHtml += `<button class="pending-chip" onclick="goToProposal('${item.cls}', '${item.orient}', '${item.subId}')">
                         <i class="fas fa-hand-point-right" style="color: #f59e0b; font-size: 1.1rem;"></i> 
-                        <span>${badgeText} <b>${item.name}</b></span>
+                        <span>${badgeText} <b style="color: var(--primary);">${item.name}</b></span>
                     </button>`;
                 });
                 
@@ -757,15 +788,17 @@
             }
         };
 
-        // ĐIỀU HƯỚNG NHANH KHÔNG CẦN CHUYÊN NGÀNH
+        // ĐIỀU HƯỚNG NHANH 
         window.goToProposal = (cls, orient, subId) => {
             const classSel = document.getElementById('filterClass');
             classSel.value = cls;
             window.handleClassChange();
             
-            if (cls.toUpperCase().includes('THS') && orient !== 'ALL') {
+            if (cls.toUpperCase().includes('THS')) {
+                // Nếu dữ liệu cũ không có định hướng, ép mặc định về NC để tránh lỗi
+                const targetOrient = orient === 'ALL' ? 'NC' : orient; 
                 const orientSel = document.getElementById('filterOrient');
-                orientSel.value = orient;
+                orientSel.value = targetOrient;
                 window.handleOrientChange();
             }
             
@@ -1345,20 +1378,18 @@
                 updates[dbKey] = deleteField();
                 
                 if (syncSibling) {
-                    let siblingOrient = orient === 'NC' ? 'UD' : 'NC';
-                    let major = currentSub.majorTag || 'ALL';
-                    let shortMajor = major === "Vật lý trị liệu" ? "VLTL" : (major === "Hoạt động trị liệu" ? "HĐTL" : (major === "Ngôn ngữ trị liệu" ? "NNTL" : major));
-                    let siblingKey = `${cls}_${siblingOrient}_${shortMajor}`;
+                    let siblingKey = getSiblingDbKey(currentSub, cls, orient);
                     updates[siblingKey] = deleteField();
                 }
 
-                // DỌN DẸP THẺ RÁC "Chung" LỖI TỪ BẢN CŨ
+                // DỌN DẸP DỮ LIỆU CŨ LỖI
                 if (cls.toUpperCase().includes('THS')) {
+                    updates[cls] = deleteField(); 
+                    
                     let major = currentSub.majorTag || 'ALL';
                     let shortMajor = major === "Vật lý trị liệu" ? "VLTL" : (major === "Hoạt động trị liệu" ? "HĐTL" : (major === "Ngôn ngữ trị liệu" ? "NNTL" : major));
                     let legacyKey = `${cls}_${shortMajor}`;
                     if (dbKey !== legacyKey) updates[legacyKey] = deleteField();
-                    if (dbKey !== cls) updates[cls] = deleteField();
                 }
 
                 try {
@@ -1368,7 +1399,7 @@
                         if(e.id) delPromises.push(deleteDoc(doc(db, "calendar_events", e.id)));
                     });
                     if (delPromises.length > 0) await Promise.all(delPromises);
-                } catch(err) { console.log("Lỗi dọn rác lịch: ", err); }
+                } catch(err) {}
 
             } else {
                 let updateData = { 
@@ -1395,21 +1426,17 @@
                 updates[dbKey] = updateData;
 
                 if (syncSibling) {
-                    let siblingOrient = orient === 'NC' ? 'UD' : 'NC';
-                    let major = currentSub.majorTag || 'ALL';
-                    let shortMajor = major === "Vật lý trị liệu" ? "VLTL" : (major === "Hoạt động trị liệu" ? "HĐTL" : (major === "Ngôn ngữ trị liệu" ? "NNTL" : major));
-                    
-                    let siblingKey = `${cls}_${siblingOrient}_${shortMajor}`;
+                    let siblingKey = getSiblingDbKey(currentSub, cls, orient);
                     updates[siblingKey] = updateData; 
                 }
 
-                // DỌN DẸP THẺ RÁC "Chung" LỖI TỪ BẢN CŨ NẾU LƯU THÀNH CÔNG
+                // DỌN DẸP DỮ LIỆU CŨ LỖI
                 if (cls.toUpperCase().includes('THS')) {
+                    updates[cls] = deleteField(); 
                     let major = currentSub.majorTag || 'ALL';
                     let shortMajor = major === "Vật lý trị liệu" ? "VLTL" : (major === "Hoạt động trị liệu" ? "HĐTL" : (major === "Ngôn ngữ trị liệu" ? "NNTL" : major));
                     let legacyKey = `${cls}_${shortMajor}`;
                     if (dbKey !== legacyKey) updates[legacyKey] = deleteField();
-                    if (dbKey !== cls) updates[cls] = deleteField();
                 }
             }
 
@@ -1563,19 +1590,16 @@
                 updates[dbKey] = deleteField();
                 
                 if (syncSibling) {
-                    let siblingOrient = orient === 'NC' ? 'UD' : 'NC';
-                    let major = currentSub.majorTag || 'ALL';
-                    let shortMajor = major === "Vật lý trị liệu" ? "VLTL" : (major === "Hoạt động trị liệu" ? "HĐTL" : (major === "Ngôn ngữ trị liệu" ? "NNTL" : major));
-                    let siblingKey = `${cls}_${siblingOrient}_${shortMajor}`;
+                    let siblingKey = getSiblingDbKey(currentSub, cls, orient);
                     updates[siblingKey] = deleteField();
                 }
 
                 if (cls.toUpperCase().includes('THS')) {
+                    updates[cls] = deleteField();
                     let major = currentSub.majorTag || 'ALL';
                     let shortMajor = major === "Vật lý trị liệu" ? "VLTL" : (major === "Hoạt động trị liệu" ? "HĐTL" : (major === "Ngôn ngữ trị liệu" ? "NNTL" : major));
                     let legacyKey = `${cls}_${shortMajor}`;
                     if (dbKey !== legacyKey) updates[legacyKey] = deleteField();
-                    if (dbKey !== cls) updates[cls] = deleteField();
                 }
 
                 try {
@@ -1585,7 +1609,7 @@
                         if(e.id) delPromises.push(deleteDoc(doc(db, "calendar_events", e.id)));
                     });
                     if (delPromises.length > 0) await Promise.all(delPromises);
-                } catch(err) { console.log("Lỗi dọn rác lịch: ", err); }
+                } catch(err) {}
 
             } else {
                 let updateData = { 
@@ -1612,20 +1636,16 @@
                 updates[dbKey] = updateData;
 
                 if (syncSibling) {
-                    let siblingOrient = orient === 'NC' ? 'UD' : 'NC';
-                    let major = currentSub.majorTag || 'ALL';
-                    let shortMajor = major === "Vật lý trị liệu" ? "VLTL" : (major === "Hoạt động trị liệu" ? "HĐTL" : (major === "Ngôn ngữ trị liệu" ? "NNTL" : major));
-                    
-                    let siblingKey = `${cls}_${siblingOrient}_${shortMajor}`;
+                    let siblingKey = getSiblingDbKey(currentSub, cls, orient);
                     updates[siblingKey] = updateData; 
                 }
 
                 if (cls.toUpperCase().includes('THS')) {
+                    updates[cls] = deleteField();
                     let major = currentSub.majorTag || 'ALL';
                     let shortMajor = major === "Vật lý trị liệu" ? "VLTL" : (major === "Hoạt động trị liệu" ? "HĐTL" : (major === "Ngôn ngữ trị liệu" ? "NNTL" : major));
                     let legacyKey = `${cls}_${shortMajor}`;
                     if (dbKey !== legacyKey) updates[legacyKey] = deleteField();
-                    if (dbKey !== cls) updates[cls] = deleteField();
                 }
             }
 
