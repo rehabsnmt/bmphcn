@@ -54,7 +54,9 @@
         .event-card.compact { background: white; border: 1px solid #cbd5e1; border-left: 4px solid var(--primary); border-radius: 4px; padding: 6px; margin-bottom: 5px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: 0.2s; text-align: center; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;}
         .event-card.compact:hover { transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.1); filter: brightness(0.96);}
         
-        .evt-class { display: inline-block; background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 0.75rem; margin: 0; line-height: 1;}
+        /* CSS động cho màu lớp được xử lý bằng JS (inline style) */
+        .evt-class { display: inline-block; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 0.75rem; margin: 0; line-height: 1;}
+        .evt-major { font-size: 0.7rem; font-weight: bold; color: #475569; margin: 1px 0; }
         .evt-time { font-weight: 800; color: var(--text-dark); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; margin: 0;}
 
         /* Phân biệt màu theo Định hướng */
@@ -68,7 +70,7 @@
         .modal-header { padding: 15px 20px; background: var(--primary); color: white; display: flex; justify-content: space-between; align-items: center; }
         .modal-header h3 { margin: 0; font-size: 1.1rem; }
         .modal-body { padding: 20px; line-height: 1.8; color: var(--text-dark); font-size: 0.95rem; text-align: left; }
-        .modal-body strong { color: #475569; }
+        .modal-body strong { color: #475569; display: inline-block; width: 110px; }
 
         /* Toast */
         .toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;}
@@ -162,6 +164,29 @@
         let gvThinhGiangList = [];
         let currentTab = 'cohuu'; 
         let currentMonday = new Date();
+
+        // Danh sách màu tự động cho Lớp học
+        const classColors = [
+            { bg: '#e0f2fe', text: '#0369a1' }, // sky
+            { bg: '#dcfce7', text: '#15803d' }, // green
+            { bg: '#f3e8ff', text: '#6b21a8' }, // purple
+            { bg: '#ffedd5', text: '#c2410c' }, // orange
+            { bg: '#fce7f3', text: '#be185d' }, // pink
+            { bg: '#ccfbf1', text: '#0f766e' }, // teal
+            { bg: '#fef08a', text: '#b45309' }, // yellow
+            { bg: '#e0e7ff', text: '#334155' }  // slate
+        ];
+
+        // Hàm tạo màu nhất quán dựa trên tên lớp
+        function getClassColor(className) {
+            if (!className) return { bg: '#f1f5f9', text: '#475569' };
+            let hash = 0;
+            for (let i = 0; i < className.length; i++) {
+                hash = className.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            let index = Math.abs(hash) % classColors.length;
+            return classColors[index];
+        }
 
         // Cấu hình thứ tự sắp xếp cứng cho GV Cơ hữu
         const COHUU_ORDER = [
@@ -438,9 +463,15 @@
                             if(orientCode === 'NGHIÊN CỨU' || orientCode === 'NC') borderClass = 'border-nc';
                             else if(orientCode === 'ỨNG DỤNG' || orientCode === 'UD') borderClass = 'border-ud';
 
+                            // Lấy màu tự động cho Khóa/Lớp
+                            let classColor = getClassColor(ev.class);
+                            let majorText = (ev.major || ev.chuyenNganh || '');
+                            let majorHtml = majorText ? `<div class="evt-major">${majorText}</div>` : '';
+
                             cellContent += `
                                 <div class="event-card compact ${borderClass}" onclick="showEventDetail('${ev.id}')">
-                                    <div class="evt-class">${ev.class || 'Chưa XĐ'}</div>
+                                    <div class="evt-class" style="background-color:${classColor.bg}; color:${classColor.text};">${ev.class || 'Chưa XĐ'}</div>
+                                    ${majorHtml}
                                     <div class="evt-time">${timeDisplay}</div>
                                 </div>
                             `;
@@ -472,13 +503,17 @@
             let dateStr = new Date(ev.start).toLocaleDateString('vi-VN', {weekday: 'long', day:'2-digit', month:'2-digit', year:'numeric'});
             let timeDisplay = eTime ? `${sTime} - ${eTime}` : `${sTime}`;
 
-            let classBadge = `<span class="evt-class" style="font-size: 0.9rem;">${ev.class || 'Chưa rõ'}</span>`;
+            let classColor = getClassColor(ev.class);
+            let classBadge = `<span class="evt-class" style="font-size: 0.9rem; background-color:${classColor.bg}; color:${classColor.text}; padding: 3px 8px;">${ev.class || 'Chưa rõ'}</span>`;
+            
+            let majorText = (ev.major || ev.chuyenNganh || '');
 
             let html = `
                 <div style="font-size: 1.2rem; color: var(--primary); font-weight: bold; margin-bottom: 15px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 10px;">${ev.subject || 'Chưa có tên môn'}</div>
                 
                 <div style="margin-bottom: 10px;"><strong>Khóa/Lớp:</strong> ${classBadge}</div>
-                <div style="margin-bottom: 10px;"><strong>Thời gian:</strong> <span style="color:#b45309; font-weight:bold;">${timeDisplay}</span><br><span style="font-size: 0.85rem; color:#64748b;">(${dateStr})</span></div>
+                ${majorText ? `<div style="margin-bottom: 10px;"><strong>Chuyên ngành:</strong> ${majorText}</div>` : ''}
+                <div style="margin-bottom: 10px;"><strong>Thời gian:</strong> <span style="color:#b45309; font-weight:bold;">${timeDisplay}</span> <span style="font-size: 0.85rem; color:#64748b;">(${dateStr})</span></div>
                 <div style="margin-bottom: 10px;"><strong>Phòng học:</strong> ${ev.room || 'Chưa xếp'}</div>
                 <div style="margin-bottom: 10px;"><strong>Giảng viên:</strong> <span style="font-weight:bold;">${ev.gv || 'Chưa xếp'}</span></div>
                 <div style="margin-bottom: 10px;"><strong>Nhiệm vụ:</strong> ${ev.task || 'Giảng dạy'}</div>
