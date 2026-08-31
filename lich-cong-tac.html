@@ -55,7 +55,7 @@
         .event-card.compact:hover { transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.1); filter: brightness(0.96);}
         
         .evt-class { display: inline-block; background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 0.75rem; margin: 0; line-height: 1;}
-        .evt-time { font-weight: 800; color: var(--text-dark); display: flex; align-items: center; gap: 4px; font-size: 0.75rem; margin: 0;}
+        .evt-time { font-weight: 800; color: var(--text-dark); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; margin: 0;}
 
         /* Phân biệt màu theo Định hướng */
         .border-nc { border-left-color: #b45309 !important; } /* Nghiên cứu */
@@ -134,7 +134,7 @@
     <div id="eventDetailModal" class="modal-overlay hidden">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 style="margin:0; font-size:1.1rem;"><i class="fas fa-info-circle"></i> Chi tiết Lịch trình</h3>
+                <h3 style="margin:0; font-size:1.1rem;">Chi tiết Lịch trình</h3>
                 <span style="cursor:pointer; font-size:1.2rem; font-weight:bold;" onclick="closeEventModal()">✕</span>
             </div>
             <div class="modal-body" id="eventModalBody">
@@ -163,7 +163,7 @@
         let currentTab = 'cohuu'; 
         let currentMonday = new Date();
 
-        // 1. Cấu hình thứ tự sắp xếp cứng cho GV Cơ hữu
+        // Cấu hình thứ tự sắp xếp cứng cho GV Cơ hữu
         const COHUU_ORDER = [
             "lê thanh vân",
             "phan thế nguyên",
@@ -185,7 +185,7 @@
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
-            toast.innerHTML = `<i class="fas fa-info-circle" style="font-size: 1.2rem; color: ${type==='danger'?'#ef4444':'#22c55e'};"></i> <span>${message}</span>`;
+            toast.innerHTML = `<span>${message}</span>`;
             container.appendChild(toast);
             setTimeout(() => toast.classList.add('show'), 10);
             setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
@@ -252,7 +252,7 @@
                                 let gvNames = ev.gv.split(/,|&/).map(s => s.trim()).filter(s => s);
                                 gvNames.forEach(name => {
                                     if (coHuuNormalized.has(normalizeName(name))) {
-                                        activeCoHuu.add(name); // Thêm lại nếu vì lý do nào đó thiếu prefix
+                                        activeCoHuu.add(name);
                                     } else {
                                         activeThinhGiang.add(name);
                                     }
@@ -261,7 +261,7 @@
                         }
                     });
 
-                    // Hàm sắp xếp cho Cơ hữu theo cấu hình thứ tự
+                    // Hàm sắp xếp cho Cơ hữu
                     let sortFnCoHuu = (a, b) => {
                         let normA = normalizeName(a);
                         let normB = normalizeName(b);
@@ -299,7 +299,7 @@
 
             } catch (error) {
                 console.error("Lỗi khởi tạo:", error);
-                document.getElementById('loadingScreen').innerHTML = `<i class="fas fa-exclamation-triangle"></i><br><br>Lỗi tải dữ liệu: ${error.message}`;
+                document.getElementById('loadingScreen').innerHTML = `Lỗi tải dữ liệu: ${error.message}`;
             }
         }
 
@@ -376,7 +376,6 @@
                 return evStart >= currentMonday.getTime() && evStart <= endOfWeek.getTime();
             });
 
-            // Lấy danh sách GV đang cần duyệt (Cơ hữu hoặc Thỉnh giảng)
             let baseGvList = currentTab === 'cohuu' ? gvCoHuuList : gvThinhGiangList;
 
             let matrix = {};
@@ -396,7 +395,7 @@
                 });
             });
 
-            // LỌC THÔNG MINH ĐỐI VỚI GV THỈNH GIẢNG: CHỈ HIỆN KHI CÓ LỊCH
+            // Lọc GV thỉnh giảng chỉ hiện khi có lịch
             let displayGvList = [];
             if (currentTab === 'thinhgiang') {
                 displayGvList = baseGvList.filter(gv => {
@@ -410,7 +409,7 @@
                     return hasEventThisWeek;
                 });
             } else {
-                displayGvList = baseGvList; // Cơ hữu hiện hết
+                displayGvList = baseGvList; 
             }
 
             const tbody = document.getElementById('tableBody');
@@ -418,7 +417,7 @@
 
             displayGvList.forEach(gv => {
                 let rowHtml = `<tr>`;
-                rowHtml += `<td><i class="fas fa-user-circle" style="color:var(--primary); margin-right:5px;"></i> <b style="font-size:0.9rem;">${gv}</b></td>`;
+                rowHtml += `<td><b style="font-size:0.9rem;">${gv}</b></td>`;
 
                 weekDays.forEach(dateObj => {
                     let dStr = formatDateForInput(dateObj);
@@ -442,7 +441,7 @@
                             cellContent += `
                                 <div class="event-card compact ${borderClass}" onclick="showEventDetail('${ev.id}')">
                                     <div class="evt-class">${ev.class || 'Chưa XĐ'}</div>
-                                    <div class="evt-time"><i class="far fa-clock"></i> ${timeDisplay}</div>
+                                    <div class="evt-time">${timeDisplay}</div>
                                 </div>
                             `;
                         });
@@ -478,12 +477,12 @@
             let html = `
                 <div style="font-size: 1.2rem; color: var(--primary); font-weight: bold; margin-bottom: 15px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 10px;">${ev.subject || 'Chưa có tên môn'}</div>
                 
-                <div style="margin-bottom: 10px;"><strong><i class="fas fa-graduation-cap"></i> Khóa/Lớp:</strong> ${classBadge}</div>
-                <div style="margin-bottom: 10px;"><strong><i class="far fa-clock"></i> Thời gian:</strong> <span style="color:#b45309; font-weight:bold;">${timeDisplay}</span><br><span style="font-size: 0.85rem; color:#64748b; margin-left: 20px;">(${dateStr})</span></div>
-                <div style="margin-bottom: 10px;"><strong><i class="fas fa-map-marker-alt"></i> Phòng học:</strong> ${ev.room || 'Chưa xếp'}</div>
-                <div style="margin-bottom: 10px;"><strong><i class="fas fa-user-tie"></i> Giảng viên:</strong> <span style="font-weight:bold;">${ev.gv || 'Chưa xếp'}</span></div>
-                <div style="margin-bottom: 10px;"><strong><i class="fas fa-tasks"></i> Nhiệm vụ:</strong> ${ev.task || 'Giảng dạy'}</div>
-                <div style="margin-bottom: 10px;"><strong><i class="fas fa-compass"></i> Định hướng:</strong> ${ev.orientation || 'Chung'}</div>
+                <div style="margin-bottom: 10px;"><strong>Khóa/Lớp:</strong> ${classBadge}</div>
+                <div style="margin-bottom: 10px;"><strong>Thời gian:</strong> <span style="color:#b45309; font-weight:bold;">${timeDisplay}</span><br><span style="font-size: 0.85rem; color:#64748b;">(${dateStr})</span></div>
+                <div style="margin-bottom: 10px;"><strong>Phòng học:</strong> ${ev.room || 'Chưa xếp'}</div>
+                <div style="margin-bottom: 10px;"><strong>Giảng viên:</strong> <span style="font-weight:bold;">${ev.gv || 'Chưa xếp'}</span></div>
+                <div style="margin-bottom: 10px;"><strong>Nhiệm vụ:</strong> ${ev.task || 'Giảng dạy'}</div>
+                <div style="margin-bottom: 10px;"><strong>Định hướng:</strong> ${ev.orientation || 'Chung'}</div>
             `;
             
             document.getElementById('eventModalBody').innerHTML = html;
