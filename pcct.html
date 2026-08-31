@@ -17,6 +17,11 @@
         .header-title-box .subtitle { font-size: clamp(0.65rem, 2.2vw, 1rem); color: var(--text-body); font-weight: 600; margin-top: 5px; white-space: nowrap; text-overflow: ellipsis; }
 
         .hidden { display: none !important; }
+
+        /* Bảng Thông báo Đề xuất */
+        #pendingProposalsAlert { background: #fffbeb; border: 1px dashed #f59e0b; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .pending-chip { background: white; border: 1px solid #facc15; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: #92400e; font-weight: 600; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; text-align: left;}
+        .pending-chip:hover { background: #fef08a; transform: translateY(-2px); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         
         /* Tabs & Controls */
         .controls-wrapper { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; background: var(--surface); padding: 15px 20px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 20px; gap: 15px; box-shadow: var(--shadow-sm); }
@@ -160,6 +165,14 @@
         <div class="header-title-box">
             <h2>PHÂN CÔNG CÔNG TÁC GIẢNG DẠY</h2>
             <div class="subtitle">CHƯƠNG TRÌNH THẠC SĨ KỸ THUẬT PHỤC HỒI CHỨC NĂNG</div>
+        </div>
+
+        <!-- KHUNG THÔNG BÁO CHỜ DUYỆT ĐƯỢC TỐI GIẢN -->
+        <div id="pendingProposalsAlert" class="hidden">
+            <h4 style="margin: 0 0 10px 0; color: #b45309; font-size: 1.1rem;"><i class="fas fa-bell"></i> Đề xuất chờ duyệt (<span id="pendingCount">0</span>)</h4>
+            <div id="pendingList" style="display: flex; flex-wrap: wrap; gap: 10px;">
+                <!-- Dữ liệu JS đổ vào -->
+            </div>
         </div>
 
         <div class="controls-wrapper">
@@ -306,11 +319,7 @@
                 <div id="asgSemesterContainer">
                     <label style="font-weight: 600; display: block; margin-bottom: 5px;">Học kỳ:</label>
                     <select id="asgSemester" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border); outline: none;">
-                        <option value="">-- Chưa xác định --</option>
-                        <option value="Học kỳ 1">Học kỳ 1</option>
-                        <option value="Học kỳ 2">Học kỳ 2</option>
-                        <option value="Học kỳ 3">Học kỳ 3</option>
-                        <option value="Học kỳ 4">Học kỳ 4</option>
+                        <!-- Đổ bằng JS -->
                     </select>
                 </div>
             </div>
@@ -345,8 +354,7 @@
             <div style="margin-bottom: 20px; max-width: 300px;">
                 <label style="font-weight: 600; display: block; margin-bottom: 5px;">Học kỳ:</label>
                 <select id="tasgSemester" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border); outline: none;">
-                    <option value="Học kỳ 3">Học kỳ 3</option>
-                    <option value="Học kỳ 4" selected>Học kỳ 4</option>
+                    <!-- Đổ bằng JS -->
                 </select>
             </div>
 
@@ -364,14 +372,13 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, collection, onSnapshot, getDocs, deleteField } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, collection, onSnapshot, getDocs, deleteField, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY", authDomain: "bmphcn-aa9c6.firebaseapp.com", projectId: "bmphcn-aa9c6", storageBucket: "bmphcn-aa9c6.firebasestorage.app", messagingSenderId: "749494392719", appId: "1:749494392719:web:f220c751ff541620045dfa" };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // THỨ TỰ NHÓM CỐ ĐỊNH CHUẨN XÁC
         const GROUP_ORDER = [
             "1. Kiến thức chung",
             "2. Kiến thức cơ sở",
@@ -404,26 +411,44 @@
         window.getCurrentClass = () => document.getElementById('filterClass').value;
         window.getCurrentOrient = () => document.getElementById('filterOrient').value;
         
+        // HÀM TẠO KEY CHUẨN XÁC LUÔN CÓ ĐỊNH HƯỚNG
         window.getDbKey = (sub) => {
             const c = window.getCurrentClass();
             const o = window.getCurrentOrient();
 
+            let key = c;
+            
+            // LUÔN LUÔN GẮN ĐỊNH HƯỚNG VỚI LỚP THẠC SĨ (kể cả môn chung hay môn của bộ môn khác)
+            if (c.toUpperCase().includes('THS')) {
+                key += `_${o || 'NC'}`; 
+            }
+
             const isNotPHCN = (sub.isPHCN === false) || (sub.department && sub.department !== 'Bộ môn Phục hồi chức năng' && sub.department !== 'Bộ môn PHCN');
 
-            if (isNotPHCN) {
-                return c;
-            }
-
-            let key = c;
-            if (c.toUpperCase().includes('THS')) {
-                key += `_${o === 'ALL' ? 'NC' : o}`; 
-            }
+            if (isNotPHCN) return key;
 
             let major = sub.majorTag || 'ALL';
             let shortMajor = major;
             if (major === "Vật lý trị liệu") shortMajor = "VLTL";
             else if (major === "Hoạt động trị liệu") shortMajor = "HĐTL";
             else if (major === "Ngôn ngữ trị liệu") shortMajor = "NNTL";
+
+            return `${key}_${shortMajor}`;
+        };
+
+        // Hàm hỗ trợ tạo dbKey cho hệ chéo (khi nhân bản NC/UD)
+        const getSiblingDbKey = (sub, cls, orient) => {
+            let siblingOrient = orient === 'NC' ? 'UD' : 'NC';
+            let key = cls;
+            if (cls.toUpperCase().includes('THS')) {
+                key += `_${siblingOrient}`;
+            }
+
+            const isNotPHCN = (sub.isPHCN === false) || (sub.department && sub.department !== 'Bộ môn Phục hồi chức năng' && sub.department !== 'Bộ môn PHCN');
+            if (isNotPHCN) return key;
+
+            let major = sub.majorTag || 'ALL';
+            let shortMajor = major === "Vật lý trị liệu" ? "VLTL" : (major === "Hoạt động trị liệu" ? "HĐTL" : (major === "Ngôn ngữ trị liệu" ? "NNTL" : major));
 
             return `${key}_${shortMajor}`;
         };
@@ -627,30 +652,21 @@
             }
         }
 
-        // TÍNH TIẾN ĐỘ VỚI ĐIỀU KIỆN ĐÃ QUA NGÀY HÔM SAU
         window.getCompletedSessions = (cls, orient, subName, gv, task) => {
             const today = new Date();
-            today.setHours(0, 0, 0, 0); // Đặt mốc 00:00 ngày hôm nay
+            today.setHours(0, 0, 0, 0);
             
             let count = 0;
             let orientName = orient === 'NC' ? 'Nghiên cứu' : 'Ứng dụng';
             
-            const sub = subjectsData.find(s => s.name === subName);
-            const isNotPHCN = sub && ((sub.isPHCN === false) || (sub.department && sub.department !== 'Bộ môn Phục hồi chức năng' && sub.department !== 'Bộ môn PHCN'));
-
             calendarEventsDB.forEach(e => {
                 let matchOrient = true;
                 if (cls.toUpperCase().includes('THS')) {
-                    if (isNotPHCN) {
-                        matchOrient = true;
-                    } else {
-                        matchOrient = (!e.orientation || e.orientation === 'Cả hai' || e.orientation === 'Học chung (NC & UD)' || e.orientation === 'Học chung / Không phân định hướng' || e.orientation === orientName || e.orientation.trim() === '');
-                    }
+                    matchOrient = (!e.orientation || e.orientation === 'Cả hai' || e.orientation.includes('Học chung') || e.orientation === orientName || e.orientation.trim() === '');
                 }
 
                 if (e.class === cls && matchOrient && e.subject === subName && e.gv && e.gv.includes(gv) && e.task === task) {
                     let eventEnd = e.end ? new Date(e.end) : new Date(new Date(e.start).getTime() + 4 * 3600000);
-                    // Chỉ tính là hoàn thành khi lịch đã trôi qua ngày hôm sau (eventEnd < today)
                     if (eventEnd < today) { count++; }
                 }
             });
@@ -708,14 +724,110 @@
             }
         }
 
+        // HÀM KIỂM TRA PHÂN CÔNG CHỜ DUYỆT ĐÃ KHẮC PHỤC TRÙNG LẶP VÀ TÁCH MÔN KHÁC TÍN CHỈ
+        window.checkPendingProposals = () => {
+            if (!isHOD) return; 
+            
+            let pendingMap = new Map(); 
+
+            for (let subId in assignmentsDB) {
+                let asgDoc = assignmentsDB[subId];
+                const sub = subjectsData.find(s => s.id === subId);
+                
+                for (let dbKey in asgDoc) {
+                    if (asgDoc[dbKey].status === 'proposed') {
+                        let asg = asgDoc[dbKey];
+                        
+                        // Rút gọn lấy tên lớp, tên môn và số tín chỉ
+                        let cls = asg.class || dbKey.split('_')[0];
+                        let name = asg.name || (sub ? sub.name : 'Môn học');
+                        let credits = asg.credits || (sub ? sub.credits : 0);
+                        
+                        let orient = 'ALL';
+                        if (cls.toUpperCase().includes('THS')) {
+                            if (dbKey.includes('_NC')) orient = 'NC';
+                            else if (dbKey.includes('_UD')) orient = 'UD';
+                        }
+
+                        // Tính năng thông minh: Gộp chung 1 thẻ nếu cùng lớp, cùng môn VÀ CÙNG SỐ TÍN CHỈ
+                        let mapKey = `${cls}_${name}_${credits}`;
+
+                        if (!pendingMap.has(mapKey)) {
+                            pendingMap.set(mapKey, { subId, name, cls, credits, orients: new Set([orient]) });
+                        } else {
+                            pendingMap.get(mapKey).orients.add(orient);
+                        }
+                    }
+                }
+            }
+
+            const alertBox = document.getElementById('pendingProposalsAlert');
+            let pendingItems = Array.from(pendingMap.values());
+            
+            if (pendingItems.length > 0) {
+                document.getElementById('pendingCount').innerText = pendingItems.length;
+                let listHtml = '';
+                
+                pendingItems.forEach(item => {
+                    let badgeText = `[${item.cls}]`;
+                    if (item.cls.toUpperCase().includes('THS')) {
+                        if (item.orients.has('NC') && item.orients.has('UD')) {
+                            badgeText = `[${item.cls} - Học chung NC & UD]`;
+                        } else if (item.orients.has('NC')) {
+                            badgeText = `[${item.cls} - Nghiên cứu]`;
+                        } else if (item.orients.has('UD')) {
+                            badgeText = `[${item.cls} - Ứng dụng]`;
+                        } else {
+                            badgeText = `[${item.cls} - Dữ liệu cũ]`;
+                        }
+                    }
+
+                    let targetOrient = 'ALL';
+                    if (item.orients.has('NC') && !item.orients.has('UD')) targetOrient = 'NC';
+                    if (item.orients.has('UD') && !item.orients.has('NC')) targetOrient = 'UD';
+
+                    // Hiển thị thêm số TC để phân biệt rõ ràng các môn trùng tên
+                    listHtml += `<button class="pending-chip" onclick="goToProposal('${item.cls}', '${targetOrient}', '${item.subId}')">
+                        <i class="fas fa-hand-point-right" style="color: #f59e0b; font-size: 1.1rem;"></i> 
+                        <span>${badgeText} <b style="color: var(--primary);">${item.name}</b> <span style="font-size: 0.8rem; color: #64748b;">(${item.credits} TC)</span></span>
+                    </button>`;
+                });
+                
+                document.getElementById('pendingList').innerHTML = listHtml;
+                alertBox.classList.remove('hidden');
+            } else {
+                alertBox.classList.add('hidden');
+            }
+        };
+
+        // ĐIỀU HƯỚNG NHANH 
+        window.goToProposal = (cls, orient, subId) => {
+            const classSel = document.getElementById('filterClass');
+            classSel.value = cls;
+            window.handleClassChange();
+            
+            if (cls.toUpperCase().includes('THS')) {
+                // Nếu dữ liệu cũ không có định hướng, ép mặc định về NC để tránh lỗi
+                const targetOrient = orient === 'ALL' ? 'NC' : orient; 
+                const orientSel = document.getElementById('filterOrient');
+                orientSel.value = targetOrient;
+                window.handleOrientChange();
+            }
+            
+            window.renderTable();
+            
+            setTimeout(() => {
+                window.openAssignModal(subId);
+            }, 100);
+        };
+
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 try {
                     const userDoc = await getDoc(doc(db, "users", user.uid));
                     if (userDoc.exists()) {
                         const data = userDoc.data();
-                        let prefix = data.degree === 'ThS' ? 'ThS. ' : (data.degree === 'TS' ? 'TS. ' : '');
-                        let currentUserName = `${prefix}${data.fullName}`;
+                        let currentUserName = data.fullName; // Header không kèm học vị
                         setTimeout(() => {
                             const btnAuthNav = document.getElementById('btnAuthNav');
                             if (btnAuthNav) {
@@ -728,7 +840,7 @@
 
                 const email = user.email.toLowerCase();
                 const adminEmails = ['lethanhvan@ump.edu.vn', 'hoangtran1483@gmail.com', 'nguyenngocminhpt@ump.edu.vn'];
-                const managerEmails = ['phanthenguyenpt@ump.edu.vn', 'thduypt@ump.edu.vn'];
+                const managerEmails = ['phanthenguyenpt@ump.edu.vn', 'thduypt@ump.edu.vn', 'minhngpt@ump.edu.vn'];
                 
                 if (adminEmails.includes(email)) isHOD = true;
                 if (managerEmails.includes(email) || adminEmails.includes(email)) isManager = true;
@@ -752,11 +864,16 @@
                     assignmentsDB = {};
                     snapshot.forEach(doc => { assignmentsDB[doc.id] = doc.data(); });
                     window.renderTable(); 
+                    window.checkPendingProposals(); 
                 });
 
                 onSnapshot(collection(db, "calendar_events"), (snapshot) => {
                     calendarEventsDB = [];
-                    snapshot.forEach(doc => { calendarEventsDB.push(doc.data()); });
+                    snapshot.forEach(doc => { 
+                        let data = doc.data();
+                        data.id = doc.id; 
+                        calendarEventsDB.push(data); 
+                    });
                     window.renderTable();
                 });
 
@@ -832,7 +949,7 @@
                     semData[sem].push(sub);
                 });
 
-                const semOrder = ['Học kỳ 1', 'Học kỳ 2', 'Học kỳ 3', 'Học kỳ 4', 'Chưa phân bổ', 'Các Công Việc Khác'];
+                const semOrder = ['Học kỳ 1', 'Học kỳ 2', 'Học kỳ 3', 'Học kỳ 4', 'Học kỳ 5', 'Học kỳ 6', 'Học kỳ 7', 'Học kỳ 8', 'Chưa phân bổ', 'Các Công Việc Khác'];
                 const semKeys = Object.keys(semData).sort((a, b) => {
                     let idxA = semOrder.indexOf(a);
                     let idxB = semOrder.indexOf(b);
@@ -996,18 +1113,28 @@
         };
 
         window.openAssignModal = (id) => {
-            const fMajor = document.getElementById('filterMajor').value;
             const cls = window.getCurrentClass();
             const orient = window.getCurrentOrient();
 
-            if (fMajor === 'ALL') {
-                showToast("Vui lòng Chọn cụ thể CHUYÊN NGÀNH trên thanh công cụ trước khi phân công!", "danger");
-                return;
-            }
             if (cls.toUpperCase().includes('THS') && orient === 'ALL') {
                 showToast("Vui lòng Chọn cụ thể ĐỊNH HƯỚNG trên thanh công cụ trước khi phân công!", "danger");
                 return;
             }
+
+            // TẠO OPTIONS HỌC KỲ ĐỘNG TÙY THEO HỆ THS (4) HAY CỬ NHÂN (8)
+            let maxSemester = cls.toUpperCase().includes('THS') ? 4 : 8;
+            let semOptionsHTML = '<option value="">-- Chưa xác định --</option>';
+            for(let i=1; i<=maxSemester; i++){
+                semOptionsHTML += `<option value="Học kỳ ${i}">Học kỳ ${i}</option>`;
+            }
+            let thesisSemOptionsHTML = ''; 
+            for(let i=1; i<=maxSemester; i++){
+                thesisSemOptionsHTML += `<option value="Học kỳ ${i}">Học kỳ ${i}</option>`;
+            }
+            const asgSemEl = document.getElementById('asgSemester');
+            const tasgSemEl = document.getElementById('tasgSemester');
+            if (asgSemEl) asgSemEl.innerHTML = semOptionsHTML;
+            if (tasgSemEl) tasgSemEl.innerHTML = thesisSemOptionsHTML;
 
             currentEditingSubId = id;
             const sub = subjectsData.find(s => s.id === id);
@@ -1018,7 +1145,7 @@
 
             if(sub.name && (sub.name.includes("Luận văn") || sub.name.includes("Đề án"))) {
                 document.getElementById('tasgName').innerText = `${sub.name} (Lớp: ${cls} ${orient ? '- Hướng ' + (orient==='UD'?'Ứng dụng':'Nghiên cứu') : ''})`;
-                document.getElementById('tasgSemester').value = asg.semester || 'Học kỳ 4';
+                document.getElementById('tasgSemester').value = asg.semester || `Học kỳ ${maxSemester}`;
                 document.getElementById('thesisAllocContainer').innerHTML = '';
                 
                 let targetAllocations = asg.allocations;
@@ -1074,7 +1201,7 @@
                 } else {
                     document.getElementById('asgLimits').classList.remove('hidden');
                     document.getElementById('asgSemesterContainer').classList.remove('hidden');
-                    document.getElementById('asgSemester').value = asg.semester;
+                    document.getElementById('asgSemester').value = asg.semester || '';
                 }
                 
                 document.getElementById('allocContainer').innerHTML = '';
@@ -1262,7 +1389,6 @@
                 if (sumTH > currentSub.practiceSessions) { showToast(`Số buổi Thực hành (${sumTH}) vượt quá tối đa (${currentSub.practiceSessions})!`, "danger"); return; }
             }
 
-            // TỰ ĐỘNG PHÂN CÔNG CHÉO (Hệ thống tự nhận diện môn thuộc cả 2 hệ)
             let syncSibling = false;
             if (cls.toUpperCase().includes('THS') && orient !== 'ALL' && currentSub.orientations && currentSub.orientations.includes('NC') && currentSub.orientations.includes('UD')) {
                 syncSibling = true;
@@ -1271,21 +1397,35 @@
             for (let gv of externalGVsToSave) { try { await setDoc(doc(collection(db, "visiting_lecturers")), { name: gv }); } catch(e){} }
 
             const assignStatus = isHOD ? 'approved' : 'proposed';
-            
             let dbKey = window.getDbKey(currentSub);
             let updates = {};
 
             if (allocations.length === 0 && (!semester || semester === '')) {
-                // XÓA DỮ LIỆU SẠCH SẼ KHỎI DB NẾU TRỐNG
                 updates[dbKey] = deleteField();
                 
                 if (syncSibling) {
-                    let siblingOrient = orient === 'NC' ? 'UD' : 'NC';
-                    let major = currentSub.majorTag || 'ALL';
-                    let shortMajor = major === "Vật lý trị liệu" ? "VLTL" : (major === "Hoạt động trị liệu" ? "HĐTL" : (major === "Ngôn ngữ trị liệu" ? "NNTL" : major));
-                    let siblingKey = `${cls}_${siblingOrient}_${shortMajor}`;
+                    let siblingKey = getSiblingDbKey(currentSub, cls, orient);
                     updates[siblingKey] = deleteField();
                 }
+
+                if (cls.toUpperCase().includes('THS')) {
+                    updates[cls] = deleteField(); 
+                    
+                    let major = currentSub.majorTag || 'ALL';
+                    let shortMajor = major === "Vật lý trị liệu" ? "VLTL" : (major === "Hoạt động trị liệu" ? "HĐTL" : (major === "Ngôn ngữ trị liệu" ? "NNTL" : major));
+                    let legacyKey = `${cls}_${shortMajor}`;
+                    if (dbKey !== legacyKey) updates[legacyKey] = deleteField();
+                }
+
+                try {
+                    let orphanEvents = calendarEventsDB.filter(e => e.subject === currentSub.name && e.class === cls);
+                    let delPromises = [];
+                    orphanEvents.forEach(e => {
+                        if(e.id) delPromises.push(deleteDoc(doc(db, "calendar_events", e.id)));
+                    });
+                    if (delPromises.length > 0) await Promise.all(delPromises);
+                } catch(err) { console.log("Lỗi dọn rác lịch: ", err); }
+
             } else {
                 let updateData = { 
                     semester: semester, 
@@ -1310,14 +1450,17 @@
 
                 updates[dbKey] = updateData;
 
-                // Thực thi lưu chéo
                 if (syncSibling) {
-                    let siblingOrient = orient === 'NC' ? 'UD' : 'NC';
+                    let siblingKey = getSiblingDbKey(currentSub, cls, orient);
+                    updates[siblingKey] = updateData; 
+                }
+
+                if (cls.toUpperCase().includes('THS')) {
+                    updates[cls] = deleteField(); 
                     let major = currentSub.majorTag || 'ALL';
                     let shortMajor = major === "Vật lý trị liệu" ? "VLTL" : (major === "Hoạt động trị liệu" ? "HĐTL" : (major === "Ngôn ngữ trị liệu" ? "NNTL" : major));
-                    
-                    let siblingKey = `${cls}_${siblingOrient}_${shortMajor}`;
-                    updates[siblingKey] = updateData; 
+                    let legacyKey = `${cls}_${shortMajor}`;
+                    if (dbKey !== legacyKey) updates[legacyKey] = deleteField();
                 }
             }
 
@@ -1455,7 +1598,6 @@
 
             if (hasError) { showToast("Vui lòng nhập đầy đủ Tên Học viên và Giảng viên!", "danger"); return; }
 
-            // TỰ ĐỘNG PHÂN CÔNG CHÉO
             let syncSibling = false;
             if (cls.toUpperCase().includes('THS') && orient !== 'ALL' && currentSub.orientations && currentSub.orientations.includes('NC') && currentSub.orientations.includes('UD')) {
                 syncSibling = true;
@@ -1472,12 +1614,27 @@
                 updates[dbKey] = deleteField();
                 
                 if (syncSibling) {
-                    let siblingOrient = orient === 'NC' ? 'UD' : 'NC';
-                    let major = currentSub.majorTag || 'ALL';
-                    let shortMajor = major === "Vật lý trị liệu" ? "VLTL" : (major === "Hoạt động trị liệu" ? "HĐTL" : (major === "Ngôn ngữ trị liệu" ? "NNTL" : major));
-                    let siblingKey = `${cls}_${siblingOrient}_${shortMajor}`;
+                    let siblingKey = getSiblingDbKey(currentSub, cls, orient);
                     updates[siblingKey] = deleteField();
                 }
+
+                if (cls.toUpperCase().includes('THS')) {
+                    updates[cls] = deleteField();
+                    let major = currentSub.majorTag || 'ALL';
+                    let shortMajor = major === "Vật lý trị liệu" ? "VLTL" : (major === "Hoạt động trị liệu" ? "HĐTL" : (major === "Ngôn ngữ trị liệu" ? "NNTL" : major));
+                    let legacyKey = `${cls}_${shortMajor}`;
+                    if (dbKey !== legacyKey) updates[legacyKey] = deleteField();
+                }
+
+                try {
+                    let orphanEvents = calendarEventsDB.filter(e => e.subject === currentSub.name && e.class === cls);
+                    let delPromises = [];
+                    orphanEvents.forEach(e => {
+                        if(e.id) delPromises.push(deleteDoc(doc(db, "calendar_events", e.id)));
+                    });
+                    if (delPromises.length > 0) await Promise.all(delPromises);
+                } catch(err) {}
+
             } else {
                 let updateData = { 
                     semester: semester, 
@@ -1503,12 +1660,16 @@
                 updates[dbKey] = updateData;
 
                 if (syncSibling) {
-                    let siblingOrient = orient === 'NC' ? 'UD' : 'NC';
+                    let siblingKey = getSiblingDbKey(currentSub, cls, orient);
+                    updates[siblingKey] = updateData; 
+                }
+
+                if (cls.toUpperCase().includes('THS')) {
+                    updates[cls] = deleteField();
                     let major = currentSub.majorTag || 'ALL';
                     let shortMajor = major === "Vật lý trị liệu" ? "VLTL" : (major === "Hoạt động trị liệu" ? "HĐTL" : (major === "Ngôn ngữ trị liệu" ? "NNTL" : major));
-                    
-                    let siblingKey = `${cls}_${siblingOrient}_${shortMajor}`;
-                    updates[siblingKey] = updateData; 
+                    let legacyKey = `${cls}_${shortMajor}`;
+                    if (dbKey !== legacyKey) updates[legacyKey] = deleteField();
                 }
             }
 
@@ -1519,7 +1680,6 @@
             } catch (e) { showToast("Lỗi khi lưu: " + e.message, "danger"); }
         };
 
-        // --- DASHBOARD THỐNG KÊ LẤY TỪ DB THỰC TẾ ---
         window.openMiniDashboard = () => {
             const fMajor = document.getElementById('filterMajor').value;
             const cls = window.getCurrentClass();
