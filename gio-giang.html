@@ -156,18 +156,20 @@
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 // Nạp Data Cán bộ
-                const snapUsers = await getDocs(collection(db, "users"));
-                snapUsers.forEach(doc => {
-                    const d = doc.data();
-                    if(d.fullName) {
-                        let pref = d.degree === 'ThS' ? 'ThS. ' : (d.degree === 'TS' ? 'TS. ' : '');
-                        usersMap[`${pref}${d.fullName}`] = "Cơ hữu";
-                        if (doc.id === user.uid) currentUserName = d.fullName; // Không kèm học vị
-                    }
-                });
-                
-                const snapVisit = await getDocs(collection(db, "visiting_lecturers"));
-                snapVisit.forEach(doc => { visitingMap[doc.data().name] = "Thỉnh giảng"; });
+                try {
+                    const snapUsers = await getDocs(collection(db, "users"));
+                    snapUsers.forEach(doc => {
+                        const d = doc.data();
+                        if(d.fullName) {
+                            let pref = d.degree === 'ThS' ? 'ThS. ' : (d.degree === 'TS' ? 'TS. ' : '');
+                            usersMap[`${pref}${d.fullName}`] = "Cơ hữu";
+                            if (doc.id === user.uid) currentUserName = d.fullName; // Không kèm học vị trên header
+                        }
+                    });
+                    
+                    const snapVisit = await getDocs(collection(db, "visiting_lecturers"));
+                    snapVisit.forEach(doc => { visitingMap[doc.data().name] = "Thỉnh giảng"; });
+                } catch(e) { console.error("Lỗi nạp User: ", e); }
 
                 setTimeout(() => {
                     const btnAuthNav = document.getElementById('btnAuthNav');
@@ -177,14 +179,14 @@
                     }
                 }, 300);
 
-                // Phân công Data
+                // Lắng nghe Phân công
                 onSnapshot(collection(db, "assignments"), (snapshot) => {
                     assignmentsData = {};
                     snapshot.forEach(doc => { assignmentsData[doc.id] = doc.data(); });
                     window.renderTable();
                 });
 
-                // Lịch Công Tác
+                // Lắng nghe Lịch
                 onSnapshot(collection(db, "calendar_events"), (snapshot) => {
                     calendarEvents = [];
                     snapshot.forEach(doc => calendarEvents.push(doc.data()));
@@ -196,15 +198,7 @@
             }
         });
 
-        // Hàm hỗ trợ chuẩn hóa Định hướng để kiểm tra
-        function normalizeOrient(orient) {
-            if (!orient) return 'CHUNG';
-            let str = String(orient).toUpperCase().trim();
-            if (str === 'NC' || str.includes('NGHIÊN CỨU')) return 'NC';
-            if (str === 'UD' || str.includes('ỨNG DỤNG')) return 'UD';
-            return 'CHUNG';
-        }
-
+        // Hàm chính tính toán & vẽ bảng
         window.renderTable = () => {
             let selectedYear = document.getElementById('academicYear').value;
             let yearConf = getYearConfig(selectedYear);
@@ -214,23 +208,24 @@
             let yEnd = new Date(yearConf.end);
             yEnd.setHours(23, 59, 59);
 
-            let gvStats = {}; // Lưu trữ: gvStats[gv][cls][task] = { assigned: 0, completed: 0 }
+            let gvStats = {}; // Cấu trúc: gvStats[gv][cls][task] = { assigned: 0, completed: 0 }
 
-            // 1. DUYỆT PHÂN CÔNG ĐỂ LẤY SỐ BUỔI DỰ KIẾN (ASSIGNED)
+            // ==========================================
+            // 1. TÍNH SỐ BUỔI DỰ KIẾN TỪ PHÂN CÔNG (ASSIGNED)
+            // ==========================================
             for (let subId in assignmentsData) {
                 let asgDoc = assignmentsData[subId];
                 for (let dbKey in asgDoc) {
                     let asg = asgDoc[dbKey];
-                    // Chỉ tính những phân công đã duyệt
-                    if (asg.status !== 'approved') continue;
+                    if (asg.status !== 'approved') continue; // Bỏ qua nếu chưa được duyệt
                     
                     let cls = asg.class || dbKey.split('_')[0];
                     let allowedSems = yearConf[cls];
-                    if (!allowedSems) continue;
+                    if (!allowedSems || allowedSems.length === 0) continue; // Bỏ qua nếu lớp ko học trong năm này
 
                     let isValidSemester = false;
                     if (asg.name && asg.name.toLowerCase().includes('công việc chuyên môn khác')) {
-                        isValidSemester = true; // Công việc khác tính theo năm
+                        isValidSemester = true; // Tính theo năm
                     } else if (allowedSems.includes(asg.semester)) {
                         isValidSemester = true;
                     }
@@ -239,7 +234,6 @@
 
                     if (asg.allocations) {
                         asg.allocations.forEach(alloc => {
-                            // Bỏ qua hướng dẫn luận văn vì tính theo HV, không tính theo buổi
                             if (alloc.task && alloc.task.includes('Hướng dẫn LV')) return;
 
                             let gv = alloc.gv;
@@ -256,17 +250,26 @@
                 }
             }
 
-            // 2. DUYỆT LỊCH ĐỂ TÍNH SỐ BUỔI ĐÃ HOÀN THÀNH (COMPLETED)
+            // ==========================================
+            // 2. TÍNH SỐ BUỔI ĐÃ DẠY TỪ LỊCH (COMPLETED)
+            // ==========================================
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
+            // 2.1 Loại bỏ các thẻ bị Trả về hoặc thiếu thời gian
             let validCalEvents = calendarEvents.filter(e => e.status !== 'returned' && e.start);
             
-            // Lọc trùng sự kiện (để tránh 1 buổi đếm nhiều lần nếu gộp thẻ)
+            // 2.2 Gộp các thẻ bị trùng lặp (ví dụ 1 lịch chèn 2 hệ NC/UD sẽ thành 1 thẻ dạy chung)
             let deduplicatedCalMap = new Map();
             validCalEvents.forEach(e => {
-                let sTime = new Date(e.start).getTime();
+                let eStart = new Date(e.start);
+                // CHỈ TÍNH NHỮNG LỊCH RƠI VÀO PHẠM VI NĂM HỌC ĐANG XEM
+                if (eStart < yStart || eStart > yEnd) return; 
+
+                let sTime = eStart.getTime();
                 let eTime = e.end ? new Date(e.end).getTime() : sTime + 4.5 * 3600 * 1000;
+                
+                // Key gộp không phân biệt Định hướng để đếm đúng 1 buổi
                 let deduplicateKey = `${sTime}_${eTime}_${e.room}_${e.subject}_${e.task}_${e.gv}_${e.class}`;
 
                 if (!deduplicatedCalMap.has(deduplicateKey)) {
@@ -274,69 +277,40 @@
                 }
             });
 
+            // 2.3 Đếm số buổi hoàn thành
             deduplicatedCalMap.forEach(e => {
                 let cls = e.class;
                 let allowedSems = yearConf[cls];
-                if (!allowedSems) return;
+                if (!allowedSems || allowedSems.length === 0) return; // Lớp không học năm nay
 
                 let eStart = new Date(e.start);
                 let eEnd = e.end ? new Date(e.end) : new Date(eStart.getTime() + 4.5 * 3600000);
 
-                // Chỉ tính các buổi có thời gian kết thúc trước ngày hôm nay
+                // Chỉ tính là hoàn thành khi buổi học đã trôi qua
                 if (eEnd < today) {
-                    let isValidSemester = false;
-                    if (e.subject && e.subject.toLowerCase().includes('công việc chuyên môn khác')) {
-                        if (eStart >= yStart && eStart <= yEnd) isValidSemester = true;
-                    } else {
-                        // Tìm môn học tương ứng để check học kỳ
-                        let subIdObj = null;
-                        for (let id in assignmentsData) {
-                            let docAsg = assignmentsData[id];
-                            for (let key in docAsg) {
-                                let a = docAsg[key];
-                                let aCls = a.class || key.split('_')[0];
-                                let aOrient = key.includes('_NC') ? 'NC' : (key.includes('_UD') ? 'UD' : 'CHUNG');
-                                let eOrient = normalizeOrient(e.orientation);
-                                
-                                let orientMatch = true;
-                                if (aCls.toUpperCase().includes('THS')) {
-                                    if (eOrient !== 'CHUNG' && aOrient !== 'CHUNG' && eOrient !== aOrient) orientMatch = false;
-                                }
+                    let taskName = e.task || 'Công việc khác';
+                    if (taskName.toLowerCase().includes('thực hành') && !taskName.toLowerCase().includes('bệnh viện')) taskName = 'Thực hành';
 
-                                if (a.name === e.subject && aCls === cls && orientMatch) {
-                                    if (allowedSems.includes(a.semester)) {
-                                        isValidSemester = true;
-                                    }
-                                    break;
-                                }
-                            }
-                            if (isValidSemester) break;
-                        }
-                    }
-
-                    if (isValidSemester) {
-                        let taskName = e.task || 'Công việc khác';
-                        if (taskName.toLowerCase().includes('thực hành') && !taskName.toLowerCase().includes('bệnh viện')) taskName = 'Thực hành';
-
-                        let gvs = e.gv ? e.gv.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
-                        gvs.forEach(gv => {
-                            // Tạo cấu trúc nếu chưa có (trường hợp tự xếp lịch mà không qua phân công)
-                            if (!gvStats[gv]) gvStats[gv] = {};
-                            if (!gvStats[gv][cls]) gvStats[gv][cls] = {};
-                            if (!gvStats[gv][cls][taskName]) gvStats[gv][cls][taskName] = { assigned: 0, completed: 0 };
-                            
-                            gvStats[gv][cls][taskName].completed += 1; // 1 thẻ trên lịch tương ứng 1 buổi
-                        });
-                    }
+                    let gvs = e.gv ? e.gv.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
+                    gvs.forEach(gv => {
+                        // Thêm vào Object nếu GV vô tình dạy mà không có trong bảng phân công
+                        if (!gvStats[gv]) gvStats[gv] = {};
+                        if (!gvStats[gv][cls]) gvStats[gv][cls] = {};
+                        if (!gvStats[gv][cls][taskName]) gvStats[gv][cls][taskName] = { assigned: 0, completed: 0 };
+                        
+                        gvStats[gv][cls][taskName].completed += 1;
+                    });
                 }
             });
 
-            // 3. RENDER HTML
+            // ==========================================
+            // 3. XUẤT RA HTML
+            // ==========================================
             let tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
             
             if (Object.keys(gvStats).length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 30px; color:#64748b;">Không có dữ liệu phân công/hoàn thành nào được ghi nhận cho ${selectedYear}.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 30px; color:#64748b;">Không có dữ liệu phân công / hoàn thành nào được ghi nhận trong ${selectedYear}.</td></tr>`;
                 return;
             }
 
@@ -368,7 +342,7 @@
                             assignedHtml += `<li><b>${task}</b>: <span style="color:var(--primary); font-weight:bold;">${stat.assigned}</span> buổi</li>`;
                             
                             let compColor = stat.completed > 0 ? '#16a34a' : '#64748b';
-                            let overText = stat.completed > stat.assigned && stat.assigned > 0 ? ' <span style="color:#ef4444; font-size:0.8rem;">(Vượt!)</span>' : '';
+                            let overText = stat.completed > stat.assigned && stat.assigned > 0 ? ' <span style="color:#ef4444; font-size:0.8rem;">(Vượt mức!)</span>' : '';
                             completedHtml += `<li><b>${task}</b>: <span style="color:${compColor}; font-weight:bold;">${stat.completed}</span> buổi${overText}</li>`;
                         }
                         assignedHtml += '</ul></div>';
@@ -380,7 +354,7 @@
                 if (totalAssignedAll > 0) {
                     pct = Math.min(100, Math.round((totalCompletedAll / totalAssignedAll) * 100));
                 } else if (totalCompletedAll > 0) {
-                    pct = 100; // Có hoàn thành nhưng không có phân công (dạy ngoài kế hoạch)
+                    pct = 100; // Dạy vượt/dạy tự do không qua phân công
                 }
                 
                 let pColor = '#16a34a'; 
