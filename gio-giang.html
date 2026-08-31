@@ -124,23 +124,39 @@
         let visitingMap = {}; 
         let currentUserName = '';
 
+        // ĐỊNH NGHĨA QUYỀN HẠN NĂM HỌC (Nhận dạng chuỗi thông minh)
         const getYearConfig = (yearStr) => {
             if (yearStr === '2025-2026') return {
-                'THS2025': ['Học kỳ 1', 'Học kỳ 2'],
-                'THS2026': [],
-                'start': '2025-08-01', 'end': '2026-07-31'
+                allowedClasses: [ { match: 'THS2025', sems: ['Học kỳ 1', 'Học kỳ 2'] } ],
+                start: '2025-08-01', end: '2026-07-31'
             };
             if (yearStr === '2026-2027') return {
-                'THS2025': ['Học kỳ 3', 'Học kỳ 4'],
-                'THS2026': ['Học kỳ 1', 'Học kỳ 2'],
-                'start': '2026-08-01', 'end': '2027-07-31'
+                allowedClasses: [
+                    { match: 'THS2025', sems: ['Học kỳ 3', 'Học kỳ 4'] },
+                    { match: 'THS2026', sems: ['Học kỳ 1', 'Học kỳ 2'] }
+                ],
+                start: '2026-08-01', end: '2027-07-31'
             };
             if (yearStr === '2027-2028') return {
-                'THS2025': [],
-                'THS2026': ['Học kỳ 3', 'Học kỳ 4'],
-                'start': '2027-08-01', 'end': '2028-07-31'
+                allowedClasses: [
+                    { match: 'THS2026', sems: ['Học kỳ 3', 'Học kỳ 4'] },
+                    { match: 'THS2027', sems: ['Học kỳ 1', 'Học kỳ 2'] }
+                ],
+                start: '2027-08-01', end: '2028-07-31'
             };
             return null;
+        }
+
+        // HÀM LẤY HỌC KỲ CHO PHÉP (Dựa vào Tên Lớp)
+        function getAllowedSemsForClass(clsName, yearConf) {
+            if (!clsName) return [];
+            let upperCls = clsName.toUpperCase();
+            for (let ac of yearConf.allowedClasses) {
+                if (upperCls.includes(ac.match)) {
+                    return ac.sems;
+                }
+            }
+            return [];
         }
 
         window.showToast = (message, type = 'success') => {
@@ -155,7 +171,7 @@
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                // Nạp Data Cán bộ
+                // Nạp Data Cán bộ để lấy Tên và Phân loại
                 try {
                     const snapUsers = await getDocs(collection(db, "users"));
                     snapUsers.forEach(doc => {
@@ -163,7 +179,7 @@
                         if(d.fullName) {
                             let pref = d.degree === 'ThS' ? 'ThS. ' : (d.degree === 'TS' ? 'TS. ' : '');
                             usersMap[`${pref}${d.fullName}`] = "Cơ hữu";
-                            if (doc.id === user.uid) currentUserName = d.fullName; // Không kèm học vị trên header
+                            if (doc.id === user.uid) currentUserName = d.fullName; // Header không kèm học vị
                         }
                     });
                     
@@ -179,14 +195,14 @@
                     }
                 }, 300);
 
-                // Lắng nghe Phân công
+                // Lắng nghe Phân công DB
                 onSnapshot(collection(db, "assignments"), (snapshot) => {
                     assignmentsData = {};
                     snapshot.forEach(doc => { assignmentsData[doc.id] = doc.data(); });
                     window.renderTable();
                 });
 
-                // Lắng nghe Lịch
+                // Lắng nghe Lịch trình DB
                 onSnapshot(collection(db, "calendar_events"), (snapshot) => {
                     calendarEvents = [];
                     snapshot.forEach(doc => calendarEvents.push(doc.data()));
@@ -198,7 +214,7 @@
             }
         });
 
-        // Hàm chính tính toán & vẽ bảng
+        // Hàm chính tính toán & vẽ bảng siêu chuẩn
         window.renderTable = () => {
             let selectedYear = document.getElementById('academicYear').value;
             let yearConf = getYearConfig(selectedYear);
@@ -217,15 +233,17 @@
                 let asgDoc = assignmentsData[subId];
                 for (let dbKey in asgDoc) {
                     let asg = asgDoc[dbKey];
-                    if (asg.status !== 'approved') continue; // Bỏ qua nếu chưa được duyệt
+                    // Chỉ lấy những thẻ đã được duyệt chính thức
+                    if (asg.status !== 'approved') continue; 
                     
                     let cls = asg.class || dbKey.split('_')[0];
-                    let allowedSems = yearConf[cls];
-                    if (!allowedSems || allowedSems.length === 0) continue; // Bỏ qua nếu lớp ko học trong năm này
+                    let allowedSems = getAllowedSemsForClass(cls, yearConf);
+                    
+                    if (allowedSems.length === 0) continue; // Lớp không nằm trong quy định của năm học
 
                     let isValidSemester = false;
                     if (asg.name && asg.name.toLowerCase().includes('công việc chuyên môn khác')) {
-                        isValidSemester = true; // Tính theo năm
+                        isValidSemester = true; // Công việc khác mặc định auto-pass
                     } else if (allowedSems.includes(asg.semester)) {
                         isValidSemester = true;
                     }
@@ -234,6 +252,7 @@
 
                     if (asg.allocations) {
                         asg.allocations.forEach(alloc => {
+                            // Không thống kê Hướng dẫn LV (tính theo Đầu học viên, không tính theo Buổi)
                             if (alloc.task && alloc.task.includes('Hướng dẫn LV')) return;
 
                             let gv = alloc.gv;
@@ -251,25 +270,25 @@
             }
 
             // ==========================================
-            // 2. TÍNH SỐ BUỔI ĐÃ DẠY TỪ LỊCH (COMPLETED)
+            // 2. TÍNH SỐ BUỔI ĐÃ DẠY THỰC TẾ TỪ LỊCH (COMPLETED)
             // ==========================================
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
-            // 2.1 Loại bỏ các thẻ bị Trả về hoặc thiếu thời gian
+            // Bỏ các thẻ lỗi / trả về
             let validCalEvents = calendarEvents.filter(e => e.status !== 'returned' && e.start);
             
-            // 2.2 Gộp các thẻ bị trùng lặp (ví dụ 1 lịch chèn 2 hệ NC/UD sẽ thành 1 thẻ dạy chung)
+            // Gộp các thẻ bị trùng lặp thời gian, địa điểm, lớp (để không đếm lặp 1 buổi nhiều lần)
             let deduplicatedCalMap = new Map();
             validCalEvents.forEach(e => {
                 let eStart = new Date(e.start);
-                // CHỈ TÍNH NHỮNG LỊCH RƠI VÀO PHẠM VI NĂM HỌC ĐANG XEM
+                // BỎ QUA NGAY nếu thẻ nằm ngoài khoảng T1/8 -> T31/7 của năm học
                 if (eStart < yStart || eStart > yEnd) return; 
 
                 let sTime = eStart.getTime();
                 let eTime = e.end ? new Date(e.end).getTime() : sTime + 4.5 * 3600 * 1000;
                 
-                // Key gộp không phân biệt Định hướng để đếm đúng 1 buổi
+                // Key gộp thông minh
                 let deduplicateKey = `${sTime}_${eTime}_${e.room}_${e.subject}_${e.task}_${e.gv}_${e.class}`;
 
                 if (!deduplicatedCalMap.has(deduplicateKey)) {
@@ -277,43 +296,46 @@
                 }
             });
 
-            // 2.3 Đếm số buổi hoàn thành
+            // Tính toán hoàn thành
             deduplicatedCalMap.forEach(e => {
                 let cls = e.class;
-                let allowedSems = yearConf[cls];
-                if (!allowedSems || allowedSems.length === 0) return; // Lớp không học năm nay
+                if (!cls) return;
+                
+                let allowedSems = getAllowedSemsForClass(cls, yearConf);
+                if (allowedSems.length === 0) return; // Nếu lớp không nằm trong năm quy định thì bỏ qua
 
                 let eStart = new Date(e.start);
                 let eEnd = e.end ? new Date(e.end) : new Date(eStart.getTime() + 4.5 * 3600000);
 
-                // Chỉ tính là hoàn thành khi buổi học đã trôi qua
+                // CHỈ ĐẾM CÁC BUỔI ĐÃ TRÔI QUA VÀO SỐ "HOÀN THÀNH"
                 if (eEnd < today) {
                     let taskName = e.task || 'Công việc khác';
                     if (taskName.toLowerCase().includes('thực hành') && !taskName.toLowerCase().includes('bệnh viện')) taskName = 'Thực hành';
 
                     let gvs = e.gv ? e.gv.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
                     gvs.forEach(gv => {
-                        // Thêm vào Object nếu GV vô tình dạy mà không có trong bảng phân công
+                        // Thêm vào Profile nếu GV vô tình dạy lịch ngoài (không có trong Phân công)
                         if (!gvStats[gv]) gvStats[gv] = {};
                         if (!gvStats[gv][cls]) gvStats[gv][cls] = {};
                         if (!gvStats[gv][cls][taskName]) gvStats[gv][cls][taskName] = { assigned: 0, completed: 0 };
                         
-                        gvStats[gv][cls][taskName].completed += 1;
+                        gvStats[gv][cls][taskName].completed += 1; // 1 thẻ hợp lệ trên lịch = 1 buổi
                     });
                 }
             });
 
             // ==========================================
-            // 3. XUẤT RA HTML
+            // 3. RENDER HTML
             // ==========================================
             let tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
             
             if (Object.keys(gvStats).length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 30px; color:#64748b;">Không có dữ liệu phân công / hoàn thành nào được ghi nhận trong ${selectedYear}.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 30px; color:#64748b; font-size: 1.1rem;"><i class="fas fa-box-open" style="font-size:2rem; margin-bottom:10px; display:block; color:#cbd5e1;"></i> Không có dữ liệu phân công / hoàn thành nào được ghi nhận cho Năm học ${selectedYear}.</td></tr>`;
                 return;
             }
 
+            // Sắp xếp Tên GV theo Alphabet
             let sortedGVs = Object.keys(gvStats).sort((a,b) => a.localeCompare(b, 'vi'));
             let stt = 1;
 
@@ -326,35 +348,39 @@
                 let totalAssignedAll = 0;
                 let totalCompletedAll = 0;
 
-                ['THS2025', 'THS2026'].forEach(cls => {
-                    if (gvStats[gv][cls] && Object.keys(gvStats[gv][cls]).length > 0) {
-                        let clsTitle = cls === 'THS2026' ? 'cls-title ths2026' : 'cls-title';
+                // Quét thông minh TẤT CẢ các Lớp (kể cả có chữ ĐỢT 1, ĐỢT 2...) mà GV này dạy
+                let gvClasses = Object.keys(gvStats[gv]).sort();
+                gvClasses.forEach(cls => {
+                    let clsTitle = cls.toUpperCase().includes('THS2026') ? 'cls-title ths2026' : 'cls-title';
+                    
+                    assignedHtml += `<div class="cls-section"><div class="${clsTitle}">[${cls}]</div><ul class="breakdown">`;
+                    completedHtml += `<div class="cls-section"><div class="${clsTitle}">[${cls}]</div><ul class="breakdown">`;
+
+                    // Quét các nhiệm vụ trong Lớp đó
+                    let tasks = Object.keys(gvStats[gv][cls]).sort();
+                    tasks.forEach(task => {
+                        let stat = gvStats[gv][cls][task];
                         
-                        assignedHtml += `<div class="cls-section"><div class="${clsTitle}">[${cls}]</div><ul class="breakdown">`;
-                        completedHtml += `<div class="cls-section"><div class="${clsTitle}">[${cls}]</div><ul class="breakdown">`;
+                        totalAssignedAll += stat.assigned;
+                        totalCompletedAll += stat.completed;
 
-                        for (let task in gvStats[gv][cls]) {
-                            let stat = gvStats[gv][cls][task];
-                            
-                            totalAssignedAll += stat.assigned;
-                            totalCompletedAll += stat.completed;
-
-                            assignedHtml += `<li><b>${task}</b>: <span style="color:var(--primary); font-weight:bold;">${stat.assigned}</span> buổi</li>`;
-                            
-                            let compColor = stat.completed > 0 ? '#16a34a' : '#64748b';
-                            let overText = stat.completed > stat.assigned && stat.assigned > 0 ? ' <span style="color:#ef4444; font-size:0.8rem;">(Vượt mức!)</span>' : '';
-                            completedHtml += `<li><b>${task}</b>: <span style="color:${compColor}; font-weight:bold;">${stat.completed}</span> buổi${overText}</li>`;
-                        }
-                        assignedHtml += '</ul></div>';
-                        completedHtml += '</ul></div>';
-                    }
+                        assignedHtml += `<li><b>${task}</b>: <span style="color:var(--primary); font-weight:bold;">${stat.assigned}</span> buổi</li>`;
+                        
+                        let compColor = stat.completed > 0 ? '#16a34a' : '#64748b';
+                        let overText = stat.completed > stat.assigned && stat.assigned > 0 ? ' <span style="color:#ef4444; font-size:0.8rem;">(Vượt!)</span>' : '';
+                        completedHtml += `<li><b>${task}</b>: <span style="color:${compColor}; font-weight:bold;">${stat.completed}</span> buổi${overText}</li>`;
+                    });
+                    
+                    assignedHtml += '</ul></div>';
+                    completedHtml += '</ul></div>';
                 });
 
+                // Cột Tổng Tính Phần Trăm Tiến Độ
                 let pct = 0;
                 if (totalAssignedAll > 0) {
                     pct = Math.min(100, Math.round((totalCompletedAll / totalAssignedAll) * 100));
                 } else if (totalCompletedAll > 0) {
-                    pct = 100; // Dạy vượt/dạy tự do không qua phân công
+                    pct = 100; // Dạy lịch tự do ngoài phân công
                 }
                 
                 let pColor = '#16a34a'; 
@@ -369,6 +395,7 @@
                     </div>
                 `;
 
+                // Đổ Row ra Bảng
                 tbody.innerHTML += `
                     <tr style="transition:0.2s;" onmouseover="this.style.backgroundColor='#f8fafc'" onmouseout="this.style.backgroundColor='transparent'">
                         <td style="text-align:center; font-weight:bold; color:#94a3b8;">${stt++}</td>
