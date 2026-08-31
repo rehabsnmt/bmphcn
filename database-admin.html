@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        main { max-width: 900px; padding: 2rem 3%; margin: 0 auto; min-height: 75vh; }
+        main { max-width: 1000px; padding: 2rem 3%; margin: 0 auto; min-height: 75vh; }
         
         .page-header { text-align: center; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 2px solid var(--border); }
         .page-header h2 { font-size: 1.8rem; color: var(--accent); margin: 0; font-weight: 800; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 10px;}
@@ -18,29 +18,52 @@
 
         .hidden { display: none !important; }
 
-        .admin-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; box-shadow: var(--shadow-sm); margin-bottom: 2rem; }
-        .admin-card h3 { color: var(--primary); font-size: 1.2rem; margin-top: 0; margin-bottom: 1.5rem; border-bottom: 1px dashed var(--border); padding-bottom: 10px; display: flex; align-items: center; gap: 8px;}
+        .admin-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem 2rem; box-shadow: var(--shadow-sm); margin-bottom: 2rem; }
+        .admin-card h3 { color: var(--primary); font-size: 1.2rem; margin-top: 0; margin-bottom: 1.2rem; border-bottom: 1px dashed var(--border); padding-bottom: 10px; display: flex; align-items: center; gap: 8px;}
 
-        .form-group { margin-bottom: 1.5rem; }
+        .form-group { margin-bottom: 1rem; }
         .form-group label { display: block; font-weight: 600; color: var(--text-dark); margin-bottom: 8px; font-size: 0.95rem; }
-        .form-group select { width: 100%; padding: 10px 15px; border-radius: 6px; border: 1px solid var(--border); font-size: 0.95rem; outline: none; background: var(--bg-page); cursor: pointer; }
-        .form-group select:focus { border-color: var(--primary); }
+        .form-group select, .form-group input { width: 100%; padding: 10px 15px; border-radius: 6px; border: 1px solid var(--border); font-size: 0.95rem; outline: none; background: var(--bg-page); box-sizing: border-box;}
+        .form-group select:focus, .form-group input:focus { border-color: var(--primary); }
 
         /* File Upload Styling */
-        .file-upload-wrapper { position: relative; width: 100%; height: 120px; border: 2px dashed #cbd5e1; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f8fafc; transition: 0.2s; cursor: pointer; }
+        .file-upload-wrapper { position: relative; width: 100%; height: 100px; border: 2px dashed #cbd5e1; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f8fafc; transition: 0.2s; cursor: pointer; }
         .file-upload-wrapper:hover { border-color: var(--primary); background: #f0f9ff; }
         .file-upload-wrapper input[type="file"] { position: absolute; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
         .file-upload-icon { font-size: 2rem; color: #94a3b8; margin-bottom: 10px; }
         .file-upload-text { font-size: 0.95rem; color: var(--text-body); font-weight: 600; }
         .file-name-display { margin-top: 10px; font-size: 0.9rem; font-weight: bold; color: var(--primary); text-align: center;}
 
-        .btn-group { display: flex; gap: 15px; flex-wrap: wrap; margin-top: 1.5rem; }
-        .btn-export { flex: 1; background: #10b981; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-weight: bold; font-size: 1rem; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .btn-export:hover { background: #059669; }
+        /* Bảng hiển thị dữ liệu thô */
+        .table-container { overflow-x: auto; border-radius: 6px; border: 1px solid var(--border); background: white; margin-top: 15px;}
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
+        th { background: #f1f5f9; font-weight: bold; color: var(--text-dark); position: sticky; top: 0; }
+        tbody tr:hover { background: #f8fafc; }
         
-        .btn-import { flex: 1; background: #f59e0b; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-weight: bold; font-size: 1rem; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .btn-import:hover { background: #d97706; }
-        .btn-import:disabled { background: #cbd5e1; cursor: not-allowed; }
+        .code-preview { font-family: monospace; color: #334155; background: #f8fafc; padding: 4px; border-radius: 4px; border: 1px solid #e2e8f0; display: block; max-height: 80px; overflow: hidden; text-overflow: ellipsis; }
+
+        .btn { padding: 8px 15px; border-radius: 6px; font-weight: bold; font-size: 0.95rem; cursor: pointer; transition: 0.2s; border: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-success { background: #10b981; color: white; }
+        .btn-success:hover { background: #059669; }
+        .btn-warning { background: #f59e0b; color: white; }
+        .btn-warning:hover { background: #d97706; }
+        .btn-danger { background: var(--accent); color: white; }
+        .btn-danger:hover { background: #dc2626; }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        /* Modal JSON Editor */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.7); display: flex; justify-content: center; align-items: center; z-index: 2000; padding: 10px; }
+        .modal-content { background: white; width: 100%; max-width: 700px; border-radius: 8px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); display: flex; flex-direction: column; overflow: hidden;}
+        .modal-header { padding: 15px 20px; background: var(--primary); color: white; display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h3 { margin: 0; font-size: 1.1rem; }
+        .modal-body { padding: 20px; flex: 1; display: flex; flex-direction: column; gap: 15px;}
+        .modal-footer { padding: 15px 20px; background: #f1f5f9; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border); }
+        
+        textarea.json-editor { width: 100%; height: 350px; font-family: 'Courier New', Courier, monospace; font-size: 0.9rem; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; background: #0f172a; color: #38bdf8; outline: none; box-sizing: border-box; resize: vertical;}
+        textarea.json-editor:focus { border-color: var(--primary); }
 
         /* Toast */
         .toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;}
@@ -48,7 +71,7 @@
         .toast.show { transform: translateX(0); opacity: 1; }
         .toast.danger { border-left-color: #ef4444; }
 
-        .warning-box { background: #fef2f2; border: 1px solid #fca5a5; color: #b91c1c; padding: 15px; border-radius: 6px; font-size: 0.9rem; line-height: 1.5; margin-bottom: 1.5rem; display: flex; gap: 10px; align-items: flex-start; }
+        .warning-box { background: #fef2f2; border: 1px solid #fca5a5; color: #b91c1c; padding: 12px; border-radius: 6px; font-size: 0.85rem; line-height: 1.4; display: flex; gap: 10px; align-items: flex-start; }
     </style>
 </head>
 <body>
@@ -57,66 +80,117 @@
     <div id="toastContainer" class="toast-container"></div>
 
     <div id="loadingScreen" style="text-align: center; padding: 5rem 0; color: var(--primary); font-weight: 600; font-size: 1.2rem;">
-        <i class="fas fa-spinner fa-spin fa-2x"></i><br><br>Đang xác thực quyền Admin...
+        <i class="fas fa-spinner fa-spin fa-2x"></i><br><br>Đang xác thực quyền Super Admin...
     </div>
 
     <main id="mainContent" class="hidden">
         <div class="page-header">
-            <h2><i class="fas fa-database"></i> Quản Trị Hệ Thống Cơ Sở Dữ Liệu</h2>
-            <p>Trang công cụ dành riêng cho Super Admin</p>
+            <h2><i class="fas fa-database"></i> Quản Trị Hệ Thống CSDL</h2>
+            <p>Giao diện thao tác hệ thống dành riêng cho Admin tối cao</p>
         </div>
 
-        <!-- KHUNG XUẤT DỮ LIỆU -->
-        <div class="admin-card">
-            <h3><i class="fas fa-file-export"></i> 1. Sao lưu & Xuất Dữ liệu (Export JSON)</h3>
-            <p style="font-size: 0.9rem; color: var(--text-body); margin-bottom: 15px; line-height: 1.5;">Hệ thống sẽ đóng gói dữ liệu của các bảng đã chọn thành một file JSON duy nhất để lưu trữ an toàn trên máy tính của bạn.</p>
-            
-            <div class="form-group">
-                <label>Chọn bảng dữ liệu (Collection) cần sao lưu:</label>
-                <select id="exportColSelect">
-                    <option value="ALL">-- Tất cả các bảng (Full Backup) --</option>
-                    <option value="calendar_events">Thời khóa biểu (calendar_events)</option>
-                    <option value="assignments">Phân công công tác (assignments)</option>
-                    <option value="subjects">Danh mục Môn học (subjects)</option>
-                    <option value="learners">Danh sách Người học (learners)</option>
-                    <option value="theses">Danh sách Luận văn (theses)</option>
-                    <option value="announcements">Thông báo (announcements)</option>
-                    <option value="users">Tài khoản Giảng viên (users)</option>
-                    <option value="visiting_lecturers">Giảng viên Thỉnh giảng (visiting_lecturers)</option>
-                </select>
-            </div>
-            
-            <button class="btn-export" onclick="exportDataToJSON()" id="btnExport">
-                <i class="fas fa-download"></i> Tải xuống File Backup (.json)
-            </button>
-        </div>
-
-        <!-- KHUNG NHẬP DỮ LIỆU -->
-        <div class="admin-card">
-            <h3><i class="fas fa-file-import"></i> 2. Phục hồi & Nhập Dữ liệu (Import JSON)</h3>
-            
-            <div class="warning-box">
-                <i class="fas fa-exclamation-triangle" style="font-size: 1.2rem; margin-top: 2px;"></i>
-                <div>
-                    <strong>CẢNH BÁO NGUY HIỂM:</strong> Hành động này sẽ <b>Ghi Đè</b> toàn bộ dữ liệu hiện có trên Firestore nếu trùng ID. Hãy chắc chắn file JSON bạn tải lên là file Backup chuẩn từ hệ thống này.
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <!-- KHUNG XUẤT DỮ LIỆU -->
+            <div class="admin-card" style="margin-bottom: 0;">
+                <h3><i class="fas fa-file-export"></i> 1. Sao lưu Dữ liệu (Export)</h3>
+                <div class="form-group">
+                    <label>Bảng dữ liệu cần sao lưu:</label>
+                    <select id="exportColSelect">
+                        <option value="ALL">-- Tất cả các bảng (Full Backup) --</option>
+                        <option value="calendar_events">Lịch giảng dạy (calendar_events)</option>
+                        <option value="assignments">Phân công công tác (assignments)</option>
+                        <option value="subjects">Danh mục Môn học (subjects)</option>
+                        <option value="learners">Danh sách Người học (learners)</option>
+                        <option value="theses">Đề tài Luận văn (theses)</option>
+                        <option value="announcements">Thông báo (announcements)</option>
+                        <option value="users">Tài khoản Giảng viên (users)</option>
+                        <option value="visiting_lecturers">GV Thỉnh giảng (visiting_lecturers)</option>
+                    </select>
                 </div>
+                <button class="btn btn-success" style="width: 100%;" onclick="exportDataToJSON()" id="btnExport">
+                    <i class="fas fa-download"></i> Tải xuống File Backup (.json)
+                </button>
             </div>
 
-            <div class="form-group">
-                <label>Tải lên file Backup (.json):</label>
+            <!-- KHUNG NHẬP DỮ LIỆU -->
+            <div class="admin-card" style="margin-bottom: 0;">
+                <h3><i class="fas fa-file-import"></i> 2. Phục hồi Dữ liệu (Import)</h3>
+                <div class="warning-box" style="margin-bottom: 10px;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 1.2rem;"></i>
+                    <span>Tải file JSON lên sẽ <b>Ghi Đè</b> toàn bộ dữ liệu có trùng ID hiện tại!</span>
+                </div>
                 <div class="file-upload-wrapper">
                     <input type="file" id="jsonFileInput" accept=".json" onchange="handleFileSelect(event)">
                     <i class="fas fa-cloud-upload-alt file-upload-icon"></i>
-                    <span class="file-upload-text">Click hoặc Kéo thả file JSON vào đây</span>
+                    <span class="file-upload-text">Kéo thả file JSON vào đây</span>
                 </div>
-                <div class="file-name-display" id="fileNameDisplay">Chưa có file nào được chọn.</div>
+                <div class="file-name-display" id="fileNameDisplay">Chưa chọn file</div>
+                <button class="btn btn-warning" style="width: 100%; margin-top: 10px;" onclick="importDataFromJSON()" id="btnImport" disabled>
+                    <i class="fas fa-upload"></i> Bắt đầu Phục hồi (Restore)
+                </button>
             </div>
+        </div>
+
+        <!-- KHUNG CHỈNH SỬA DỮ LIỆU TRỰC TIẾP -->
+        <div class="admin-card" style="margin-top: 20px;">
+            <h3><i class="fas fa-edit"></i> 3. Chỉnh sửa dữ liệu trực tiếp (Raw Data Editor)</h3>
+            <p style="font-size: 0.9rem; color: var(--text-body); margin-bottom: 15px;">Công cụ này cho phép bạn can thiệp trực tiếp vào từng bản ghi của CSDL dưới dạng mã nguồn JSON. Hãy thận trọng!</p>
             
-            <button class="btn-import" onclick="importDataFromJSON()" id="btnImport" disabled>
-                <i class="fas fa-upload"></i> Thực hiện Phục hồi (Restore)
-            </button>
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <select id="editorColSelect" class="form-control" style="flex: 1; padding: 10px; border-radius: 6px; border: 1px solid var(--border);">
+                    <option value="subjects">Danh mục Môn học (subjects)</option>
+                    <option value="learners">Danh sách Người học (learners)</option>
+                    <option value="theses">Đề tài Luận văn (theses)</option>
+                    <option value="calendar_events">Lịch giảng dạy (calendar_events)</option>
+                    <option value="assignments">Phân công (assignments)</option>
+                    <option value="announcements">Thông báo (announcements)</option>
+                    <option value="users">Tài khoản (users)</option>
+                    <option value="visiting_lecturers">GV Thỉnh giảng (visiting_lecturers)</option>
+                </select>
+                <button class="btn btn-primary" onclick="loadCollectionData()"><i class="fas fa-sync"></i> Tải dữ liệu</button>
+                <button class="btn btn-success" onclick="openAddModal()"><i class="fas fa-plus"></i> Thêm mới</button>
+            </div>
+
+            <div class="table-container">
+                <table id="dataTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 200px;">Document ID</th>
+                            <th>Nội dung (Preview)</th>
+                            <th style="width: 120px; text-align: center;">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataTableBody">
+                        <tr><td colspan="3" style="text-align:center; padding: 20px; color: #64748b;">Vui lòng chọn bảng và bấm "Tải dữ liệu".</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </main>
+
+    <!-- MODAL EDITOR JSON -->
+    <div id="editModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalEditorTitle">Chỉnh sửa Bản ghi</h3>
+                <span style="cursor:pointer; font-weight:bold;" onclick="document.getElementById('editModal').classList.add('hidden')">✕</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>Document ID (Để trống nếu tạo mới, hệ thống tự cấp ID)</label>
+                    <input type="text" id="editDocId" placeholder="Nhập mã ID bản ghi...">
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>Nội dung Data (Định dạng JSON hợp lệ)</label>
+                    <textarea id="editDocData" class="json-editor"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" style="background:#cbd5e1; color:#0f172a;" onclick="document.getElementById('editModal').classList.add('hidden')">Hủy bỏ</button>
+                <button class="btn btn-primary" onclick="saveDocument()"><i class="fas fa-save"></i> Lưu Dữ Liệu</button>
+            </div>
+        </div>
+    </div>
 
     <div id="footer-placeholder"></div>
 
@@ -125,14 +199,13 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
-        import { getFirestore, collection, getDocs, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY", authDomain: "bmphcn-aa9c6.firebaseapp.com", projectId: "bmphcn-aa9c6", storageBucket: "bmphcn-aa9c6.firebasestorage.app", messagingSenderId: "749494392719", appId: "1:749494392719:web:f220c751ff541620045dfa" };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Danh sách các bảng chính của hệ thống để Full Backup
         const ALL_COLLECTIONS = [
             'calendar_events', 'assignments', 'subjects', 'learners', 
             'theses', 'announcements', 'users', 'visiting_lecturers', 'clinical_schedules'
@@ -151,12 +224,12 @@
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                // CHỈ DUY NHẤT TÀI KHOẢN NÀY ĐƯỢC TRUY CẬP
+                // Phân quyền Super Admin
                 if (user.email.toLowerCase() === 'hoangtran1483@gmail.com') {
                     document.getElementById('loadingScreen').classList.add('hidden');
                     document.getElementById('mainContent').classList.remove('hidden');
                 } else {
-                    alert("Bạn không có quyền Super Admin để truy cập khu vực này!");
+                    alert("Chỉ có tài khoản Super Admin mới có quyền truy cập khu vực này!");
                     window.location.href = "dashboard.html";
                 }
             } else {
@@ -165,17 +238,16 @@
         });
 
         // ----------------------------------------------------
-        // CHỨC NĂNG XUẤT JSON (EXPORT)
+        // 1. CHỨC NĂNG XUẤT JSON (EXPORT)
         // ----------------------------------------------------
         window.exportDataToJSON = async () => {
             const btn = document.getElementById('btnExport');
             const colSelect = document.getElementById('exportColSelect').value;
-            
             const colsToExport = colSelect === 'ALL' ? ALL_COLLECTIONS : [colSelect];
             
             try {
                 btn.disabled = true;
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang trích xuất dữ liệu...';
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang trích xuất...';
                 
                 let exportData = {};
                 let totalRecords = 0;
@@ -189,7 +261,6 @@
                     });
                 }
 
-                // Xử lý tạo file JSON tải xuống
                 const jsonString = JSON.stringify(exportData, null, 2);
                 const blob = new Blob([jsonString], { type: "application/json" });
                 const url = URL.createObjectURL(blob);
@@ -197,7 +268,7 @@
                 const link = document.createElement("a");
                 link.href = url;
                 let dateStr = new Date().toLocaleDateString('vi-VN').replace(/\//g, '-');
-                link.download = `Backup_DB_${colSelect}_${dateStr}.json`;
+                link.download = `DB_Backup_${colSelect}_${dateStr}.json`;
                 
                 document.body.appendChild(link);
                 link.click();
@@ -205,8 +276,7 @@
 
                 showToast(`Đã sao lưu thành công ${totalRecords} bản ghi!`);
             } catch (error) {
-                console.error(error);
-                showToast("Lỗi khi xuất dữ liệu: " + error.message, "danger");
+                showToast("Lỗi xuất dữ liệu: " + error.message, "danger");
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-download"></i> Tải xuống File Backup (.json)';
@@ -214,21 +284,20 @@
         };
 
         // ----------------------------------------------------
-        // CHỨC NĂNG NHẬP JSON (IMPORT)
+        // 2. CHỨC NĂNG NHẬP JSON (IMPORT)
         // ----------------------------------------------------
         let selectedFile = null;
-
         window.handleFileSelect = (event) => {
             selectedFile = event.target.files[0];
             const display = document.getElementById('fileNameDisplay');
             const btnImport = document.getElementById('btnImport');
             
             if (selectedFile && selectedFile.name.endsWith('.json')) {
-                display.innerHTML = `<i class="fas fa-file-code"></i> File đã chọn: ${selectedFile.name}`;
+                display.innerHTML = `<i class="fas fa-file-code"></i> File: ${selectedFile.name}`;
                 display.style.color = '#10b981';
                 btnImport.disabled = false;
             } else {
-                display.innerHTML = 'File không hợp lệ. Vui lòng chọn file .json';
+                display.innerHTML = 'File không hợp lệ. Hãy chọn file .json';
                 display.style.color = '#ef4444';
                 btnImport.disabled = true;
                 selectedFile = null;
@@ -236,18 +305,12 @@
         };
 
         window.importDataFromJSON = () => {
-            if (!selectedFile) {
-                showToast("Vui lòng chọn file JSON để phục hồi!", "danger");
-                return;
-            }
-
-            if (!confirm(`Bạn có CHẮC CHẮN muốn phục hồi dữ liệu từ file [${selectedFile.name}] không? Dữ liệu hiện tại trên máy chủ nếu trùng ID sẽ bị ghi đè hoàn toàn!`)) {
-                return;
-            }
+            if (!selectedFile) return;
+            if (!confirm(`CẢNH BÁO: Phục hồi từ file [${selectedFile.name}] sẽ ghi đè dữ liệu hiện tại. Bạn có chắc không?`)) return;
 
             const btn = document.getElementById('btnImport');
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang tải dữ liệu lên Server...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang ghi đè...';
 
             const reader = new FileReader();
             reader.onload = async (e) => {
@@ -256,35 +319,148 @@
                     let promises = [];
                     let totalDocs = 0;
 
-                    // Parse JSON: expected format { "collectionName": { "docId": { data }, "docId2": { data } } }
                     for (const [colName, docsObj] of Object.entries(data)) {
                         for (const [docId, docData] of Object.entries(docsObj)) {
-                            // Dùng setDoc để ghi đè (hoặc tạo mới) dữ liệu với ID gốc
                             promises.push(setDoc(doc(db, colName, docId), docData));
                             totalDocs++;
                         }
                     }
 
-                    // Chờ tất cả lệnh ghi hoàn thành
                     await Promise.all(promises);
+                    showToast(`Phục hồi thành công ${totalDocs} bản ghi!`);
                     
-                    showToast(`Phục hồi thành công ${totalDocs} bản ghi vào hệ thống!`);
-                    
-                    // Reset form upload
                     document.getElementById('jsonFileInput').value = '';
                     selectedFile = null;
-                    document.getElementById('fileNameDisplay').innerText = 'Chưa có file nào được chọn.';
+                    document.getElementById('fileNameDisplay').innerText = 'Chưa chọn file';
                     document.getElementById('fileNameDisplay').style.color = 'var(--primary)';
 
+                    if(currentCollection) loadCollectionData(); // Reload bảng nếu đang mở
                 } catch (err) {
-                    console.error(err);
-                    showToast("Lỗi nhập dữ liệu (Sai định dạng JSON hoặc rớt mạng): " + err.message, "danger");
+                    showToast("Lỗi nhập dữ liệu: " + err.message, "danger");
                 } finally {
-                    btn.innerHTML = '<i class="fas fa-upload"></i> Thực hiện Phục hồi (Restore)';
+                    btn.innerHTML = '<i class="fas fa-upload"></i> Bắt đầu Phục hồi (Restore)';
                 }
             };
-            
             reader.readAsText(selectedFile);
+        };
+
+        // ----------------------------------------------------
+        // 3. CHỨC NĂNG CHỈNH SỬA RAW DATA TRỰC TIẾP
+        // ----------------------------------------------------
+        let currentCollection = '';
+        let currentDocs = [];
+
+        window.loadCollectionData = async () => {
+            const col = document.getElementById('editorColSelect').value;
+            currentCollection = col;
+            const tbody = document.getElementById('dataTableBody');
+            
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;"><i class="fas fa-spinner fa-spin"></i> Đang tải...</td></tr>';
+            
+            try {
+                const snap = await getDocs(collection(db, col));
+                currentDocs = [];
+                snap.forEach(d => currentDocs.push({ id: d.id, data: d.data() }));
+
+                tbody.innerHTML = '';
+                if(currentDocs.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#64748b;">Bảng <b>${col}</b> chưa có dữ liệu nào.</td></tr>`;
+                    return;
+                }
+
+                currentDocs.forEach(item => {
+                    let jsonString = JSON.stringify(item.data);
+                    let preview = jsonString.length > 120 ? jsonString.substring(0, 120) + '...' : jsonString;
+                    
+                    tbody.innerHTML += `
+                        <tr>
+                            <td style="font-family:monospace; font-weight:bold; color:var(--primary);">${item.id}</td>
+                            <td><span class="code-preview">${preview}</span></td>
+                            <td align="center">
+                                <button class="btn btn-warning" style="padding: 5px 10px; font-size: 0.85rem;" onclick="openEditModal('${item.id}')"><i class="fas fa-edit"></i></button>
+                                <button class="btn btn-danger" style="padding: 5px 10px; font-size: 0.85rem;" onclick="deleteDocument('${item.id}')"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch(e) {
+                showToast("Lỗi tải bảng: " + e.message, 'danger');
+            }
+        };
+
+        window.openEditModal = (id) => {
+            const item = currentDocs.find(d => d.id === id);
+            document.getElementById('modalEditorTitle').innerText = 'Sửa Bản ghi JSON';
+            
+            const idInput = document.getElementById('editDocId');
+            idInput.value = id;
+            idInput.disabled = true; // Không cho sửa ID cũ
+            
+            document.getElementById('editDocData').value = JSON.stringify(item.data, null, 2);
+            document.getElementById('editModal').classList.remove('hidden');
+        };
+
+        window.openAddModal = () => {
+            if(!currentCollection) {
+                showToast("Vui lòng tải một bảng dữ liệu trước khi thêm mới!", "danger");
+                return;
+            }
+            document.getElementById('modalEditorTitle').innerText = `Thêm mới vào bảng [${currentCollection}]`;
+            
+            const idInput = document.getElementById('editDocId');
+            idInput.value = '';
+            idInput.disabled = false; // Cho phép điền ID mới
+            
+            document.getElementById('editDocData').value = '{\n  \n}';
+            document.getElementById('editModal').classList.remove('hidden');
+        };
+
+        window.saveDocument = async () => {
+            const idInput = document.getElementById('editDocId').value.trim();
+            const dataInput = document.getElementById('editDocData').value;
+            let parsedData;
+            
+            try {
+                parsedData = JSON.parse(dataInput);
+            } catch(e) {
+                showToast("Mã JSON không hợp lệ! Vui lòng kiểm tra lại cú pháp (dấu ngoặc, phẩy...).", "danger");
+                return;
+            }
+
+            try {
+                if(document.getElementById('editDocId').disabled) {
+                    // SỬA BẢN GHI ĐÃ CÓ (ID bị khóa)
+                    await setDoc(doc(db, currentCollection, idInput), parsedData);
+                    showToast(`Đã cập nhật bản ghi [${idInput}] thành công!`);
+                } else {
+                    // THÊM MỚI BẢN GHI
+                    if(idInput) {
+                        // Thêm với ID tự chọn
+                        await setDoc(doc(db, currentCollection, idInput), parsedData);
+                        showToast(`Đã tạo bản ghi mới với ID [${idInput}]!`);
+                    } else {
+                        // Thêm với ID tự sinh
+                        await addDoc(collection(db, currentCollection), parsedData);
+                        showToast(`Đã tạo bản ghi mới (ID tự sinh)!`);
+                    }
+                }
+                document.getElementById('editModal').classList.add('hidden');
+                loadCollectionData(); // Tải lại bảng
+            } catch(e) {
+                showToast("Lỗi lưu DB: " + e.message, "danger");
+            }
+        };
+
+        window.deleteDocument = async (id) => {
+            if(confirm(`Cảnh báo: Bạn có chắc chắn muốn XÓA VĨNH VIỄN bản ghi [${id}] khỏi bảng [${currentCollection}] không?`)) {
+                try {
+                    await deleteDoc(doc(db, currentCollection, id));
+                    showToast(`Đã xóa bản ghi [${id}]!`);
+                    loadCollectionData();
+                } catch(e) {
+                    showToast("Lỗi xóa DB: " + e.message, "danger");
+                }
+            }
         };
 
     </script>
