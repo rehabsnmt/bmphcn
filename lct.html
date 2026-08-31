@@ -276,6 +276,22 @@
         </div>
     </div>
 
+    <!-- MODAL POPUP CHI TIẾT CẢNH BÁO XUNG ĐỘT LỊCH -->
+    <div id="conflictModal" class="modal-overlay hidden" style="z-index: 3000;">
+        <div class="modal-content" style="max-width: 480px;">
+            <div class="modal-header" style="background: #ef4444;">
+                <h3><i class="fas fa-exclamation-triangle"></i> Xung đột lịch giảng dạy</h3>
+                <span style="cursor: pointer; font-weight: bold; font-size: 1.2rem;" onclick="document.getElementById('conflictModal').classList.add('hidden')">X</span>
+            </div>
+            <div class="modal-body" id="conflictModalBody" style="font-size: 0.95rem; line-height: 1.6;">
+                <!-- Nội dung chi tiết xung đột được đổ qua JS -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn-primary" style="background: #ef4444;" onclick="document.getElementById('conflictModal').classList.add('hidden')">Đã hiểu / Đóng</button>
+            </div>
+        </div>
+    </div>
+
     <div id="footer-placeholder"></div>
 
     <script src="js/layout.js"></script>
@@ -306,20 +322,19 @@
         let gvShortNameMap = {};
         let pendingDropInfo = null;
 
-        // --- HÀM TẠO MÀU SẮC ĐỘNG CHO TỪNG TÊN LỚP KHÁC NHAU ---
         window.getClassColor = (className) => {
             if (!className) return 'background:#e2e8f0; color:#475569; border: 1px solid #cbd5e1;';
             const palettes = [
-                { bg: '#bae6fd', text: '#0369a1' }, // Blue
-                { bg: '#fef08a', text: '#b45309' }, // Yellow
-                { bg: '#bbf7d0', text: '#166534' }, // Green
-                { bg: '#e9d5ff', text: '#6b21a8' }, // Purple
-                { bg: '#fbcfe8', text: '#9d174d' }, // Pink
-                { bg: '#fed7aa', text: '#c2410c' }, // Orange
-                { bg: '#99f6e4', text: '#0f766e' }, // Teal
-                { bg: '#fecaca', text: '#b91c1c' }, // Red
-                { bg: '#d9f99d', text: '#065f46' }, // Lime
-                { bg: '#bfdbfe', text: '#1d4ed8' }  // Deep Blue
+                { bg: '#bae6fd', text: '#0369a1' },
+                { bg: '#fef08a', text: '#b45309' },
+                { bg: '#bbf7d0', text: '#166534' },
+                { bg: '#e9d5ff', text: '#6b21a8' },
+                { bg: '#fbcfe8', text: '#9d174d' },
+                { bg: '#fed7aa', text: '#c2410c' },
+                { bg: '#99f6e4', text: '#0f766e' },
+                { bg: '#fecaca', text: '#b91c1c' },
+                { bg: '#d9f99d', text: '#065f46' },
+                { bg: '#bfdbfe', text: '#1d4ed8' } 
             ];
             let hash = 0;
             for (let i = 0; i < className.length; i++) {
@@ -330,7 +345,6 @@
             return `background:${color.bg}; color:${color.text}; border: 1px solid ${color.text}40;`;
         };
 
-        // --- HÀM CHUẨN HÓA ĐỊNH HƯỚNG TOÀN CỤC ---
         window.normalizeOrient = (orient) => {
             if (!orient) return 'CHUNG';
             let str = String(orient).toUpperCase().trim();
@@ -340,7 +354,6 @@
             return 'CHUNG';
         };
 
-        // --- HÀM KIỂM TRA LỚP MẸ/CON CHUẨN XÁC ---
         window.isClassMatch = (eventClass, filterClass) => {
             if (!eventClass || !filterClass) return false;
             if (eventClass === filterClass) return true;
@@ -374,6 +387,23 @@
             container.appendChild(toast);
             setTimeout(() => toast.classList.add('show'), 10);
             setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
+        }
+
+        // Hàm mở Popup Chi tiết Xung đột
+        function showConflictModal(conflictDetails) {
+            const modalBody = document.getElementById('conflictModalBody');
+            modalBody.innerHTML = `
+                <p style="margin: 0 0 10px 0; color: #b91c1c; font-weight: bold;">Không thể xếp lịch do trùng lặp tài nguyên:</p>
+                <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px; margin-bottom: 10px;">
+                    <p style="margin: 0 0 6px 0;"><strong>Nguyên nhân:</strong> ${conflictDetails.reason}</p>
+                    <p style="margin: 0 0 6px 0;"><strong>Lớp bị trùng:</strong> <span style="color: var(--primary); font-weight: bold;">${conflictDetails.conflictClass}</span></p>
+                    <p style="margin: 0 0 6px 0;"><strong>Môn đang học:</strong> ${conflictDetails.conflictSubject}</p>
+                    <p style="margin: 0 0 6px 0;"><strong>Giảng viên:</strong> ${conflictDetails.conflictGV}</p>
+                    <p style="margin: 0;"><strong>Thời gian:</strong> ${conflictDetails.timeRange}</p>
+                </div>
+                <p style="margin: 0; font-size: 0.85rem; color: #64748b; font-style: italic;">Vui lòng chọn phòng học khác hoặc dịch chuyển thời gian của lớp để tránh trùng lặp.</p>
+            `;
+            document.getElementById('conflictModal').classList.remove('hidden');
         }
 
         window.formatGvName = (gvString) => {
@@ -439,60 +469,79 @@
             return count;
         };
 
+        // HÀM KIỂM TRA TRÙNG LẶP GLOBAL (QUÉT TOÀN BỘ CÁC LỚP TRÊN HỆ THỐNG)
         function hasOverlap(targetStartStr, targetEndStr, gvStr, targetClass, targetTask, targetRoom, targetSubject, targetOrient, ignoreEventIds) {
             let ignoreList = Array.isArray(ignoreEventIds) ? ignoreEventIds : [ignoreEventIds];
             let tStart = new Date(targetStartStr).getTime();
             let tEnd = targetEndStr ? new Date(targetEndStr).getTime() : tStart + 4.5 * 3600000;
             let targetOrientNorm = window.normalizeOrient(targetOrient);
             
-            let targetBaseClass = targetClass ? targetClass.split('-')[0].trim() : '';
-
             let allSubEvents = [];
-            if (calendar) {
-                calendar.getEvents().forEach(e => {
-                    if (e.extendedProps && e.extendedProps.type === 'grouped_normal') {
-                        allSubEvents.push(...e.extendedProps.events.map(subEv => ({
-                            ...subEv, start: e.start, end: e.end      
-                        })));
-                    }
-                });
-            }
+            
+            // Quét từ database trực tiếp để đảm bảo kiểm tra được toàn bộ lớp (kể cả lớp đang không hiển thị trên màn hình lọc)
+            scheduledEventsDB.forEach(e => {
+                if (e.status === 'returned' || !e.start) return;
+                let eStart = new Date(e.start).getTime();
+                let eEnd = e.end ? new Date(e.end).getTime() : eStart + 4.5 * 3600000;
+                allSubEvents.push({ ...e, startMs: eStart, endMs: eEnd });
+            });
 
             const blockingTasks = ['Lý thuyết', 'Thực hành', 'Thực tế', 'Coi thi'];
 
             for (let e of allSubEvents) {
                 if (ignoreList.includes(e.id)) continue; 
-                
-                let eStart = new Date(e.start || Date.now()).getTime();
-                let eEnd = e.end ? new Date(e.end).getTime() : eStart + 4.5 * 3600000;
 
-                if (tStart < eEnd && tEnd > eStart) {
+                if (tStart < e.endMs && tEnd > e.startMs) {
                     let eOrientNorm = window.normalizeOrient(e.orientation);
-                    let eBaseClass = e.class ? e.class.split('-')[0].trim() : '';
                     
                     let isSameSubjectAndClass = (e.class === targetClass && e.subject === targetSubject);
                     let isDifferentSpecificOrient = (eOrientNorm !== 'CHUNG' && targetOrientNorm !== 'CHUNG' && eOrientNorm !== targetOrientNorm);
 
-                    let isSameSubjectAndBaseClass = (eBaseClass === targetBaseClass && e.subject === targetSubject);
-                    let isDifferentBatch = (e.class !== targetClass);
-
-                    if ((isSameSubjectAndClass && isDifferentSpecificOrient) || (isSameSubjectAndBaseClass && isDifferentBatch)) {
+                    if (isSameSubjectAndClass && isDifferentSpecificOrient) {
                         continue; 
                     }
 
+                    let timeFormatOpts = { hour: '2-digit', minute:'2-digit', day:'2-digit', month:'2-digit' };
+                    let timeRangeStr = `${new Date(e.start).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'})} - ${new Date(e.end || e.startMs + 4.5*3600000).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'})} (${new Date(e.start).toLocaleDateString('vi-VN')})`;
+
+                    // 1. Kiểm tra trùng Phòng
                     if (targetRoom && e.room && targetRoom !== 'Khác...' && targetRoom !== 'OTHER' && e.room === targetRoom) {
-                        return { hasOverlap: true, reason: `Phòng ${targetRoom} đã có lớp khác học vào khung giờ này!` };
+                        return { 
+                            hasOverlap: true, 
+                            reason: `Phòng "${targetRoom}" đã được sử dụng.`,
+                            conflictClass: e.class,
+                            conflictSubject: e.subject,
+                            conflictGV: e.gv || 'Chưa rõ',
+                            timeRange: timeRangeStr
+                        };
                     }
+
+                    // 2. Kiểm tra trùng lịch của chính Lớp đó
                     if (e.class === targetClass && blockingTasks.includes(targetTask) && blockingTasks.includes(e.task)) {
-                        return { hasOverlap: true, reason: `Lớp ${targetClass} đã có lịch học/thi khác vào khung giờ này!` };
+                        return { 
+                            hasOverlap: true, 
+                            reason: `Lớp ${targetClass} đã có lịch học/thi khác vào khung giờ này.`,
+                            conflictClass: e.class,
+                            conflictSubject: e.subject,
+                            conflictGV: e.gv || 'Chưa rõ',
+                            timeRange: timeRangeStr
+                        };
                     }
                     
+                    // 3. Kiểm tra trùng Giảng viên
                     let targetGVs = gvStr ? gvStr.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
                     let eGVs = e.gv ? e.gv.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
                     let hasCommonGV = targetGVs.some(gv => eGVs.includes(gv));
 
                     if (hasCommonGV && blockingTasks.includes(targetTask) && blockingTasks.includes(e.task)) {
-                        return { hasOverlap: true, reason: `Giảng viên bị trùng lịch dạy/coi thi lớp khác!` };
+                        return { 
+                            hasOverlap: true, 
+                            reason: `Giảng viên phụ trách đã bận dạy/coi thi ở lớp khác.`,
+                            conflictClass: e.class,
+                            conflictSubject: e.subject,
+                            conflictGV: e.gv || 'Chưa rõ',
+                            timeRange: timeRangeStr
+                        };
                     }
                 }
             }
@@ -517,7 +566,6 @@
             if (!calendar) return;
             
             let viewStart = calendar.view.activeStart;
-            // FullCalendar's activeEnd is exclusive (midnight of the next day), so subtract 1 ms
             let viewEnd = new Date(calendar.view.activeEnd.getTime() - 1);
             
             let dateStrRange = `Từ ${viewStart.toLocaleDateString('vi-VN', {day:'2-digit', month:'2-digit', year:'numeric'})} đến ${viewEnd.toLocaleDateString('vi-VN', {day:'2-digit', month:'2-digit', year:'numeric'})}`;
@@ -529,14 +577,13 @@
                 if (e.extendedProps && e.extendedProps.type === 'grouped_normal') {
                     e.extendedProps.events.forEach(subEv => {
                         let evStart = new Date(subEv.start);
-                        // Chỉ lấy các sự kiện nằm trong tuần đang xem
                         if (evStart >= viewStart && evStart <= viewEnd) {
                             reportData.push({
                                 start: evStart,
                                 end: subEv.end ? new Date(subEv.end) : new Date(evStart.getTime() + 4.5 * 3600000),
                                 class: subEv.class || '',
                                 subject: subEv.subject || '',
-                                gv: subEv.gv || '',
+                                gv: window.formatGvName(subEv.gv) || subEv.gv || '',
                                 task: subEv.task || '',
                                 room: subEv.room || 'Chưa XĐ',
                                 orient: window.normalizeOrient(subEv.orientation)
@@ -546,7 +593,6 @@
                 }
             });
             
-            // Sắp xếp báo cáo theo thời gian
             reportData.sort((a, b) => a.start.getTime() - b.start.getTime());
             
             if (reportData.length === 0) {
@@ -568,7 +614,7 @@
                         <td style="border: 1px solid #000; padding: 5px;">${thu}, ${ngay}</td>
                         <td style="text-align:center; border: 1px solid #000; padding: 5px;">${gio}</td>
                         <td style="border: 1px solid #000; padding: 5px;">${item.subject}</td>
-                        <td style="border: 1px solid #000; padding: 5px;">${item.class}</td>
+                        <td style="text-align:center; border: 1px solid #000; padding: 5px;">${item.class}</td>
                         <td style="border: 1px solid #000; padding: 5px;">${orientStr}</td>
                         <td style="border: 1px solid #000; padding: 5px;">${item.gv}</td>
                         <td style="border: 1px solid #000; padding: 5px;">${item.task}</td>
@@ -578,7 +624,6 @@
                 `;
             });
             
-            // Xây dựng mã HTML chứa thẻ table cho Word
             let htmlContent = `
                 <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
                 <head><meta charset='utf-8'><title>Báo cáo Thời khóa biểu</title></head>
@@ -609,7 +654,6 @@
                 </html>
             `;
             
-            // Tạo file Word dạng msword (.doc)
             let blob = new Blob(['\ufeff', htmlContent], {
                 type: 'application/msword'
             });
@@ -617,8 +661,7 @@
             let downloadLink = document.createElement("a");
             document.body.appendChild(downloadLink);
             
-            // Định dạng tên file
-            let sanitizedRange = dateStrRange.replace(/Từ |đến |\/| /g, '_');
+            let sanitizedRange = dateStrRange.replace(/Từ /g, '').replace(/đến /g, '').replace(/[\/ ]/g, '_');
             let fileName = `Bao_Cao_TKB_${sanitizedRange}.doc`;
 
             if (navigator.msSaveOrOpenBlob) {
@@ -664,7 +707,6 @@
                     snapSubjects.forEach(doc => {
                         const d = doc.data();
                         d.id = d.id || doc.id;
-                        
                         if (typeof d.orientations === 'string') {
                             d.orientations = d.orientations.split(',').map(s => s.trim()).filter(s => s);
                         } else if (!d.orientations) {
@@ -921,14 +963,25 @@
                 eventReceive: function(info) {
                     try {
                         const props = info.event.extendedProps;
-                        const orientAttr = props.orientations || '';
-                        const normCode = window.normalizeOrient(orientAttr);
+                        
+                        // Kiểm tra xung đột trước khi bật Modal chọn phòng
+                        let startStr = toLocalISOString(info.event.start);
+                        let endStr = info.event.end ? toLocalISOString(info.event.end) : toLocalISOString(new Date(info.event.start.getTime() + 4.5 * 3600000));
+                        
+                        let finalOrientation = props.orientations === 'Nghiên cứu' ? 'Nghiên cứu' : (props.orientations === 'Ứng dụng' ? 'Ứng dụng' : 'Cả hai');
+                        
+                        const overlapCheck = hasOverlap(startStr, endStr, props.gv, props.eventClass, props.task, ROOM_LIST[0], props.subject, finalOrientation, []);
+                        if (overlapCheck.hasOverlap) {
+                            showConflictModal(overlapCheck);
+                            info.revert(); return;
+                        }
 
                         const orientContainer = document.getElementById('modalOrientContainer');
                         const orientGroup = document.getElementById('orientGroup');
 
                         let orientLabelText = '';
                         let finalOrientVal = '';
+                        let normCode = window.normalizeOrient(props.orientations);
 
                         if (normCode === 'NC') {
                             orientLabelText = `Chỉ hướng Nghiên cứu (NC) - Tối đa ${props.maxRem} buổi`;
@@ -973,7 +1026,7 @@
                         for (let e of subEvents) {
                             const overlapCheck = hasOverlap(newStartStr, newEndStr, e.gv, e.class, e.task, e.room, e.subject, e.orientation, groupIds);
                             if (overlapCheck.hasOverlap) {
-                                showToast(overlapCheck.reason, "danger");
+                                showConflictModal(overlapCheck);
                                 info.revert(); return;
                             }
                         }
@@ -1009,7 +1062,7 @@
                         for (let e of subEvents) {
                             const overlapCheck = hasOverlap(newStartStr, newEndStr, e.gv, e.class, e.task, e.room, e.subject, e.orientation, groupIds);
                             if (overlapCheck.hasOverlap) {
-                                showToast(overlapCheck.reason, "danger");
+                                showConflictModal(overlapCheck);
                                 info.revert(); return;
                             }
                         }
@@ -1211,7 +1264,8 @@
 
                 const overlapCheck = hasOverlap(newStartStr, newEndStr, e.gv, e.class, e.task, roomVal, e.subject, e.orientation, idArray);
                 if (overlapCheck.hasOverlap) {
-                    showToast(overlapCheck.reason, "danger"); return;
+                    showConflictModal(overlapCheck);
+                    return;
                 }
             }
 
@@ -1260,7 +1314,7 @@
 
                 const overlapCheck = hasOverlap(startStr, endStr, props.gv, props.eventClass, props.task, selectedRoom, props.subject, finalOrientation, []);
                 if (overlapCheck.hasOverlap) {
-                    showToast(`Bị trùng lịch ở tuần thứ ${i+1}: ${overlapCheck.reason}`, "danger");
+                    showConflictModal(overlapCheck);
                     info.revert(); pendingDropInfo = null; return; 
                 }
 
