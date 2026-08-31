@@ -301,20 +301,19 @@
         let gvShortNameMap = {};
         let pendingDropInfo = null;
 
-        // --- HÀM TẠO MÀU SẮC ĐỘNG CHO TỪNG TÊN LỚP KHÁC NHAU ---
         window.getClassColor = (className) => {
             if (!className) return 'background:#e2e8f0; color:#475569; border: 1px solid #cbd5e1;';
             const palettes = [
-                { bg: '#bae6fd', text: '#0369a1' }, // Blue
-                { bg: '#fef08a', text: '#b45309' }, // Yellow
-                { bg: '#bbf7d0', text: '#166534' }, // Green
-                { bg: '#e9d5ff', text: '#6b21a8' }, // Purple
-                { bg: '#fbcfe8', text: '#9d174d' }, // Pink
-                { bg: '#fed7aa', text: '#c2410c' }, // Orange
-                { bg: '#99f6e4', text: '#0f766e' }, // Teal
-                { bg: '#fecaca', text: '#b91c1c' }, // Red
-                { bg: '#d9f99d', text: '#065f46' }, // Lime
-                { bg: '#bfdbfe', text: '#1d4ed8' }  // Deep Blue
+                { bg: '#bae6fd', text: '#0369a1' },
+                { bg: '#fef08a', text: '#b45309' },
+                { bg: '#bbf7d0', text: '#166534' },
+                { bg: '#e9d5ff', text: '#6b21a8' },
+                { bg: '#fbcfe8', text: '#9d174d' },
+                { bg: '#fed7aa', text: '#c2410c' },
+                { bg: '#99f6e4', text: '#0f766e' },
+                { bg: '#fecaca', text: '#b91c1c' },
+                { bg: '#d9f99d', text: '#065f46' },
+                { bg: '#bfdbfe', text: '#1d4ed8' } 
             ];
             let hash = 0;
             for (let i = 0; i < className.length; i++) {
@@ -325,7 +324,6 @@
             return `background:${color.bg}; color:${color.text}; border: 1px solid ${color.text}40;`;
         };
 
-        // --- HÀM CHUẨN HÓA ĐỊNH HƯỚNG ---
         window.normalizeOrient = (orient) => {
             if (!orient) return 'CHUNG';
             let str = String(orient).toUpperCase().trim();
@@ -335,7 +333,6 @@
             return 'CHUNG';
         };
 
-        // --- HÀM KIỂM TRA LỚP MẸ/CON ---
         window.isClassMatch = (eventClass, filterClass) => {
             if (!eventClass || !filterClass) return false;
             if (eventClass === filterClass) return true;
@@ -408,7 +405,6 @@
             }
         };
 
-        // --- CƠ CHẾ ĐỌC VÀ ĐẾM SỐ BUỔI CHUẨN XÁC THEO LUẬT MỚI ---
         window.getScheduledCount = (cls, targetOrientCode, subName, gv, task) => {
             let count = 0;
             let targetNorm = window.normalizeOrient(targetOrientCode);
@@ -539,7 +535,6 @@
                     snapSubjects.forEach(doc => {
                         const d = doc.data();
                         d.id = d.id || doc.id;
-                        
                         if (typeof d.orientations === 'string') {
                             d.orientations = d.orientations.split(',').map(s => s.trim()).filter(s => s);
                         } else if (!d.orientations) {
@@ -1293,7 +1288,6 @@
                 const asgObj = assignmentsData[sub.id];
                 if (!asgObj) return;
 
-                // QUAN TRỌNG: Quét chuẩn xác từng key DB đã được gán sẵn NC/UD
                 Object.keys(asgObj).forEach(dbKey => {
                     let clsMatch = null;
                     managedClasses.forEach(c => { 
@@ -1319,8 +1313,8 @@
                         
                         asgData.allocations.forEach(a => {
                             const totalAssigned = parseInt(a.assigned) || 0;
-                            // Thêm actualOrient vào mapKey để tách biệt hoàn toàn thẻ NC và UD
-                            const mapKey = `${sub.id}_${a.gv}_${a.task}_${clsMatch}_${actualOrient}`;
+                            // TÍNH NĂNG THÔNG MINH: Bỏ actualOrient khỏi mapKey để gộp 2 định hướng vào 1 thẻ
+                            const mapKey = `${sub.id}_${a.gv}_${a.task}_${clsMatch}`;
                             
                             if (!rawTaskMap.has(mapKey)) {
                                 rawTaskMap.set(mapKey, {
