@@ -11,32 +11,31 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        main { max-width: 100%; padding: 2rem 1%; margin: 0 auto; min-height: 75vh; box-sizing: border-box;}
+        main { max-width: 100%; padding: 1rem 1%; margin: 0 auto; min-height: 75vh; box-sizing: border-box;}
         
-        .page-header { text-align: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--border); }
-        .page-header h2 { font-size: 1.6rem; color: var(--text-dark); margin: 0; font-weight: 800; text-transform: uppercase; }
-        .page-header p { font-size: 0.95rem; color: var(--text-body); font-weight: 600; margin-top: 5px; }
+        .page-header { text-align: center; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+        .page-header h2 { font-size: 1.5rem; color: var(--text-dark); margin: 0; font-weight: 800; text-transform: uppercase; }
 
         .hidden { display: none !important; }
 
         /* TABS */
-        .tab-container { display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 2px solid #e2e8f0; justify-content: center; flex-wrap: wrap;}
-        .tab-btn { padding: 10px 20px; border: none; background: transparent; font-weight: bold; font-size: 1rem; color: #64748b; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: 0.2s;}
+        .tab-container { display: flex; gap: 10px; margin-bottom: 10px; border-bottom: 2px solid #e2e8f0; justify-content: center; flex-wrap: wrap;}
+        .tab-btn { padding: 8px 20px; border: none; background: transparent; font-weight: bold; font-size: 1rem; color: #64748b; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: 0.2s;}
         .tab-btn:hover { color: var(--primary); }
         .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
 
         /* THANH ĐIỀU KHIỂN TUẦN */
-        .toolbar { display: flex; justify-content: center; align-items: center; gap: 15px; background: var(--surface); padding: 15px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 20px; box-shadow: var(--shadow-sm); flex-wrap: wrap;}
+        .toolbar { display: flex; justify-content: center; align-items: center; gap: 15px; background: var(--surface); padding: 10px 15px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 15px; box-shadow: var(--shadow-sm); flex-wrap: wrap;}
         
-        .btn-week { background: white; color: var(--primary); border: 1px solid var(--primary); padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 6px; }
+        .btn-week { background: white; color: var(--primary); border: 1px solid var(--primary); padding: 6px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 6px; font-size: 0.9rem;}
         .btn-week:hover { background: var(--primary-light); }
         
-        .week-display { font-size: 1.1rem; font-weight: 800; color: var(--text-dark); min-width: 250px; text-align: center; }
-        .date-picker { padding: 8px; border-radius: 6px; border: 1px solid var(--border); font-family: inherit; font-weight: 600; color: var(--text-dark); outline: none; cursor: pointer;}
+        .week-display { font-size: 1.05rem; font-weight: 800; color: var(--text-dark); min-width: 250px; text-align: center; }
+        .date-picker { padding: 6px; border-radius: 6px; border: 1px solid var(--border); font-family: inherit; font-weight: 600; color: var(--text-dark); outline: none; cursor: pointer;}
         .date-picker:focus { border-color: var(--primary); }
 
         /* BẢNG LỊCH CÔNG TÁC */
-        .table-container { width: 100%; overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); box-shadow: var(--shadow-sm); max-height: calc(100vh - 250px); overflow-y: auto;}
+        .table-container { width: 100%; overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); box-shadow: var(--shadow-sm); max-height: calc(100vh - 200px); overflow-y: auto;}
         table { width: 100%; border-collapse: separate; border-spacing: 0; min-width: 1000px; }
         
         th, td { padding: 8px; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); vertical-align: top; }
@@ -68,7 +67,7 @@
         .modal-content { background: white; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); overflow: hidden; width: 100%; max-width: 450px;}
         .modal-header { padding: 15px 20px; background: var(--primary); color: white; display: flex; justify-content: space-between; align-items: center; }
         .modal-header h3 { margin: 0; font-size: 1.1rem; }
-        .modal-body { padding: 20px; line-height: 1.8; color: var(--text-dark); font-size: 0.95rem;}
+        .modal-body { padding: 20px; line-height: 1.8; color: var(--text-dark); font-size: 0.95rem; text-align: left; }
         .modal-body strong { color: #475569; }
 
         /* Toast */
@@ -91,8 +90,7 @@
 
     <main>
         <div class="page-header">
-            <h2><i class="fas fa-calendar-week"></i> LỊCH CÔNG TÁC GIẢNG VIÊN</h2>
-            <p>Theo dõi lịch trình, nhiệm vụ giảng dạy của Bộ môn</p>
+            <h2>LỊCH CÔNG TÁC GIẢNG VIÊN</h2>
         </div>
 
         <div id="loadingScreen" style="text-align: center; padding: 5rem 0; color: var(--primary); font-weight: 600; font-size: 1.2rem;">
