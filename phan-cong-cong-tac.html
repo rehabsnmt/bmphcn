@@ -17,6 +17,11 @@
         .header-title-box .subtitle { font-size: clamp(0.65rem, 2.2vw, 1rem); color: var(--text-body); font-weight: 600; margin-top: 5px; white-space: nowrap; text-overflow: ellipsis; }
 
         .hidden { display: none !important; }
+
+        /* Bảng Thông báo Đề xuất */
+        #pendingProposalsAlert { background: #fffbeb; border: 1px dashed #f59e0b; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .pending-chip { background: white; border: 1px solid #facc15; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: #92400e; font-weight: 600; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; text-align: left;}
+        .pending-chip:hover { background: #fef08a; transform: translateY(-2px); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         
         /* Tabs & Controls */
         .controls-wrapper { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; background: var(--surface); padding: 15px 20px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 20px; gap: 15px; box-shadow: var(--shadow-sm); }
@@ -160,6 +165,14 @@
         <div class="header-title-box">
             <h2>PHÂN CÔNG CÔNG TÁC GIẢNG DẠY</h2>
             <div class="subtitle">CHƯƠNG TRÌNH THẠC SĨ KỸ THUẬT PHỤC HỒI CHỨC NĂNG</div>
+        </div>
+
+        <!-- KHUNG THÔNG BÁO CHỜ DUYỆT (CHỈ HIỆN VỚI HOD KHI CÓ ĐỀ XUẤT) -->
+        <div id="pendingProposalsAlert" class="hidden">
+            <h4 style="margin: 0 0 10px 0; color: #b45309; font-size: 1.1rem;"><i class="fas fa-bell"></i> Phân công đang chờ Trưởng BM duyệt (<span id="pendingCount">0</span>)</h4>
+            <div id="pendingList" style="display: flex; flex-wrap: wrap; gap: 10px;">
+                <!-- Dữ liệu JS đổ vào -->
+            </div>
         </div>
 
         <div class="controls-wrapper">
@@ -362,7 +375,6 @@
     <script src="js/layout.js"></script>
 
     <script type="module">
-        // QUAN TRỌNG: Thêm 'query', 'where', 'deleteDoc' vào danh sách import
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, collection, onSnapshot, getDocs, deleteField, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
@@ -410,9 +422,7 @@
 
             const isNotPHCN = (sub.isPHCN === false) || (sub.department && sub.department !== 'Bộ môn Phục hồi chức năng' && sub.department !== 'Bộ môn PHCN');
 
-            if (isNotPHCN) {
-                return c;
-            }
+            if (isNotPHCN) return c;
 
             let key = c;
             if (c.toUpperCase().includes('THS')) {
@@ -706,6 +716,89 @@
             }
         }
 
+        // HÀM KIỂM TRA PHÂN CÔNG CHỜ DUYỆT
+        window.checkPendingProposals = () => {
+            if (!isHOD) return; // Chỉ Trưởng BM mới thấy
+            
+            let pendingItems = [];
+            for (let subId in assignmentsDB) {
+                let asgDoc = assignmentsDB[subId];
+                for (let dbKey in asgDoc) {
+                    if (asgDoc[dbKey].status === 'proposed') {
+                        let asg = asgDoc[dbKey];
+                        let parts = dbKey.split('_');
+                        let cls = parts[0];
+                        let orient = 'ALL';
+                        let majorKey = 'ALL';
+                        
+                        if (cls.toUpperCase().includes('THS')) {
+                            orient = parts[1] || 'ALL';
+                            majorKey = parts.length > 2 ? parts.slice(2).join('_') : 'ALL';
+                        } else {
+                            majorKey = parts.length > 1 ? parts.slice(1).join('_') : 'ALL';
+                        }
+                        
+                        let fullMajor = 'ALL';
+                        if (majorKey === 'VLTL') fullMajor = 'Vật lý trị liệu';
+                        else if (majorKey === 'HĐTL') fullMajor = 'Hoạt động trị liệu';
+                        else if (majorKey === 'NNTL') fullMajor = 'Ngôn ngữ trị liệu';
+                        else fullMajor = majorKey;
+
+                        pendingItems.push({
+                            subId: subId,
+                            name: asg.name || 'Môn học',
+                            cls: cls,
+                            orient: orient,
+                            major: fullMajor
+                        });
+                    }
+                }
+            }
+
+            const alertBox = document.getElementById('pendingProposalsAlert');
+            if (pendingItems.length > 0) {
+                document.getElementById('pendingCount').innerText = pendingItems.length;
+                let listHtml = '';
+                pendingItems.forEach(item => {
+                    let mDisplay = item.major === 'ALL' ? 'Chung' : item.major;
+                    let oDisplay = item.cls.toUpperCase().includes('THS') && item.orient !== 'ALL' ? ` - ${item.orient === 'UD' ? 'Ứng dụng' : 'Nghiên cứu'}` : '';
+                    listHtml += `<button class="pending-chip" onclick="goToProposal('${item.cls}', '${item.orient}', '${item.major}', '${item.subId}')">
+                        <i class="fas fa-hand-point-right" style="color: #f59e0b; font-size: 1.1rem;"></i> 
+                        <span>[${item.cls}${oDisplay} | ${mDisplay}] <b>${item.name}</b></span>
+                    </button>`;
+                });
+                document.getElementById('pendingList').innerHTML = listHtml;
+                alertBox.classList.remove('hidden');
+            } else {
+                alertBox.classList.add('hidden');
+            }
+        };
+
+        // HÀM ĐIỀU HƯỚNG NHANH ĐẾN ĐỀ XUẤT
+        window.goToProposal = (cls, orient, major, subId) => {
+            const classSel = document.getElementById('filterClass');
+            classSel.value = cls;
+            window.handleClassChange();
+            
+            if (cls.toUpperCase().includes('THS')) {
+                const orientSel = document.getElementById('filterOrient');
+                orientSel.value = orient;
+                window.handleOrientChange();
+            }
+            
+            const majorSel = document.getElementById('filterMajor');
+            if (Array.from(majorSel.options).some(opt => opt.value === major)) {
+                majorSel.value = major;
+            } else {
+                majorSel.value = 'ALL';
+            }
+            window.renderTable();
+            
+            setTimeout(() => {
+                window.openAssignModal(subId);
+            }, 100);
+        };
+
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 try {
@@ -726,7 +819,8 @@
 
                 const email = user.email.toLowerCase();
                 const adminEmails = ['lethanhvan@ump.edu.vn', 'hoangtran1483@gmail.com', 'nguyenngocminhpt@ump.edu.vn'];
-                const managerEmails = ['phanthenguyenpt@ump.edu.vn', 'thduypt@ump.edu.vn'];
+                // Đã cấp quyền Quản lý/Đề xuất cho GV Minh (minhngpt@ump.edu.vn)
+                const managerEmails = ['phanthenguyenpt@ump.edu.vn', 'thduypt@ump.edu.vn', 'minhngpt@ump.edu.vn'];
                 
                 if (adminEmails.includes(email)) isHOD = true;
                 if (managerEmails.includes(email) || adminEmails.includes(email)) isManager = true;
@@ -750,13 +844,14 @@
                     assignmentsDB = {};
                     snapshot.forEach(doc => { assignmentsDB[doc.id] = doc.data(); });
                     window.renderTable(); 
+                    window.checkPendingProposals(); // Quét để hiển thị thông báo Đề xuất chờ duyệt
                 });
 
                 onSnapshot(collection(db, "calendar_events"), (snapshot) => {
                     calendarEventsDB = [];
                     snapshot.forEach(doc => { 
                         let data = doc.data();
-                        data.id = doc.id; // Gắn ID vào để phục vụ tính năng dọn rác
+                        data.id = doc.id; 
                         calendarEventsDB.push(data); 
                     });
                     window.renderTable();
