@@ -733,7 +733,7 @@
         window.checkPendingProposals = () => {
             if (!isHOD) return; 
             
-            let pendingItems = []; 
+            let pendingMap = new Map(); 
 
             for (let subId in assignmentsDB) {
                 let asgDoc = assignmentsDB[subId];
@@ -742,7 +742,6 @@
                 for (let dbKey in asgDoc) {
                     if (asgDoc[dbKey].status === 'proposed') {
                         let asg = asgDoc[dbKey];
-                        
                         let cls = asg.class || dbKey.split('_')[0];
                         let name = asg.name || (sub ? sub.name : 'Môn học');
                         
@@ -752,15 +751,21 @@
                             else if (dbKey.includes('_UD')) orient = 'UD';
                         }
 
-                        // Chống lặp nếu 1 môn bị nhân đôi ra 2 dòng cho 2 hệ
-                        if (!pendingItems.find(item => item.subId === subId && item.cls === cls && item.orient === orient)) {
-                            pendingItems.push({ subId, name, cls, orient });
+                        // Tính năng thông minh: Gộp chung 1 thẻ nếu cùng lớp, cùng môn
+                        let mapKey = `${cls}_${name}`;
+
+                        if (!pendingMap.has(mapKey)) {
+                            pendingMap.set(mapKey, { subId, name, cls, orients: new Set([orient]) });
+                        } else {
+                            pendingMap.get(mapKey).orients.add(orient);
                         }
                     }
                 }
             }
 
             const alertBox = document.getElementById('pendingProposalsAlert');
+            let pendingItems = Array.from(pendingMap.values());
+            
             if (pendingItems.length > 0) {
                 document.getElementById('pendingCount').innerText = pendingItems.length;
                 let listHtml = '';
@@ -768,19 +773,26 @@
                 pendingItems.forEach(item => {
                     let badgeText = `[${item.cls}]`;
                     if (item.cls.toUpperCase().includes('THS')) {
-                        if (item.orient === 'ALL') {
-                            badgeText = `[${item.cls} - Dữ liệu cũ]`;
+                        if (item.orients.has('NC') && item.orients.has('UD')) {
+                            badgeText = `[${item.cls} - Học chung NC & UD]`;
+                        } else if (item.orients.has('NC')) {
+                            badgeText = `[${item.cls} - Nghiên cứu]`;
+                        } else if (item.orients.has('UD')) {
+                            badgeText = `[${item.cls} - Ứng dụng]`;
                         } else {
-                            badgeText = `[${item.cls} - ${item.orient === 'NC' ? 'Nghiên cứu' : 'Ứng dụng'}]`;
+                            badgeText = `[${item.cls} - Dữ liệu cũ]`;
                         }
                     }
 
-                    listHtml += `<button class="pending-chip" onclick="goToProposal('${item.cls}', '${item.orient}', '${item.subId}')">
+                    let targetOrient = 'ALL';
+                    if (item.orients.has('NC') && !item.orients.has('UD')) targetOrient = 'NC';
+                    if (item.orients.has('UD') && !item.orients.has('NC')) targetOrient = 'UD';
+
+                    listHtml += `<button class="pending-chip" onclick="goToProposal('${item.cls}', '${targetOrient}', '${item.subId}')">
                         <i class="fas fa-hand-point-right" style="color: #f59e0b; font-size: 1.1rem;"></i> 
                         <span>${badgeText} <b style="color: var(--primary);">${item.name}</b></span>
                     </button>`;
                 });
-                
                 document.getElementById('pendingList').innerHTML = listHtml;
                 alertBox.classList.remove('hidden');
             } else {
