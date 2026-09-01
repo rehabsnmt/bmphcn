@@ -130,14 +130,13 @@
             .subject-row td:last-child { border-bottom: none; }
             
             .subject-row.expanded td { display: block; }
-            .subject-row td:nth-child(1) { display: none !important; }
-            .subject-row td:nth-child(2) { display: block; padding-right: 50px; border-bottom: none; font-size: 1.05rem; }
-            .subject-row.expanded td:nth-child(2) { border-bottom: 1px dashed var(--border); }
+            .subject-row td:nth-child(1) { display: block; padding-right: 50px; border-bottom: none; font-size: 1.05rem; }
+            .subject-row.expanded td:nth-child(1) { border-bottom: 1px dashed var(--border); }
             
-            .subject-row td:nth-child(3)::before { content: "Học kỳ: "; font-weight: bold; color: var(--primary); display: block; margin-bottom: 5px; }
-            .subject-row td:nth-child(4)::before { content: "Phân công: "; font-weight: bold; color: var(--primary); display: block; margin-bottom: 5px; }
-            .subject-row td:nth-child(5)::before { content: "Tiến độ: "; font-weight: bold; color: var(--primary); display: block; margin-bottom: 5px; }
-            .subject-row td:nth-child(6) { display: flex !important; justify-content: flex-end; }
+            .subject-row td:nth-child(2)::before { content: "Học kỳ: "; font-weight: bold; color: var(--primary); display: block; margin-bottom: 5px; }
+            .subject-row td:nth-child(3)::before { content: "Phân công: "; font-weight: bold; color: var(--primary); display: block; margin-bottom: 5px; }
+            .subject-row td:nth-child(4)::before { content: "Tiến độ: "; font-weight: bold; color: var(--primary); display: block; margin-bottom: 5px; }
+            .subject-row td:nth-child(5) { display: flex !important; justify-content: flex-end; }
             
             .task-row { flex-wrap: wrap; }
             .task-row > div { flex: 1 1 100%; width: 100%; }
@@ -167,7 +166,7 @@
             <div class="subtitle">CHƯƠNG TRÌNH THẠC SĨ KỸ THUẬT PHỤC HỒI CHỨC NĂNG</div>
         </div>
 
-        <!-- KHUNG THÔNG BÁO CHỜ DUYỆT (CHỈ HIỆN VỚI HOD KHI CÓ ĐỀ XUẤT) -->
+        <!-- KHUNG THÔNG BÁO CHỜ DUYỆT ĐƯỢC TỐI GIẢN -->
         <div id="pendingProposalsAlert" class="hidden">
             <h4 style="margin: 0 0 10px 0; color: #b45309; font-size: 1.1rem;"><i class="fas fa-bell"></i> Đề xuất chờ duyệt (<span id="pendingCount">0</span>)</h4>
             <div id="pendingList" style="display: flex; flex-wrap: wrap; gap: 10px;">
@@ -215,7 +214,6 @@
             <table>
                 <thead>
                     <tr>
-                        <th style="width: 50px; text-align: center;">STT</th>
                         <th style="min-width: 320px;">Tên Học phần</th>
                         <th style="width: 120px;">Học kỳ</th>
                         <th style="min-width: 320px;">Phân công Giảng viên</th>
@@ -319,11 +317,7 @@
                 <div id="asgSemesterContainer">
                     <label style="font-weight: 600; display: block; margin-bottom: 5px;">Học kỳ:</label>
                     <select id="asgSemester" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border); outline: none;">
-                        <option value="">-- Chưa xác định --</option>
-                        <option value="Học kỳ 1">Học kỳ 1</option>
-                        <option value="Học kỳ 2">Học kỳ 2</option>
-                        <option value="Học kỳ 3">Học kỳ 3</option>
-                        <option value="Học kỳ 4">Học kỳ 4</option>
+                        <!-- Đổ bằng JS -->
                     </select>
                 </div>
             </div>
@@ -358,8 +352,7 @@
             <div style="margin-bottom: 20px; max-width: 300px;">
                 <label style="font-weight: 600; display: block; margin-bottom: 5px;">Học kỳ:</label>
                 <select id="tasgSemester" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border); outline: none;">
-                    <option value="Học kỳ 3">Học kỳ 3</option>
-                    <option value="Học kỳ 4" selected>Học kỳ 4</option>
+                    <!-- Đổ bằng JS -->
                 </select>
             </div>
 
@@ -384,20 +377,6 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        const GROUP_ORDER = [
-            "1. Kiến thức chung",
-            "2. Kiến thức cơ sở",
-            "3.1. Kiến thức ngành (bắt buộc)",
-            "3.2. Kiến thức ngành (tự chọn - Vật lý trị liệu)",
-            "3.2. Kiến thức ngành (tự chọn - Hoạt động trị liệu)",
-            "3.2. Kiến thức ngành (tự chọn - Ngôn ngữ trị liệu)",
-            "4. Chuyên đề nghiên cứu",
-            "4. Thực tập",
-            "5. Đề án",
-            "5. Luận văn",
-            "6. Công việc khác"
-        ];
-
         let internalLecturers = []; 
         let visitingLecturers = []; 
         let learnersList = []; 
@@ -416,7 +395,7 @@
         window.getCurrentClass = () => document.getElementById('filterClass').value;
         window.getCurrentOrient = () => document.getElementById('filterOrient').value;
         
-        // HÀM TẠO KEY CHUẨN (Ép buộc gắn thêm NC/UD đối với Thạc sĩ)
+        // HÀM TẠO KEY CHUẨN XÁC LUÔN CÓ ĐỊNH HƯỚNG
         window.getDbKey = (sub) => {
             const c = window.getCurrentClass();
             const o = window.getCurrentOrient();
@@ -616,13 +595,11 @@
                     filterClassEl.innerHTML = `<option value="ALL">Chưa có dữ liệu</option>`;
                 }
 
+                // Sắp xếp môn học theo thuật toán Natural Sort (ưu tiên giá trị số)
                 subjectsData.sort((a, b) => {
-                    let idxA = GROUP_ORDER.indexOf(a.group);
-                    let idxB = GROUP_ORDER.indexOf(b.group);
-                    if (idxA === -1) idxA = 999;
-                    if (idxB === -1) idxB = 999;
-                    if (idxA !== idxB) return idxA - idxB;
-                    return a.name.localeCompare(b.name, 'vi');
+                    let nameA = a.name || "";
+                    let nameB = b.name || "";
+                    return nameA.localeCompare(nameB, 'vi', { numeric: true });
                 });
 
                 const snapUser = await getDocs(collection(db, "users"));
@@ -832,8 +809,7 @@
                     const userDoc = await getDoc(doc(db, "users", user.uid));
                     if (userDoc.exists()) {
                         const data = userDoc.data();
-                        let prefix = data.degree === 'ThS' ? 'ThS. ' : (data.degree === 'TS' ? 'TS. ' : '');
-                        let currentUserName = `${prefix}${data.fullName}`;
+                        let currentUserName = data.fullName; // Header không kèm học vị
                         setTimeout(() => {
                             const btnAuthNav = document.getElementById('btnAuthNav');
                             if (btnAuthNav) {
@@ -934,15 +910,14 @@
                     groupedMap.get(gName).push(s);
                 });
 
-                let stt = 1;
                 let gIdx = 0;
                 groupedMap.forEach((subsInGroup, groupName) => {
                     const gClass = `grp-${gIdx}`;
                     let groupTotal = 0;
                     subsInGroup.forEach(s => groupTotal += (s.credits || 0));
                     
-                    tbody.innerHTML += `<tr class="group-header" onclick="toggleGroup('${gClass}', 'icon-${gIdx}')"><td colspan="6" class="group-title"><i id="icon-${gIdx}" class="fas fa-chevron-down group-icon"></i> ${groupName} <span style="color:#b45309; font-size:0.9rem; margin-left: 10px;">(Tổng: ${groupTotal} TC)</span></td></tr>`;
-                    subsInGroup.forEach(sub => { appendSubjectRow(tbody, sub, gClass, stt++, cls, orient); });
+                    tbody.innerHTML += `<tr class="group-header" onclick="toggleGroup('${gClass}', 'icon-${gIdx}')"><td colspan="5" class="group-title"><i id="icon-${gIdx}" class="fas fa-chevron-down group-icon"></i> ${groupName} <span style="color:#b45309; font-size:0.9rem; margin-left: 10px;">(Tổng: ${groupTotal} TC)</span></td></tr>`;
+                    subsInGroup.forEach(sub => { appendSubjectRow(tbody, sub, gClass, cls, orient); });
                     gIdx++;
                 });
             } else {
@@ -955,7 +930,7 @@
                     semData[sem].push(sub);
                 });
 
-                const semOrder = ['Học kỳ 1', 'Học kỳ 2', 'Học kỳ 3', 'Học kỳ 4', 'Chưa phân bổ', 'Các Công Việc Khác'];
+                const semOrder = ['Học kỳ 1', 'Học kỳ 2', 'Học kỳ 3', 'Học kỳ 4', 'Học kỳ 5', 'Học kỳ 6', 'Học kỳ 7', 'Học kỳ 8', 'Chưa phân bổ', 'Các Công Việc Khác'];
                 const semKeys = Object.keys(semData).sort((a, b) => {
                     let idxA = semOrder.indexOf(a);
                     let idxB = semOrder.indexOf(b);
@@ -964,19 +939,18 @@
                     return idxA - idxB;
                 });
 
-                let stt = 1;
                 semKeys.forEach((semName, gIdx) => {
                     const gClass = `sem-${gIdx}`;
                     let semTotal = 0;
                     semData[semName].forEach(s => semTotal += (s.credits || 0));
                     
-                    tbody.innerHTML += `<tr class="group-header" onclick="toggleGroup('${gClass}', 'icon-sem-${gIdx}')"><td colspan="6" class="group-title"><i id="icon-sem-${gIdx}" class="fas fa-chevron-down group-icon"></i> ${semName} <span style="color:#b45309; font-size:0.9rem; margin-left: 10px;">(Tổng: ${semTotal} TC)</span></td></tr>`;
-                    semData[semName].forEach(sub => { appendSubjectRow(tbody, sub, gClass, stt++, cls, orient); });
+                    tbody.innerHTML += `<tr class="group-header" onclick="toggleGroup('${gClass}', 'icon-sem-${gIdx}')"><td colspan="5" class="group-title"><i id="icon-sem-${gIdx}" class="fas fa-chevron-down group-icon"></i> ${semName} <span style="color:#b45309; font-size:0.9rem; margin-left: 10px;">(Tổng: ${semTotal} TC)</span></td></tr>`;
+                    semData[semName].forEach(sub => { appendSubjectRow(tbody, sub, gClass, cls, orient); });
                 });
             }
         };
 
-        function appendSubjectRow(tbody, sub, gClass, sttIndex, cls, orient) {
+        function appendSubjectRow(tbody, sub, gClass, cls, orient) {
             const asgDoc = assignmentsDB[sub.id] || {};
             const dbKey = window.getDbKey(sub);
             const asg = asgDoc[dbKey] || { semester: '', allocations: [], proposed_allocations: [] };
@@ -1063,7 +1037,6 @@
 
             tbody.innerHTML += `
                 <tr class="subject-row ${gClass}">
-                    <td align="center" style="font-weight:bold; color:#94a3b8;">${sttIndex}</td>
                     <td>
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <div class="subject-link" onclick="openSubjectModal('${sub.id}')">${sub.name} ${orientTag} ${creditsBadge} ${statusBadge}</div>
@@ -1127,6 +1100,21 @@
                 return;
             }
 
+            // TẠO OPTIONS HỌC KỲ ĐỘNG TÙY THEO HỆ THS (4) HAY CỬ NHÂN (8)
+            let maxSemester = cls.toUpperCase().includes('THS') ? 4 : 8;
+            let semOptionsHTML = '<option value="">-- Chưa xác định --</option>';
+            for(let i=1; i<=maxSemester; i++){
+                semOptionsHTML += `<option value="Học kỳ ${i}">Học kỳ ${i}</option>`;
+            }
+            let thesisSemOptionsHTML = ''; 
+            for(let i=1; i<=maxSemester; i++){
+                thesisSemOptionsHTML += `<option value="Học kỳ ${i}">Học kỳ ${i}</option>`;
+            }
+            const asgSemEl = document.getElementById('asgSemester');
+            const tasgSemEl = document.getElementById('tasgSemester');
+            if (asgSemEl) asgSemEl.innerHTML = semOptionsHTML;
+            if (tasgSemEl) tasgSemEl.innerHTML = thesisSemOptionsHTML;
+
             currentEditingSubId = id;
             const sub = subjectsData.find(s => s.id === id);
             
@@ -1136,7 +1124,7 @@
 
             if(sub.name && (sub.name.includes("Luận văn") || sub.name.includes("Đề án"))) {
                 document.getElementById('tasgName').innerText = `${sub.name} (Lớp: ${cls} ${orient ? '- Hướng ' + (orient==='UD'?'Ứng dụng':'Nghiên cứu') : ''})`;
-                document.getElementById('tasgSemester').value = asg.semester || 'Học kỳ 4';
+                document.getElementById('tasgSemester').value = asg.semester || `Học kỳ ${maxSemester}`;
                 document.getElementById('thesisAllocContainer').innerHTML = '';
                 
                 let targetAllocations = asg.allocations;
@@ -1192,7 +1180,7 @@
                 } else {
                     document.getElementById('asgLimits').classList.remove('hidden');
                     document.getElementById('asgSemesterContainer').classList.remove('hidden');
-                    document.getElementById('asgSemester').value = asg.semester;
+                    document.getElementById('asgSemester').value = asg.semester || '';
                 }
                 
                 document.getElementById('allocContainer').innerHTML = '';
@@ -1416,7 +1404,7 @@
                         if(e.id) delPromises.push(deleteDoc(doc(db, "calendar_events", e.id)));
                     });
                     if (delPromises.length > 0) await Promise.all(delPromises);
-                } catch(err) {}
+                } catch(err) { console.log("Lỗi dọn rác lịch: ", err); }
 
             } else {
                 let updateData = { 
