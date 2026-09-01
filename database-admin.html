@@ -86,7 +86,7 @@
                     <option value="learners">Danh sách Người học (learners)</option>
                     <option value="theses">Đề tài Luận văn (theses)</option>
                     <option value="calendar_events">Lịch giảng dạy (calendar_events)</option>
-                    <option value="clinical_schedules">Lịch đi bệnh viện (clinical_schedules)</option> <!-- Bổ sung bảng lịch đi BV -->
+                    <option value="clinical_schedules">Lịch đi bệnh viện (clinical_schedules)</option>
                     <option value="assignments">Phân công (assignments)</option>
                     <option value="announcements">Thông báo (announcements)</option>
                     <option value="users">Tài khoản (users)</option>
@@ -205,7 +205,8 @@
                         let val = doc[h];
                         if (val === undefined || val === null) return '';
                         if (typeof val === 'object') return JSON.stringify(val);
-                        return String(val);
+                        // Giữ nguyên Data type số (Number) để bộ lọc/sắp xếp hoạt động chính xác
+                        return val; 
                     });
                 });
 
@@ -228,9 +229,29 @@
                     licenseKey: 'non-commercial-and-evaluation', // Phiên bản miễn phí
                     
                     /* BẬT TÍNH NĂNG SẮP XẾP VÀ LỌC GIỐNG EXCEL */
-                    dropdownMenu: true, // Menu xổ xuống ở Header
-                    filters: true,      // Bộ lọc dữ liệu Excel
-                    columnSorting: true, // Sắp xếp A-Z, Z-A khi click Header
+                    dropdownMenu: true,
+                    filters: true,
+                    
+                    /* THUẬT TOÁN SẮP XẾP THÔNG MINH (NATURAL SORT) */
+                    columnSorting: {
+                        compareFunctionFactory: function(sortOrder, columnMeta) {
+                            return function(value, nextValue) {
+                                // Xử lý ô rỗng (Luôn đẩy xuống dưới cùng)
+                                if (value === nextValue) return 0;
+                                if (value === '' || value === null || value === undefined) return 1; 
+                                if (nextValue === '' || nextValue === null || nextValue === undefined) return -1;
+                                
+                                // Ép kiểu về chuỗi để so sánh tự nhiên (Natural Compare)
+                                let str1 = String(value);
+                                let str2 = String(nextValue);
+                                
+                                // Thuật toán Natural Sort: nhận diện "2" nhỏ hơn "11", "Đợt 2" nhỏ hơn "Đợt 11"
+                                let result = str1.localeCompare(str2, undefined, {numeric: true, sensitivity: 'base'});
+                                
+                                return sortOrder === 'asc' ? result : -result;
+                            };
+                        }
+                    },
 
                     contextMenu: {
                         items: {
