@@ -9,9 +9,12 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Handsontable CSS & JS (Thư viện tạo bảng Excel mạnh nhất) -->
+    <!-- Handsontable CSS & JS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css">
     <script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
+    
+    <!-- SheetJS (Hỗ trợ Nhập/Xuất Excel .xlsx) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     
     <style>
         /* Mở rộng main để khung Excel chiếm toàn màn hình */
@@ -40,6 +43,8 @@
         .btn-danger:hover { background: #dc2626; transform: translateY(-1px);}
         .btn-outline { background: white; color: #475569; border: 1px solid #cbd5e1; }
         .btn-outline:hover { background: #f1f5f9; color: var(--text-dark); }
+        .btn-excel { background: #15803d; color: white; }
+        .btn-excel:hover { background: #166534; transform: translateY(-1px);}
         .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none;}
 
         /* Khung Excel */
@@ -75,7 +80,7 @@
         <div class="page-header">
             <h2><i class="fas fa-database"></i> Quản Trị CSDL Nâng Cao</h2>
             <div style="font-size: 0.9rem; color: #64748b;">
-                <i class="fas fa-info-circle"></i> Click tiêu đề để <b>Sắp xếp/Lọc</b>. Chuột phải để <b>Chèn Cột, Hàng, Xóa</b>.
+                <i class="fas fa-info-circle"></i> Click tiêu đề để <b>Sắp xếp/Lọc</b>. Kéo thả tiêu đề để <b>Dời Cột</b>. Chuột phải để <b>Chèn, Xóa</b>.
             </div>
         </div>
 
@@ -92,15 +97,20 @@
                     <option value="users">Tài khoản (users)</option>
                     <option value="visiting_lecturers">GV Thỉnh giảng (visiting_lecturers)</option>
                 </select>
-                <button class="btn btn-primary" onclick="loadData()"><i class="fas fa-sync"></i> Tải dữ liệu bảng</button>
-                <button class="btn btn-success" onclick="saveData()"><i class="fas fa-save"></i> Lưu Thay Đổi Của Bảng Lên DB</button>
+                <button class="btn btn-primary" onclick="loadData()"><i class="fas fa-sync"></i> Tải dữ liệu</button>
+                <button class="btn btn-success" onclick="saveData()"><i class="fas fa-save"></i> Lưu Thay Đổi</button>
+                
+                <!-- Nút xuất/nhập Excel riêng cho từng bảng -->
+                <button class="btn btn-excel" onclick="exportTableToExcel()"><i class="fas fa-file-excel"></i> Xuất Excel</button>
+                <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" hidden onchange="importTableFromExcel(event)">
+                <button class="btn btn-excel" onclick="document.getElementById('excelFileInput').click()"><i class="fas fa-file-upload"></i> Nhập Excel</button>
             </div>
             
             <div class="toolbar-right">
-                <span style="font-size: 0.85rem; color: #94a3b8; font-weight: bold;">Toàn hệ thống:</span>
+                <span style="font-size: 0.85rem; color: #94a3b8; font-weight: bold;">Hệ thống:</span>
                 <button class="btn btn-outline" onclick="exportDataToJSON()"><i class="fas fa-file-export"></i> Xuất JSON</button>
                 <input type="file" id="jsonFileInput" accept=".json" hidden onchange="importDataFromJSON(event)">
-                <button class="btn btn-danger" onclick="document.getElementById('jsonFileInput').click()"><i class="fas fa-file-import"></i> Nhập JSON (Ghi đè)</button>
+                <button class="btn btn-danger" onclick="document.getElementById('jsonFileInput').click()"><i class="fas fa-file-import"></i> Khôi phục JSON</button>
             </div>
         </div>
 
@@ -108,7 +118,7 @@
             <div id="hot-container">
                 <div style="text-align: center; padding-top: 100px; color: #94a3b8;">
                     <i class="fas fa-table" style="font-size: 3rem; margin-bottom: 10px; opacity: 0.5;"></i><br>
-                    Chọn bảng và bấm "Tải dữ liệu bảng" để bắt đầu làm việc.
+                    Chọn bảng và bấm "Tải dữ liệu" để bắt đầu làm việc.
                 </div>
             </div>
         </div>
@@ -164,7 +174,7 @@
         });
 
         // ----------------------------------------------------
-        // 1. TẢI DỮ LIỆU LÊN BẢNG HANDSONTABLE (EXCEL)
+        // 1. TẢI DỮ LIỆU LÊN BẢNG HANDSONTABLE
         // ----------------------------------------------------
         window.clearTable = () => {
             if(hotInstance) {
@@ -174,7 +184,7 @@
             document.getElementById('hot-container').innerHTML = `
                 <div style="text-align: center; padding-top: 100px; color: #94a3b8;">
                     <i class="fas fa-table" style="font-size: 3rem; margin-bottom: 10px; opacity: 0.5;"></i><br>
-                    Chọn bảng và bấm "Tải dữ liệu bảng" để bắt đầu làm việc.
+                    Chọn bảng và bấm "Tải dữ liệu" để bắt đầu làm việc.
                 </div>`;
         };
 
@@ -199,18 +209,15 @@
                 headers = ["_docId", ...Array.from(keySet).sort()];
                 originalIds = rawDocs.map(d => d._docId);
 
-                // Chuyển Data thành mảng 2 chiều
                 let dataMatrix = rawDocs.map(doc => {
                     return headers.map(h => {
                         let val = doc[h];
                         if (val === undefined || val === null) return '';
                         if (typeof val === 'object') return JSON.stringify(val);
-                        // Giữ nguyên Data type số (Number) để bộ lọc/sắp xếp hoạt động chính xác
                         return val; 
                     });
                 });
 
-                // Nếu bảng trống
                 if (dataMatrix.length === 0) {
                     dataMatrix = [ headers.map(h => '') ];
                 }
@@ -220,34 +227,29 @@
                 hotInstance = new Handsontable(container, {
                     data: dataMatrix,
                     colHeaders: headers,
-                    rowHeaders: true, // Đánh số thứ tự 1, 2, 3...
+                    rowHeaders: true, 
                     manualColumnResize: true,
                     manualRowResize: true,
+                    manualColumnMove: true, // TÍNH NĂNG KÉO THẢ DỜI CỘT
                     undo: true,
                     width: '100%',
                     height: '100%',
-                    licenseKey: 'non-commercial-and-evaluation', // Phiên bản miễn phí
+                    licenseKey: 'non-commercial-and-evaluation',
                     
-                    /* BẬT TÍNH NĂNG SẮP XẾP VÀ LỌC GIỐNG EXCEL */
                     dropdownMenu: true,
                     filters: true,
                     
-                    /* THUẬT TOÁN SẮP XẾP THÔNG MINH (NATURAL SORT) */
                     columnSorting: {
                         compareFunctionFactory: function(sortOrder, columnMeta) {
                             return function(value, nextValue) {
-                                // Xử lý ô rỗng (Luôn đẩy xuống dưới cùng)
                                 if (value === nextValue) return 0;
                                 if (value === '' || value === null || value === undefined) return 1; 
                                 if (nextValue === '' || nextValue === null || nextValue === undefined) return -1;
                                 
-                                // Ép kiểu về chuỗi để so sánh tự nhiên (Natural Compare)
                                 let str1 = String(value);
                                 let str2 = String(nextValue);
                                 
-                                // Thuật toán Natural Sort: nhận diện "2" nhỏ hơn "11", "Đợt 2" nhỏ hơn "Đợt 11"
                                 let result = str1.localeCompare(str2, undefined, {numeric: true, sensitivity: 'base'});
-                                
                                 return sortOrder === 'asc' ? result : -result;
                             };
                         }
@@ -264,17 +266,18 @@
                             "remove_col": { name: '<i class="fas fa-times" style="color:red;"></i> Xóa cột' },
                             "hsep2": "---------",
                             "rename_col": {
-                                name: '<i class="fas fa-edit"></i> <b>Đổi Tên Thuộc Tính (Key Cột)</b>',
+                                name: '<i class="fas fa-edit"></i> <b>Đổi Tên Cột (Key)</b>',
                                 callback: function(key, selection) {
-                                    let colIndex = selection[0].start.col;
-                                    if (colIndex === 0) {
+                                    // Lấy index thật của cột (sau khi bị người dùng kéo thả dời vị trí)
+                                    let physicalCol = this.toPhysicalColumn(selection[0].start.col);
+                                    if (headers[physicalCol] === '_docId') {
                                         alert("Không thể đổi tên cột khóa chính (_docId)!");
                                         return;
                                     }
-                                    let currentName = headers[colIndex] || hotInstance.getColHeader(colIndex);
+                                    let currentName = headers[physicalCol];
                                     let newName = prompt("Nhập tên trường dữ liệu (field key) mới:", currentName);
                                     if (newName && newName.trim() !== '') {
-                                        headers[colIndex] = newName.trim();
+                                        headers[physicalCol] = newName.trim();
                                         hotInstance.updateSettings({ colHeaders: headers });
                                         showToast(`Đã đổi tên cột thành [${newName}]`);
                                     }
@@ -287,8 +290,9 @@
                     },
                     cells: function(row, col) {
                         let cellProperties = {};
-                        if (col === 0) {
-                            // Khóa cột _docId
+                        // Luôn khóa cột chứa _docId dù nó bị kéo dời đi đâu
+                        let physicalCol = this.instance.toPhysicalColumn(col);
+                        if (headers[physicalCol] === '_docId') {
                             cellProperties.readOnly = true;
                             cellProperties.className = 'htDimmed';
                         }
@@ -320,33 +324,35 @@
                 showToast("Chưa có bảng nào được tải!", "danger");
                 return;
             }
-            if(!confirm(`Lưu ý: Hệ thống sẽ quét toàn bộ bảng Excel và cập nhật lên Firebase. Hành động này sẽ CẬP NHẬT hàng đã sửa, THÊM hàng mới và XÓA các hàng bạn đã xóa trên Excel. Xác nhận lưu?`)){
+            if(!confirm(`Lưu ý: Hành động này sẽ CẬP NHẬT hàng đã sửa, THÊM hàng mới và XÓA các hàng bạn đã xóa trên Excel. Xác nhận lưu lên Firebase?`)){
                 return;
             }
 
-            // getData() sẽ lấy toàn bộ dữ liệu (kể cả những dòng đang bị bộ lọc ẩn đi)
+            // getData() lấy theo thứ tự cột vật lý (physical) của Array gốc, 
+            // KHÔNG bị ảnh hưởng bởi tính năng kéo thả dời cột của UI
             const data = hotInstance.getData();
             let currentIds = [];
             let promises = [];
             let countAdd = 0, countUpdate = 0;
 
             try {
-                // Bước 1: Quét từng dòng Excel để Update hoặc Add
                 for (let r = 0; r < data.length; r++) {
                     let row = data[r];
-                    // Bỏ qua hàng nếu tất cả các ô đều rỗng
                     let isEmpty = row.every(cell => cell === null || cell === '');
                     if (isEmpty) continue;
 
-                    let docId = row[0];
+                    // Header và Row đang đồng bộ index vật lý
+                    let docIdIndex = headers.indexOf('_docId');
+                    let docId = docIdIndex !== -1 ? row[docIdIndex] : null;
+                    
                     let docData = {};
 
-                    // Ghép cột thành Object JSON
-                    for (let c = 1; c < headers.length; c++) {
+                    for (let c = 0; c < headers.length; c++) {
+                        if (headers[c] === '_docId') continue;
+
                         let key = headers[c];
                         let val = row[c];
                         if (val !== null && val !== '') {
-                            // Tự động ép kiểu dữ liệu chuẩn Firebase
                             if (val === 'true') val = true;
                             else if (val === 'false') val = false;
                             else if (!isNaN(val) && val !== '') val = Number(val);
@@ -360,13 +366,11 @@
                         }
                     }
 
-                    // Lưu Firestore
                     if (docId) {
                         currentIds.push(docId);
                         promises.push(setDoc(doc(db, currentCollection, docId), docData));
                         countUpdate++;
                     } else {
-                        // Tạo mới nếu chưa có _docId
                         let newDocRef = doc(collection(db, currentCollection));
                         promises.push(setDoc(newDocRef, docData));
                         currentIds.push(newDocRef.id);
@@ -374,16 +378,14 @@
                     }
                 }
 
-                // Bước 2: Dò tìm các dòng đã bị xóa trên Excel để xóa khỏi Firebase
                 let deletedIds = originalIds.filter(id => !currentIds.includes(id));
                 for (let id of deletedIds) {
                     promises.push(deleteDoc(doc(db, currentCollection, id)));
                 }
 
                 await Promise.all(promises);
-                showToast(`Lưu DB thành công! (Thêm mới: ${countAdd}, Cập nhật: ${countUpdate}, Xóa: ${deletedIds.length})`);
+                showToast(`Lưu DB thành công! (Mới: ${countAdd}, Sửa: ${countUpdate}, Xóa: ${deletedIds.length})`);
                 
-                // Tải lại bảng để nhận _docId mới cho các hàng vừa chèn
                 loadData(); 
 
             } catch(e) {
@@ -392,7 +394,80 @@
         };
 
         // ----------------------------------------------------
-        // 3. XUẤT / NHẬP JSON (TOÀN HỆ THỐNG)
+        // 3. TÍNH NĂNG XUẤT / NHẬP EXCEL (DÙNG SHEETJS)
+        // ----------------------------------------------------
+        window.exportTableToExcel = () => {
+            if(!hotInstance || !currentCollection) { 
+                showToast("Vui lòng tải dữ liệu bảng trước khi xuất!", "danger"); 
+                return; 
+            }
+            
+            // Lấy dữ liệu với thứ tự cột trực quan hiện tại (kể cả đã bị kéo dời)
+            let visualHeaders = [];
+            let colCount = hotInstance.countCols();
+            for (let i = 0; i < colCount; i++) {
+                visualHeaders.push(headers[hotInstance.toPhysicalColumn(i)]);
+            }
+
+            let dataToExport = [visualHeaders];
+            let rawData = hotInstance.getData();
+
+            for (let r = 0; r < rawData.length; r++) {
+                let rowData = [];
+                for (let c = 0; c < colCount; c++) {
+                    rowData.push(rawData[r][hotInstance.toPhysicalColumn(c)]);
+                }
+                dataToExport.push(rowData);
+            }
+
+            let ws = XLSX.utils.aoa_to_sheet(dataToExport);
+            let wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, currentCollection);
+            
+            let dateStr = new Date().toLocaleDateString('vi-VN').replace(/\//g, '');
+            XLSX.writeFile(wb, `${currentCollection}_${dateStr}.xlsx`);
+            showToast("Xuất Excel thành công!");
+        };
+
+        window.importTableFromExcel = (event) => {
+            if(!currentCollection || !hotInstance) { 
+                showToast("Vui lòng tải hoặc chọn 1 bảng trước khi nhập Excel!", "danger"); 
+                return; 
+            }
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                
+                // Trích xuất thành Array of Arrays (Hàng đầu tiên là Header)
+                const json = XLSX.utils.sheet_to_json(worksheet, {header: 1, defval: ""}); 
+
+                if (json.length === 0) { 
+                    showToast("File Excel trống!", "danger"); 
+                    return; 
+                }
+
+                headers = json[0]; // Cập nhật lại headers dựa theo file Excel
+                let excelData = json.slice(1);
+                
+                hotInstance.updateSettings({
+                    colHeaders: headers,
+                    data: excelData
+                });
+                
+                showToast("Đã tải dữ liệu từ Excel lên! Nhấn 'Lưu Thay Đổi' để ghi vào DB.");
+                event.target.value = ''; // Reset input
+            };
+            reader.readAsArrayBuffer(file);
+        };
+
+        // ----------------------------------------------------
+        // 4. XUẤT / NHẬP JSON (BACKUP TOÀN HỆ THỐNG)
         // ----------------------------------------------------
         window.exportDataToJSON = async () => {
             try {
@@ -429,7 +504,7 @@
             if (!file) return;
 
             if (!confirm(`CẢNH BÁO TỐI CAO: Khôi phục từ file [${file.name}] sẽ ghi đè toàn bộ các bảng trong CSDL. Bạn có chắc không?`)) {
-                event.target.value = ''; // Reset input
+                event.target.value = ''; 
                 return;
             }
 
@@ -449,7 +524,7 @@
                     showToast(`Khôi phục dữ liệu toàn hệ thống thành công!`);
                     event.target.value = ''; 
                     
-                    if(currentCollection) loadData(); // Load lại bảng Excel nếu đang mở
+                    if(currentCollection) loadData(); 
 
                 } catch (err) {
                     showToast("Lỗi nhập dữ liệu: JSON sai định dạng.", "danger");
