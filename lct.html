@@ -166,7 +166,7 @@
             <button id="btnExportWord" class="btn-toggle btn-export" onclick="exportWeeklyReport()" title="Xuất file Word báo cáo TKB tuần hiện tại">
                 <i class="fas fa-file-word"></i> Xuất Word
             </button>
-            <button id="btnToggleSidebar" class="btn-toggle hidden" onclick="toggleSidebar()" title="Thu gọn/Mở rộng Kho sự kiện">
+            <button id="btnToggleSidebar" class="btn-toggle hidden" onclick="toggleSidebar()" title="Thu gọn/Mở rộng Kho Sự Kiện">
                 <i class="fas fa-bars"></i> Kho Sự Kiện
             </button>
         </div>
@@ -254,7 +254,7 @@
         </div>
     </div>
 
-    <!-- MODAL CHI TIẾT TỔ HỢP SỰ KIỆN (CHỈ XEM VÀ XÓA, KHÔNG CHO CHỈNH SỬA) -->
+    <!-- MODAL CHI TIẾT TỔ HỢP SỰ KIỆN -->
     <div id="multiEventModal" class="modal-overlay hidden">
         <div class="modal-content" style="max-width: 650px;">
             <div class="modal-header" id="multiEventModalHeader" style="background: var(--primary);">
@@ -463,7 +463,7 @@
             return count;
         };
 
-        // HÀM KIỂM TRA TRÙNG LẶP GLOBAL (CHỈ KIỂM TRA KHI XÁC NHẬN XẾP LỊCH)
+        // HÀM KIỂM TRA TRÙNG LẶP GLOBAL
         function hasOverlap(targetStartStr, targetEndStr, gvStr, targetClass, targetTask, targetRoom, targetSubject, targetOrient, ignoreEventIds) {
             let ignoreList = Array.isArray(ignoreEventIds) ? ignoreEventIds : [ignoreEventIds];
             let tStart = new Date(targetStartStr).getTime();
@@ -496,7 +496,6 @@
 
                     let timeRangeStr = `${new Date(e.start).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'})} - ${new Date(e.end || e.startMs + 4.5*3600000).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'})} (${new Date(e.start).toLocaleDateString('vi-VN')})`;
 
-                    // 1. Kiểm tra trùng Phòng
                     if (targetRoom && e.room && targetRoom !== 'Khác...' && targetRoom !== 'OTHER' && e.room === targetRoom) {
                         return { 
                             hasOverlap: true, 
@@ -508,7 +507,6 @@
                         };
                     }
 
-                    // 2. Kiểm tra trùng lịch của chính Lớp đó
                     if (e.class === targetClass && blockingTasks.includes(targetTask) && blockingTasks.includes(e.task)) {
                         return { 
                             hasOverlap: true, 
@@ -520,7 +518,6 @@
                         };
                     }
                     
-                    // 3. Kiểm tra trùng Giảng viên
                     let targetGVs = gvStr ? gvStr.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
                     let eGVs = e.gv ? e.gv.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
                     let hasCommonGV = targetGVs.some(gv => eGVs.includes(gv));
@@ -916,23 +913,24 @@
                             let eNorm = window.normalizeOrient(e.orientation);
                             let orientHtml = '';
                             if (eNorm === 'NC') {
-                                orientHtml = `<div style="font-size: 0.7rem; color: #b45309; margin-top: 2px; font-weight:bold;"><i class="fas fa-compass"></i> Hệ: Nghiên cứu (NC)</div>`;
+                                orientHtml = `<div style="font-size: 0.75rem; color: #b45309; margin-bottom: 4px; font-weight:600;"><i class="fas fa-compass" style="width:14px; text-align:center; margin-right:4px;"></i>Hệ: Nghiên cứu (NC)</div>`;
                             } else if (eNorm === 'UD') {
-                                orientHtml = `<div style="font-size: 0.7rem; color: #0369a1; margin-top: 2px; font-weight:bold;"><i class="fas fa-compass"></i> Hệ: Ứng dụng (UD)</div>`;
+                                orientHtml = `<div style="font-size: 0.75rem; color: #0369a1; margin-bottom: 4px; font-weight:600;"><i class="fas fa-compass" style="width:14px; text-align:center; margin-right:4px;"></i>Hệ: Ứng dụng (UD)</div>`;
                             } else {
-                                orientHtml = `<div style="font-size: 0.7rem; color: #d97706; margin-top: 2px; font-weight:bold;"><i class="fas fa-users"></i> Học chung (NC & UD)</div>`;
+                                orientHtml = `<div style="font-size: 0.75rem; color: #d97706; margin-bottom: 4px; font-weight:600;"><i class="fas fa-users" style="width:14px; text-align:center; margin-right:4px;"></i>Học chung (NC & UD)</div>`;
                             }
 
                             // Dynamic Tag Color
                             let classColorStyle = window.getClassColor(e.class);
-                            let classBadge = `<span style="display:inline-block; padding:1px 5px; border-radius:3px; font-size:0.65rem; margin-right:4px; ${classColorStyle}">${e.class}</span>`;
+                            let classBadge = `<div style="margin-bottom: 4px;"><span style="display:inline-block; padding:2px 6px; border-radius:3px; font-size:0.7rem; font-weight:bold; ${classColorStyle}">${e.class}</span></div>`;
 
                             return `
                             <div class="evt-item" style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed rgba(2, 132, 199, 0.2); text-align: left; line-height: 1.4;">
-                                <div style="font-size: 0.75rem; font-weight: 800; color: #b45309;"><i class="fas fa-map-marker-alt"></i> ${shortRoom}</div>
-                                <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-dark); margin-top: 2px; display: flex; align-items: center;">${classBadge} ${gvDisplay}</div>
-                                <div style="font-size: 0.75rem; color: var(--primary); margin-top: 3px; white-space: normal; word-break: break-word; font-weight: 600;">${e.subject}</div>
+                                <div style="font-size: 0.85rem; color: var(--primary); margin-bottom: 4px; white-space: normal; word-break: break-word; font-weight: 700;">${e.subject}</div>
+                                ${classBadge}
                                 ${orientHtml}
+                                <div style="font-size: 0.75rem; font-weight: 600; color: var(--text-dark); margin-bottom: 4px;"><i class="fas fa-chalkboard-teacher" style="color:#64748b; width:14px; text-align:center; margin-right:4px;"></i>${gvDisplay}</div>
+                                <div style="font-size: 0.75rem; font-weight: 700; color: #b45309;"><i class="fas fa-map-marker-alt" style="width:14px; text-align:center; margin-right:4px;"></i>${shortRoom}</div>
                             </div>
                             `;
                         }).join('');
@@ -1083,7 +1081,6 @@
                         `;
 
                         props.events.forEach(e => {
-                            // CHO PHÉP XÓA NHƯNG ĐÃ LOẠI BỎ HOÀN TOÀN CƠ CHẾ CHỈNH SỬA
                             let canDelete = isCalendarAdmin && (e.scheduledByEmail === currentUserEmail || currentUserEmail === 'hoangtran1483@gmail.com');
                             let delBtn = canDelete ? `<button class="btn-danger" style="padding:4px 10px; font-size:0.8rem;" onclick="deleteSubEvent('${e.id}')"><i class="fas fa-trash"></i> Xóa</button>` : '';
 
@@ -1159,6 +1156,7 @@
                 let startStr = toLocalISOString(currentStart);
                 let endStr = toLocalISOString(currentEnd);
 
+                // KIỂM TRA TRÙNG LẶP THỰC TẾ NGAY TẠI ĐÂY (SAU KHI ĐÃ CHỌN PHÒNG & XÁC NHẬN)
                 const overlapCheck = hasOverlap(startStr, endStr, props.gv, props.eventClass, props.task, selectedRoom, props.subject, finalOrientation, []);
                 if (overlapCheck.hasOverlap) {
                     showConflictModal(overlapCheck);
@@ -1344,7 +1342,8 @@
                         
                         asgData.allocations.forEach(a => {
                             const totalAssigned = parseInt(a.assigned) || 0;
-                            const mapKey = `${sub.id}_${a.gv}_${a.task}_${clsMatch}_${actualOrient}`;
+                            // Cập nhật tính năng gộp thông minh: Đã bỏ actualOrient khỏi mapKey
+                            const mapKey = `${sub.id}_${a.gv}_${a.task}_${clsMatch}`;
                             
                             if (!rawTaskMap.has(mapKey)) {
                                 rawTaskMap.set(mapKey, {
@@ -1384,6 +1383,13 @@
                         let shared = Math.min(remNC, remUD);
                         let onlyNC = remNC - shared;
                         let onlyUD = remUD - shared;
+
+                        // Tính năng thông minh: Nếu tổng số buổi của NC và UD ban đầu không giống nhau thì không gộp
+                        if (data.totalNC !== data.totalUD) {
+                            shared = 0;
+                            onlyNC = remNC;
+                            onlyUD = remUD;
+                        }
 
                         if (shared > 0 && (poolOrientFilter === 'ALL' || poolOrientFilter === 'NC' || poolOrientFilter === 'UD')) {
                             poolTasksList.push({ ...data, orientCode: 'Cả hai', remaining: shared });
