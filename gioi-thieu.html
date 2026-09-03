@@ -22,7 +22,7 @@
         .section-title p { color: var(--text-body); font-size: 1.05rem; max-width: 600px; margin: 0 auto; line-height: 1.6; }
         .section-divider { width: 60px; height: 4px; background: var(--primary); margin: 15px auto; border-radius: 2px; }
 
-        /* --- PHẦN LỊCH SỬ HÌNH THÀNH (ĐÃ THU NHỎ CỠ CHỮ) --- */
+        /* --- PHẦN LỊCH SỬ HÌNH THÀNH --- */
         .history-wrapper { 
             background: var(--surface); 
             border: 1px solid var(--border); 
@@ -51,8 +51,8 @@
         .history-content {
             position: relative;
             z-index: 1;
-            font-size: 0.95rem; /* Đã thu nhỏ chữ từ 1.15rem xuống 0.95rem cho gọn gàng */
-            line-height: 1.75;    /* Thu hẹp khoảng cách dòng cho cân đối */
+            font-size: 0.95rem; 
+            line-height: 1.75;    
             color: var(--text-dark);
             text-align: justify;
         }
@@ -116,8 +116,21 @@
             white-space: nowrap;
         }
 
-        .faculty-position { font-size: 0.95rem; font-weight: 600; color: var(--primary); margin-bottom: 0.8rem; }
+        .faculty-position { font-size: 0.95rem; font-weight: 600; color: var(--primary); margin-bottom: 0.6rem; }
         
+        /* Nhãn Chuyên ngành */
+        .faculty-major {
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+            margin-bottom: 1rem;
+            display: inline-block;
+        }
+        .major-vltl { background-color: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; }
+        .major-hdtl { background-color: #fef08a; color: #b45309; border: 1px solid #fde047; }
+        .major-nntl { background-color: #f3e8ff; color: #6b21a8; border: 1px solid #d8b4fe; }
+
         .faculty-email { 
             font-size: 0.85rem; 
             color: var(--text-body); 
@@ -194,22 +207,22 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Danh sách tĩnh để giữ đúng thứ tự và cấu trúc chức vụ
+        // Danh sách tĩnh để giữ đúng thứ tự, cấu trúc chức vụ và phân môn
         let facultyList = [
-            { degree: "Tiến sĩ", name: "Lê Thanh Vân", position: "Trưởng Bộ môn", email: "lethanhvan@ump.edu.vn", image: "images/TS. Lê Thanh Vân.jpg" },
-            { degree: "Thạc sĩ", name: "Phan Thế Nguyên", position: "Giáo vụ", email: "phanthenguyenpt@ump.edu.vn", image: "images/ThS. Phan Thế Nguyên.jpg" },
-            { degree: "Thạc sĩ", name: "Cao Minh Hạnh", position: "Giảng viên", email: "cmhanhpt@ump.edu.vn", image: "images/ThS. Cao Minh Hạnh.jpg" },
-            { degree: "Tiến sĩ", name: "Nguyễn Thanh Duy", position: "Giảng viên", email: "thduypt@ump.edu.vn", image: "images/TS. Nguyễn Thanh Duy.jpg" },
-            { degree: "Thạc sĩ", name: "Huỳnh Chung", position: "Giảng viên", email: "huynhchungpt@ump.edu.vn", image: "images/ThS. Huỳnh Chung.jpg" },
-            { degree: "Thạc sĩ", name: "Nguyễn Minh Sang", position: "Giảng viên", email: "ngmsangpt@ump.edu.vn", image: "images/ThS. Nguyễn Minh Sang.jpg" },
-            { degree: "Thạc sĩ", name: "Trần Thị Bích Hạnh", position: "Giảng viên", email: "hanhtranpt@ump.edu.vn", image: "images/ThS. Trần Thị Bích Hạnh.jpg" },
-            { degree: "Tiến sĩ", name: "Nguyễn Ngọc Minh", position: "Giảng viên", email: "minhngpt@ump.edu.vn", image: "images/TS. Nguyễn Ngọc Minh.jpg" },
-            { degree: "Thạc sĩ", name: "Phạm Ngọc Đạt", position: "Giảng viên", email: "phamngocdat@ump.edu.vn", image: "images/ThS. Phạm Ngọc Đạt.jpg" },
-            { degree: "Thạc sĩ", name: "Nguyễn Huỳnh Ngọc Mai Trâm", position: "Giảng viên", email: "nguyen.tram@ump.edu.vn", image: "images/ThS. Nguyễn Huỳnh Ngọc Mai Trâm.jpg" },
-            { degree: "Thạc sĩ", name: "Nguyễn Đức Sinh", position: "Giảng viên", email: "nguyenducsinhpt@ump.edu.vn", image: "images/ThS. Nguyễn Đức Sinh.jpg" },
-            { degree: "Thạc sĩ", name: "Trần Long Biên", position: "Giảng viên", email: "tlbien@ump.edu.vn", image: "images/ThS. Trần Long Biên.jpg" },
-            { degree: "Thạc sĩ", name: "Trần Hữu Đức", position: "Giảng viên", email: "tranhuuduc@ump.edu.vn", image: "images/ThS. Trần Hữu Đức.jpg" },
-            { degree: "Thạc sĩ", name: "Nguyễn Mai Ngọc Đoan", position: "Giảng viên", email: "nguyenmaingocdoan@ump.edu.vn", image: "images/ThS. Nguyễn Mai Ngọc Đoan.jpg" }
+            { degree: "Tiến sĩ", name: "Lê Thanh Vân", position: "Trưởng Bộ môn", major: "Vật lý trị liệu", email: "lethanhvan@ump.edu.vn", image: "images/TS. Lê Thanh Vân.jpg" },
+            { degree: "Tiến sĩ", name: "Nguyễn Thanh Duy", position: "Giảng viên", major: "Vật lý trị liệu", email: "thduypt@ump.edu.vn", image: "images/TS. Nguyễn Thanh Duy.jpg" },
+            { degree: "Tiến sĩ", name: "Nguyễn Ngọc Minh", position: "Giảng viên", major: "Vật lý trị liệu", email: "minhngpt@ump.edu.vn", image: "images/TS. Nguyễn Ngọc Minh.jpg" },
+            { degree: "Thạc sĩ", name: "Phan Thế Nguyên", position: "Giáo vụ", major: "Vật lý trị liệu", email: "phanthenguyenpt@ump.edu.vn", image: "images/ThS. Phan Thế Nguyên.jpg" },
+            { degree: "Thạc sĩ", name: "Nguyễn Huỳnh Ngọc Mai Trâm", position: "Giảng viên", major: "Hoạt động trị liệu", email: "nguyen.tram@ump.edu.vn", image: "images/ThS. Nguyễn Huỳnh Ngọc Mai Trâm.jpg" },
+            { degree: "Thạc sĩ", name: "Nguyễn Mai Ngọc Đoan", position: "Giảng viên", major: "Vật lý trị liệu", email: "nguyenmaingocdoan@ump.edu.vn", image: "images/ThS. Nguyễn Mai Ngọc Đoan.jpg" },
+            { degree: "Thạc sĩ", name: "Trần Thị Bích Hạnh", position: "Giảng viên", major: "Ngôn ngữ trị liệu", email: "hanhtranpt@ump.edu.vn", image: "images/ThS. Trần Thị Bích Hạnh.jpg" },
+            { degree: "Thạc sĩ", name: "Trần Long Biên", position: "Giảng viên", major: "Vật lý trị liệu", email: "tlbien@ump.edu.vn", image: "images/ThS. Trần Long Biên.jpg" },
+            { degree: "Thạc sĩ", name: "Cao Minh Hạnh", position: "Giảng viên", major: "Vật lý trị liệu", email: "cmhanhpt@ump.edu.vn", image: "images/ThS. Cao Minh Hạnh.jpg" },
+            { degree: "Thạc sĩ", name: "Huỳnh Chung", position: "Giảng viên", major: "Vật lý trị liệu", email: "huynhchungpt@ump.edu.vn", image: "images/ThS. Huỳnh Chung.jpg" },
+            { degree: "Thạc sĩ", name: "Nguyễn Minh Sang", position: "Giảng viên", major: "Vật lý trị liệu", email: "ngmsangpt@ump.edu.vn", image: "images/ThS. Nguyễn Minh Sang.jpg" },
+            { degree: "Thạc sĩ", name: "Phạm Ngọc Đạt", position: "Giảng viên", major: "Hoạt động trị liệu", email: "phamngocdat@ump.edu.vn", image: "images/ThS. Phạm Ngọc Đạt.jpg" },
+            { degree: "Thạc sĩ", name: "Nguyễn Đức Sinh", position: "Giảng viên", major: "Ngôn ngữ trị liệu", email: "nguyenducsinhpt@ump.edu.vn", image: "images/ThS. Nguyễn Đức Sinh.jpg" },
+            { degree: "Thạc sĩ", name: "Trần Hữu Đức", position: "Giảng viên", major: "Ngôn ngữ trị liệu", email: "tranhuuduc@ump.edu.vn", image: "images/ThS. Trần Hữu Đức.jpg" }
         ];
 
         const facultyGrid = document.getElementById('facultyGrid');
@@ -226,6 +239,11 @@
 
                 const avatarHtml = `<img src="${data.image}" alt="Ảnh ${data.name}" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\\'fas fa-user\\' style=\\'font-size: 3rem; color: var(--text-body);\\'></i>';">`;
 
+                // Xác định class CSS cho nhãn chuyên ngành
+                let majorClass = 'major-vltl';
+                if (data.major === 'Hoạt động trị liệu') majorClass = 'major-hdtl';
+                else if (data.major === 'Ngôn ngữ trị liệu') majorClass = 'major-nntl';
+
                 card.innerHTML = `
                     <div class="faculty-avatar">
                         ${avatarHtml}
@@ -233,6 +251,7 @@
                     <div class="faculty-degree">${data.degree}</div>
                     <div class="faculty-name">${data.name}</div>
                     <div class="faculty-position">${data.position}</div>
+                    <div class="faculty-major ${majorClass}">${data.major}</div>
                     <div class="faculty-email">
                         <i class="fas fa-envelope" style="margin-right: 6px; color: var(--primary);"></i> ${emailHtml}
                     </div>
