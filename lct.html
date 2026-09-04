@@ -128,6 +128,9 @@
             .controls-wrapper { width: 100%; justify-content: space-between; }
             .filter-select { flex: 1; min-width: 0; padding: 6px; font-size: 0.85rem;}
             
+            /* Ẩn nút Xuất Word trên thiết bị di động */
+            #btnExportWord { display: none !important; }
+            
             #calendar-container { padding: 5px; border: none; border-radius: 0; box-shadow: none; border-top: 1px solid var(--border); width: 100vw; margin-left: -5px;}
             
             .fc-toolbar { flex-direction: column; gap: 8px; margin-bottom: 10px !important;}
@@ -152,6 +155,7 @@
 
     <div id="header-placeholder"></div>
     <div id="toastContainer" class="toast-container"></div>
+    <div id="eventTooltip"></div>
 
     <!-- THANH CÔNG CỤ CHÍNH -->
     <div class="top-toolbar">
@@ -1347,7 +1351,8 @@
                         
                         asgData.allocations.forEach(a => {
                             const totalAssigned = parseInt(a.assigned) || 0;
-                            const mapKey = `${sub.id}_${a.gv}_${a.task}_${clsMatch}_${actualOrient}`;
+                            // Cập nhật tính năng gộp thông minh: Đã bỏ actualOrient khỏi mapKey
+                            const mapKey = `${sub.id}_${a.gv}_${a.task}_${clsMatch}`;
                             
                             if (!rawTaskMap.has(mapKey)) {
                                 rawTaskMap.set(mapKey, {
@@ -1387,6 +1392,13 @@
                         let shared = Math.min(remNC, remUD);
                         let onlyNC = remNC - shared;
                         let onlyUD = remUD - shared;
+
+                        // Tính năng thông minh: Nếu tổng số buổi của NC và UD ban đầu không giống nhau thì không gộp
+                        if (data.totalNC !== data.totalUD) {
+                            shared = 0;
+                            onlyNC = remNC;
+                            onlyUD = remUD;
+                        }
 
                         if (shared > 0 && (poolOrientFilter === 'ALL' || poolOrientFilter === 'NC' || poolOrientFilter === 'UD')) {
                             poolTasksList.push({ ...data, orientCode: 'Cả hai', remaining: shared });
@@ -1545,28 +1557,4 @@
     </script>
 </body>
 </html>
-điều chỉnh lại đoạn này xíu: // HÀM TẠO KEY CHUẨN (Ép buộc gắn thêm NC/UD đối với Thạc sĩ)
-        window.getDbKey = (sub) => {
-            const c = window.getCurrentClass();
-            const o = window.getCurrentOrient();
-
-            let key = c;
-            
-            // LUÔN LUÔN GẮN ĐỊNH HƯỚNG VỚI LỚP THẠC SĨ (kể cả môn chung hay môn của bộ môn khác)
-            if (c.toUpperCase().includes('THS')) {
-                key += `_${o || 'NC'}`; 
-            }
-
-            const isNotPHCN = (sub.isPHCN === false) || (sub.department && sub.department !== 'Bộ môn Phục hồi chức năng' && sub.department !== 'Bộ môn PHCN');
-
-            if (isNotPHCN) return key;
-
-            let major = sub.majorTag || 'ALL';
-            let shortMajor = major;
-            if (major === "Vật lý trị liệu") shortMajor = "VLTL";
-            else if (major === "Hoạt động trị liệu") shortMajor = "HĐTL";
-            else if (major === "Ngôn ngữ trị liệu") shortMajor = "NNTL";
-
-            return `${key}_${shortMajor}`;
-        };
-thêm vào: nếu môn học là công việc chuyên môn khác thì getdbKey là ${key}_ALL
+cập nhật chức năng nhập từ file csv vào DB firebase cho file js đính kèm này (tạo một giao diện trong html có upload file .csv và mapping các trường giữa file csv vừa upload với các trường trong file db)
