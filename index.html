@@ -44,44 +44,53 @@
             position: fixed;
             bottom: 20px;
             right: 20px;
-            background: linear-gradient(135deg, var(--primary), #3b82f6);
-            color: white;
-            padding: 12px 20px;
-            border-radius: 50px;
-            box-shadow: 0 8px 25px rgba(2, 132, 199, 0.3);
             display: flex;
             align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-            font-size: 0.95rem;
-            font-weight: 600;
             z-index: 1000;
-            border: 2px solid rgba(255,255,255,0.2);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            cursor: default;
         }
 
-        .view-counter-widget:hover {
-            transform: translateY(-5px);
+        .visitor-info-trigger {
+            width: 52px;
+            height: 52px;
+            border: 2px solid rgba(255,255,255,0.25);
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), #3b82f6);
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(2, 132, 199, 0.3);
+            font-size: 1.25rem;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .visitor-info-trigger:hover, .visitor-info-trigger:focus-visible {
+            transform: translateY(-3px);
             box-shadow: 0 12px 30px rgba(2, 132, 199, 0.4);
+            outline: none;
         }
 
-        .view-counter-widget i {
-            font-size: 1.1rem;
-            animation: pulse-icon 2s infinite;
+        .visitor-info-panel {
+            position: absolute;
+            right: 0;
+            bottom: 64px;
+            min-width: 260px;
+            padding: 14px 16px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            background: var(--surface);
+            color: var(--text-dark);
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.18);
+            font-size: 0.9rem;
         }
 
-        .visitor-ip, .visitor-device {
+        .visitor-info-row {
             display: flex;
             align-items: center;
             gap: 7px;
-            padding-left: 10px;
-            margin-left: 2px;
-            border-left: 1px solid rgba(255, 255, 255, 0.4);
-            white-space: nowrap;
+            padding: 7px 0;
+            border-bottom: 1px solid var(--border);
         }
-
-        .visitor-ip i, .visitor-device i { animation: none; font-size: 0.95rem; }
+        .visitor-info-row:last-child { border-bottom: 0; }
+        .visitor-info-row i { width: 18px; color: var(--primary); text-align: center; }
 
         @keyframes pulse-icon {
             0% { transform: scale(1); opacity: 1; }
@@ -95,10 +104,8 @@
             .view-counter-widget {
                 bottom: 15px;
                 right: 15px;
-                padding: 10px 15px;
-                font-size: 0.85rem;
             }
-            .visitor-ip, .visitor-device { padding-left: 8px; }
+            .visitor-info-panel { right: 0; bottom: 60px; min-width: min(260px, calc(100vw - 30px)); }
         }
     </style>
 </head>
@@ -169,10 +176,12 @@
 
     <!-- NÚT HIỂN THỊ LƯỢT XEM NỔI -->
     <div class="view-counter-widget" id="viewCounterWidget" style="display: none;">
-        <i class="fas fa-eye"></i>
-        <span>Đã có <b id="viewCountNumber">...</b> lượt xem</span>
-        <span class="visitor-ip"><i class="fas fa-network-wired"></i> IP: <b id="visitorIpAddress">Đang tải...</b></span>
-        <span class="visitor-device"><i class="fas fa-laptop"></i> Thiết bị: <b id="visitorDevice">Đang xác định...</b></span>
+        <button type="button" id="visitorInfoTrigger" class="visitor-info-trigger" onclick="toggleVisitorInfo()" aria-label="Xem thông tin truy cập" aria-expanded="false"><i class="fas fa-info"></i></button>
+        <div id="visitorInfoPanel" class="visitor-info-panel hidden" role="status">
+            <div class="visitor-info-row"><i class="fas fa-eye"></i><span>Lượt xem: <b id="viewCountNumber">...</b></span></div>
+            <div class="visitor-info-row"><i class="fas fa-network-wired"></i><span>IP: <b id="visitorIpAddress">Đang tải...</b></span></div>
+            <div class="visitor-info-row"><i class="fas fa-laptop"></i><span>Thiết bị: <b id="visitorDevice">Đang xác định...</b></span></div>
+        </div>
     </div>
 
     <!-- 3. FOOTER CHUNG (Tự động load từ layout.js) -->
@@ -300,6 +309,31 @@
         }
 
         showVisitorDevice();
+
+        window.toggleVisitorInfo = () => {
+            const panel = document.getElementById('visitorInfoPanel');
+            const trigger = document.getElementById('visitorInfoTrigger');
+            const isOpening = panel.classList.contains('hidden');
+            panel.classList.toggle('hidden', !isOpening);
+            trigger.setAttribute('aria-expanded', String(isOpening));
+        };
+
+        document.addEventListener('click', (event) => {
+            const widget = document.getElementById('viewCounterWidget');
+            const panel = document.getElementById('visitorInfoPanel');
+            const trigger = document.getElementById('visitorInfoTrigger');
+            if (widget && !widget.contains(event.target)) {
+                panel.classList.add('hidden');
+                trigger.setAttribute('aria-expanded', 'false');
+            }
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                document.getElementById('visitorInfoPanel').classList.add('hidden');
+                document.getElementById('visitorInfoTrigger').setAttribute('aria-expanded', 'false');
+            }
+        });
 
 
         // --- Lắng nghe trạng thái đăng nhập để đổi tên nút Auth trên Header ---
