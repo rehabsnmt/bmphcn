@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>An ninh & Nhật ký truy cập - Bộ môn PHCN</title>
+    
+    <link rel="icon" href="images/logo_Bộ môn.png" type="image/png">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        main { max-width: 1400px; padding: 2rem 2%; margin: 0 auto; min-height: 75vh; box-sizing: border-box; }
+        
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid var(--border); flex-wrap: wrap; gap: 15px;}
+        .page-header h2 { font-size: 1.6rem; color: var(--text-dark); margin: 0; font-weight: 800; text-transform: uppercase; display: flex; align-items: center; gap: 10px; }
+        
+        .hidden { display: none !important; }
+
+        .toolbar { display: flex; justify-content: space-between; align-items: center; background: var(--surface); padding: 15px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 20px; box-shadow: var(--shadow-sm); flex-wrap: wrap; gap: 10px; }
+        
+        .btn { padding: 8px 15px; border-radius: 6px; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: 0.2s; border: none; display: inline-flex; align-items: center; gap: 6px; outline: none; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
+        .btn-danger { background: var(--accent); color: white; }
+        .btn-danger:hover { background: #be123c; transform: translateY(-1px); }
+        .btn-outline { background: white; color: var(--text-dark); border: 1px solid var(--border); }
+        .btn-outline:hover { background: #f8fafc; border-color: var(--primary); color: var(--primary); }
+
+        .filter-select { padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); font-size: 0.95rem; outline: none; font-weight: 600; color: var(--primary); background: #f0f9ff; cursor: pointer; }
+
+        /* Bảng hiển thị */
+        .table-container { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); box-shadow: var(--shadow-sm); }
+        table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: middle; }
+        th { background-color: #f1f5f9; font-weight: 700; color: var(--text-dark); text-transform: uppercase; font-size: 0.85rem; position: sticky; top: 0; z-index: 10; border-bottom: 2px solid #cbd5e1; white-space: nowrap;}
+        
+        tbody tr:hover { background-color: #f8fafc; }
+        
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; white-space: nowrap; }
+        .badge-guest { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+        .badge-user { background: #dbeafe; color: #1d4ed8; border: 1px solid #bfdbfe; }
+        .badge-admin { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+
+        .ip-text { font-family: monospace; font-size: 1rem; color: #b45309; font-weight: 600; background: #fefce8; padding: 2px 6px; border-radius: 4px; border: 1px solid #fde047; }
+        .device-info { display: flex; flex-direction: column; gap: 3px; font-size: 0.85rem; color: #64748b; }
+        .device-info strong { color: var(--text-dark); font-size: 0.95rem; }
+
+        /* Toast */
+        .toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;}
+        .toast { min-width: 250px; background-color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: 0.4s; font-weight: 600; border-left: 5px solid #22c55e; opacity: 0; pointer-events: auto; }
+        .toast.show { transform: translateX(0); opacity: 1; }
+        .toast.danger { border-left-color: #ef4444; }
+
+        /* Stats Cards */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .stat-card { background: white; padding: 20px; border-radius: 8px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .stat-card .val { font-size: 2rem; font-weight: 900; color: var(--primary); line-height: 1; margin-bottom: 5px; }
+        .stat-card .label { font-size: 0.9rem; color: var(--text-body); font-weight: 600; text-transform: uppercase; }
+
+        @media (max-width: 768px) {
+            .page-header { flex-direction: column; align-items: flex-start; }
+            .toolbar { flex-direction: column; align-items: stretch; }
+            .toolbar > div { display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="header-placeholder"></div>
+    <div id="toastContainer" class="toast-container"></div>
+
+    <div id="loadingScreen" style="text-align: center; padding: 5rem 0; color: var(--primary); font-weight: 600; font-size: 1.2rem;">
+        <i class="fas fa-shield-alt fa-spin fa-2x" style="margin-bottom: 15px;"></i><br>Đang kiểm tra bảo mật...
+    </div>
+
+    <main id="mainContent" class="hidden">
+        <div class="page-header">
+            <h2><i class="fas fa-user-secret" style="color: var(--primary);"></i> Nhật ký hệ thống & Truy cập</h2>
+            <div style="font-size: 0.9rem; color: #64748b;">
+                <i class="fas fa-info-circle"></i> Tự động ghi nhận IP, trình duyệt và các thao tác của người dùng.
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="val" id="statTotal">0</div>
+                <div class="label">Tổng số lượt tải trang</div>
+            </div>
+            <div class="stat-card">
+                <div class="val" id="statToday" style="color: #10b981;">0</div>
+                <div class="label">Truy cập hôm nay</div>
+            </div>
+            <div class="stat-card">
+                <div class="val" id="statUsers" style="color: #f59e0b;">0</div>
+                <div class="label">Người dùng đăng nhập</div>
+            </div>
+        </div>
+
+        <div class="toolbar">
+            <div>
+                <select id="limitSelect" class="filter-select" onchange="loadLogs()">
+                    <option value="50">Hiển thị 50 lượt gần nhất</option>
+                    <option value="100" selected>Hiển thị 100 lượt gần nhất</option>
+                    <option value="500">Hiển thị 500 lượt gần nhất</option>
+                    <option value="1000">Hiển thị 1000 lượt gần nhất</option>
+                </select>
+                <button class="btn btn-primary" onclick="loadLogs()"><i class="fas fa-sync-alt"></i> Tải lại</button>
+            </div>
+            <div>
+                <button class="btn btn-outline" onclick="exportToCSV()"><i class="fas fa-file-csv"></i> Xuất CSV</button>
+                <button class="btn btn-danger" onclick="clearOldLogs()"><i class="fas fa-trash"></i> Dọn rác (Giữ lại 30 ngày)</button>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 50px; text-align: center;">STT</th>
+                        <th style="width: 160px;">Thời gian</th>
+                        <th style="width: 250px;">Tài khoản</th>
+                        <th style="width: 180px;">IP / Vị trí</th>
+                        <th style="min-width: 200px;">Thiết bị & Trình duyệt</th>
+                        <th style="width: 250px;">Trang đích</th>
+                    </tr>
+                </thead>
+                <tbody id="logsBody">
+                    <tr><td colspan="6" style="text-align:center; padding:30px;"><i class="fas fa-spinner fa-spin"></i> Đang tải dữ liệu...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <script src="js/layout.js"></script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
+        import { getFirestore, collection, query, orderBy, limit, getDocs, deleteDoc, doc, where } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY", authDomain: "bmphcn-aa9c6.firebaseapp.com", projectId: "bmphcn-aa9c6", storageBucket: "bmphcn-aa9c6.firebasestorage.app", messagingSenderId: "749494392719", appId: "1:749494392719:web:f220c751ff541620045dfa" };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const ADMIN_EMAILS = ['lethanhvan@ump.edu.vn', 'phanthenguyenpt@ump.edu.vn', 'thduypt@ump.edu.vn', 'hoangtran1483@gmail.com', 'minhngpt@ump.edu.vn'];
+        let logsData = [];
+
+        window.showToast = (message, type = 'success') => {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            let icon = type === 'danger' ? 'fa-exclamation-triangle' : 'fa-check-circle';
+            toast.innerHTML = `<i class="fas ${icon}" style="font-size: 1.2rem; color: ${type==='danger'?'#ef4444':'#22c55e'};"></i> <span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
+        };
+
+        // Phân tích User-Agent thành tên thiết bị và trình duyệt dễ đọc
+        function parseUserAgent(ua) {
+            let browser = "Không xác định";
+            let os = "Không xác định";
+            let icon = "fa-desktop";
+
+            if (ua.includes("Chrome") && !ua.includes("Edg")) browser = "Google Chrome";
+            else if (ua.includes("Safari") && !ua.includes("Chrome")) browser = "Apple Safari";
+            else if (ua.includes("Firefox")) browser = "Mozilla Firefox";
+            else if (ua.includes("Edg")) browser = "Microsoft Edge";
+            else if (ua.includes("OPR") || ua.includes("Opera")) browser = "Opera";
+            else if (ua.includes("Crios")) browser = "Chrome (iOS)";
+
+            if (ua.includes("Win")) os = "Windows";
+            else if (ua.includes("Mac")) os = "macOS";
+            else if (ua.includes("Linux") && !ua.includes("Android")) os = "Linux";
+            else if (ua.includes("Android")) { os = "Android"; icon = "fa-mobile-alt"; }
+            else if (ua.includes("iPhone") || ua.includes("iPad")) { os = "iOS"; icon = "fa-mobile-alt"; }
+
+            return { browser, os, icon, raw: ua };
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user && ADMIN_EMAILS.includes(user.email.toLowerCase())) {
+                document.getElementById('loadingScreen').classList.add('hidden');
+                document.getElementById('mainContent').classList.remove('hidden');
+                
+                // Kích hoạt Header Auth (Chung)
+                try {
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    if (userDoc.exists()) {
+                        const data = userDoc.data();
+                        let prefix = data.degree === 'ThS' ? 'ThS. ' : (data.degree === 'TS' ? 'TS. ' : '');
+                        setTimeout(() => {
+                            const btnAuthNav = document.getElementById('btnAuthNav');
+                            if (btnAuthNav) btnAuthNav.innerHTML = `<i class="fas fa-user-shield" style="margin-right:5px;"></i> ${prefix}${data.fullName}`;
+                        }, 300);
+                    }
+                } catch(e) {}
+
+                loadLogs();
+            } else {
+                alert("Truy cập bị từ chối. Khu vực này chỉ dành cho Ban Chủ Nhiệm và Quản trị viên hệ thống.");
+                window.location.href = "index.html";
+            }
+        });
+
+        window.loadLogs = async () => {
+            const tbody = document.getElementById('logsBody');
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px;"><i class="fas fa-spinner fa-spin fa-2x" style="color:var(--primary);"></i><br><br>Đang trích xuất dữ liệu...</td></tr>';
+            
+            const limitNum = parseInt(document.getElementById('limitSelect').value) || 100;
+            
+            try {
+                const q = query(collection(db, "access_logs"), orderBy("timestamp", "desc"), limit(limitNum));
+                const snapshot = await getDocs(q);
+                
+                logsData = [];
+                let statToday = 0;
+                let statUsers = new Set();
+                const todayStr = new Date().toLocaleDateString('vi-VN');
+
+                snapshot.forEach(doc => {
+                    let d = doc.data();
+                    d.id = doc.id;
+                    logsData.push(d);
+
+                    // Thống kê
+                    let dateObj = new Date(d.timestamp);
+                    if (dateObj.toLocaleDateString('vi-VN') === todayStr) statToday++;
+                    if (d.userEmail && d.userEmail !== "Khách (Chưa đăng nhập)") statUsers.add(d.userEmail);
+                });
+
+                document.getElementById('statTotal').innerText = logsData.length;
+                document.getElementById('statToday').innerText = statToday;
+                document.getElementById('statUsers').innerText = statUsers.size;
+
+                if (logsData.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px; color:#64748b;">Chưa có dữ liệu nhật ký.</td></tr>';
+                    return;
+                }
+
+                let html = '';
+                logsData.forEach((log, index) => {
+                    let dateObj = new Date(log.timestamp);
+                    let timeStr = `${dateObj.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', second:'2-digit'})}<br><span style="font-size:0.8rem; color:#64748b;">${dateObj.toLocaleDateString('vi-VN')}</span>`;
+                    
+                    let userBadgeClass = 'badge-guest';
+                    let userLabel = log.userEmail || "Khách (Chưa đăng nhập)";
+                    if (userLabel !== "Khách (Chưa đăng nhập)") {
+                        if (ADMIN_EMAILS.includes(userLabel.toLowerCase())) userBadgeClass = 'badge-admin';
+                        else userBadgeClass = 'badge-user';
+                    }
+
+                    let deviceInfo = parseUserAgent(log.userAgent || '');
+                    let pagePath = log.path ? decodeURIComponent(log.path) : "Không xác định";
+                    
+                    // Highlight các trang quan trọng
+                    let pathColor = "var(--text-dark)";
+                    if (pagePath.includes("an-ninh") || pagePath.includes("database")) pathColor = "#b91c1c";
+                    else if (pagePath.includes("phan-cong") || pagePath.includes("thoi-khoa-bieu")) pathColor = "#0369a1";
+
+                    html += `
+                        <tr>
+                            <td style="text-align: center; color: #94a3b8; font-weight: bold;">${index + 1}</td>
+                            <td>${timeStr}</td>
+                            <td><span class="badge ${userBadgeClass}">${userLabel}</span></td>
+                            <td><span class="ip-text">${log.ip || 'Local/Hidden'}</span></td>
+                            <td>
+                                <div class="device-info" title="${deviceInfo.raw}">
+                                    <strong><i class="fas ${deviceInfo.icon}"></i> ${deviceInfo.os}</strong>
+                                    <span>${deviceInfo.browser}</span>
+                                </div>
+                            </td>
+                            <td style="font-weight: 600; color: ${pathColor}; word-break: break-all;">${pagePath}</td>
+                        </tr>
+                    `;
+                });
+                
+                tbody.innerHTML = html;
+
+            } catch (error) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:30px; color:#ef4444;">Lỗi tải dữ liệu: ${error.message}</td></tr>`;
+            }
+        };
+
+        window.exportToCSV = () => {
+            if (logsData.length === 0) {
+                showToast("Không có dữ liệu để xuất!", "danger");
+                return;
+            }
+
+            let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; // Kèm BOM để Excel đọc tiếng Việt không lỗi font
+            csvContent += "STT,Thời gian,Tài khoản,IP,Hệ điều hành,Trình duyệt,Trang truy cập\n";
+
+            logsData.forEach((log, index) => {
+                let dateObj = new Date(log.timestamp);
+                let timeStr = `${dateObj.toLocaleTimeString('vi-VN')} ${dateObj.toLocaleDateString('vi-VN')}`;
+                let deviceInfo = parseUserAgent(log.userAgent || '');
+                let row = [
+                    index + 1,
+                    timeStr,
+                    log.userEmail || "Khách",
+                    log.ip || "Unknown",
+                    deviceInfo.os,
+                    deviceInfo.browser,
+                    log.path || ""
+                ];
+                // Bọc trong nháy kép để xử lý chuỗi có dấu phẩy
+                let rowStr = row.map(item => `"${String(item).replace(/"/g, '""')}"`).join(",");
+                csvContent += rowStr + "\n";
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Nhat_Ky_Truy_Cap_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
+
+        window.clearOldLogs = async () => {
+            if (!confirm("Hệ thống sẽ xóa TẤT CẢ các bản ghi có thời gian cũ hơn 30 ngày trước. Bạn có chắc chắn muốn dọn dẹp?")) return;
+            
+            try {
+                let thirtyDaysAgo = new Date();
+                thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+                const isoStringLimit = thirtyDaysAgo.toISOString();
+
+                const q = query(collection(db, "access_logs"), where("timestamp", "<", isoStringLimit));
+                const snapshot = await getDocs(q);
+
+                if (snapshot.empty) {
+                    showToast("Không có nhật ký nào cũ hơn 30 ngày để dọn dẹp.");
+                    return;
+                }
+
+                let deletePromises = [];
+                snapshot.forEach(docSnap => {
+                    deletePromises.push(deleteDoc(doc(db, "access_logs", docSnap.id)));
+                });
+
+                await Promise.all(deletePromises);
+                showToast(`Đã dọn dẹp thành công ${deletePromises.length} bản ghi cũ!`);
+                loadLogs();
+            } catch (error) {
+                showToast("Lỗi dọn rác: " + error.message, "danger");
+            }
+        };
+
+    </script>
+</body>
+</html>
