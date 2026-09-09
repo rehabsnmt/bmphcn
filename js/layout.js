@@ -1,5 +1,11 @@
-// HÀM TỰ THỰC THI (IIFE) - Chạy ngay lập tức để in Header/Footer không độ trễ
-(function () {
+// HÀM CHÍNH ĐỂ KHỞI TẠO GIAO DIỆN
+function initLayout() {
+    const headerPlaceholder = document.getElementById('header-placeholder');
+    const footerPlaceholder = document.getElementById('footer-placeholder');
+
+    // Chống chạy lặp (nếu đã có header rồi thì bỏ qua)
+    if (headerPlaceholder && headerPlaceholder.innerHTML.includes('site-header')) return;
+
     // ==========================================
     // 1. MÃ HTML CỦA HEADER
     // ==========================================
@@ -183,12 +189,7 @@
         </footer>
     `;
 
-    // ==========================================
-    // 3. CHÈN TRỰC TIẾP VÀO DOM KHÔNG ĐỘ TRỄ
-    // ==========================================
-    const headerPlaceholder = document.getElementById('header-placeholder');
-    const footerPlaceholder = document.getElementById('footer-placeholder');
-
+    // Chèn vào DOM
     if (headerPlaceholder) headerPlaceholder.innerHTML = headerHTML;
     if (footerPlaceholder) footerPlaceholder.innerHTML = footerHTML;
 
@@ -225,7 +226,7 @@
     });
 
     // ==========================================
-    // 5. FIREBASE AUTH CHUYÊN BIỆT CHO LỚP THS2026 VÀ NÚT ĐĂNG XUẤT
+    // 5. FIREBASE AUTH & ĐIỀU HƯỚNG NÚT ĐĂNG XUẤT
     // ==========================================
     const btnAuthNav = document.getElementById('btnAuthNav');
 
@@ -245,12 +246,11 @@
 
             authModule.onAuthStateChanged(auth, (user) => {
                 if (user && user.email === 'ths.phcn26@ump.edu.vn') {
-                    // Dùng setInterval để ghi đè liên tục, chống lại lệnh setTimeout từ các trang HTML khác
                     setInterval(() => {
                         const btn = document.getElementById('btnAuthNav');
                         if (btn && !btn.innerText.toLowerCase().includes('đăng xuất')) {
                             btn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Đăng xuất';
-                            btn.style.backgroundColor = '#be123c'; // Màu đỏ cảnh báo
+                            btn.style.backgroundColor = '#be123c'; 
                             btn.style.color = 'white';
                         }
                     }, 500);
@@ -265,7 +265,6 @@
             const currentText = this.innerText.toLowerCase();
             
             if (currentText.includes('đăng xuất')) {
-                // XỬ LÝ ĐĂNG XUẤT CHO TÀI KHOẢN HỌC VIÊN
                 if(confirm("Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?")) {
                     import('https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js').then((appModule) => {
                         import('https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js').then((authModule) => {
@@ -286,79 +285,78 @@
             }
         });
     }
+}
 
-    // ==========================================
-    // 6. HỆ THỐNG GHI NHẬN NHẬT KÝ TRUY CẬP (ACCESS LOGGER)
-    // ==========================================
-    async function recordAccessLog(userEmail = "Khách (Chưa đăng nhập)") {
+// BƯỚC QUAN TRỌNG: KIỂM TRA TRẠNG THÁI DOM CHUẨN XÁC
+// Nếu DOM vẫn đang tải -> Gắn sự kiện lắng nghe
+// Nếu DOM đã tải xong rồi -> Chạy hàm ngay lập tức
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initLayout);
+} else {
+    initLayout();
+}
+
+// ==========================================
+// 6. HỆ THỐNG GHI NHẬN NHẬT KÝ TRUY CẬP (ACCESS LOGGER)
+// ==========================================
+async function recordAccessLog(userEmail = "Khách (Chưa đăng nhập)") {
+    try {
+        const fsModule = await import("https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js");
+        const appModule = await import("https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js");
+        
+        const app = appModule.getApps()[0];
+        if (!app) return;
+        const db = fsModule.getFirestore(app);
+        
+        let ip = "Không xác định";
         try {
-            const fsModule = await import("https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js");
-            const appModule = await import("https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js");
-            
-            const app = appModule.getApps()[0];
-            if (!app) return; // Bỏ qua nếu Firebase chưa được khởi tạo ở trang chính
-            const db = fsModule.getFirestore(app);
-            
-            // 1. Lấy địa chỉ IP
-            let ip = "Không xác định";
-            try {
-                const ipResponse = await fetch('https://api.ipify.org?format=json');
-                if (ipResponse.ok) {
-                    const ipData = await ipResponse.json();
-                    ip = ipData.ip;
-                }
-            } catch (e) { console.warn("Không lấy được IP"); }
-
-            // 2. Chống ghi rác: Bỏ qua nếu F5 liên tục trong vòng 1 phút
-            const lastLogTime = sessionStorage.getItem("lastLogTime");
-            const currentPathLog = window.location.pathname.split('/').pop() || 'index.html';
-            const now = Date.now();
-            
-            if (lastLogTime && (now - parseInt(lastLogTime) < 60000)) {
-                return;
+            const ipResponse = await fetch('https://api.ipify.org?format=json');
+            if (ipResponse.ok) {
+                const ipData = await ipResponse.json();
+                ip = ipData.ip;
             }
+        } catch (e) {}
 
-            // 3. Chuẩn bị gói dữ liệu
-            const logData = {
-                timestamp: new Date().toISOString(),
-                path: currentPathLog,
-                userAgent: navigator.userAgent,
-                ip: ip,
-                userEmail: userEmail
-            };
+        const lastLogTime = sessionStorage.getItem("lastLogTime");
+        const currentPathLog = window.location.pathname.split('/').pop() || 'index.html';
+        const now = Date.now();
+        
+        // Chống spam log (Mỗi máy chỉ gửi log mỗi 1 phút / 1 trang)
+        if (lastLogTime && (now - parseInt(lastLogTime) < 60000)) return;
 
-            // 4. Bắn lên Firestore
-            await fsModule.addDoc(fsModule.collection(db, "access_logs"), logData);
-            
-            sessionStorage.setItem("lastLogTime", now.toString());
-        } catch (error) {
-            console.error("Logger Error:", error);
-        }
+        const logData = {
+            timestamp: new Date().toISOString(),
+            path: currentPathLog,
+            userAgent: navigator.userAgent,
+            ip: ip,
+            userEmail: userEmail
+        };
+
+        await fsModule.addDoc(fsModule.collection(db, "access_logs"), logData);
+        sessionStorage.setItem("lastLogTime", now.toString());
+    } catch (error) {
+        console.error("Logger Error:", error);
     }
+}
 
-    // Delay 2 giây để tránh làm nghẽn trang chính, sau đó mới ghi Log
-    setTimeout(() => {
-        import('https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js').then((appModule) => {
-            import('https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js').then((authModule) => {
-                try {
-                    const app = appModule.getApps()[0];
-                    if(app) {
-                        const auth = authModule.getAuth(app);
-                        authModule.onAuthStateChanged(auth, (user) => {
-                            if (user && user.email) {
-                                recordAccessLog(user.email);
-                            } else {
-                                recordAccessLog("Khách (Chưa đăng nhập)");
-                            }
-                        });
-                    } else {
-                        recordAccessLog("Khách (Chưa đăng nhập)");
-                    }
-                } catch (e) {
+// Chạy bộ đếm sau 2s để không làm nghẽn quá trình tải giao diện
+setTimeout(() => {
+    import('https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js').then((appModule) => {
+        import('https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js').then((authModule) => {
+            try {
+                const app = appModule.getApps()[0];
+                if(app) {
+                    const auth = authModule.getAuth(app);
+                    authModule.onAuthStateChanged(auth, (user) => {
+                        if (user && user.email) recordAccessLog(user.email);
+                        else recordAccessLog("Khách (Chưa đăng nhập)");
+                    });
+                } else {
                     recordAccessLog("Khách (Chưa đăng nhập)");
                 }
-            });
-        }).catch(() => recordAccessLog("Khách (Chưa đăng nhập)"));
-    }, 2000);
-
-})();
+            } catch (e) {
+                recordAccessLog("Khách (Chưa đăng nhập)");
+            }
+        });
+    }).catch(() => recordAccessLog("Khách (Chưa đăng nhập)"));
+}, 2000);
