@@ -13,8 +13,8 @@
         main { max-width: 1200px; padding: 2rem 3%; margin: 0 auto; min-height: 75vh; }
         
         .header-title-box { text-align: center; margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid var(--border); overflow: hidden; }
-        .header-title-box h2 { font-size: clamp(1rem, 3.5vw, 1.6rem); color: var(--text-dark); margin: 0; font-weight: 700; white-space: nowrap; text-overflow: ellipsis; }
-        .header-title-box .subtitle { font-size: clamp(0.65rem, 2.2vw, 1rem); color: var(--text-body); font-weight: 600; margin-top: 5px; white-space: nowrap; text-overflow: ellipsis; }
+        .header-title-box h2 { font-size: clamp(1rem, 3.5vw, 1.6rem); color: var(--text-dark); margin: 0; font-weight: 700; }
+        .header-title-box .subtitle { font-size: clamp(0.65rem, 2.2vw, 1rem); color: var(--text-body); font-weight: 600; margin-top: 5px; }
 
         .hidden { display: none !important; }
 
@@ -32,6 +32,9 @@
         .filter-col select { padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); outline: none; font-size: 0.95rem; font-weight: 600; color: var(--primary); background-color: var(--primary-light); cursor: pointer; transition: 0.2s; min-width: 160px;}
         .filter-col select:hover:not(:disabled) { border-color: var(--primary); background-color: #fff; }
         .filter-col select:disabled { background-color: var(--bg-page); color: #94a3b8; cursor: not-allowed; border-color: #e2e8f0; }
+        .filter-col select:focus-visible, .btn-primary:focus-visible, .btn-success:focus-visible, .btn-outline:focus-visible, .subject-link:focus-visible, .mobile-toggle-btn:focus-visible { outline: 3px solid rgba(2, 132, 199, 0.35); outline-offset: 2px; }
+        .table-actions { display: flex; gap: 8px; margin-left: auto; align-items: flex-end; flex-wrap: wrap; }
+        .btn-compact { padding: 0.55rem 0.8rem; font-size: 0.85rem; white-space: nowrap; }
 
         /* Bảng */
         .table-container { overflow-x: auto; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--surface); box-shadow: var(--shadow-sm); }
@@ -46,7 +49,7 @@
         .group-collapsed .group-icon { transform: rotate(-90deg); }
         
         .subject-row:hover { background-color: var(--primary-light); }
-        .subject-link { color: var(--text-dark); font-weight: 600; cursor: pointer; transition: 0.2s; line-height: 1.6; text-align: justify; display: block; padding-right: 30px; }
+        .subject-link { color: var(--text-dark); font: inherit; font-weight: 600; cursor: pointer; transition: 0.2s; line-height: 1.6; text-align: justify; display: block; width: 100%; padding: 4px 30px 4px 4px; margin: -4px; background: transparent; border: 0; border-radius: 5px; }
         .subject-link:hover { color: var(--primary); text-decoration: underline; }
         .gv-allocation-text { text-align: justify; line-height: 1.6; color: var(--text-dark); margin-bottom: 5px; }
         
@@ -117,7 +120,7 @@
         /* GIAO DIỆN MOBILE - THU GỌN BẢNG */
         .mobile-toggle-btn { display: none; }
         @media (max-width: 1024px) {
-            .mobile-toggle-btn { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; position: absolute; right: 10px; top: 10px; color: var(--primary); border-radius: 50%; background: var(--bg-page); cursor: pointer; transition: 0.3s; z-index: 2; }
+            .mobile-toggle-btn { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; position: absolute; right: 8px; top: 8px; color: var(--primary); border: 0; border-radius: 50%; background: var(--bg-page); cursor: pointer; transition: 0.3s; z-index: 2; }
             .subject-row.expanded .mobile-toggle-btn { transform: rotate(180deg); }
             
             .table-container { border: none; box-shadow: none; background: transparent; overflow: hidden; }
@@ -146,6 +149,10 @@
             .dash-stat-label { width: 90px; font-size: 0.95rem; }
             .dash-stat-val { width: 60px; font-size: 1rem; }
             .dash-stat-bar-container { margin: 0 10px; }
+            .filter-controls { gap: 12px; }
+            .filter-col, .filter-col[style] { width: 100%; margin-left: 0 !important; }
+            .filter-col select { width: 100%; min-width: 0; min-height: 44px; }
+            .table-actions { width: 100%; margin-left: 0; }
         }
     </style>
 </head>
@@ -205,6 +212,11 @@
                         <option value="STRUCT">Theo Cấu trúc Khung CT</option>
                         <option value="SEM">Theo Thứ tự Học kỳ</option>
                     </select>
+                </div>
+
+                <div class="table-actions" aria-label="Điều khiển danh sách">
+                    <button type="button" class="btn-outline btn-compact" onclick="setAllGroupsExpanded(true)"><i class="fas fa-expand-alt"></i> Mở tất cả</button>
+                    <button type="button" class="btn-outline btn-compact" onclick="setAllGroupsExpanded(false)"><i class="fas fa-compress-alt"></i> Thu gọn</button>
                 </div>
 
             </div>
@@ -881,6 +893,17 @@
             tr.classList.toggle('expanded');
         };
 
+        window.setAllGroupsExpanded = (expanded) => {
+            document.querySelectorAll('.group-header').forEach(header => {
+                header.classList.toggle('group-collapsed', !expanded);
+                let row = header.nextElementSibling;
+                while (row && !row.classList.contains('group-header')) {
+                    row.classList.toggle('hidden', !expanded);
+                    row = row.nextElementSibling;
+                }
+            });
+        };
+
         window.renderTable = () => {
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
@@ -1039,8 +1062,8 @@
                 <tr class="subject-row ${gClass}">
                     <td>
                         <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div class="subject-link" onclick="openSubjectModal('${sub.id}')">${sub.name} ${orientTag} ${creditsBadge} ${statusBadge}</div>
-                            <div class="mobile-toggle-btn" onclick="toggleMobileRow(this)"><i class="fas fa-chevron-down"></i></div>
+                            <button type="button" class="subject-link" onclick="openSubjectModal('${sub.id}')">${sub.name} ${orientTag} ${creditsBadge} ${statusBadge}</button>
+                            <button type="button" class="mobile-toggle-btn" onclick="toggleMobileRow(this)" aria-label="Mở hoặc thu gọn thông tin học phần"><i class="fas fa-chevron-down"></i></button>
                         </div>
                     </td>
                     <td style="font-weight:600; color:var(--text-dark);">${sub.id === 'sub_60' ? '—' : (asg.semester || '—')}</td>

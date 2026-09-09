@@ -26,6 +26,7 @@
         
         .section-box { background: var(--surface); padding: 25px; border-radius: var(--radius-md); margin-bottom: 20px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
         .hidden { display: none !important; }
+        .thesis-form-modal { max-width: 900px; text-align: left; position: relative; max-height: 90vh; overflow-y: auto; }
 
         /* Bố cục Form */
         .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; align-items: end; }
@@ -39,7 +40,7 @@
 
         /* Tabs Chuyển hệ */
         .tabs-header { display: flex; border-bottom: 2px solid var(--border); margin-bottom: 20px; gap: 10px; }
-        .tab-btn { flex: 1; padding: 12px; text-align: center; font-size: 1rem; font-weight: 600; color: var(--text-body); background: transparent; border: none; cursor: pointer; transition: var(--transition); border-bottom: 3px solid transparent; }
+        .tab-btn { flex: 1; min-height: 48px; padding: 12px; text-align: center; font-size: 1rem; font-weight: 600; color: var(--text-body); background: transparent; border: none; cursor: pointer; transition: var(--transition); border-bottom: 3px solid transparent; }
         .tab-btn:hover { color: var(--text-dark); }
         .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
 
@@ -66,6 +67,7 @@
         th, td { padding: 15px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: middle; }
         th { background-color: var(--bg-page); font-weight: 600; color: var(--text-dark); text-transform: uppercase; font-size: 0.85rem; position: sticky; top: 0; z-index: 10; letter-spacing: 0.5px;}
         tr:hover { background-color: var(--primary-light); }
+        tr.recently-updated td { background-color: #ecfdf5; }
         
         #thAction, .td-action { position: sticky; right: 0; background-color: var(--surface); z-index: 5; box-shadow: -4px 0 8px rgba(0,0,0,0.02); border-left: 1px solid var(--border); }
         tr:hover .td-action { background-color: var(--primary-light); }
@@ -74,8 +76,8 @@
         .advisor-link { color: var(--primary); font-weight: 600; cursor: pointer; text-decoration: none; border-bottom: 1px dashed var(--primary); }
         .advisor-link:hover { color: var(--primary-hover); border-bottom-style: solid; }
         
-        .thesis-title-link { cursor: pointer; color: var(--text-dark); transition: color 0.2s; font-weight: 600; line-height: 1.5; }
-        .thesis-title-link:hover { color: var(--primary); }
+        .thesis-title-link { width: 100%; padding: 6px 8px; margin: -6px -8px; cursor: pointer; color: var(--text-dark); transition: color 0.2s, background-color 0.2s; font: inherit; font-weight: 600; line-height: 1.5; text-align: left; background: transparent; border: 0; border-radius: 6px; }
+        .thesis-title-link:hover, .thesis-title-link:focus-visible { color: var(--primary); background: var(--primary-light); outline: 2px solid var(--primary); outline-offset: 2px; }
 
         /* =========================================
            CSS THÔNG BÁO TOAST (POPUP GÓC DƯỚI)
@@ -121,7 +123,12 @@
         @media (max-width: 768px) {
             .header-title-box h2 { font-size: 1.3rem; }
             .header-buttons { width: 100%; justify-content: center; margin-top: 10px; }
-            .tabs-header { margin-top: 10px; }
+            .thesis-form-modal { margin: 12px; max-height: calc(100vh - 24px); }
+            .thesis-form-modal .form-group[style*="grid-column"] { grid-column: auto !important; }
+            .tabs-header { margin-top: 10px; gap: 4px; }
+            .tab-btn { font-size: 0.9rem; }
+            .section-box:has(#searchInput) { padding: 12px; }
+            .section-box:has(#searchInput) .form-grid { grid-template-columns: 1fr !important; gap: 12px; }
             .toast-container { bottom: 10px; right: 10px; left: 10px; }
             .toast { min-width: unset; width: 100%; box-sizing: border-box; }
 
@@ -134,7 +141,6 @@
             /* Mở rộng cột tên đề tài */
             .table-container th:nth-child(3), .table-container td:nth-child(3) { width: 100% !important; min-width: unset !important; }
             .thesis-title-link { color: var(--primary); font-size: 0.95rem; }
-            .mobile-hint { display: block !important; } 
         }
     </style>
 </head>
@@ -153,6 +159,7 @@
                 <div class="subtitle">BỘ MÔN PHỤC HỒI CHỨC NĂNG</div>
             </div>
             <div class="header-buttons">
+                <button id="btnOpenAdd" class="btn-success hidden"><i class="fas fa-plus"></i> Thêm đề tài</button>
                 <button id="btnOpenHistory" class="btn-primary hidden" onclick="openHistoryModal()"><i class="fas fa-history"></i> Lịch sử</button>
                 <button id="btnOpenBulk" class="btn-warning hidden"><i class="fas fa-file-excel"></i> Nhập Excel</button>
                 <!-- NÚT THÙNG RÁC - ẨN MẶC ĐỊNH -->
@@ -186,8 +193,10 @@
             <div id="bulkLog" style="font-size: 0.9rem; font-weight: 600; color: #15803d; margin-top: 15px;"></div>
         </div>
 
-        <!-- Khung Thêm/Sửa -->
-        <div id="adminSection" class="section-box hidden">
+        <!-- Popup Thêm/Sửa đề tài -->
+        <div id="thesisFormModal" class="modal-overlay hidden">
+        <div id="adminSection" class="modal-content thesis-form-modal">
+            <button class="modal-close" onclick="closeThesisFormModal()"><i class="fas fa-times"></i></button>
             <h3 style="margin-top: 0; color: var(--primary);">
                 <i class="fas fa-edit"></i> <span id="formTitle">Thêm đề tài mới</span>
                 <span id="editModeBadge" class="hidden" style="background: #f59e0b; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; margin-left: 10px;">Đang sửa</span>
@@ -230,6 +239,7 @@
                     <button id="btnCancelEdit" class="btn-danger btn-sm">Hủy sửa</button>
                 </div>
             </div>
+        </div>
         </div>
 
         <!-- Giao diện hiển thị chung -->
@@ -455,6 +465,8 @@
         const tableBody = document.getElementById('dataTableBody');
         const thAction = document.getElementById('thAction');
         const adminSection = document.getElementById('adminSection');
+        const thesisFormModal = document.getElementById('thesisFormModal');
+        const btnOpenAdd = document.getElementById('btnOpenAdd');
         const bulkSection = document.getElementById('bulkSection');
         const filterClass = document.getElementById('filterClass'); 
         const sortSelect = document.getElementById('sortSelect'); 
@@ -518,10 +530,11 @@
                 // CHẶN QUYỀN NẾU LÀ TÀI KHOẢN HỌC VIÊN
                 if (user.email.toLowerCase() === 'ths.phcn26@ump.edu.vn') {
                     isAdmin = false;
-                    adminSection.classList.add('hidden');
+                    thesisFormModal.classList.add('hidden');
                     document.getElementById('bulkSection').classList.add('hidden');
                     thAction.classList.add('hidden');
                     document.getElementById('btnOpenBulk').classList.add('hidden');
+                    btnOpenAdd.classList.add('hidden');
                     document.getElementById('btnOpenHistory').classList.add('hidden');
                     document.getElementById('btnOpenTrash').classList.add('hidden');
                     
@@ -538,8 +551,8 @@
 
                 isAdmin = true;
                 document.getElementById('btnOpenBulk').classList.remove('hidden');
+                btnOpenAdd.classList.remove('hidden');
                 document.getElementById('btnOpenHistory').classList.remove('hidden');
-                adminSection.classList.remove('hidden');
                 thAction.classList.remove('hidden');
 
                 // Quyền riêng cho email hiển thị nút Thùng Rác
@@ -588,10 +601,11 @@
                     unsubscribeLogs = null;
                 }
                 isAdmin = false;
-                adminSection.classList.add('hidden');
+                thesisFormModal.classList.add('hidden');
                 document.getElementById('bulkSection').classList.add('hidden');
                 thAction.classList.add('hidden');
                 document.getElementById('btnOpenBulk').classList.add('hidden');
+                btnOpenAdd.classList.add('hidden');
                 document.getElementById('btnOpenHistory').classList.add('hidden');
                 document.getElementById('btnOpenTrash').classList.add('hidden');
 
@@ -650,12 +664,30 @@
             document.getElementById('totalCountText').innerText = allTheses.filter(t => String(t.studentClass || '').startsWith(currentTab)).length;
             document.getElementById('filteredCountText').innerText = filtered.length;
 
-            if (lastEditedId) {
-                const editedIndex = filtered.findIndex(t => t.id === lastEditedId);
+            const editedIdForReturn = lastEditedId;
+            if (editedIdForReturn) {
+                const editedThesis = allTheses.find(t => t.id === editedIdForReturn);
+                const editedTab = String(editedThesis?.studentClass || '').startsWith('THS') ? 'THS' : 'CN';
+                if (editedThesis && currentTab !== editedTab) {
+                    currentTab = editedTab;
+                    document.querySelectorAll('.tab-btn').forEach(button => {
+                        button.classList.toggle('active', button.getAttribute('data-tab') === editedTab);
+                    });
+                    filterClass.value = 'Tất cả';
+                    updateDynamicFilters();
+                    return renderTable();
+                }
+                const editedIndex = filtered.findIndex(t => t.id === editedIdForReturn);
                 if (editedIndex !== -1) {
                     currentPage = Math.floor(editedIndex / itemsPerPage) + 1;
+                    lastEditedId = null;
+                } else {
+                    // Nếu đề tài vừa sửa bị ẩn bởi bộ lọc hiện tại, hiển thị lại để có thể quay về đúng vị trí.
+                    document.getElementById('searchInput').value = '';
+                    filterClass.value = 'Tất cả';
+                    updateDynamicFilters();
+                    return renderTable();
                 }
-                lastEditedId = null; 
             }
 
             totalPages = Math.ceil(filtered.length / itemsPerPage) || 1;
@@ -686,13 +718,12 @@
                 }).join('<br>');
 
                 tableBody.innerHTML += `
-                    <tr>
+                    <tr data-thesis-id="${t.id}">
                         <td align="center" style="color:#94a3b8;font-weight:bold">${actualIndex}</td>
                         <td><b>${t.author}</b></td>
                         
                         <td style="white-space:normal;">
-                            <div class="thesis-title-link" onclick="openThesisDetailModal('${dataStrObj}')" title="Nhấn để xem chi tiết">${t.title}</div>
-                            <div class="mobile-hint" style="font-size: 0.8rem; color: var(--primary); margin-top: 5px; font-weight: normal; display: none;"><i class="fas fa-hand-pointer"></i> Chạm để xem chi tiết</div>
+                            <button type="button" class="thesis-title-link" onclick="openThesisDetailModal('${dataStrObj}')" aria-label="Xem thông tin đề tài: ${t.title}">${t.title}</button>
                         </td>
 
                         <td>
@@ -703,6 +734,16 @@
                         ${actionHtml}
                     </tr>`;
             });
+
+            if (editedIdForReturn) {
+                requestAnimationFrame(() => {
+                    const editedRow = Array.from(tableBody.rows).find(row => row.dataset.thesisId === editedIdForReturn);
+                    if (!editedRow) return;
+                    editedRow.classList.add('recently-updated');
+                    editedRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    setTimeout(() => editedRow.classList.remove('recently-updated'), 2500);
+                });
+            }
         }
 
         document.getElementById('searchInput').addEventListener('input', () => { currentPage = 1; renderTable(); });
@@ -916,9 +957,22 @@
                     logAction("THÊM", `<strong>Đề tài:</strong> ${title}<br><strong>Lớp:</strong> ${obj.studentClass} | <strong>Tác giả:</strong> ${author}`);
                     showToast("Đã thêm đề tài mới!", "success");
                 }
-                resetForm();
+                window.closeThesisFormModal();
             } catch(e) { showToast("Lỗi lưu dữ liệu: " + e.message, "danger"); }
         };
+
+        window.openThesisFormModal = () => {
+            resetForm();
+            thesisFormModal.classList.remove('hidden');
+            requestAnimationFrame(() => document.getElementById('addTitle').focus());
+        };
+
+        window.closeThesisFormModal = () => {
+            thesisFormModal.classList.add('hidden');
+            resetForm();
+        };
+
+        btnOpenAdd.onclick = () => window.openThesisFormModal();
 
         window.triggerEdit = (enD) => {
             const t = JSON.parse(decodeURIComponent(enD));
@@ -956,10 +1010,11 @@
             document.getElementById('editModeBadge').classList.remove('hidden');
             document.getElementById('btnCancelEditContainer').classList.remove('hidden');
             document.getElementById('btnSaveData').innerText = 'Cập nhật';
-            document.getElementById('adminSection').scrollIntoView({behavior: 'smooth', block: 'start'});
+            thesisFormModal.classList.remove('hidden');
+            requestAnimationFrame(() => document.getElementById('addTitle').focus());
         };
 
-        document.getElementById('btnCancelEdit').onclick = resetForm;
+        document.getElementById('btnCancelEdit').onclick = () => window.closeThesisFormModal();
         function resetForm() {
             isEditing = false; 
             originalEditData = null; 
@@ -971,8 +1026,8 @@
             document.getElementById('btnSaveData').innerText = 'Lưu dữ liệu';
         }
 
-        document.getElementById('btnOpenBulk').onclick = () => { document.getElementById('bulkSection').classList.remove('hidden'); document.getElementById('adminSection').classList.add('hidden'); };
-        document.getElementById('btnCloseBulk').onclick = () => { document.getElementById('bulkSection').classList.add('hidden'); document.getElementById('adminSection').classList.remove('hidden'); };
+        document.getElementById('btnOpenBulk').onclick = () => { window.closeThesisFormModal(); document.getElementById('bulkSection').classList.remove('hidden'); };
+        document.getElementById('btnCloseBulk').onclick = () => document.getElementById('bulkSection').classList.add('hidden');
         
         let uploadData = [];
         document.getElementById('btnSelectFile').onclick = () => document.getElementById('excelFile').click();
