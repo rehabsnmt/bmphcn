@@ -1,5 +1,8 @@
-document.addEventListener("DOMContentLoaded", function () {
-    // 1. MÃ HTML CỦA HEADER (Giải pháp CSS thuần: Thẳng đều 2 mép, chống nhảy chữ)
+// HÀM TỰ THỰC THI (IIFE) - Chạy ngay lập tức để in Header/Footer không độ trễ
+(function () {
+    // ==========================================
+    // 1. MÃ HTML CỦA HEADER
+    // ==========================================
     const headerHTML = `
         <style>
             /* Cố định phần chứa Header */
@@ -171,21 +174,27 @@ document.addEventListener("DOMContentLoaded", function () {
         </header>
     `;
 
+    // ==========================================
     // 2. MÃ HTML CỦA FOOTER
+    // ==========================================
     const footerHTML = `
         <footer>
             <p>&copy; 2026 Bộ môn Phục hồi chức năng. Mọi quyền được bảo lưu.</p>
         </footer>
     `;
 
-    // 3. CHÈN VÀO TRANG HTML
+    // ==========================================
+    // 3. CHÈN TRỰC TIẾP VÀO DOM KHÔNG ĐỘ TRỄ
+    // ==========================================
     const headerPlaceholder = document.getElementById('header-placeholder');
     const footerPlaceholder = document.getElementById('footer-placeholder');
 
     if (headerPlaceholder) headerPlaceholder.innerHTML = headerHTML;
     if (footerPlaceholder) footerPlaceholder.innerHTML = footerHTML;
 
-    // 4. XỬ LÝ MENU MOBILE
+    // ==========================================
+    // 4. XỬ LÝ SỰ KIỆN MENU & CUỘN TRANG
+    // ==========================================
     const mobileMenu = document.getElementById('mobile-menu');
     const navLinks = document.getElementById('nav-links');
     if (mobileMenu && navLinks) {
@@ -197,7 +206,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // 5. TỰ ĐỘNG BÔI ĐẬM MENU ĐANG XEM
     const currentPath = window.location.pathname.split('/').pop() || 'index.html';
     const navItems = document.querySelectorAll('.nav-item');
     navItems.forEach(item => {
@@ -207,7 +215,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // 6. TẠO HIỆU ỨNG ĐỔ BÓNG KHI CUỘN TRANG
     const siteHeader = document.getElementById('site-header');
     window.addEventListener('scroll', () => {
         if (window.scrollY > 10) {
@@ -217,10 +224,11 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // 7. ĐIỀU HƯỚNG THÔNG MINH CHO NÚT "TÀI KHOẢN / ĐĂNG NHẬP"
+    // ==========================================
+    // 5. FIREBASE AUTH CHUYÊN BIỆT CHO LỚP THS2026 VÀ NÚT ĐĂNG XUẤT
+    // ==========================================
     const btnAuthNav = document.getElementById('btnAuthNav');
 
-    // === TÍCH HỢP FIREBASE AUTH TRỰC TIẾP VÀO LAYOUT ĐỂ XỬ LÝ ĐĂNG XUẤT ===
     import('https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js').then((appModule) => {
         import('https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js').then((authModule) => {
             const firebaseConfig = {
@@ -280,16 +288,18 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // ==========================================
-    // HỆ THỐNG THEO DÕI TRUY CẬP (ACCESS LOGGER)
-    // Tự động ghi nhận thông tin người dùng vào Firestore
+    // 6. HỆ THỐNG GHI NHẬN NHẬT KÝ TRUY CẬP (ACCESS LOGGER)
     // ==========================================
     async function recordAccessLog(userEmail = "Khách (Chưa đăng nhập)") {
         try {
-            // Import động thay vì import tĩnh để tránh lỗi cú pháp
             const fsModule = await import("https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js");
-            const db = fsModule.getFirestore();
+            const appModule = await import("https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js");
             
-            // 1. Lấy địa chỉ IP (Sử dụng API miễn phí, không ảnh hưởng tốc độ)
+            const app = appModule.getApps()[0];
+            if (!app) return; // Bỏ qua nếu Firebase chưa được khởi tạo ở trang chính
+            const db = fsModule.getFirestore(app);
+            
+            // 1. Lấy địa chỉ IP
             let ip = "Không xác định";
             try {
                 const ipResponse = await fetch('https://api.ipify.org?format=json');
@@ -299,20 +309,19 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
             } catch (e) { console.warn("Không lấy được IP"); }
 
-            // 2. Chống ghi rác: Bỏ qua nếu người dùng chỉ F5 liên tục trong 1 phút
+            // 2. Chống ghi rác: Bỏ qua nếu F5 liên tục trong vòng 1 phút
             const lastLogTime = sessionStorage.getItem("lastLogTime");
-            const currentPath = window.location.pathname.split('/').pop() || 'index.html';
+            const currentPathLog = window.location.pathname.split('/').pop() || 'index.html';
             const now = Date.now();
             
             if (lastLogTime && (now - parseInt(lastLogTime) < 60000)) {
-                // Cùng 1 session, F5 lại trong vòng 1 phút thì không ghi log mới
                 return;
             }
 
             // 3. Chuẩn bị gói dữ liệu
             const logData = {
                 timestamp: new Date().toISOString(),
-                path: currentPath,
+                path: currentPathLog,
                 userAgent: navigator.userAgent,
                 ip: ip,
                 userEmail: userEmail
@@ -321,15 +330,13 @@ document.addEventListener("DOMContentLoaded", function () {
             // 4. Bắn lên Firestore
             await fsModule.addDoc(fsModule.collection(db, "access_logs"), logData);
             
-            // Lưu mốc thời gian vào session để chống spam log
             sessionStorage.setItem("lastLogTime", now.toString());
-
         } catch (error) {
             console.error("Logger Error:", error);
         }
     }
 
-    // Đợi 2 giây để tránh làm chậm việc render giao diện chính của người dùng
+    // Delay 2 giây để tránh làm nghẽn trang chính, sau đó mới ghi Log
     setTimeout(() => {
         import('https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js').then((appModule) => {
             import('https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js').then((authModule) => {
@@ -337,7 +344,6 @@ document.addEventListener("DOMContentLoaded", function () {
                     const app = appModule.getApps()[0];
                     if(app) {
                         const auth = authModule.getAuth(app);
-                        // Lấy email nếu đang đăng nhập, nếu chưa thì báo là Khách
                         authModule.onAuthStateChanged(auth, (user) => {
                             if (user && user.email) {
                                 recordAccessLog(user.email);
@@ -355,4 +361,4 @@ document.addEventListener("DOMContentLoaded", function () {
         }).catch(() => recordAccessLog("Khách (Chưa đăng nhập)"));
     }, 2000);
 
-});
+})();
