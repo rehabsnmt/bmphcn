@@ -15,7 +15,69 @@
         .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid var(--border); flex-wrap: wrap; gap: 15px;}
         .page-header h2 { font-size: 1.6rem; color: var(--text-dark); margin: 0; font-weight: 800; text-transform: uppercase; display: flex; align-items: center; gap: 10px; }
         
-        .hidden { display: none !important; }
+        /* ==========================================
+           HIỆU ỨNG CHIẾC KHIÊN MÀN HÌNH CHỜ (PRELOADER)
+           ========================================== */
+        #loadingScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #0f172a; /* Nền xanh đen phong cách bảo mật */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            transition: opacity 0.6s ease-out, visibility 0.6s ease-out;
+        }
+
+        #loadingScreen.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .shield-icon-container {
+            font-size: 6rem;
+            color: #38bdf8;
+            /* Hoạt ảnh nảy lên (Pop) và Tỏa sáng (Pulse) */
+            animation: shieldPop 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, 
+                       shieldPulse 2s infinite 0.8s;
+            transform: scale(0);
+        }
+
+        .loading-text {
+            margin-top: 25px;
+            color: #cbd5e1;
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            animation: textGlow 1.5s ease-in-out infinite alternate;
+        }
+
+        @keyframes shieldPop {
+            0% { transform: scale(0) translateY(50px); opacity: 0; }
+            100% { transform: scale(1) translateY(0); opacity: 1; }
+        }
+
+        @keyframes shieldPulse {
+            0% { filter: drop-shadow(0 0 15px rgba(56, 189, 248, 0.4)); transform: scale(1); }
+            50% { filter: drop-shadow(0 0 40px rgba(56, 189, 248, 0.9)); transform: scale(1.05); }
+            100% { filter: drop-shadow(0 0 15px rgba(56, 189, 248, 0.4)); transform: scale(1); }
+        }
+
+        @keyframes textGlow {
+            from { opacity: 0.6; text-shadow: 0 0 5px rgba(255,255,255,0.1); }
+            to { opacity: 1; text-shadow: 0 0 15px rgba(56,189,248,0.6); }
+        }
+
+        /* ------------------------------------------ */
+        /* CSS GIAO DIỆN CHÍNH CỦA TRANG */
+        /* ------------------------------------------ */
+        .hidden-main { display: none !important; }
 
         .toolbar { display: flex; justify-content: space-between; align-items: center; background: var(--surface); padding: 15px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 20px; box-shadow: var(--shadow-sm); flex-wrap: wrap; gap: 10px; }
         
@@ -70,11 +132,16 @@
     <div id="header-placeholder"></div>
     <div id="toastContainer" class="toast-container"></div>
 
-    <div id="loadingScreen" style="text-align: center; padding: 5rem 0; color: var(--primary); font-weight: 600; font-size: 1.2rem;">
-        <i class="fas fa-shield-alt fa-spin fa-2x" style="margin-bottom: 15px;"></i><br>Đang kiểm tra bảo mật...
+    <!-- MÀN HÌNH CHỜ (PRELOADER) HOẠT ẢNH KHIÊN -->
+    <div id="loadingScreen">
+        <div class="shield-icon-container">
+            <i class="fas fa-shield-halved"></i>
+        </div>
+        <div class="loading-text">Đang kiểm tra bảo mật...</div>
     </div>
 
-    <main id="mainContent" class="hidden">
+    <!-- NỘI DUNG CHÍNH (ẨN ĐI CHO ĐẾN KHI XÁC THỰC XONG) -->
+    <main id="mainContent" class="hidden-main">
         <div class="page-header">
             <h2><i class="fas fa-user-secret" style="color: var(--primary);"></i> Nhật ký hệ thống & Truy cập</h2>
             <div style="font-size: 0.9rem; color: #64748b;">
@@ -184,10 +251,14 @@
 
         onAuthStateChanged(auth, async (user) => {
             if (user && ADMIN_EMAILS.includes(user.email.toLowerCase())) {
-                document.getElementById('loadingScreen').classList.add('hidden');
-                document.getElementById('mainContent').classList.remove('hidden');
                 
-                // Kích hoạt Header Auth (Chung)
+                // Cố ý tạo một khoảng dừng nhỏ (1.2 giây) để phô diễn hoạt ảnh khiên bảo mật
+                setTimeout(() => {
+                    document.getElementById('loadingScreen').classList.add('hidden');
+                    document.getElementById('mainContent').classList.remove('hidden-main');
+                }, 1200);
+                
+                // Cập nhật tên Header
                 try {
                     const userDoc = await getDoc(doc(db, "users", user.uid));
                     if (userDoc.exists()) {
