@@ -279,3 +279,74 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 });
+// ==========================================
+// HỆ THỐNG THEO DÕI TRUY CẬP (ACCESS LOGGER)
+// Tự động ghi nhận thông tin người dùng vào Firestore
+// ==========================================
+import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
+
+async function recordAccessLog(userEmail = "Khách (Chưa đăng nhập)") {
+    try {
+        const db = getFirestore();
+        
+        // 1. Lấy địa chỉ IP (Sử dụng API miễn phí, không ảnh hưởng tốc độ)
+        let ip = "Không xác định";
+        try {
+            const ipResponse = await fetch('https://api.ipify.org?format=json');
+            if (ipResponse.ok) {
+                const ipData = await ipResponse.json();
+                ip = ipData.ip;
+            }
+        } catch (e) { console.warn("Không lấy được IP"); }
+
+        // 2. Chống ghi rác: Bỏ qua nếu người dùng chỉ F5 liên tục trong 1 phút
+        const lastLogTime = sessionStorage.getItem("lastLogTime");
+        const currentPath = window.location.pathname;
+        const now = Date.now();
+        
+        if (lastLogTime && (now - parseInt(lastLogTime) < 60000)) {
+            // Cùng 1 session, F5 lại trong vòng 1 phút thì không ghi log mới
+            return;
+        }
+
+        // 3. Chuẩn bị gói dữ liệu
+        const logData = {
+            timestamp: new Date().toISOString(),
+            path: currentPath || "/",
+            userAgent: navigator.userAgent,
+            ip: ip,
+            userEmail: userEmail
+        };
+
+        // 4. Bắn lên Firestore
+        await addDoc(collection(db, "access_logs"), logData);
+        
+        // Lưu mốc thời gian vào session để chống spam log
+        sessionStorage.setItem("lastLogTime", now.toString());
+
+    } catch (error) {
+        console.error("Logger Error:", error);
+    }
+}
+
+// Bắt đầu theo dõi khi trang đã tải xong và Auth đã được khởi tạo
+document.addEventListener("DOMContentLoaded", () => {
+    // Đợi 2 giây để tránh làm chậm việc render giao diện chính của người dùng
+    setTimeout(() => {
+        try {
+            const auth = getAuth();
+            // Lấy email nếu đang đăng nhập, nếu chưa thì báo là Khách
+            onAuthStateChanged(auth, (user) => {
+                if (user && user.email) {
+                    recordAccessLog(user.email);
+                } else {
+                    recordAccessLog("Khách (Chưa đăng nhập)");
+                }
+            });
+        } catch (e) {
+            // Fallback nếu trang không có Auth
+            recordAccessLog("Khách (Chưa đăng nhập)");
+        }
+    }, 2000);
+});
