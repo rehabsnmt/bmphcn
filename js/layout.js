@@ -230,40 +230,69 @@ function initLayout() {
     // ==========================================
     const btnAuthNav = document.getElementById('btnAuthNav');
 
-    import('https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js').then((appModule) => {
-        import('https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js').then((authModule) => {
-            const firebaseConfig = {
-                apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY",
-                authDomain: "bmphcn-aa9c6.firebaseapp.com",
-                projectId: "bmphcn-aa9c6",
-                storageBucket: "bmphcn-aa9c6.firebasestorage.app",
-                messagingSenderId: "749494392719",
-                appId: "1:749494392719:web:f220c751ff541620045dfa"
-            };
-            
-            const app = appModule.getApps().length === 0 ? appModule.initializeApp(firebaseConfig) : appModule.getApps()[0];
-            const auth = authModule.getAuth(app);
+    // Tải đồng thời App, Auth và Firestore để lấy thông tin cá nhân
+    Promise.all([
+        import('https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js'),
+        import('https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js'),
+        import('https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js')
+    ]).then(([appModule, authModule, fsModule]) => {
+        const firebaseConfig = {
+            apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY",
+            authDomain: "bmphcn-aa9c6.firebaseapp.com",
+            projectId: "bmphcn-aa9c6",
+            storageBucket: "bmphcn-aa9c6.firebasestorage.app",
+            messagingSenderId: "749494392719",
+            appId: "1:749494392719:web:f220c751ff541620045dfa"
+        };
+        
+        const app = appModule.getApps().length === 0 ? appModule.initializeApp(firebaseConfig) : appModule.getApps()[0];
+        const auth = authModule.getAuth(app);
+        const db = fsModule.getFirestore(app);
 
-            authModule.onAuthStateChanged(auth, (user) => {
-                if (user && user.email === 'ths.phcn26@ump.edu.vn') {
+        authModule.onAuthStateChanged(auth, async (user) => {
+            const btn = document.getElementById('btnAuthNav');
+            if (!btn) return;
+
+            if (user) {
+                // Nếu là tài khoản học viên -> Ép hiển thị nút "Đăng xuất" (Chính sách bảo mật)
+                if (user.email === 'ths.phcn26@ump.edu.vn') {
                     setInterval(() => {
-                        const btn = document.getElementById('btnAuthNav');
-                        if (btn && !btn.innerText.toLowerCase().includes('đăng xuất')) {
+                        if (!btn.innerText.toLowerCase().includes('đăng xuất')) {
                             btn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Đăng xuất';
                             btn.style.backgroundColor = '#be123c'; 
                             btn.style.color = 'white';
                         }
                     }, 500);
+                } 
+                // Nếu là tài khoản Ban chủ nhiệm/Giảng viên -> Truy xuất Tên từ DB để hiển thị (KHÔNG KÈM HỌC VỊ)
+                else {
+                    try {
+                        const userDoc = await fsModule.getDoc(fsModule.doc(db, "users", user.uid));
+                        if (userDoc.exists()) {
+                            const data = userDoc.data();
+                            let fullName = data.fullName || 'Tài khoản';
+                            btn.innerHTML = `<i class="fas fa-user-circle" style="margin-right:5px;"></i> ${fullName}`;
+                        } else {
+                            btn.innerHTML = `<i class="fas fa-user-circle" style="margin-right:5px;"></i> ${user.email.split('@')[0]}`;
+                        }
+                    } catch(err) {
+                        btn.innerHTML = `<i class="fas fa-user-circle" style="margin-right:5px;"></i> Tài khoản`;
+                    }
                 }
-            });
+            } else {
+                btn.innerHTML = 'Đăng nhập';
+                btn.style.backgroundColor = 'var(--primary)';
+            }
         });
     }).catch(e => console.log("Bỏ qua kiểm tra auth tĩnh:", e));
 
+    // Xử lý logic khi click vào nút
     if (btnAuthNav) {
         btnAuthNav.addEventListener('click', function(e) {
             e.preventDefault(); 
             const currentText = this.innerText.toLowerCase();
             
+            // Bấm khi đang hiển thị chữ "Đăng xuất" (Áp dụng cho Học viên)
             if (currentText.includes('đăng xuất')) {
                 if(confirm("Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?")) {
                     import('https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js').then((appModule) => {
@@ -278,9 +307,13 @@ function initLayout() {
                         });
                     });
                 }
-            } else if (currentText.includes('đăng nhập')) {
+            } 
+            // Chưa đăng nhập -> Chuyển đến trang Đăng nhập
+            else if (currentText.includes('đăng nhập')) {
                 window.location.href = 'login.html';
-            } else {
+            } 
+            // Bấm vào Tên của mình -> Chuyển đến Dashboard Quản trị
+            else {
                 window.location.href = 'dashboard.html';
             }
         });
@@ -288,8 +321,6 @@ function initLayout() {
 }
 
 // BƯỚC QUAN TRỌNG: KIỂM TRA TRẠNG THÁI DOM CHUẨN XÁC
-// Nếu DOM vẫn đang tải -> Gắn sự kiện lắng nghe
-// Nếu DOM đã tải xong rồi -> Chạy hàm ngay lập tức
 if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", initLayout);
 } else {
