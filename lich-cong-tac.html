@@ -87,6 +87,9 @@
         /* Tùy chỉnh form input trong modal khai báo */
         .form-control { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border); font-family: inherit; font-size: 0.95rem; outline: none; box-sizing: border-box; }
         .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1); }
+        
+        /* Ẩn icon đồng hồ mặc định của input type time trên Webkit (Chrome/Safari) */
+        input[type="time"]::-webkit-calendar-picker-indicator { cursor: pointer; }
 
         /* Toast */
         .toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;}
@@ -178,22 +181,23 @@
                 <form id="declareForm" onsubmit="submitDeclaration(event)">
                     <div style="margin-bottom: 15px;">
                         <label style="display:block; margin-bottom:5px; font-weight:bold; color:var(--text-dark);">Ngày *</label>
-                        <!-- Ép trình duyệt hạn chế format nếu hỗ trợ -->
                         <input type="date" id="decDate" class="form-control" required>
                     </div>
                     <div style="display:flex; gap:15px; margin-bottom: 15px;">
                         <div style="flex:1;">
                             <label style="display:block; margin-bottom:5px; font-weight:bold; color:var(--text-dark);">Từ giờ *</label>
-                            <input type="time" id="decStartTime" class="form-control" required>
+                            <!-- Sử dụng lang="en-GB" để ép trình duyệt hiển thị kiểu 24h -->
+                            <input type="time" id="decStartTime" class="form-control" required lang="en-GB">
                         </div>
                         <div style="flex:1;">
                             <label style="display:block; margin-bottom:5px; font-weight:bold; color:var(--text-dark);">Đến giờ *</label>
-                            <input type="time" id="decEndTime" class="form-control" required>
+                            <!-- Sử dụng lang="en-GB" để ép trình duyệt hiển thị kiểu 24h -->
+                            <input type="time" id="decEndTime" class="form-control" required lang="en-GB">
                         </div>
                     </div>
                     <div style="margin-bottom: 15px;">
                         <label style="display:block; margin-bottom:5px; font-weight:bold; color:var(--text-dark);">Nội dung công việc *</label>
-                        <input type="text" id="decTask" class="form-control" required placeholder="VD: Họp đột xuất, Đi công tác tỉnh...">
+                        <input type="text" id="decTask" class="form-control" required placeholder="VD: Đi công tác tỉnh...">
                     </div>
                     <div style="margin-bottom: 20px;">
                         <label style="display:block; margin-bottom:5px; font-weight:bold; color:var(--text-dark);">Địa điểm</label>
