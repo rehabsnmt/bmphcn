@@ -214,7 +214,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
-        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY",
@@ -273,8 +273,8 @@
                 const avatarHtml = `<img src="${data.image}" alt="Ảnh ${data.name}" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\\'fas fa-user\\' style=\\'font-size: 3rem; color: var(--text-body);\\'></i>';">`;
 
                 let majorClass = 'major-vltl';
-                if (data.major.includes('Hoạt động trị liệu')) majorClass = 'major-hdtl';
-                else if (data.major.includes('Ngôn ngữ trị liệu')) majorClass = 'major-nntl';
+                if (data.major.includes('Hoạt động trị liệu') || data.major.includes('HĐTL')) majorClass = 'major-hdtl';
+                else if (data.major.includes('Ngôn ngữ trị liệu') || data.major.includes('NNTL')) majorClass = 'major-nntl';
 
                 card.innerHTML = `
                     <div class="faculty-avatar">
@@ -305,8 +305,9 @@
             });
         }
 
-        // Tải UID và Avatar từ Database
-        async function loadFacultyAvatars() {
+        // Tải thông tin từ Database
+        async function loadFacultyData() {
+            // Hiển thị khung với dữ liệu tĩnh mặc định trước cho nhanh
             renderFaculty();
 
             try {
@@ -318,32 +319,56 @@
                     const data = doc.data();
                     if (data.email) {
                         userMap[data.email.toLowerCase()] = {
+                            uid: doc.id,
                             avatar: data.avatar,
-                            uid: doc.id
+                            fullName: data.fullName,
+                            degree: data.degree,
+                            position: data.position,
+                            major: data.major
                         };
                     }
                 });
 
+                // Mapping học vị từ DB -> Hiển thị chuẩn
+                const degreeMap = {
+                    'CN': 'Cử nhân',
+                    'ThS': 'Thạc sĩ',
+                    'TS': 'Tiến sĩ',
+                    'PGS.TS': 'Phó Giáo sư, Tiến sĩ',
+                    'GS.TS': 'Giáo sư, Tiến sĩ'
+                };
+
                 let needsUpdate = false;
                 
-                // Gắn uid và avatar mới vào list tĩnh
+                // Đối chiếu với danh sách tĩnh, nếu db có thông tin thì đè lên thông tin tĩnh
                 facultyList.forEach(faculty => {
                     if (faculty.email) {
                         const dbUser = userMap[faculty.email.toLowerCase()];
                         if (dbUser) {
-                            if (dbUser.avatar && faculty.image !== dbUser.avatar) {
+                            faculty.uid = dbUser.uid;
+                            
+                            if (dbUser.avatar && dbUser.avatar.trim() !== '') {
                                 faculty.image = dbUser.avatar;
-                                needsUpdate = true;
                             }
-                            if (faculty.uid !== dbUser.uid) {
-                                faculty.uid = dbUser.uid;
-                                needsUpdate = true;
+                            if (dbUser.fullName && dbUser.fullName.trim() !== '') {
+                                faculty.name = dbUser.fullName;
                             }
+                            if (dbUser.position && dbUser.position.trim() !== '') {
+                                faculty.position = dbUser.position;
+                            }
+                            if (dbUser.major && dbUser.major.trim() !== '') {
+                                faculty.major = dbUser.major;
+                            }
+                            if (dbUser.degree && dbUser.degree.trim() !== '') {
+                                faculty.degree = degreeMap[dbUser.degree] || dbUser.degree;
+                            }
+
+                            needsUpdate = true;
                         }
                     }
                 });
 
-                // Cập nhật giao diện nếu có thay đổi
+                // Nếu phát hiện có sự cập nhật từ DB, render lại lưới để áp dụng thay đổi
                 if (needsUpdate) {
                     renderFaculty();
                 }
@@ -353,7 +378,8 @@
             }
         }
 
-        loadFacultyAvatars();
+        // Kích hoạt hàm tải và ghi đè dữ liệu
+        loadFacultyData();
     </script>
 </body>
 </html>
