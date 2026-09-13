@@ -334,34 +334,6 @@
                 document.getElementById('visitorInfoTrigger').setAttribute('aria-expanded', 'false');
             }
         });
-
-
-        // --- Lắng nghe trạng thái đăng nhập để đổi tên nút Auth trên Header ---
-        onAuthStateChanged(auth, async (user) => {
-            // Chờ một chút để layout.js kịp render Header vào DOM
-            setTimeout(async () => {
-                const btnAuthNav = document.getElementById('btnAuthNav');
-                if (!btnAuthNav) return;
-
-                if (user) {
-                    try {
-                        const userDoc = await getDoc(doc(db, "users", user.uid));
-                        if (userDoc.exists()) {
-                            const data = userDoc.data();
-                            let degreePrefix = data.degree === 'ThS' ? 'ThS. ' : (data.degree === 'TS' ? 'TS. ' : '');
-                            btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 5px;"></i> ${degreePrefix}${data.fullName || 'Giảng viên'}`;
-                        } else {
-                            btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 5px;"></i> Giảng viên`;
-                        }
-                    } catch (error) {
-                        console.error("Lỗi lấy thông tin: ", error);
-                    }
-                } else {
-                    btnAuthNav.innerHTML = 'Đăng nhập';
-                    btnAuthNav.href = "login.html";
-                }
-            }, 100);
-        });
     </script>
 </body>
 </html>
