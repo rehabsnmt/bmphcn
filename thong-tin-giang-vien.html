@@ -16,7 +16,7 @@
         .hidden { display: none !important; }
 
         /* BỐ CỤC CV CHÍNH */
-        .cv-wrapper { display: grid; grid-template-columns: 320px 1fr; gap: 2rem; background: white; border-radius: 12px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); overflow: hidden; align-items: stretch; position: relative;}
+        .cv-wrapper { display: grid; grid-template-columns: 360px 1fr; gap: 2rem; background: white; border-radius: 12px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); overflow: hidden; align-items: stretch; position: relative;}
         
         /* Nút Chỉnh sửa (Chỉ hiện cho Chủ sở hữu / Admin) */
         #btnEditProfile { position: absolute; top: 15px; right: 15px; background: var(--primary); color: white; border: none; padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 6px; z-index: 10; box-shadow: 0 4px 6px rgba(2, 132, 199, 0.2);}
@@ -25,20 +25,22 @@
         /* CỘT TRÁI - SIDEBAR */
         .cv-sidebar { background: #f8fafc; padding: 2.5rem 1.5rem; display: flex; flex-direction: column; align-items: center; text-align: center; border-right: 1px solid var(--border); }
         
-        .cv-avatar-container { position: relative; display: flex; flex-direction: column; align-items: center; margin-bottom: 1.5rem; }
-        .cv-avatar { width: 180px; height: 180px; border-radius: 50%; object-fit: cover; border: 4px solid white; box-shadow: 0 4px 15px rgba(0,0,0,0.1); background-color: var(--border); display: flex; align-items: center; justify-content: center; font-size: 4rem; color: #94a3b8; overflow: hidden; position: relative; margin-bottom: 5px; }
-        .cv-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .cv-avatar-container { position: relative; display: flex; flex-direction: column; align-items: center; margin-bottom: 1.5rem; width: 100%;}
+        
+        /* Chỉnh khung ảnh thành hình chữ nhật bo góc, hiển thị ảnh đầy đủ không cắt */
+        .cv-avatar { width: 220px; height: 290px; border-radius: 12px; border: 4px solid white; box-shadow: 0 4px 15px rgba(0,0,0,0.1); background-color: white; display: flex; align-items: center; justify-content: center; font-size: 4rem; color: #94a3b8; overflow: hidden; position: relative; margin-bottom: 5px; }
+        .cv-avatar img { width: 100%; height: 100%; object-fit: contain; } 
         
         .cv-avatar.editable { cursor: pointer; }
         .cv-avatar-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.5); color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; transition: 0.3s; z-index: 2; }
         .cv-avatar.editable:hover .cv-avatar-overlay { opacity: 1; }
         
-        .cv-name { font-size: 1.5rem; font-weight: 800; color: var(--text-dark); margin-bottom: 15px; line-height: 1.3;}
-        .cv-position { font-size: 0.95rem; font-weight: 600; color: var(--text-body); margin-bottom: 20px; background: white; padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border); }
+        /* Ép tên không ngắt dòng */
+        .cv-name { font-size: 1.4rem; font-weight: 800; color: var(--text-dark); margin-bottom: 15px; white-space: nowrap; }
         
         .cv-contact { width: 100%; text-align: left; margin-top: 15px; padding-top: 20px; border-top: 1px dashed #cbd5e1; }
-        .cv-contact-item { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; font-size: 0.9rem; color: var(--text-dark); word-break: break-all; }
-        .cv-contact-item i { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; background: var(--primary-light); color: var(--primary); border-radius: 50%; font-size: 0.8rem; flex-shrink: 0;}
+        .cv-contact-item { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; font-size: 0.95rem; color: var(--text-dark); word-break: break-all; }
+        .cv-contact-item i { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; background: var(--primary-light); color: var(--primary); border-radius: 50%; font-size: 0.85rem; flex-shrink: 0;}
 
         /* CỘT PHẢI - NỘI DUNG CHÍNH */
         .cv-main { padding: 2.5rem 2.5rem 2.5rem 1rem; display: flex; flex-direction: column; gap: 2rem; }
@@ -83,6 +85,7 @@
         @media (max-width: 768px) {
             .cv-wrapper { grid-template-columns: 1fr; }
             .cv-sidebar { border-right: none; border-bottom: 1px solid var(--border); padding: 2rem 1.5rem; }
+            .cv-name { white-space: normal; word-break: break-word; }
             .cv-main { padding: 1.5rem; }
             .form-grid { grid-template-columns: 1fr; }
             #btnEditProfile { top: 10px; right: 10px; padding: 6px 10px; font-size: 0.85rem; }
@@ -108,11 +111,10 @@
                         <i class="fas fa-user"></i>
                     </div>
                     <input type="file" id="uploadAvatar" accept="image/jpeg, image/jpg" class="hidden">
-                    <div id="avatarNote" class="hidden" style="font-size: 0.8rem; color: #94a3b8; margin-top: 5px;">(Chọn ảnh < 2MB, định dạng JPG)</div>
+                    <div id="avatarNote" class="hidden" style="font-size: 0.85rem; color: #64748b; margin-top: 8px; font-weight: 600;">(Chọn ảnh < 2MB, định dạng JPG)</div>
                 </div>
 
                 <div class="cv-name" id="displayName">Họ và Tên</div>
-                <div class="cv-position" id="displayPosition">Chức vụ / Vị trí</div>
                 
                 <div class="cv-contact">
                     <div class="cv-contact-item" title="Chuyên ngành">
@@ -120,9 +122,6 @@
                     </div>
                     <div class="cv-contact-item" title="Email">
                         <i class="fas fa-envelope"></i> <span id="displayEmail">Chưa cập nhật</span>
-                    </div>
-                    <div class="cv-contact-item" title="Điện thoại">
-                        <i class="fas fa-phone-alt"></i> <span id="displayPhone">Chưa cập nhật</span>
                     </div>
                 </div>
             </div>
@@ -178,17 +177,9 @@
                                 <option value="GS.TS">Giáo sư, Tiến sĩ (GS.TS)</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>Chức vụ / Vị trí</label>
-                            <input type="text" id="inputPosition" class="form-control">
-                        </div>
-                        <div class="form-group">
+                        <div class="form-group full">
                             <label>Chuyên ngành phụ trách</label>
                             <input type="text" id="inputMajor" class="form-control">
-                        </div>
-                        <div class="form-group">
-                            <label>Số điện thoại</label>
-                            <input type="text" id="inputPhone" class="form-control">
                         </div>
                     </div>
 
@@ -255,7 +246,7 @@
             const wrapper = document.getElementById('cvWrapper');
             wrapper.classList.remove('hidden');
 
-            // Header/Sidebar info
+            // Hiển thị Học vị + Tên chuẩn xác
             let degreePref = '';
             if (data.degree) {
                 if (['ThS', 'TS', 'CN', 'PGS.TS', 'GS.TS'].includes(data.degree)) {
@@ -266,10 +257,8 @@
             }
             
             document.getElementById('displayName').innerText = `${degreePref}${data.fullName || 'Chưa cập nhật'}`;
-            document.getElementById('displayPosition').innerText = data.position || 'Giảng viên Bộ môn';
             
             document.getElementById('displayEmail').innerText = data.email || 'Chưa cập nhật';
-            document.getElementById('displayPhone').innerText = data.phone || 'Chưa cập nhật';
             document.getElementById('displayMajor').innerText = data.major || 'Phục hồi chức năng';
 
             // Avatar setup
@@ -345,13 +334,12 @@
 
                 loadProfile(targetUid);
             } else {
-                // Nếu chưa đăng nhập
+                // Nếu chưa đăng nhập, vẫn cho phép khách vãng lai xem profile nếu có ID trên URL
                 if (urlId) {
                     targetUid = urlId;
                     isHasPermissionToEdit = false;
-                    loadProfile(targetUid); // Cho phép khách truy cập xem public profile nếu có ID
+                    loadProfile(targetUid); 
                 } else {
-                    // Trực tiếp vào trang nhưng không có ID, cũng chưa đăng nhập
                     window.location.href = "login.html";
                 }
             }
@@ -418,9 +406,7 @@
             // Đổ dữ liệu hiện tại vào form
             document.getElementById('inputName').value = currentProfileData.fullName || '';
             document.getElementById('inputDegree').value = currentProfileData.degree || '';
-            document.getElementById('inputPosition').value = currentProfileData.position || '';
             document.getElementById('inputMajor').value = currentProfileData.major || '';
-            document.getElementById('inputPhone').value = currentProfileData.phone || '';
             
             document.getElementById('inputEducation').value = currentProfileData.education || '';
             document.getElementById('inputExperience').value = currentProfileData.experience || '';
@@ -443,9 +429,7 @@
             const updatedData = {
                 fullName: document.getElementById('inputName').value.trim(),
                 degree: document.getElementById('inputDegree').value,
-                position: document.getElementById('inputPosition').value.trim(),
                 major: document.getElementById('inputMajor').value.trim(),
-                phone: document.getElementById('inputPhone').value.trim(),
                 
                 education: document.getElementById('inputEducation').value.trim(),
                 experience: document.getElementById('inputExperience').value.trim(),
