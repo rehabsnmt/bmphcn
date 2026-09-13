@@ -67,46 +67,6 @@
     <!-- 4. GỌI LAYOUT CHUNG -->
     <script src="js/layout.js"></script>
 
-    <!-- SCRIPT KIỂM TRA TRẠNG THÁI ĐĂNG NHẬP VÀ ĐỔI TÊN NÚT TRÊN HEADER -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="js/firebase-config.js"></script>
-    
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            if (typeof auth !== 'undefined' && typeof db !== 'undefined') {
-                auth.onAuthStateChanged((user) => {
-                    // Dùng setTimeout để đợi layout.js bơm Header vào
-                    setTimeout(() => {
-                        const btnAuthNav = document.getElementById('btnAuthNav');
-                        if(!btnAuthNav) return;
-                        
-                        if (user) {
-                            db.collection("users").where("email", "==", user.email).get()
-                            .then((querySnapshot) => {
-                                if (!querySnapshot.empty) {
-                                    const userData = querySnapshot.docs[0].data();
-                                    let degreePrefix = "";
-                                    if (userData.degree === 'ThS') degreePrefix = "ThS. ";
-                                    else if (userData.degree === 'TS') degreePrefix = "TS. ";
-                                    else if (userData.degree === 'CN') degreePrefix = "CN. ";
-                                    else if (userData.degree === 'PGS.TS') degreePrefix = "PGS.TS. ";
-                                    btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 5px;"></i> ${degreePrefix}${userData.fullName || 'Giảng viên'}`;
-                                } else {
-                                    btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 5px;"></i> Giảng viên`;
-                                }
-                            }).catch(() => {});
-                        } else {
-                            btnAuthNav.innerHTML = 'Đăng nhập';
-                            btnAuthNav.href = "login.html";
-                        }
-                    }, 100);
-                });
-            }
-        });
-    </script>
-
     <!-- SCRIPT CHÍNH CỦA TRANG TUYỂN SINH (REACT) -->
     <script type="text/babel" data-presets="react,env" data-type="module">
         import React, { useState } from 'react';
@@ -405,7 +365,7 @@
                         }}
                         className={`flex items-center justify-center px-0.5 sm:px-1 md:px-5 py-2 md:py-2.5 rounded-xl md:rounded-2xl border-2 transition-all active:scale-95 text-[10px] sm:text-xs md:text-sm shadow-sm font-semibold text-center leading-tight whitespace-nowrap tracking-tighter sm:tracking-normal ${
                           activeMajor === key 
-                            ? `${getBorderClass(majors[key].color)} ${getLightBgClass(majors[key].color)} text-gray-900 shadow-md md:scale-105`
+                            ? `${getBorderClass(majors[key].color)}${getLightBgClass(majors[key].color)} text-gray-900 shadow-md md:scale-105`
                             : 'bg-white border-gray-100 text-gray-500 hover:text-gray-700 hover:bg-gray-50'
                         }`}
                       >
