@@ -121,7 +121,6 @@
         let assignmentsData = {};
         let usersMap = {}; 
         let visitingMap = {}; 
-        let currentUserName = '';
 
         // ĐỊNH NGHĨA QUYỀN HẠN NĂM HỌC (Nhận dạng chuỗi thông minh)
         const getYearConfig = (yearStr) => {
@@ -176,23 +175,13 @@
                     snapUsers.forEach(doc => {
                         const d = doc.data();
                         if(d.fullName) {
-                            let pref = d.degree === 'ThS' ? 'ThS. ' : (d.degree === 'TS' ? 'TS. ' : '');
-                            usersMap[`${pref}${d.fullName}`] = "Cơ hữu";
-                            if (doc.id === user.uid) currentUserName = d.fullName; // Header không kèm học vị
+                            usersMap[d.fullName] = "Cơ hữu";
                         }
                     });
                     
                     const snapVisit = await getDocs(collection(db, "visiting_lecturers"));
                     snapVisit.forEach(doc => { visitingMap[doc.data().name] = "Thỉnh giảng"; });
                 } catch(e) { console.error("Lỗi nạp User: ", e); }
-
-                setTimeout(() => {
-                    const btnAuthNav = document.getElementById('btnAuthNav');
-                    if (btnAuthNav) {
-                        btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right:5px;"></i> ${currentUserName}`;
-                        btnAuthNav.href = "dashboard.html";
-                    }
-                }, 300);
 
                 // Lắng nghe Phân công DB
                 onSnapshot(collection(db, "assignments"), (snapshot) => {
@@ -254,15 +243,24 @@
                             // Không thống kê Hướng dẫn LV (tính theo Đầu học viên, không tính theo Buổi)
                             if (alloc.task && alloc.task.includes('Hướng dẫn LV')) return;
 
-                            let gv = alloc.gv;
-                            let task = alloc.task || 'Công việc khác';
-                            let assigned = parseInt(alloc.assigned) || 0;
+                            // Xử lý tách chuỗi tên Giảng viên nếu nhập nhiều người (dùng dấu phẩy hoặc &)
+                            let rawGvs = alloc.gv ? alloc.gv.split(/,|&/) : [];
+                            rawGvs.forEach(rawName => {
+                                let gv = rawName.trim();
+                                // Xóa bỏ các tiền tố học vị nếu có khi nạp từ Database cũ
+                                gv = gv.replace(/^(ThS\.\s*|TS\.\s*|PGS\.TS\.\s*|GS\.TS\.\s*|CN\.\s*)/i, '').trim();
+                                
+                                if (!gv) return;
+                                
+                                let task = alloc.task || 'Công việc khác';
+                                let assigned = parseInt(alloc.assigned) || 0;
 
-                            if (!gvStats[gv]) gvStats[gv] = {};
-                            if (!gvStats[gv][cls]) gvStats[gv][cls] = {};
-                            if (!gvStats[gv][cls][task]) gvStats[gv][cls][task] = { assigned: 0, completed: 0 };
-                            
-                            gvStats[gv][cls][task].assigned += assigned;
+                                if (!gvStats[gv]) gvStats[gv] = {};
+                                if (!gvStats[gv][cls]) gvStats[gv][cls] = {};
+                                if (!gvStats[gv][cls][task]) gvStats[gv][cls][task] = { assigned: 0, completed: 0 };
+                                
+                                gvStats[gv][cls][task].assigned += assigned;
+                            });
                         });
                     }
                 }
@@ -312,7 +310,10 @@
                     if (taskName.toLowerCase().includes('thực hành') && !taskName.toLowerCase().includes('bệnh viện')) taskName = 'Thực hành';
 
                     let gvs = e.gv ? e.gv.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
-                    gvs.forEach(gv => {
+                    gvs.forEach(rawName => {
+                        // Làm sạch Tên GV để map cho chính xác
+                        let gv = rawName.replace(/^(ThS\.\s*|TS\.\s*|PGS\.TS\.\s*|GS\.TS\.\s*|CN\.\s*)/i, '').trim();
+                        
                         // Thêm vào Profile nếu GV vô tình dạy lịch ngoài (không có trong Phân công)
                         if (!gvStats[gv]) gvStats[gv] = {};
                         if (!gvStats[gv][cls]) gvStats[gv][cls] = {};
