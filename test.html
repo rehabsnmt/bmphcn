@@ -34,6 +34,8 @@
         .date-picker { padding: 6px; border-radius: 6px; border: 1px solid var(--border); font-family: inherit; font-weight: 600; color: var(--text-dark); outline: none; cursor: pointer;}
         .date-picker:focus { border-color: var(--primary); }
 
+        .toolbar-btns { display: flex; gap: 8px; align-items: center; justify-content: center; flex-wrap: wrap; }
+
         /* BẢNG LỊCH CÔNG TÁC */
         .table-container { width: 100%; overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); box-shadow: var(--shadow-sm); max-height: calc(100vh - 200px); overflow-y: auto;}
         table { width: 100%; border-collapse: separate; border-spacing: 0; min-width: 1000px; }
@@ -86,7 +88,7 @@
 
         /* Tùy chỉnh form input trong modal khai báo */
         .form-control { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border); font-family: inherit; font-size: 0.95rem; outline: none; box-sizing: border-box; }
-        .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1); }
+        .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2); }
         textarea.form-control { resize: vertical; min-height: 80px; }
         
         /* Ẩn icon đồng hồ mặc định của input type time trên Webkit (Chrome/Safari) */
@@ -99,10 +101,19 @@
         .toast.danger { border-left-color: #ef4444; }
 
         @media (max-width: 768px) {
-            .toolbar { flex-direction: column; gap: 10px; }
-            .week-display { order: -1; margin-bottom: 5px;} 
+            .toolbar { padding: 10px; gap: 10px; display: flex; flex-direction: column; align-items: stretch; }
+            .week-display { width: 100%; order: 1; font-size: 1.1rem; margin-bottom: 5px; }
+            .date-picker { width: 100%; order: 2; box-sizing: border-box; padding: 10px; font-size: 1rem; margin-bottom: 5px;}
+            .toolbar-btns { width: 100%; order: 3; display: flex; flex-direction: row; flex-wrap: nowrap; justify-content: space-between; gap: 5px; }
+            .btn-week { flex: 1; padding: 10px 2px; font-size: 0.75rem; justify-content: center; text-align: center; white-space: nowrap; }
+            .btn-week i { display: none; } /* Ẩn icon trên đt để chữ nằm gọn 1 hàng */
+
             .tab-btn { padding: 8px 12px; font-size: 0.9rem;}
             .modal-body strong { width: 100px; }
+
+            /* Tối ưu Form khai báo trên điện thoại */
+            #declareModal .modal-content { max-width: 100%; width: 95vw; border-radius: 12px; margin: 10px; }
+            #declareForm .form-control { padding: 12px; font-size: 16px; } /* 16px chống zoom input iOS */
         }
     </style>
 </head>
@@ -130,16 +141,18 @@
 
             <!-- THANH ĐIỀU KHIỂN TUẦN -->
             <div class="toolbar">
-                <button class="btn-week" onclick="changeWeek(-1)"><i class="fas fa-chevron-left"></i> Tuần trước</button>
                 <div class="week-display" id="weekDisplayLabel">Tuần 01/01 - 07/01</div>
                 <input type="date" id="datePicker" class="date-picker" onchange="jumpToDate()">
-                <button class="btn-week" onclick="changeWeek(1)">Tuần sau <i class="fas fa-chevron-right"></i></button>
-                <button class="btn-week" style="background: var(--primary); color: white; border: none;" onclick="goToCurrentWeek()">Tuần này</button>
-                
-                <!-- NÚT TỰ KHAI BÁO CÔNG TÁC -->
-                <button class="btn-week" style="background: #10b981; color: white; border: none;" onclick="openDeclareModal()">
-                    <i class="fas fa-user-edit"></i> Tự khai báo
-                </button>
+                <div class="toolbar-btns">
+                    <button class="btn-week" onclick="changeWeek(-1)"><i class="fas fa-chevron-left"></i> Tuần trước</button>
+                    <button class="btn-week" style="background: var(--primary); color: white; border: none;" onclick="goToCurrentWeek()">Tuần này</button>
+                    <button class="btn-week" onclick="changeWeek(1)">Tuần sau <i class="fas fa-chevron-right"></i></button>
+                    
+                    <!-- NÚT TỰ KHAI BÁO CÔNG TÁC -->
+                    <button class="btn-week" style="background: #10b981; color: white; border: none;" onclick="openDeclareModal()">
+                        <i class="fas fa-user-edit"></i> Tự khai báo
+                    </button>
+                </div>
             </div>
 
             <!-- BẢNG LỊCH -->
@@ -171,43 +184,49 @@
         </div>
     </div>
 
-    <!-- MODAL TỰ KHAI BÁO CÔNG TÁC -->
+    <!-- MODAL TỰ KHAI BÁO CÔNG TÁC (Đã điều chỉnh To hơn trên máy tính, Dễ dùng trên điện thoại) -->
     <div id="declareModal" class="modal-overlay hidden">
-        <div class="modal-content" style="max-width: 480px;">
+        <div class="modal-content" style="max-width: 600px;">
             <div class="modal-header" style="background: #10b981;">
-                <h3 style="margin:0; font-size:1.1rem;"><i class="fas fa-calendar-plus"></i> Khai báo công tác</h3>
+                <h3 style="margin:0; font-size:1.1rem;">Khai báo công tác</h3>
                 <span style="cursor:pointer; font-size:1.2rem; font-weight:bold;" onclick="closeDeclareModal()">✕</span>
             </div>
             <div class="modal-body">
                 <form id="declareForm" onsubmit="submitDeclaration(event)">
-                    <div style="display:flex; gap:15px; margin-bottom: 15px; align-items: flex-end;">
-                        <div style="flex:2;">
-                            <label style="display:block; margin-bottom:5px; font-weight:bold; color:var(--text-dark);"><i class="far fa-calendar-alt" style="color:#10b981;"></i> Ngày thực hiện *</label>
-                            <input type="date" id="decDate" class="form-control" required style="cursor: text;">
-                        </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <label style="display:block; margin-bottom:5px; font-weight:bold; color:var(--text-dark);">Ngày *</label>
+                        <input type="date" id="decDate" class="form-control" required style="cursor: text;">
+                    </div>
+
+                    <div style="display:flex; gap:15px; margin-bottom: 15px;">
                         <div style="flex:1;">
-                            <label style="display:block; margin-bottom:5px; font-weight:bold; color:var(--text-dark);"><i class="far fa-clock" style="color:#10b981;"></i> Bắt đầu *</label>
+                            <label style="display:block; margin-bottom:5px; font-weight:bold; color:var(--text-dark);">Bắt đầu *</label>
                             <input type="time" id="decStartTime" class="form-control" required lang="en-GB" style="cursor: text;">
                         </div>
                         <div style="flex:1;">
-                            <label style="display:block; margin-bottom:5px; font-weight:bold; color:var(--text-dark);"><i class="fas fa-flag-checkered" style="color:#10b981;"></i> Kết thúc *</label>
+                            <label style="display:block; margin-bottom:5px; font-weight:bold; color:var(--text-dark);">Kết thúc *</label>
                             <input type="time" id="decEndTime" class="form-control" required lang="en-GB" style="cursor: text;">
                         </div>
                     </div>
+
                     <div style="margin-bottom: 15px;">
-                        <label style="display:block; margin-bottom:5px; font-weight:bold; color:var(--text-dark);"><i class="fas fa-tasks" style="color:#10b981;"></i> Nội dung công việc *</label>
-                        <input type="text" id="decTask" class="form-control" required placeholder="VD: Khám tuyến, Họp chuyên môn, Đi công tác tỉnh...">
+                        <label style="display:block; margin-bottom:5px; font-weight:bold; color:var(--text-dark);">Nội dung công việc *</label>
+                        <input type="text" id="decTask" class="form-control" required>
                     </div>
+
                     <div style="margin-bottom: 15px;">
-                        <label style="display:block; margin-bottom:5px; font-weight:bold; color:var(--text-dark);"><i class="fas fa-map-marker-alt" style="color:#10b981;"></i> Địa điểm</label>
-                        <input type="text" id="decRoom" class="form-control" placeholder="Tùy chọn...">
+                        <label style="display:block; margin-bottom:5px; font-weight:bold; color:var(--text-dark);">Địa điểm</label>
+                        <input type="text" id="decRoom" class="form-control">
                     </div>
+
                     <div style="margin-bottom: 20px;">
-                        <label style="display:block; margin-bottom:5px; font-weight:bold; color:var(--text-dark);"><i class="fas fa-sticky-note" style="color:#10b981;"></i> Ghi chú thêm (Nếu có)</label>
-                        <textarea id="decNote" class="form-control" placeholder="Trình bày chi tiết công việc hoặc các lý do đặc biệt..."></textarea>
+                        <label style="display:block; margin-bottom:5px; font-weight:bold; color:var(--text-dark);">Ghi chú thêm</label>
+                        <textarea id="decNote" class="form-control"></textarea>
                     </div>
+
                     <button type="submit" style="width:100%; padding:12px; background:#10b981; color:white; border:none; border-radius:6px; font-weight:bold; font-size:1.05rem; cursor:pointer; transition:0.2s;">
-                        <i class="fas fa-save"></i> Lưu thông tin khai báo
+                        Lưu thông tin khai báo
                     </button>
                 </form>
             </div>
@@ -642,7 +661,7 @@
             });
 
             if (bodyHtml === '') {
-                bodyHtml = `<tr><td colspan="8" style="text-align:center; padding:30px; color:#64748b;">Danh sách đang trống. (Không có lịch giảng dạy trong tuần này)</td></tr>`;
+                bodyHtml = `<tr><td colspan="8" style="text-align:center; padding:30px; color:#64748b;">Danh sách đang trống. (Không có lịch công tác trong tuần này)</td></tr>`;
             }
 
             tbody.innerHTML = bodyHtml;
@@ -711,7 +730,7 @@
             }
         };
 
-        // Hàm Xóa Sự kiện Tự Khai báo (Không hiển thị nút xóa nên hàm này sẽ chỉ dùng dự phòng)
+        // Hàm Xóa Sự kiện Tự Khai báo
         window.deleteDeclaredEvent = async (id) => {
             if (confirm("Bạn có chắc chắn muốn xóa khai báo này?")) {
                 try {
@@ -783,7 +802,10 @@
                 html += `<div style="margin-bottom: 10px;"><strong>Nhiệm vụ:</strong> ${ev.task || 'Giảng dạy'}</div>`;
             }
 
-            // Xóa nút "Xóa/Hủy" hoàn toàn cho sự kiện tự khai báo
+            // Thêm nút xóa (chỉ áp dụng đối với sự kiện do người dùng tự khai báo)
+            if (isSelfDeclared && ev.scheduledByEmail === currentUserEmail) {
+                html += `<button onclick="deleteDeclaredEvent('${ev.id}')" style="margin-top:15px; width:100%; padding:10px; background:var(--accent); color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer; transition:0.2s;"><i class="fas fa-trash"></i> Hủy / Xóa khai báo này</button>`;
+            }
             
             document.getElementById('eventModalBody').innerHTML = html;
             document.getElementById('eventDetailModal').classList.remove('hidden');
