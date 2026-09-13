@@ -3,188 +3,158 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="description" content="Lịch công tác Giảng viên - Bộ môn Phục hồi chức năng.">
-    <title>Lịch Công Tác Giảng Viên - Bộ môn PHCN</title>
+    <meta name="description" content="Xem phân công công tác cá nhân - Bộ môn Phục hồi chức năng.">
+    <title>Phân công của tôi - Bộ môn Phục hồi chức năng</title>
     
     <link rel="icon" href="images/logo_Bộ môn.png" type="image/png">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        main { max-width: 100%; padding: 1rem 1%; margin: 0 auto; min-height: 75vh; box-sizing: border-box;}
+        main { max-width: 1200px; padding: 2rem 5% 4rem; margin: 0 auto; min-height: 70vh; }
         
-        .page-header { text-align: center; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
-        .page-header h2 { font-size: 1.5rem; color: var(--text-dark); margin: 0; font-weight: 800; text-transform: uppercase; }
+        .page-header { text-align: center; margin-bottom: 2.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+        .page-header h2 { font-size: 1.8rem; color: var(--text-dark); margin-bottom: 5px; }
+        .page-header p { color: var(--text-body); font-size: 1rem; margin-bottom: 15px; }
 
-        .hidden { display: none !important; }
+        .btn-declare { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background-color: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2); }
+        .btn-declare:hover { background-color: #059669; transform: translateY(-2px); }
 
-        /* TABS */
-        .tab-container { display: flex; gap: 10px; margin-bottom: 10px; border-bottom: 2px solid #e2e8f0; justify-content: center; flex-wrap: wrap;}
-        .tab-btn { padding: 8px 20px; border: none; background: transparent; font-weight: bold; font-size: 1rem; color: #64748b; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: 0.2s;}
-        .tab-btn:hover { color: var(--primary); }
-        .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
-
-        /* THANH ĐIỀU KHIỂN TUẦN */
-        .toolbar { display: flex; justify-content: center; align-items: center; gap: 15px; background: var(--surface); padding: 10px 15px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 15px; box-shadow: var(--shadow-sm); flex-wrap: wrap;}
+        /* Bảng Danh sách Nhiệm vụ */
+        .task-section { margin-bottom: 3rem; }
+        .task-section h3 { font-size: 1.25rem; color: var(--primary); margin-bottom: 1rem; border-left: 4px solid var(--primary); padding-left: 10px; }
         
-        .btn-week { background: white; color: var(--primary); border: 1px solid var(--primary); padding: 6px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 6px; font-size: 0.9rem;}
-        .btn-week:hover { background: var(--primary-light); }
+        .task-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; }
         
-        .week-display { font-size: 1.05rem; font-weight: 800; color: var(--text-dark); min-width: 250px; text-align: center; }
-        .date-picker { padding: 6px; border-radius: 6px; border: 1px solid var(--border); font-family: inherit; font-weight: 600; color: var(--text-dark); outline: none; cursor: pointer;}
-        .date-picker:focus { border-color: var(--primary); }
-
-        .toolbar-btns { display: flex; gap: 8px; align-items: center; justify-content: center; flex-wrap: wrap; }
-
-        /* BẢNG LỊCH CÔNG TÁC */
-        .table-container { width: 100%; overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); box-shadow: var(--shadow-sm); max-height: calc(100vh - 200px); overflow-y: auto;}
-        table { width: 100%; border-collapse: separate; border-spacing: 0; min-width: 1000px; }
+        /* Card Nhiệm vụ */
+        .task-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.5rem; box-shadow: var(--shadow-sm); transition: var(--transition); display: flex; flex-direction: column; position: relative; overflow: hidden; }
+        .task-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); border-color: var(--primary-light); }
         
-        th, td { padding: 8px; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); vertical-align: top; }
-        th { background: #f8fafc; font-weight: 700; color: #334155; text-align: center; position: sticky; top: 0; z-index: 10; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-bottom: 2px solid #cbd5e1;}
-        td { background: white; width: 12.5%; } 
+        .task-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: var(--primary); }
         
-        /* Cột Giảng viên ghim cố định bên trái */
-        th:first-child, td:first-child { position: sticky; left: 0; z-index: 11; background: #f8fafc; font-weight: bold; color: var(--primary); text-align: left; vertical-align: middle; box-shadow: 2px 0 5px rgba(0,0,0,0.05); border-right: 2px solid #cbd5e1;}
-        th:first-child { z-index: 12; } 
+        /* Trạng thái Hôm nay */
+        .task-card.today::before { background: #f59e0b; }
+        .task-card.today .task-time { color: #ef4444; }
 
-        /* Đánh dấu cột ngày hiện tại */
-        .today-col { background-color: #f0f9ff !important; }
-        th.today-col { color: #0284c7; border-bottom: 2px solid #0284c7; }
+        /* Trạng thái Đã hoàn thành */
+        .task-card.completed { opacity: 0.85; background-color: #f8fafc; }
+        .task-card.completed::before { background: #10b981; }
+        .task-card.completed .task-time { color: #10b981; }
 
-        /* Thẻ sự kiện GỌN NHẸ (Compact Mode) */
-        .event-card.compact { background: white; border: 1px solid #cbd5e1; border-left: 4px solid var(--primary); border-radius: 4px; padding: 6px; margin-bottom: 5px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: 0.2s; text-align: center; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;}
-        .event-card.compact:hover { transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.1); filter: brightness(0.96);}
+        /* Trạng thái Tự khai báo */
+        .task-card.self-declared { background-color: #f5f3ff; border-color: #ddd6fe; }
+        .task-card.self-declared::before { background: #8b5cf6; }
+        .task-card.self-declared .task-time { color: #8b5cf6; }
         
-        /* Style riêng cho sự kiện tự khai báo */
-        .event-card.compact.self-declared { border-left-color: #8b5cf6 !important; background: #f5f3ff; }
+        .task-time { font-size: 0.95rem; font-weight: 700; color: #0ea5e9; margin-bottom: 8px; }
+        .task-subject { font-size: 1.15rem; font-weight: 700; color: var(--text-dark); margin-bottom: 5px; line-height: 1.4; }
+        .task-role { font-size: 0.9rem; color: var(--text-body); margin-bottom: 10px; font-weight: 500; }
+        .task-room { font-size: 0.9rem; color: #b45309; margin-bottom: 15px; font-weight: bold; }
+        .task-class { background: var(--bg-page); border: 1px solid var(--border); padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; color: var(--text-body); display: inline-block; width: fit-content; margin-bottom: auto; }
 
-        /* CSS động cho màu lớp được xử lý bằng JS (inline style) */
-        .evt-class { display: inline-block; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 0.75rem; margin: 0; line-height: 1; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
-        
-        /* CSS Nổi bật Chuyên ngành & Định hướng */
-        .evt-major { display: inline-block; font-size: 0.7rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; margin: 2px 0; line-height: 1; border: 1px solid transparent;}
-        .major-vltl { color: #0f766e; background: #ccfbf1; border-color: #99f6e4;}
-        .major-hdtl { color: #b45309; background: #fef08a; border-color: #fde047;}
-        .major-nntl { color: #6b21a8; background: #f3e8ff; border-color: #d8b4fe;}
-        .major-chung { color: #475569; background: #f1f5f9; border-color: #cbd5e1;}
+        .badge-completed { display: inline-block; margin-top: 15px; color: #10b981; font-weight: bold; font-size: 0.85rem; padding-top: 10px; border-top: 1px dashed var(--border); }
 
-        .evt-orientation { display: inline-block; font-size: 0.65rem; font-weight: 800; background: #e2e8f0; color: #475569; padding: 2px 5px; border-radius: 4px; line-height: 1;}
-
-        .evt-time { font-weight: 800; color: var(--text-dark); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; margin: 0;}
-
-        /* Phân biệt màu theo Định hướng */
-        .border-nc { border-left-color: #b45309 !important; } /* Nghiên cứu */
-        .border-ud { border-left-color: #0369a1 !important; } /* Ứng dụng */
-        .border-chung { border-left-color: #d97706 !important; } /* Chung */
+        /* Nút Tương tác */
+        .task-actions { display: flex; gap: 10px; margin-top: 15px; padding-top: 15px; border-top: 1px dashed var(--border); }
+        .btn-reject { flex: 1; background-color: white; color: #ef4444; border: 1px solid #ef4444; padding: 8px 10px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 0.9rem; }
+        .btn-reject:hover { background-color: #fef2f2; }
 
         /* MODAL */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 2000; padding: 10px; }
         .modal-content { background: white; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); overflow: hidden; width: 100%; max-width: 450px;}
-        .modal-header { padding: 15px 20px; background: var(--primary); color: white; display: flex; justify-content: space-between; align-items: center; }
+        .modal-header { padding: 15px 20px; color: white; display: flex; justify-content: space-between; align-items: center; }
         .modal-header h3 { margin: 0; font-size: 1.1rem; }
         .modal-body { padding: 20px; line-height: 1.8; color: var(--text-dark); font-size: 0.95rem; text-align: left; max-height: 75vh; overflow-y: auto; }
-        .modal-body strong { color: #475569; display: inline-block; width: 120px; }
 
         /* Tùy chỉnh form input trong modal khai báo */
-        .form-control { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border); font-family: inherit; font-size: 0.95rem; outline: none; box-sizing: border-box; }
+        .form-control { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid var(--border); font-family: inherit; font-size: 16px; outline: none; box-sizing: border-box; }
         .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2); }
         textarea.form-control { resize: vertical; min-height: 80px; }
-        
-        /* Ẩn icon đồng hồ mặc định của input type time trên Webkit (Chrome/Safari) */
         input[type="time"]::-webkit-calendar-picker-indicator { cursor: pointer; }
 
-        /* Toast */
-        .toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;}
+        /* Toast Thông báo */
+        .toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
         .toast { min-width: 250px; background-color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: 0.4s; font-weight: 600; border-left: 5px solid #22c55e; opacity: 0; pointer-events: auto; }
         .toast.show { transform: translateX(0); opacity: 1; }
         .toast.danger { border-left-color: #ef4444; }
 
+        .empty-state { text-align: center; padding: 3rem; background: var(--bg-page); border-radius: var(--radius-md); color: var(--text-body); font-style: italic; border: 1px dashed var(--border); }
+        
+        #loadingScreen { text-align: center; padding: 5rem 0; color: var(--primary); font-weight: 600; font-size: 1.2rem; }
+
         @media (max-width: 768px) {
-            .toolbar { padding: 10px; gap: 10px; display: flex; flex-direction: column; align-items: stretch; }
-            .week-display { width: 100%; order: 1; font-size: 1.1rem; margin-bottom: 5px; }
-            .date-picker { width: 100%; order: 2; box-sizing: border-box; padding: 10px; font-size: 1rem; margin-bottom: 5px;}
-            .toolbar-btns { width: 100%; order: 3; display: flex; flex-direction: row; flex-wrap: nowrap; justify-content: space-between; gap: 5px; }
-            .btn-week { flex: 1; padding: 10px 2px; font-size: 0.75rem; justify-content: center; text-align: center; white-space: nowrap; }
-            .btn-week i { display: none; } /* Ẩn icon trên đt để chữ nằm gọn 1 hàng */
-
-            .tab-btn { padding: 8px 12px; font-size: 0.9rem;}
-            .modal-body strong { width: 100px; }
-
-            /* Tối ưu Form khai báo trên điện thoại */
             #declareModal .modal-content { max-width: 100%; width: 95vw; border-radius: 12px; margin: 10px; }
-            #declareForm .form-control { padding: 12px; font-size: 16px; } /* 16px chống zoom input iOS */
         }
     </style>
 </head>
 <body>
 
+    <!-- GỌI HEADER CHUNG -->
     <div id="header-placeholder"></div>
     <div id="toastContainer" class="toast-container"></div>
 
     <main>
         <div class="page-header">
-            <h2>LỊCH CÔNG TÁC GIẢNG VIÊN</h2>
+            <h2>LỊCH TRÌNH CÁ NHÂN</h2>
+            <p>Theo dõi các nhiệm vụ giảng dạy và thực hành được giao</p>
+            <button class="btn-declare" onclick="openDeclareModal()">Tự khai báo công tác</button>
         </div>
 
-        <div id="loadingScreen" style="text-align: center; padding: 5rem 0; color: var(--primary); font-weight: 600; font-size: 1.2rem;">
-            <i class="fas fa-spinner fa-spin fa-2x"></i><br><br>Đang đồng bộ dữ liệu lịch...
-        </div>
+        <div id="loadingScreen"><i class="fas fa-spinner fa-spin fa-2x"></i><br>Đang tải dữ liệu phân công...</div>
 
-        <div id="dataWrapper" class="hidden">
-            
-            <!-- HỆ THỐNG TABS -->
-            <div class="tab-container">
-                <button class="tab-btn active" onclick="switchTab('cohuu')" id="tabCoHuu">Giảng viên Cơ hữu</button>
-                <button class="tab-btn" onclick="switchTab('thinhgiang')" id="tabThinhGiang">Giảng viên Thỉnh giảng</button>
-            </div>
-
-            <!-- THANH ĐIỀU KHIỂN TUẦN -->
-            <div class="toolbar">
-                <div class="week-display" id="weekDisplayLabel">Tuần 01/01 - 07/01</div>
-                <input type="date" id="datePicker" class="date-picker" onchange="jumpToDate()">
-                <div class="toolbar-btns">
-                    <button class="btn-week" onclick="changeWeek(-1)"><i class="fas fa-chevron-left"></i> Tuần trước</button>
-                    <button class="btn-week" style="background: var(--primary); color: white; border: none;" onclick="goToCurrentWeek()">Tuần này</button>
-                    <button class="btn-week" onclick="changeWeek(1)">Tuần sau <i class="fas fa-chevron-right"></i></button>
-                    
-                    <!-- NÚT TỰ KHAI BÁO CÔNG TÁC -->
-                    <button class="btn-week" style="background: #10b981; color: white; border: none;" onclick="openDeclareModal()">
-                        <i class="fas fa-user-edit"></i> Tự khai báo
-                    </button>
+        <div id="contentWrapper" class="hidden">
+            <!-- Khu vực Nhiệm vụ Hôm nay -->
+            <div class="task-section">
+                <h3 style="color: #f59e0b; border-left-color: #f59e0b;">Lịch dạy Hôm nay</h3>
+                <div id="todayGrid" class="task-grid">
+                    <!-- Dữ liệu JS -->
                 </div>
             </div>
 
-            <!-- BẢNG LỊCH -->
-            <div class="table-container">
-                <table id="scheduleTable">
-                    <thead>
-                        <tr id="tableHeaderRow">
-                            <!-- Render bằng JS -->
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody">
-                        <!-- Render bằng JS -->
-                    </tbody>
-                </table>
+            <!-- Khu vực Nhiệm vụ Sắp tới -->
+            <div class="task-section">
+                <h3 style="color: #0ea5e9; border-left-color: #0ea5e9;">Lịch dạy Sắp tới</h3>
+                <div id="upcomingGrid" class="task-grid">
+                    <!-- Dữ liệu JS -->
+                </div>
+            </div>
+
+            <!-- Khu vực Nhiệm vụ Đã hoàn thành -->
+            <div class="task-section">
+                <h3 style="color: #10b981; border-left-color: #10b981;">Nhiệm vụ Đã hoàn thành</h3>
+                <div id="completedGrid" class="task-grid">
+                    <!-- Dữ liệu JS -->
+                </div>
             </div>
         </div>
     </main>
 
-    <!-- MODAL CHI TIẾT SỰ KIỆN -->
-    <div id="eventDetailModal" class="modal-overlay hidden">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 style="margin:0; font-size:1.1rem;">Chi tiết Lịch trình</h3>
-                <span style="cursor:pointer; font-size:1.2rem; font-weight:bold;" onclick="closeEventModal()">✕</span>
+    <!-- MODAL XÁC NHẬN TỪ CHỐI / XÓA LỊCH (NHẬP MÃ 4 SỐ) -->
+    <div id="rejectConfirmModal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 400px; text-align: center;">
+            <div class="modal-header" style="background: #ef4444;">
+                <h3 style="margin:0;"><i class="fas fa-exclamation-triangle"></i> Xác nhận hủy / từ chối</h3>
+                <span style="cursor:pointer; font-size:1.2rem; font-weight:bold;" onclick="closeRejectModal()">✕</span>
             </div>
-            <div class="modal-body" id="eventModalBody">
-                <!-- Nội dung tự động đổ bằng JS -->
+            <div class="modal-body" style="text-align: center;">
+                <p style="font-size: 0.9rem; color: var(--text-body); margin-top: 0;">Nhiệm vụ:</p>
+                <p id="rejectTaskTitlePreview" style="font-weight: 700; color: var(--text-dark); margin-bottom: 20px; font-size: 1.1rem; line-height: 1.4;"></p>
+                
+                <p style="font-size: 0.85rem; color: #ef4444; margin-bottom: 10px;">Để xác nhận xóa, vui lòng nhập mã bảo mật dưới đây:</p>
+                <div id="randomRejectCodeDisplay" style="background: #fef2f2; padding: 10px; border-radius: 6px; font-size: 1.5rem; font-weight: bold; color: #ef4444; letter-spacing: 5px; margin-bottom: 15px;">0000</div>
+                
+                <input type="text" id="inputRejectCodeConfirm" placeholder="Nhập mã xác nhận..." style="text-align: center; letter-spacing: 2px; width: 100%; box-sizing: border-box; padding: 12px; border-radius: 6px; border: 1px solid var(--border); font-size: 1.1rem; outline: none;">
+                
+                <div style="margin-top: 20px;">
+                    <button id="btnExecuteFinalReject" disabled style="width: 100%; padding: 12px; background: #ef4444; color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; transition: 0.2s;">
+                        Xác nhận xóa
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- MODAL TỰ KHAI BÁO CÔNG TÁC (Đã điều chỉnh To hơn trên máy tính, Dễ dùng trên điện thoại) -->
+    <!-- MODAL TỰ KHAI BÁO CÔNG TÁC -->
     <div id="declareModal" class="modal-overlay hidden">
         <div class="modal-content" style="max-width: 600px;">
             <div class="modal-header" style="background: #10b981;">
@@ -193,12 +163,10 @@
             </div>
             <div class="modal-body">
                 <form id="declareForm" onsubmit="submitDeclaration(event)">
-                    
                     <div style="margin-bottom: 15px;">
                         <label style="display:block; margin-bottom:5px; font-weight:bold; color:var(--text-dark);">Ngày *</label>
                         <input type="date" id="decDate" class="form-control" required style="cursor: text;">
                     </div>
-
                     <div style="display:flex; gap:15px; margin-bottom: 15px;">
                         <div style="flex:1;">
                             <label style="display:block; margin-bottom:5px; font-weight:bold; color:var(--text-dark);">Bắt đầu *</label>
@@ -209,22 +177,18 @@
                             <input type="time" id="decEndTime" class="form-control" required lang="en-GB" style="cursor: text;">
                         </div>
                     </div>
-
                     <div style="margin-bottom: 15px;">
                         <label style="display:block; margin-bottom:5px; font-weight:bold; color:var(--text-dark);">Nội dung công việc *</label>
                         <input type="text" id="decTask" class="form-control" required>
                     </div>
-
                     <div style="margin-bottom: 15px;">
                         <label style="display:block; margin-bottom:5px; font-weight:bold; color:var(--text-dark);">Địa điểm</label>
                         <input type="text" id="decRoom" class="form-control">
                     </div>
-
                     <div style="margin-bottom: 20px;">
                         <label style="display:block; margin-bottom:5px; font-weight:bold; color:var(--text-dark);">Ghi chú thêm</label>
                         <textarea id="decNote" class="form-control"></textarea>
                     </div>
-
                     <button type="submit" style="width:100%; padding:12px; background:#10b981; color:white; border:none; border-radius:6px; font-weight:bold; font-size:1.05rem; cursor:pointer; transition:0.2s;">
                         Lưu thông tin khai báo
                     </button>
@@ -233,6 +197,7 @@
         </div>
     </div>
 
+    <!-- GỌI FOOTER CHUNG -->
     <div id="footer-placeholder"></div>
 
     <script src="js/layout.js"></script>
@@ -240,441 +205,243 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot, getDocs, doc, getDoc, addDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, collection, onSnapshot, deleteDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY", authDomain: "bmphcn-aa9c6.firebaseapp.com", projectId: "bmphcn-aa9c6", storageBucket: "bmphcn-aa9c6.firebasestorage.app", messagingSenderId: "749494392719", appId: "1:749494392719:web:f220c751ff541620045dfa" };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        let allEvents = [];
-        let gvCoHuuList = []; 
-        let gvThinhGiangList = [];
-        let subjectsMap = {}; 
-        
-        let currentTab = 'cohuu'; 
-        let currentMonday = new Date();
-        window.renderedEvents = {}; // Lưu trữ sự kiện đã gộp để hiển thị trong Modal
-
-        // Lưu thông tin người đăng nhập để Tự khai báo
+        let currentUserName = '';
         let currentUserEmail = '';
-        let currentUserNameWithPrefix = ''; 
+        let myEvents = [];
 
-        // Danh sách màu tự động cho Lớp học
-        const classColors = [
-            { bg: '#e0f2fe', text: '#0369a1' }, // sky
-            { bg: '#dcfce7', text: '#15803d' }, // green
-            { bg: '#f3e8ff', text: '#6b21a8' }, // purple
-            { bg: '#ffedd5', text: '#c2410c' }, // orange
-            { bg: '#fce7f3', text: '#be185d' }, // pink
-            { bg: '#ccfbf1', text: '#0f766e' }, // teal
-            { bg: '#fef08a', text: '#b45309' }, // yellow
-            { bg: '#e0e7ff', text: '#334155' }  // slate
-        ];
-
-        function getClassColor(className) {
-            if (!className) return { bg: '#f1f5f9', text: '#475569' };
-            let hash = 0;
-            for (let i = 0; i < className.length; i++) {
-                hash = className.charCodeAt(i) + ((hash << 5) - hash);
-            }
-            let index = Math.abs(hash) % classColors.length;
-            return classColors[index];
-        }
-
-        const COHUU_ORDER = [
-            "lê thanh vân", "phan thế nguyên", "cao minh hạnh", "nguyễn thanh duy",
-            "huỳnh chung", "nguyễn minh sang", "trần thị bích hạnh", "nguyễn ngọc minh",
-            "phạm ngọc đạt", "nguyễn huỳnh ngọc mai trâm", "nguyễn đức sinh",
-            "trần long biên", "trần hữu đức", "nguyễn mai ngọc đoan"
-        ];
-
-        window.showToast = (message, type = 'success') => {
+        function showToast(message, type = 'success') {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
-            toast.innerHTML = `<span>${message}</span>`;
+            toast.innerHTML = `<i class="fas ${type === 'danger' ? 'fa-times-circle' : 'fa-check-circle'}"></i><span>${message}</span>`;
             container.appendChild(toast);
             setTimeout(() => toast.classList.add('show'), 10);
             setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
-        };
-
-        function getMonday(d) {
-            d = new Date(d);
-            let day = d.getDay();
-            let diff = d.getDate() - day + (day === 0 ? -6 : 1);
-            return new Date(d.setDate(diff));
         }
 
-        function formatDateForInput(d) {
-            let month = '' + (d.getMonth() + 1), day = '' + d.getDate(), year = d.getFullYear();
-            if (month.length < 2) month = '0' + month;
-            if (day.length < 2) day = '0' + day;
-            return [year, month, day].join('-');
-        }
-
-        const normalizeName = (n) => {
-            if(!n) return '';
-            return n.replace(/ThS\.|TS\.|PGS\.|GS\./g, '').trim().toLowerCase();
-        };
-
-        function getMajorFromSubject(subjectName) {
-            if (!subjectName) return 'Chung';
-            let normSubj = subjectName.toLowerCase().trim();
-            let group = subjectsMap[normSubj] || '';
-            let groupUp = group.toUpperCase();
+        // ĐỊNH DẠNG HIỂN THỊ THỜI GIAN (ÉP CHUẨN 24H)
+        function formatTaskTime(startStr, endStr) {
+            if (!startStr) return { isToday: false, isPast: false, timeText: 'Chưa xác định' };
             
-            if (groupUp.includes('VẬT LÝ TRỊ LIỆU') || groupUp.includes('VLTL')) return 'VLTL';
-            if (groupUp.includes('HOẠT ĐỘNG TRỊ LIỆU') || groupUp.includes('HĐTL') || groupUp.includes('HDTL')) return 'HĐTL';
-            if (groupUp.includes('NGÔN NGỮ TRỊ LIỆU') || groupUp.includes('NNTL')) return 'NNTL';
+            const startDate = new Date(startStr);
+            const endDate = endStr ? new Date(endStr) : new Date(startDate.getTime() + 4 * 3600000); 
             
-            return 'Chung';
+            const timeOpts = { hour: '2-digit', minute: '2-digit', hour12: false };
+            const sTime = startDate.toLocaleTimeString('vi-VN', timeOpts);
+            const eTime = endDate.toLocaleTimeString('vi-VN', timeOpts);
+            const dString = startDate.toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
+            
+            return {
+                isToday: new Date().toDateString() === startDate.toDateString(),
+                isPast: endDate < new Date(),
+                timeText: `${sTime} - ${eTime} | ${dString}`,
+                rawDate: startDate
+            };
         }
 
-        // Rút gọn định hướng để làm Tag (NC, UD)
-        function getShortOrientation(str) {
-            let upper = (str || '').toUpperCase();
-            let res = [];
-            if (upper.includes('NC') || upper.includes('NGHIÊN CỨU')) res.push('NC');
-            if (upper.includes('UD') || upper.includes('ỨNG DỤNG')) res.push('UD');
-            if (res.length === 0) return 'Chung';
-            return res.join(', ');
-        }
-
+        // BẮT ĐẦU QUY TRÌNH KIỂM TRA ĐĂNG NHẬP
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                // KIỂM TRA QUYỀN TRUY CẬP: CHẶN HỌC VIÊN
-                if (user.email.toLowerCase() === 'ths.phcn26@ump.edu.vn') {
-                    alert("Tài khoản học viên không có quyền truy cập trang này!");
-                    window.location.href = "thoi-khoa-bieu.html";
-                    return; 
-                }
-
                 currentUserEmail = user.email;
-
-                // Lấy thông tin user để lưu cùng Khai báo
                 try {
                     const userDoc = await getDoc(doc(db, "users", user.uid));
                     if (userDoc.exists()) {
                         const data = userDoc.data();
                         let prefix = data.degree === 'ThS' ? 'ThS. ' : (data.degree === 'TS' ? 'TS. ' : '');
-                        currentUserNameWithPrefix = `${prefix}${data.fullName}`;
+                        currentUserName = `${prefix}${data.fullName}`;
+                        
+                        // Bắt đầu Lắng nghe Database Lịch công tác
+                        listenToMySchedules();
+                    } else {
+                        window.location.href = "login.html"; 
                     }
-                } catch(e) {
-                    console.error("Lỗi lấy thông tin Profile:", e);
+                } catch (e) {
+                    console.error("Lỗi lấy thông tin User", e);
                 }
-
-                try { await fetchData(); } 
-                catch(e) { console.error("Lỗi:", e); }
             } else {
-                window.location.href = "login.html";
+                window.location.href = "login.html"; 
             }
         });
 
-        async function fetchData() {
-            try {
-                // Tải Môn học
-                const subjSnap = await getDocs(collection(db, "subjects"));
-                subjectsMap = {};
-                subjSnap.forEach(doc => {
-                    let s = doc.data();
-                    let sName = s.tenMonHoc || s.name || s.subjectName || s.subject || s.title || '';
-                    if (sName) {
-                        subjectsMap[sName.toLowerCase().trim()] = s.group || s.Group || s.nhom || '';
+        // TẢI & LỌC DỮ LIỆU CỦA RIÊNG MÌNH TỪ BẢNG CALENDAR_EVENTS
+        function listenToMySchedules() {
+            onSnapshot(collection(db, "calendar_events"), (snapshot) => {
+                myEvents = [];
+                snapshot.forEach(doc => { 
+                    const data = doc.data();
+                    data.id = doc.id; 
+                    
+                    // Lọc các sự kiện có chứa tên mình và chưa bị trả về
+                    if (data.gv && currentUserName && data.gv.includes(currentUserName) && data.status !== 'returned') {
+                        myEvents.push(data);
                     }
                 });
+                renderTasks();
+            });
+        }
 
-                // Tải GV
-                const userSnap = await getDocs(collection(db, "users"));
-                let coHuuBase = new Set();
-                let coHuuNormalized = new Set();
+        // PHÂN LOẠI VÀ HIỂN THỊ RA MÀN HÌNH
+        function renderTasks() {
+            document.getElementById('loadingScreen').classList.add('hidden');
+            document.getElementById('contentWrapper').classList.remove('hidden');
+
+            const todayGrid = document.getElementById('todayGrid');
+            const upcomingGrid = document.getElementById('upcomingGrid');
+            const completedGrid = document.getElementById('completedGrid');
+            
+            todayGrid.innerHTML = '';
+            upcomingGrid.innerHTML = '';
+            completedGrid.innerHTML = '';
+
+            let todayCount = 0;
+            let upcomingCount = 0;
+            let completedCount = 0;
+
+            // Sắp xếp sự kiện tăng dần theo thời gian
+            myEvents.sort((a, b) => new Date(a.start) - new Date(b.start));
+
+            myEvents.forEach(evt => {
+                const timeInfo = formatTaskTime(evt.start, evt.end);
+                const isSelfDeclared = evt.type === 'self_declared';
                 
-                userSnap.forEach(doc => {
-                    let u = doc.data();
-                    if (u.fullName) {
-                        let prefix = u.degree === 'ThS' ? 'ThS. ' : (u.degree === 'TS' ? 'TS. ' : '');
-                        let fName = `${prefix}${u.fullName}`;
-                        coHuuBase.add(fName);
-                        coHuuNormalized.add(normalizeName(fName));
-                    }
-                });
+                let category = '';
+                if (timeInfo.isToday) {
+                    category = 'today';
+                } else if (timeInfo.isPast) {
+                    category = 'completed';
+                } else {
+                    category = 'upcoming';
+                }
 
-                // Lắng nghe Lịch (Bao gồm cả Lịch khai báo)
-                onSnapshot(collection(db, "calendar_events"), (snapshot) => {
-                    allEvents = [];
-                    let activeCoHuu = new Set(coHuuBase); 
-                    let activeThinhGiang = new Set();
+                let badgeHtml = '';
+                let actionHtml = '';
+                let extraClass = isSelfDeclared ? 'self-declared' : '';
 
-                    snapshot.forEach(doc => {
-                        let ev = doc.data();
-                        ev.id = doc.id;
-                        if(ev.status !== 'returned' && ev.start) {
-                            allEvents.push(ev);
-                            
-                            if (ev.gv) {
-                                let gvNames = ev.gv.split(/,|&/).map(s => s.trim()).filter(s => s);
-                                gvNames.forEach(name => {
-                                    if (coHuuNormalized.has(normalizeName(name))) {
-                                        activeCoHuu.add(name);
-                                    } else {
-                                        activeThinhGiang.add(name);
-                                    }
-                                });
-                            }
-                        }
-                    });
+                if (category === 'completed') {
+                    badgeHtml = `<div class="badge-completed">Nhiệm vụ đã hoàn thành</div>`;
+                }
 
-                    let sortFnCoHuu = (a, b) => {
-                        let normA = normalizeName(a);
-                        let normB = normalizeName(b);
-                        let idxA = COHUU_ORDER.indexOf(normA);
-                        let idxB = COHUU_ORDER.indexOf(normB);
-                        if (idxA === -1) idxA = 999;
-                        if (idxB === -1) idxB = 999;
-                        if (idxA !== idxB) return idxA - idxB;
-                        let nameA = a.split(' ').pop();
-                        let nameB = b.split(' ').pop();
-                        return nameA.localeCompare(nameB, 'vi');
-                    };
+                // Nếu là nhiệm vụ Tương lai hoặc Hôm nay thì có nút Từ chối/Xóa
+                if (category !== 'completed') {
+                    actionHtml = `
+                        <div class="task-actions">
+                            <button class="btn-reject" onclick="openRejectModal('${evt.id}', '${encodeURIComponent(isSelfDeclared ? evt.task : evt.subject)}')">
+                                Hủy / Xóa lịch này
+                            </button>
+                        </div>
+                    `;
+                }
 
-                    let sortFnThinhGiang = (a, b) => {
-                        let nameA = a.split(' ').pop();
-                        let nameB = b.split(' ').pop();
-                        return nameA.localeCompare(nameB, 'vi');
-                    };
+                let clsName = evt.class === 'THS2025' ? 'THS2025' : (evt.class === 'THS2026' ? 'THS2026' : evt.class);
+                let subjectTitle = isSelfDeclared ? `Lịch Bận: ${evt.task}` : evt.subject;
+                let taskText = isSelfDeclared && evt.note ? `Ghi chú: ${evt.note}` : `Nhiệm vụ: ${evt.task || 'Giảng dạy'}`;
 
-                    gvCoHuuList = Array.from(activeCoHuu).sort(sortFnCoHuu);
-                    gvThinhGiangList = Array.from(activeThinhGiang).sort(sortFnThinhGiang);
+                const cardHtml = `
+                    <div class="task-card ${category} ${extraClass}">
+                        <div class="task-time">${timeInfo.timeText}</div>
+                        <div class="task-subject">${subjectTitle}</div>
+                        <div class="task-role">${taskText}</div>
+                        <div class="task-room">Địa điểm: ${evt.room || 'Chưa xác định'}</div>
+                        ${!isSelfDeclared ? `<div class="task-class">Lớp: ${clsName}</div>` : ''}
+                        ${badgeHtml}
+                        ${actionHtml}
+                    </div>
+                `;
 
-                    document.getElementById('loadingScreen').classList.add('hidden');
-                    document.getElementById('dataWrapper').classList.remove('hidden');
+                if (category === 'today') {
+                    todayGrid.innerHTML += cardHtml;
+                    todayCount++;
+                } else if (category === 'upcoming') {
+                    upcomingGrid.innerHTML += cardHtml;
+                    upcomingCount++;
+                } else {
+                    // Chèn lên đầu danh sách Đã hoàn thành (nhiệm vụ gần nhất hiện ở trên cùng)
+                    completedGrid.insertAdjacentHTML('afterbegin', cardHtml);
+                    completedCount++;
+                }
+            });
 
-                    goToCurrentWeek();
-                }, (error) => {
-                    console.error("Lỗi tải lịch: ", error);
-                    showToast("Lỗi đồng bộ lịch!", "danger");
-                });
-
-            } catch (error) {
-                console.error("Lỗi khởi tạo:", error);
-                document.getElementById('loadingScreen').innerHTML = `Lỗi tải dữ liệu: ${error.message}`;
+            // Hiển thị trạng thái rỗng
+            if (todayCount === 0) {
+                todayGrid.innerHTML = `<div class="empty-state" style="grid-column: 1/-1;">Hôm nay bạn không có lịch công tác nào.</div>`;
+            }
+            if (upcomingCount === 0) {
+                upcomingGrid.innerHTML = `<div class="empty-state" style="grid-column: 1/-1;">Bạn chưa có lịch phân công sắp tới.</div>`;
+            }
+            if (completedCount === 0) {
+                completedGrid.innerHTML = `<div class="empty-state" style="grid-column: 1/-1;">Bạn chưa có nhiệm vụ nào đã hoàn thành.</div>`;
             }
         }
 
-        // ==========================================
-        // CÁC HÀM ĐIỀU KHIỂN & RENDER
-        // ==========================================
-        
-        window.switchTab = (tab) => {
-            currentTab = tab;
-            document.getElementById('tabCoHuu').classList.toggle('active', tab === 'cohuu');
-            document.getElementById('tabThinhGiang').classList.toggle('active', tab === 'thinhgiang');
-            renderWeek();
-        };
 
-        window.goToCurrentWeek = () => {
-            currentMonday = getMonday(new Date());
-            currentMonday.setHours(0,0,0,0);
-            document.getElementById('datePicker').value = formatDateForInput(currentMonday);
-            renderWeek();
-        };
+        // ========================================================
+        // TÍNH NĂNG TỪ CHỐI / HỦY NHIỆM VỤ (VỚI MÃ XÁC NHẬN 4 SỐ)
+        // ========================================================
+        let targetRejectId = null;
+        let rejectSecurityCode = "";
 
-        window.changeWeek = (offset) => {
-            currentMonday.setDate(currentMonday.getDate() + (offset * 7));
-            document.getElementById('datePicker').value = formatDateForInput(currentMonday);
-            renderWeek();
-        };
-
-        window.jumpToDate = () => {
-            let selected = document.getElementById('datePicker').value;
-            if (selected) {
-                currentMonday = getMonday(new Date(selected));
-                currentMonday.setHours(0,0,0,0);
-                renderWeek();
-            }
-        };
-
-        function renderWeek() {
-            window.renderedEvents = {}; // Reset danh sách sự kiện đã gộp
-
-            let sunday = new Date(currentMonday);
-            sunday.setDate(currentMonday.getDate() + 6);
+        window.openRejectModal = (id, encodedTitle) => {
+            targetRejectId = id;
+            rejectSecurityCode = Math.floor(1000 + Math.random() * 9000).toString();
             
-            let lbl = `Từ ${currentMonday.toLocaleDateString('vi-VN', {day:'2-digit', month:'2-digit'})} - Đến ${sunday.toLocaleDateString('vi-VN', {day:'2-digit', month:'2-digit'})}`;
-            document.getElementById('weekDisplayLabel').innerText = lbl;
+            document.getElementById('rejectTaskTitlePreview').innerText = decodeURIComponent(encodedTitle);
+            document.getElementById('randomRejectCodeDisplay').innerText = rejectSecurityCode;
+            document.getElementById('inputRejectCodeConfirm').value = '';
+            document.getElementById('btnExecuteFinalReject').disabled = true;
+            document.getElementById('rejectConfirmModal').classList.remove('hidden');
+        };
 
-            let weekDays = [];
-            for (let i = 0; i < 7; i++) {
-                let d = new Date(currentMonday);
-                d.setDate(currentMonday.getDate() + i);
-                weekDays.push(d);
-            }
+        window.closeRejectModal = () => {
+            document.getElementById('rejectConfirmModal').classList.add('hidden');
+            targetRejectId = null;
+        };
 
-            const headerRow = document.getElementById('tableHeaderRow');
-            let headerHtml = `<th style="min-width: 150px;">Giảng viên</th>`;
-            
-            const dayNames = ["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "Chủ nhật"];
-            let todayStr = formatDateForInput(new Date());
-
-            weekDays.forEach((dateObj, index) => {
-                let dStr = formatDateForInput(dateObj);
-                let isToday = (dStr === todayStr);
-                let cls = isToday ? 'today-col' : '';
-                
-                headerHtml += `<th class="${cls}">
-                    ${dayNames[index]}<br>
-                    <span style="font-size: 0.8rem; font-weight: normal; color: #64748b;">${dateObj.toLocaleDateString('vi-VN', {day:'2-digit', month:'2-digit'})}</span>
-                </th>`;
-            });
-            headerRow.innerHTML = headerHtml;
-
-            let endOfWeek = new Date(sunday);
-            endOfWeek.setHours(23, 59, 59, 999);
-
-            let eventsThisWeek = allEvents.filter(ev => {
-                let evStart = new Date(ev.start).getTime();
-                return evStart >= currentMonday.getTime() && evStart <= endOfWeek.getTime();
-            });
-
-            let baseGvList = currentTab === 'cohuu' ? gvCoHuuList : gvThinhGiangList;
-            let matrix = {};
-            baseGvList.forEach(gv => { matrix[gv] = {}; });
-
-            eventsThisWeek.forEach(ev => {
-                if (!ev.gv) return;
-                let gvs = ev.gv.split(/,|&/).map(s => s.trim()).filter(s => s);
-                let evDateStr = formatDateForInput(new Date(ev.start));
-
-                gvs.forEach(gv => {
-                    if (matrix[gv]) {
-                        if (!matrix[gv][evDateStr]) matrix[gv][evDateStr] = [];
-                        matrix[gv][evDateStr].push(ev);
-                    }
-                });
-            });
-
-            let displayGvList = [];
-            if (currentTab === 'thinhgiang') {
-                displayGvList = baseGvList.filter(gv => {
-                    for (let dStr in matrix[gv]) {
-                        if (matrix[gv][dStr] && matrix[gv][dStr].length > 0) return true;
-                    }
-                    return false;
-                });
+        document.getElementById('inputRejectCodeConfirm').addEventListener('input', (e) => {
+            const btn = document.getElementById('btnExecuteFinalReject');
+            if (e.target.value.trim() === rejectSecurityCode) {
+                btn.disabled = false;
+                btn.style.opacity = "1";
             } else {
-                displayGvList = baseGvList; 
+                btn.disabled = true;
+                btn.style.opacity = "0.5";
             }
+        });
 
-            const tbody = document.getElementById('tableBody');
-            let bodyHtml = '';
-
-            displayGvList.forEach(gv => {
-                let rowHtml = `<tr>`;
-                rowHtml += `<td><b style="font-size:0.9rem;">${gv}</b></td>`;
-
-                weekDays.forEach(dateObj => {
-                    let dStr = formatDateForInput(dateObj);
-                    let isToday = (dStr === todayStr);
-                    let cellCls = isToday ? 'today-col' : '';
-                    let cellContent = '';
-
-                    if (matrix[gv][dStr] && matrix[gv][dStr].length > 0) {
-                        matrix[gv][dStr].sort((a,b) => new Date(a.start).getTime() - new Date(b.start).getTime());
-
-                        // --- THUẬT TOÁN GỘP (MERGE) SỰ KIỆN ---
-                        let mergedEvents = [];
-                        matrix[gv][dStr].forEach(ev => {
-                            let existing = mergedEvents.find(e => 
-                                e.start === ev.start && 
-                                e.end === ev.end && 
-                                e.class === ev.class && 
-                                e.subject === ev.subject && 
-                                e.room === ev.room && 
-                                e.task === ev.task &&
-                                e.type === ev.type // Đảm bảo khai báo không gộp chung với lịch học
-                            );
-
-                            let newOrtStr = ev.orientation || 'Chung';
-
-                            if (existing) {
-                                let existingOrts = existing.mergedOrientation.split(',').map(s => s.trim());
-                                let newOrts = newOrtStr.split(',').map(s => s.trim());
-                                newOrts.forEach(no => {
-                                    if (!existingOrts.includes(no) && no !== '') {
-                                        existingOrts.push(no);
-                                    }
-                                });
-                                existing.mergedOrientation = existingOrts.join(', ');
-                            } else {
-                                let newEv = { ...ev, mergedOrientation: newOrtStr };
-                                mergedEvents.push(newEv);
-                            }
-                        });
-
-                        // Render sau khi đã gộp
-                        mergedEvents.forEach(ev => {
-                            window.renderedEvents[ev.id] = ev; // Lưu vào biến toàn cục để Popup gọi
-
-                            // ĐÃ THÊM: Ép buộc JavaScript xuất ra chuẩn 24-giờ (hour12: false)
-                            let sTime = new Date(ev.start).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12: false});
-                            let eTime = ev.end ? new Date(ev.end).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12: false}) : '';
-                            let timeDisplay = eTime ? `${sTime} - ${eTime}` : `${sTime}`;
-
-                            // Xác định Tag Định Hướng
-                            let shortOrt = getShortOrientation(ev.mergedOrientation);
-                            let ortHtml = ev.type === 'self_declared' ? '' : `<div class="evt-orientation">${shortOrt}</div>`;
-
-                            let borderClass = 'border-chung';
-                            if(shortOrt.includes('NC') && !shortOrt.includes('UD')) borderClass = 'border-nc';
-                            else if(shortOrt.includes('UD') && !shortOrt.includes('NC')) borderClass = 'border-ud';
-
-                            let classColor = getClassColor(ev.class);
-                            let classHtml = `<div class="evt-class" style="background-color:${classColor.bg}; color:${classColor.text};">${ev.class || 'Chưa XĐ'}</div>`;
-                            
-                            let majorText = getMajorFromSubject(ev.subject);
-                            let majorClass = 'major-chung';
-                            if(majorText === 'VLTL') majorClass = 'major-vltl';
-                            else if(majorText === 'HĐTL') majorClass = 'major-hdtl';
-                            else if(majorText === 'NNTL') majorClass = 'major-nntl';
-
-                            let majorHtml = ev.type === 'self_declared' ? '' : `<div class="evt-major ${majorClass}">${majorText}</div>`;
-
-                            let extraClass = ev.type === 'self_declared' ? 'self-declared' : borderClass;
-                            let titleText = ev.type === 'self_declared' ? `<div style="font-size:0.8rem; font-weight:bold; color:#6d28d9; margin-bottom:2px; line-height:1.2;">${ev.task}</div>` : '';
-
-                            cellContent += `
-                                <div class="event-card compact ${extraClass}" onclick="showEventDetail('${ev.id}')">
-                                    ${titleText}
-                                    ${ev.type !== 'self_declared' ? classHtml : ''}
-                                    ${majorHtml}
-                                    ${ortHtml}
-                                    <div class="evt-time" style="${ev.type === 'self_declared' ? 'color:#6d28d9;' : ''}">${timeDisplay}</div>
-                                </div>
-                            `;
-                        });
-                    }
-                    rowHtml += `<td class="${cellCls}">${cellContent}</td>`;
-                });
-
-                rowHtml += `</tr>`;
-                bodyHtml += rowHtml;
-            });
-
-            if (bodyHtml === '') {
-                bodyHtml = `<tr><td colspan="8" style="text-align:center; padding:30px; color:#64748b;">Danh sách đang trống. (Không có lịch công tác trong tuần này)</td></tr>`;
+        document.getElementById('btnExecuteFinalReject').addEventListener('click', async () => {
+            if (!targetRejectId) return;
+            try {
+                // Xóa thẻ khỏi bảng (hoàn trả về kho / hoặc xóa thẻ tự khai báo)
+                await deleteDoc(doc(db, "calendar_events", targetRejectId));
+                showToast("Đã hủy nhiệm vụ thành công!");
+                closeRejectModal();
+            } catch(e) {
+                console.error("Lỗi khi hủy:", e);
+                showToast("Lỗi: " + e.message, "danger");
             }
+        });
 
-            tbody.innerHTML = bodyHtml;
-        }
 
-        // ==========================================
-        // CÁC HÀM XỬ LÝ KHAI BÁO CÔNG TÁC
-        // ==========================================
+        // ========================================================
+        // TÍNH NĂNG TỰ KHAI BÁO CÔNG TÁC (TƯƠNG TỰ TRANG ADMIN)
+        // ========================================================
         window.openDeclareModal = () => {
             document.getElementById('declareForm').reset();
-            document.getElementById('decDate').value = formatDateForInput(new Date());
+            
+            // Format ngày hôm nay
+            let d = new Date();
+            let month = '' + (d.getMonth() + 1), day = '' + d.getDate(), year = d.getFullYear();
+            if (month.length < 2) month = '0' + month;
+            if (day.length < 2) day = '0' + day;
+            document.getElementById('decDate').value = [year, month, day].join('-');
+            
             document.getElementById('declareModal').classList.remove('hidden');
-            setTimeout(() => document.getElementById('decStartTime').focus(), 100);
         };
 
         window.closeDeclareModal = () => {
@@ -704,115 +471,30 @@
             const endStr = `${date}T${endT}:00`;
 
             const evData = {
-                title: task, // Sử dụng Tên công việc làm Tiêu đề
-                subject: "Công tác khác", // Gắn nhãn cứng để quy hoạch màu sắc
-                gv: currentUserNameWithPrefix, // Lấy chính xác tên GV đã đăng nhập có Học vị
+                title: task,
+                subject: "Công tác khác", 
+                gv: currentUserName, 
                 start: startStr,
                 end: endStr,
                 task: task,
                 room: room || 'Không xác định',
                 class: "Khai báo",
                 orientation: "Chung",
-                note: note, // Thêm trường ghi chú
+                note: note,
                 scheduledByEmail: currentUserEmail,
-                scheduledByName: currentUserNameWithPrefix,
+                scheduledByName: currentUserName,
                 status: 'scheduled',
-                type: 'self_declared' // Cờ nhận diện lịch Tự khai báo
+                type: 'self_declared' 
             };
 
             try {
                 await addDoc(collection(db, "calendar_events"), evData);
-                showToast("Khai báo công tác thành công!");
+                showToast("Đã khai báo công tác thành công!");
                 closeDeclareModal();
             } catch (err) {
                 console.error(err);
                 showToast("Lỗi khi lưu khai báo: " + err.message, "danger");
             }
-        };
-
-        // Hàm Xóa Sự kiện Tự Khai báo
-        window.deleteDeclaredEvent = async (id) => {
-            if (confirm("Bạn có chắc chắn muốn xóa khai báo này?")) {
-                try {
-                    await deleteDoc(doc(db, "calendar_events", id));
-                    showToast("Đã xóa khai báo thành công!", "success");
-                    closeEventModal();
-                } catch (error) {
-                    showToast("Lỗi khi xóa: " + error.message, "danger");
-                }
-            }
-        };
-
-        // ==========================================
-        // CÁC HÀM XỬ LÝ POPUP CHI TIẾT
-        // ==========================================
-        window.showEventDetail = (id) => {
-            const ev = window.renderedEvents[id];
-            if (!ev) return;
-            
-            // ĐÃ THÊM: Ép buộc JavaScript xuất ra chuẩn 24-giờ (hour12: false)
-            let sTime = new Date(ev.start).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12: false});
-            let eTime = ev.end ? new Date(ev.end).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12: false}) : '';
-            let dateStr = new Date(ev.start).toLocaleDateString('vi-VN', {weekday: 'long', day:'2-digit', month:'2-digit', year:'numeric'});
-            let timeDisplay = eTime ? `${sTime} - ${eTime}` : `${sTime}`;
-
-            let classColor = getClassColor(ev.class);
-            let classBadge = `<span class="evt-class" style="font-size: 0.9rem; background-color:${classColor.bg}; color:${classColor.text}; padding: 3px 8px;">${ev.class || 'Chưa rõ'}</span>`;
-            
-            let majorText = getMajorFromSubject(ev.subject);
-            let majorClass = 'major-chung';
-            if(majorText === 'VLTL') majorClass = 'major-vltl';
-            else if(majorText === 'HĐTL') majorClass = 'major-hdtl';
-            else if(majorText === 'NNTL') majorClass = 'major-nntl';
-            
-            let majorBadge = `<span class="evt-major ${majorClass}" style="font-size: 0.85rem; padding: 3px 8px;">${majorText}</span>`;
-
-            // Kiểm tra xem có phải là sự kiện tự khai báo không
-            let isSelfDeclared = ev.type === 'self_declared';
-
-            let html = `
-                <div style="font-size: 1.2rem; color: ${isSelfDeclared ? '#8b5cf6' : 'var(--primary)'}; font-weight: bold; margin-bottom: 15px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 10px;">
-                    ${isSelfDeclared ? '<i class="fas fa-user-edit"></i> ' + ev.task : ev.subject || 'Chưa có tên môn'}
-                </div>
-            `;
-
-            if (!isSelfDeclared) {
-                html += `
-                    <div style="margin-bottom: 10px;"><strong>Khóa/Lớp:</strong> ${classBadge}</div>
-                    <div style="margin-bottom: 10px;"><strong>Chuyên ngành:</strong> ${majorBadge}</div>
-                    <div style="margin-bottom: 10px;"><strong>Định hướng:</strong> <span style="font-weight:bold; color: #b45309;">${ev.mergedOrientation}</span></div>
-                `;
-            }
-
-            html += `
-                <div style="margin-bottom: 10px;"><strong>Thời gian:</strong> <span style="color:#b45309; font-weight:bold;">${timeDisplay}</span> <span style="font-size: 0.85rem; color:#64748b;">(${dateStr})</span></div>
-                <div style="margin-bottom: 10px;"><strong>Địa điểm:</strong> ${ev.room || 'Chưa xác định'}</div>
-                <div style="margin-bottom: 10px;"><strong>Giảng viên:</strong> <span style="font-weight:bold;">${ev.gv || 'Chưa xác định'}</span></div>
-            `;
-
-            if (isSelfDeclared && ev.note) {
-                html += `
-                    <div style="margin-bottom: 10px; background: #fefce8; padding: 10px; border-radius: 6px; border: 1px solid #fde047;">
-                        <strong>Ghi chú:</strong> <span style="color: #854d0e;">${ev.note}</span>
-                    </div>
-                `;
-            }
-
-            if (!isSelfDeclared) {
-                html += `<div style="margin-bottom: 10px;"><strong>Nhiệm vụ:</strong> ${ev.task || 'Giảng dạy'}</div>`;
-            }
-
-            // Thêm nút xóa (chỉ áp dụng đối với sự kiện do người dùng tự khai báo)
-            if (isSelfDeclared && ev.scheduledByEmail === currentUserEmail) {
-                html += `<button onclick="deleteDeclaredEvent('${ev.id}')" style="margin-top:15px; width:100%; padding:10px; background:var(--accent); color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer; transition:0.2s;"><i class="fas fa-trash"></i> Hủy / Xóa khai báo này</button>`;
-            }
-            
-            document.getElementById('eventModalBody').innerHTML = html;
-            document.getElementById('eventDetailModal').classList.remove('hidden');
-        };
-
-        window.closeEventModal = () => {
-            document.getElementById('eventDetailModal').classList.add('hidden');
         };
 
     </script>
