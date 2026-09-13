@@ -25,11 +25,15 @@
         /* CỘT TRÁI - SIDEBAR */
         .cv-sidebar { background: #f8fafc; padding: 2.5rem 1.5rem; display: flex; flex-direction: column; align-items: center; text-align: center; border-right: 1px solid var(--border); }
         
-        .cv-avatar { width: 180px; height: 180px; border-radius: 50%; object-fit: cover; border: 4px solid white; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 1.5rem; background-color: var(--border); display: flex; align-items: center; justify-content: center; font-size: 4rem; color: #94a3b8; overflow: hidden; }
+        .cv-avatar-container { position: relative; display: flex; flex-direction: column; align-items: center; margin-bottom: 1.5rem; }
+        .cv-avatar { width: 180px; height: 180px; border-radius: 50%; object-fit: cover; border: 4px solid white; box-shadow: 0 4px 15px rgba(0,0,0,0.1); background-color: var(--border); display: flex; align-items: center; justify-content: center; font-size: 4rem; color: #94a3b8; overflow: hidden; position: relative; margin-bottom: 5px; }
         .cv-avatar img { width: 100%; height: 100%; object-fit: cover; }
         
-        .cv-name { font-size: 1.5rem; font-weight: 800; color: var(--text-dark); margin-bottom: 5px; line-height: 1.3;}
-        .cv-degree { font-size: 1rem; font-weight: 600; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px;}
+        .cv-avatar.editable { cursor: pointer; }
+        .cv-avatar-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.5); color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; transition: 0.3s; z-index: 2; }
+        .cv-avatar.editable:hover .cv-avatar-overlay { opacity: 1; }
+        
+        .cv-name { font-size: 1.5rem; font-weight: 800; color: var(--text-dark); margin-bottom: 15px; line-height: 1.3;}
         .cv-position { font-size: 0.95rem; font-weight: 600; color: var(--text-body); margin-bottom: 20px; background: white; padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border); }
         
         .cv-contact { width: 100%; text-align: left; margin-top: 15px; padding-top: 20px; border-top: 1px dashed #cbd5e1; }
@@ -99,10 +103,14 @@
             
             <!-- CỘT TRÁI: THÔNG TIN CƠ BẢN -->
             <div class="cv-sidebar">
-                <div class="cv-avatar" id="displayAvatar">
-                    <i class="fas fa-user"></i>
+                <div class="cv-avatar-container">
+                    <div class="cv-avatar" id="displayAvatar" onclick="triggerAvatarUpload()">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <input type="file" id="uploadAvatar" accept="image/jpeg, image/jpg" class="hidden">
+                    <div id="avatarNote" class="hidden" style="font-size: 0.8rem; color: #94a3b8; margin-top: 5px;">(Chọn ảnh < 2MB, định dạng JPG)</div>
                 </div>
-                <div class="cv-degree" id="displayDegree">Học vị</div>
+
                 <div class="cv-name" id="displayName">Họ và Tên</div>
                 <div class="cv-position" id="displayPosition">Chức vụ / Vị trí</div>
                 
@@ -121,11 +129,6 @@
 
             <!-- CỘT PHẢI: CHI TIẾT CV -->
             <div class="cv-main">
-                <div class="cv-section">
-                    <div class="cv-section-title"><i class="fas fa-info-circle"></i> Tiểu sử tóm tắt</div>
-                    <div class="cv-content" id="displayBio"><span class="empty-text">Chưa cập nhật thông tin.</span></div>
-                </div>
-
                 <div class="cv-section">
                     <div class="cv-section-title"><i class="fas fa-graduation-cap"></i> Quá trình đào tạo</div>
                     <div class="cv-content" id="displayEducation"><span class="empty-text">Chưa cập nhật thông tin.</span></div>
@@ -177,45 +180,36 @@
                         </div>
                         <div class="form-group">
                             <label>Chức vụ / Vị trí</label>
-                            <input type="text" id="inputPosition" class="form-control" placeholder="VD: Trưởng Bộ môn, Giảng viên...">
+                            <input type="text" id="inputPosition" class="form-control">
                         </div>
                         <div class="form-group">
                             <label>Chuyên ngành phụ trách</label>
-                            <input type="text" id="inputMajor" class="form-control" placeholder="VD: Vật lý trị liệu Cơ xương...">
+                            <input type="text" id="inputMajor" class="form-control">
                         </div>
                         <div class="form-group">
                             <label>Số điện thoại</label>
-                            <input type="text" id="inputPhone" class="form-control" placeholder="Số điện thoại liên hệ">
+                            <input type="text" id="inputPhone" class="form-control">
                         </div>
-                        <div class="form-group">
-                            <label>Link Ảnh đại diện (Avatar URL)</label>
-                            <input type="url" id="inputAvatar" class="form-control" placeholder="Dán link ảnh vào đây...">
-                        </div>
-                    </div>
-
-                    <div class="form-group full" style="margin-bottom: 15px;">
-                        <label>Tiểu sử tóm tắt</label>
-                        <textarea id="inputBio" class="form-control" placeholder="Giới thiệu ngắn gọn về bản thân..."></textarea>
                     </div>
 
                     <div class="form-group full" style="margin-bottom: 15px;">
                         <label>Quá trình đào tạo</label>
-                        <textarea id="inputEducation" class="form-control" placeholder="- 2010-2014: Cử nhân tại...&#10;- 2015-2017: Thạc sĩ tại..."></textarea>
+                        <textarea id="inputEducation" class="form-control"></textarea>
                     </div>
 
                     <div class="form-group full" style="margin-bottom: 15px;">
                         <label>Quá trình công tác</label>
-                        <textarea id="inputExperience" class="form-control" placeholder="- 2014-2018: Kỹ thuật viên tại...&#10;- 2018-Nay: Giảng viên tại..."></textarea>
+                        <textarea id="inputExperience" class="form-control"></textarea>
                     </div>
 
                     <div class="form-group full" style="margin-bottom: 15px;">
                         <label>Hướng nghiên cứu chính</label>
-                        <textarea id="inputResearch" class="form-control" placeholder="- Phục hồi chức năng sau đột quỵ&#10;- Trị liệu cơ xương khớp..."></textarea>
+                        <textarea id="inputResearch" class="form-control"></textarea>
                     </div>
 
                     <div class="form-group full">
                         <label>Các Công trình Khoa học / Bài báo đã công bố</label>
-                        <textarea id="inputPublications" class="form-control" style="min-height: 150px;" placeholder="1. Tên bài báo, Tên tạp chí, Năm.&#10;2. Tên bài báo, Tên tạp chí, Năm."></textarea>
+                        <textarea id="inputPublications" class="form-control" style="min-height: 150px;"></textarea>
                     </div>
 
                     <button type="submit" class="btn-save" id="btnSaveSubmit"><i class="fas fa-save"></i> Lưu thông tin</button>
@@ -233,11 +227,13 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-storage.js";
 
         const firebaseConfig = { apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY", authDomain: "bmphcn-aa9c6.firebaseapp.com", projectId: "bmphcn-aa9c6", storageBucket: "bmphcn-aa9c6.firebasestorage.app", messagingSenderId: "749494392719", appId: "1:749494392719:web:f220c751ff541620045dfa" };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const storage = getStorage(app);
 
         let targetUid = null;
         let isHasPermissionToEdit = false;
@@ -260,26 +256,40 @@
             wrapper.classList.remove('hidden');
 
             // Header/Sidebar info
-            document.getElementById('displayName').innerText = data.fullName || 'Chưa cập nhật';
-            document.getElementById('displayDegree').innerText = data.degree || 'Giảng viên';
+            let degreePref = '';
+            if (data.degree) {
+                if (['ThS', 'TS', 'CN', 'PGS.TS', 'GS.TS'].includes(data.degree)) {
+                    degreePref = `${data.degree}. `;
+                } else {
+                    degreePref = `${data.degree} `;
+                }
+            }
+            
+            document.getElementById('displayName').innerText = `${degreePref}${data.fullName || 'Chưa cập nhật'}`;
             document.getElementById('displayPosition').innerText = data.position || 'Giảng viên Bộ môn';
             
             document.getElementById('displayEmail').innerText = data.email || 'Chưa cập nhật';
             document.getElementById('displayPhone').innerText = data.phone || 'Chưa cập nhật';
             document.getElementById('displayMajor').innerText = data.major || 'Phục hồi chức năng';
 
-            // Avatar
+            // Avatar setup
             const avatarDiv = document.getElementById('displayAvatar');
+            let overlayHtml = isHasPermissionToEdit ? `<div class="cv-avatar-overlay"><i class="fas fa-camera"></i><span style="font-size:0.85rem; margin-top:5px; font-weight:bold;">Thay ảnh</span></div>` : '';
+            
+            if (isHasPermissionToEdit) {
+                avatarDiv.classList.add('editable');
+                document.getElementById('avatarNote').classList.remove('hidden');
+            }
+
             if (data.avatar && data.avatar.trim() !== '') {
-                avatarDiv.innerHTML = `<img src="${data.avatar}" alt="Avatar ${data.fullName}" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\\'fas fa-user\\'></i>';">`;
+                avatarDiv.innerHTML = `<img src="${data.avatar}" alt="Avatar ${data.fullName}" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\\'fas fa-user\\'></i>${overlayHtml}';">${overlayHtml}`;
             } else {
-                avatarDiv.innerHTML = `<i class="fas fa-user"></i>`;
+                avatarDiv.innerHTML = `<i class="fas fa-user"></i>${overlayHtml}`;
             }
 
             // Main info (Format string line breaks)
             const formatText = (text) => text && text.trim() !== '' ? text.trim() : '<span class="empty-text">Chưa cập nhật thông tin.</span>';
             
-            document.getElementById('displayBio').innerHTML = formatText(data.bio);
             document.getElementById('displayEducation').innerHTML = formatText(data.education);
             document.getElementById('displayExperience').innerHTML = formatText(data.experience);
             document.getElementById('displayResearch').innerHTML = formatText(data.research);
@@ -347,6 +357,62 @@
             }
         });
 
+        // XỬ LÝ ẢNH ĐẠI DIỆN
+        window.triggerAvatarUpload = () => {
+            if (isHasPermissionToEdit) {
+                document.getElementById('uploadAvatar').click();
+            }
+        };
+
+        document.getElementById('uploadAvatar').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            // Xác thực dung lượng (< 2MB)
+            if (file.size > 2 * 1024 * 1024) {
+                showToast("Vui lòng chọn ảnh có dung lượng nhỏ hơn 2MB!", "danger");
+                e.target.value = '';
+                return;
+            }
+            
+            // Xác thực định dạng (Chỉ JPG/JPEG)
+            if (file.type !== "image/jpeg" && file.type !== "image/jpg") {
+                showToast("Vui lòng chọn ảnh định dạng JPG!", "danger");
+                e.target.value = '';
+                return;
+            }
+            
+            // Hiện hiệu ứng tải trên avatar
+            const overlay = document.querySelector('.cv-avatar-overlay');
+            if(overlay) {
+                overlay.innerHTML = '<i class="fas fa-spinner fa-spin fa-2x"></i>';
+                overlay.style.opacity = '1';
+            }
+            
+            try {
+                // Tạo tên file duy nhất trong thư mục avatars/
+                const storageRef = ref(storage, `avatars/${targetUid}_${Date.now()}.jpg`);
+                
+                // Upload ảnh
+                await uploadBytes(storageRef, file);
+                
+                // Lấy URL công khai
+                const downloadURL = await getDownloadURL(storageRef);
+                
+                // Cập nhật URL vào Firestore
+                await updateDoc(doc(db, "users", targetUid), { avatar: downloadURL });
+                
+                // Cập nhật ngay trên giao diện
+                currentProfileData.avatar = downloadURL;
+                renderProfileCV(currentProfileData);
+                showToast("Cập nhật ảnh đại diện thành công!");
+            } catch (err) {
+                showToast("Lỗi tải ảnh: " + err.message, "danger");
+            } finally {
+                e.target.value = ''; // Reset input file
+            }
+        });
+
         // XỬ LÝ MODAL CHỈNH SỬA
         window.openEditModal = () => {
             // Đổ dữ liệu hiện tại vào form
@@ -355,9 +421,7 @@
             document.getElementById('inputPosition').value = currentProfileData.position || '';
             document.getElementById('inputMajor').value = currentProfileData.major || '';
             document.getElementById('inputPhone').value = currentProfileData.phone || '';
-            document.getElementById('inputAvatar').value = currentProfileData.avatar || '';
             
-            document.getElementById('inputBio').value = currentProfileData.bio || '';
             document.getElementById('inputEducation').value = currentProfileData.education || '';
             document.getElementById('inputExperience').value = currentProfileData.experience || '';
             document.getElementById('inputResearch').value = currentProfileData.research || '';
@@ -382,9 +446,7 @@
                 position: document.getElementById('inputPosition').value.trim(),
                 major: document.getElementById('inputMajor').value.trim(),
                 phone: document.getElementById('inputPhone').value.trim(),
-                avatar: document.getElementById('inputAvatar').value.trim(),
                 
-                bio: document.getElementById('inputBio').value.trim(),
                 education: document.getElementById('inputEducation').value.trim(),
                 experience: document.getElementById('inputExperience').value.trim(),
                 research: document.getElementById('inputResearch').value.trim(),
