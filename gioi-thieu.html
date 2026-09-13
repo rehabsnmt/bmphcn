@@ -102,6 +102,7 @@
             width: 100%;
             height: 100%;
             box-sizing: border-box;
+            cursor: pointer; /* Hiệu ứng click chuột */
         }
         
         .faculty-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-hover); border-color: var(--primary); }
@@ -151,9 +152,16 @@
             gap: 6px; 
             margin-top: auto; 
             word-break: break-all; 
+            position: relative;
+            z-index: 2; /* Để click vào mail không bị đè bởi click vào thẻ */
         }
         
         .mobile-br { display: none; }
+
+        /* Toast Thông báo */
+        .toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;}
+        .toast { min-width: 250px; background-color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: 0.4s; font-weight: 600; border-left: 5px solid #f59e0b; opacity: 0; pointer-events: auto; }
+        .toast.show { transform: translateX(0); opacity: 1; }
 
         @media (max-width: 900px) {
             .faculty-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -170,6 +178,7 @@
 <body style="display: flex; flex-direction: column; min-height: 100vh;">
     
     <div id="header-placeholder"></div>
+    <div id="toastContainer" class="toast-container"></div>
 
     <main style="flex: 1; padding-top: 2rem;">
         <div class="intro-container">
@@ -205,7 +214,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
-        import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY",
@@ -220,7 +229,18 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Danh sách tĩnh để giữ đúng thứ tự, cấu trúc chức vụ và phân môn chi tiết
+        // Hiển thị Toast
+        window.showToast = (message) => {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast warning`;
+            toast.innerHTML = `<i class="fas fa-info-circle" style="color: #f59e0b; font-size: 1.2rem;"></i><span style="color: #475569;">${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
+        };
+
+        // Danh sách tĩnh ban đầu
         let facultyList = [
             { degree: "Tiến sĩ", name: "Lê Thanh Vân", position: "Trưởng Bộ môn", major: "Vật lý trị liệu Cơ xương", email: "lethanhvan@ump.edu.vn", image: "images/TS. Lê Thanh Vân.jpg" },
             { degree: "Tiến sĩ", name: "Nguyễn Thanh Duy", position: "Giảng viên", major: "Vật lý trị liệu Thần kinh - cơ", email: "thduypt@ump.edu.vn", image: "images/TS. Nguyễn Thanh Duy.jpg" },
@@ -252,7 +272,6 @@
 
                 const avatarHtml = `<img src="${data.image}" alt="Ảnh ${data.name}" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\\'fas fa-user\\' style=\\'font-size: 3rem; color: var(--text-body);\\'></i>';">`;
 
-                // Xác định class CSS cho nhãn chuyên ngành (dùng includes để quét các tên chuyên môn dài)
                 let majorClass = 'major-vltl';
                 if (data.major.includes('Hoạt động trị liệu')) majorClass = 'major-hdtl';
                 else if (data.major.includes('Ngôn ngữ trị liệu')) majorClass = 'major-nntl';
@@ -269,51 +288,71 @@
                         <i class="fas fa-envelope" style="margin-right: 6px; color: var(--primary);"></i> ${emailHtml}
                     </div>
                 `;
+
+                // Xử lý chuyển trang thông tin CV
+                card.onclick = (e) => {
+                    // Nếu click trúng nút email thì để mặc định trình duyệt mở mail
+                    if (e.target.closest('a')) return;
+
+                    if (data.uid) {
+                        window.location.href = `thong-tin-giang-vien.html?id=${data.uid}`;
+                    } else {
+                        window.showToast("Giảng viên này chưa thiết lập hồ sơ chi tiết trên hệ thống.");
+                    }
+                };
+
                 facultyGrid.appendChild(card);
             });
         }
 
-        // Tải ảnh từ Database
+        // Tải UID và Avatar từ Database
         async function loadFacultyAvatars() {
-            // Hiển thị khung với ảnh mặc định trước cho nhanh
             renderFaculty();
 
             try {
                 const querySnapshot = await getDocs(collection(db, "users"));
-                const avatarMap = {};
+                const userMap = {};
                 
-                // Gom tất cả avatar có trong db gán vào map bằng email
+                // Gom dữ liệu db gán vào map bằng email
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
-                    if (data.email && data.avatar) {
-                        avatarMap[data.email.toLowerCase()] = data.avatar;
+                    if (data.email) {
+                        userMap[data.email.toLowerCase()] = {
+                            avatar: data.avatar,
+                            uid: doc.id
+                        };
                     }
                 });
 
                 let needsUpdate = false;
                 
-                // Đối chiếu với danh sách tĩnh, nếu db có ảnh thì thay thế ảnh tĩnh
+                // Gắn uid và avatar mới vào list tĩnh
                 facultyList.forEach(faculty => {
                     if (faculty.email) {
-                        const dbAvatar = avatarMap[faculty.email.toLowerCase()];
-                        if (dbAvatar && faculty.image !== dbAvatar) {
-                            faculty.image = dbAvatar;
-                            needsUpdate = true;
+                        const dbUser = userMap[faculty.email.toLowerCase()];
+                        if (dbUser) {
+                            if (dbUser.avatar && faculty.image !== dbUser.avatar) {
+                                faculty.image = dbUser.avatar;
+                                needsUpdate = true;
+                            }
+                            if (faculty.uid !== dbUser.uid) {
+                                faculty.uid = dbUser.uid;
+                                needsUpdate = true;
+                            }
                         }
                     }
                 });
 
-                // Nếu phát hiện có sự thay đổi, render lại lưới để cập nhật ảnh
+                // Cập nhật giao diện nếu có thay đổi
                 if (needsUpdate) {
                     renderFaculty();
                 }
 
             } catch (error) {
-                console.error("Lỗi khi tải ảnh từ database:", error);
+                console.error("Lỗi khi tải dữ liệu từ database:", error);
             }
         }
 
-        // Kích hoạt hàm tải ảnh
         loadFacultyAvatars();
     </script>
 </body>
