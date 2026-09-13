@@ -210,47 +210,34 @@
         const ITEMS_PER_PAGE = 10;
         let newsDataCache = {};
 
-        // Xác thực người dùng
+        // Xác thực người dùng (Chỉ lấy quyền quản trị và tên tác giả)
         onAuthStateChanged(auth, async (user) => {
-            setTimeout(async () => {
-                const btnAuthNav = document.getElementById('btnAuthNav');
-                if (user) {
-                    if (user.email.toLowerCase() === 'ths.phcn26@ump.edu.vn') {
-                        isAdmin = false;
-                        document.body.classList.remove('is-logged-in'); 
-                        btnToggleForm.style.display = 'none';
-                        if(btnAuthNav) btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 5px;"></i> Lớp Thạc sĩ 2026`;
-                        return;
-                    }
-
+            if (user) {
+                if (user.email.toLowerCase() === 'ths.phcn26@ump.edu.vn') {
+                    isAdmin = false;
+                    document.body.classList.remove('is-logged-in'); 
+                    btnToggleForm.style.display = 'none';
+                } else {
                     isAdmin = true;
                     document.body.classList.add('is-logged-in'); 
                     btnToggleForm.style.display = 'flex'; 
                     try {
                         const userDoc = await getDoc(doc(db, "users", user.uid));
                         if (userDoc.exists()) {
-                            const data = userDoc.data();
-                            currentAuthor = data.fullName || "Giảng viên";
-                            let degreePrefix = data.degree === 'ThS' ? 'ThS. ' : (data.degree === 'TS' ? 'TS. ' : '');
-                            if(btnAuthNav) btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 5px;"></i> ${degreePrefix}${currentAuthor}`;
-                        } else {
-                            if(btnAuthNav) btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right: 5px;"></i> Giảng viên`;
+                            currentAuthor = userDoc.data().fullName || "Giảng viên";
                         }
                     } catch (error) {
                         console.error("Lỗi lấy thông tin người dùng: ", error);
                     }
-                } else {
-                    isAdmin = false;
-                    document.body.classList.remove('is-logged-in');
-                    btnToggleForm.style.display = 'none';
-                    if(btnAuthNav) {
-                        btnAuthNav.innerHTML = 'Đăng nhập';
-                        btnAuthNav.href = "login.html";
-                    }
                 }
-                // Re-render to show/hide action buttons based on admin status
-                if (allAnnouncements.length > 0) applySearchAndRender();
-            }, 100);
+            } else {
+                isAdmin = false;
+                document.body.classList.remove('is-logged-in');
+                btnToggleForm.style.display = 'none';
+            }
+            
+            // Re-render to show/hide action buttons based on admin status
+            if (allAnnouncements.length > 0) applySearchAndRender();
         });
 
         // Bật/tắt Form
