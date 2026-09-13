@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="description" content="Thông tin chi tiết Giảng viên - Bộ môn Phục hồi chức năng.">
+    <meta name="description" content="Thông chi tiết Giảng viên - Bộ môn Phục hồi chức năng.">
     <title>Hồ sơ Giảng viên - Bộ môn PHCN</title>
     
     <link rel="icon" href="images/logo_Bộ môn.png" type="image/png">
@@ -35,8 +35,10 @@
         .cv-avatar-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.5); color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; transition: 0.3s; z-index: 2; }
         .cv-avatar.editable:hover .cv-avatar-overlay { opacity: 1; }
         
-        /* Ép tên không ngắt dòng */
-        .cv-name { font-size: 1.4rem; font-weight: 800; color: var(--text-dark); margin-bottom: 15px; white-space: nowrap; }
+        /* Tên, Học vị & Chức vụ */
+        .cv-degree { font-size: 0.9rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .cv-name { font-size: 1.4rem; font-weight: 800; color: var(--text-dark); margin-bottom: 8px; white-space: nowrap; }
+        .cv-position { font-size: 0.9rem; font-weight: 600; color: var(--text-body); margin-bottom: 15px; background: var(--bg-page); padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border); display: inline-block; }
         
         .cv-contact { width: 100%; text-align: left; margin-top: 15px; padding-top: 20px; border-top: 1px dashed #cbd5e1; }
         .cv-contact-item { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; font-size: 0.95rem; color: var(--text-dark); word-break: break-all; }
@@ -85,7 +87,6 @@
         @media (max-width: 768px) {
             .cv-wrapper { grid-template-columns: 1fr; }
             .cv-sidebar { border-right: none; border-bottom: 1px solid var(--border); padding: 2rem 1.5rem; }
-            .cv-name { white-space: normal; word-break: break-word; }
             .cv-main { padding: 1.5rem; }
             .form-grid { grid-template-columns: 1fr; }
             #btnEditProfile { top: 10px; right: 10px; padding: 6px 10px; font-size: 0.85rem; }
@@ -114,7 +115,9 @@
                     <div id="avatarNote" class="hidden" style="font-size: 0.85rem; color: #64748b; margin-top: 8px; font-weight: 600;">(Chọn ảnh < 2MB, định dạng JPG)</div>
                 </div>
 
+                <div class="cv-degree" id="displayDegree">Học vị</div>
                 <div class="cv-name" id="displayName">Họ và Tên</div>
+                <div class="cv-position" id="displayPosition">Chức vụ</div>
                 
                 <div class="cv-contact">
                     <div class="cv-contact-item" title="Chuyên ngành">
@@ -177,9 +180,13 @@
                                 <option value="GS.TS">Giáo sư, Tiến sĩ (GS.TS)</option>
                             </select>
                         </div>
-                        <div class="form-group full">
+                        <div class="form-group">
+                            <label>Chức vụ / Vị trí</label>
+                            <input type="text" id="inputPosition" class="form-control" placeholder="VD: Trưởng Bộ môn, Giảng viên...">
+                        </div>
+                        <div class="form-group">
                             <label>Chuyên ngành phụ trách</label>
-                            <input type="text" id="inputMajor" class="form-control">
+                            <input type="text" id="inputMajor" class="form-control" placeholder="VD: Vật lý trị liệu Cơ xương...">
                         </div>
                     </div>
 
@@ -246,20 +253,22 @@
             const wrapper = document.getElementById('cvWrapper');
             wrapper.classList.remove('hidden');
 
-            // Hiển thị Học vị + Tên chuẩn xác
-            let degreePref = '';
+            // Hiển thị Học vị (định dạng nhỏ phía trên)
+            let degreeText = '';
             if (data.degree) {
                 if (['ThS', 'TS', 'CN', 'PGS.TS', 'GS.TS'].includes(data.degree)) {
-                    degreePref = `${data.degree}. `;
+                    degreeText = `${data.degree}`;
                 } else {
-                    degreePref = `${data.degree} `;
+                    degreeText = `${data.degree}`;
                 }
             }
             
-            document.getElementById('displayName').innerText = `${degreePref}${data.fullName || 'Chưa cập nhật'}`;
+            document.getElementById('displayDegree').innerText = degreeText || 'Giảng viên';
+            document.getElementById('displayName').innerText = data.fullName || 'Chưa cập nhật';
+            document.getElementById('displayPosition').innerText = data.position || 'Giảng viên Bộ môn';
             
             document.getElementById('displayEmail').innerText = data.email || 'Chưa cập nhật';
-            document.getElementById('displayMajor').innerText = data.major || 'Phục hồi chức năng';
+            document.getElementById('displayMajor').innerText = data.major || 'Chưa cập nhật';
 
             // Avatar setup
             const avatarDiv = document.getElementById('displayAvatar');
@@ -406,6 +415,7 @@
             // Đổ dữ liệu hiện tại vào form
             document.getElementById('inputName').value = currentProfileData.fullName || '';
             document.getElementById('inputDegree').value = currentProfileData.degree || '';
+            document.getElementById('inputPosition').value = currentProfileData.position || '';
             document.getElementById('inputMajor').value = currentProfileData.major || '';
             
             document.getElementById('inputEducation').value = currentProfileData.education || '';
@@ -429,6 +439,7 @@
             const updatedData = {
                 fullName: document.getElementById('inputName').value.trim(),
                 degree: document.getElementById('inputDegree').value,
+                position: document.getElementById('inputPosition').value.trim(),
                 major: document.getElementById('inputMajor').value.trim(),
                 
                 education: document.getElementById('inputEducation').value.trim(),
