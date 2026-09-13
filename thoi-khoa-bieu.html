@@ -19,12 +19,15 @@
         /* APP LAYOUT */
         html, body { min-height: 100vh; margin: 0; padding: 0; display: flex; flex-direction: column; background: var(--bg-page); overflow-x: hidden; }
 
+        #header-placeholder { flex-shrink: 0; transition: 0.3s; z-index: 1001; position: relative;}
+        body.header-hidden #header-placeholder { display: none !important; }
         #footer-placeholder { display: none; }
 
         /* Thanh công cụ gọn nhẹ trên cùng */
-        .top-toolbar { position: sticky; top: var(--site-header-height, 80px); z-index: 990; display: flex; justify-content: space-between; align-items: center; padding: 10px 2%; background: var(--surface); border-bottom: 1px solid var(--border); margin-bottom: 15px; box-shadow: var(--shadow-sm); flex-wrap: wrap; gap: 10px;}
+        .top-toolbar { position: sticky; top: 75px; z-index: 990; display: flex; justify-content: space-between; align-items: center; padding: 10px 2%; background: var(--surface); border-bottom: 1px solid var(--border); margin-bottom: 15px; box-shadow: var(--shadow-sm); transition: top 0.3s; flex-wrap: wrap; gap: 10px;}
         .top-toolbar h2 { margin: 0; font-size: clamp(1.1rem, 3vw, 1.4rem); color: var(--text-dark); display: flex; align-items: center; gap: 8px; font-weight: 800; text-transform: uppercase; white-space: nowrap; }
 
+        body.header-hidden .top-toolbar { top: 0; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
 
         .controls-wrapper { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
         .filter-select { padding: 6px 12px; font-size: 0.95rem; font-weight: 600; border-radius: 6px; border: 1px solid var(--primary); outline: none; cursor: pointer; color: var(--primary); background: var(--primary-light); max-width: 100%; transition: 0.2s; }
@@ -399,11 +402,11 @@
                 <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px; margin-bottom: 10px;">
                     <p style="margin: 0 0 6px 0;"><strong>Nguyên nhân:</strong> ${conflictDetails.reason}</p>
                     <p style="margin: 0 0 6px 0;"><strong>Lớp bị trùng:</strong> <span style="color: var(--primary); font-weight: bold;">${conflictDetails.conflictClass}</span></p>
-                    <p style="margin: 0 0 6px 0;"><strong>Môn đang học:</strong> ${conflictDetails.conflictSubject}</p>
+                    <p style="margin: 0 0 6px 0;"><strong>Nội dung:</strong> ${conflictDetails.conflictSubject}</p>
                     <p style="margin: 0 0 6px 0;"><strong>Giảng viên:</strong> ${conflictDetails.conflictGV}</p>
                     <p style="margin: 0;"><strong>Thời gian:</strong> ${conflictDetails.timeRange}</p>
                 </div>
-                <p style="margin: 0; font-size: 0.85rem; color: #64748b; font-style: italic;">Vui lòng chọn phòng học khác hoặc dịch chuyển thời gian của lớp để tránh trùng lặp.</p>
+                <p style="margin: 0; font-size: 0.85rem; color: #64748b; font-style: italic;">Vui lòng chọn phòng học khác hoặc dịch chuyển thời gian để tránh trùng lặp.</p>
             `;
             document.getElementById('conflictModal').classList.remove('hidden');
         }
@@ -450,7 +453,7 @@
             let targetNorm = window.normalizeOrient(targetOrientCode);
 
             scheduledEventsDB.forEach(e => {
-                if (e.status === 'returned') return;
+                if (e.status === 'returned' || e.type === 'self_declared') return;
                 
                 let eNorm = window.normalizeOrient(e.orientation);
                 let matchOrient = false;
@@ -471,10 +474,11 @@
             return count;
         };
 
+        // --- ĐÃ ĐƯỢC CHỈNH SỬA ĐỂ BẮT SỰ KIỆN TỰ KHAI BÁO & 4 TIẾNG MẶC ĐỊNH ---
         function hasOverlap(targetStartStr, targetEndStr, gvStr, targetClass, targetTask, targetRoom, targetSubject, targetOrient, ignoreEventIds) {
             let ignoreList = Array.isArray(ignoreEventIds) ? ignoreEventIds : [ignoreEventIds];
             let tStart = new Date(targetStartStr).getTime();
-            let tEnd = targetEndStr ? new Date(targetEndStr).getTime() : tStart + 4.5 * 3600000;
+            let tEnd = targetEndStr ? new Date(targetEndStr).getTime() : tStart + 4 * 3600000;
             let targetOrientNorm = window.normalizeOrient(targetOrient);
             
             let allSubEvents = [];
@@ -482,7 +486,7 @@
             scheduledEventsDB.forEach(e => {
                 if (e.status === 'returned' || !e.start) return;
                 let eStart = new Date(e.start).getTime();
-                let eEnd = e.end ? new Date(e.end).getTime() : eStart + 4.5 * 3600000;
+                let eEnd = e.end ? new Date(e.end).getTime() : eStart + 4 * 3600000;
                 allSubEvents.push({ ...e, startMs: eStart, endMs: eEnd });
             });
 
@@ -497,13 +501,14 @@
                     let isSameSubjectAndClass = (e.class === targetClass && e.subject === targetSubject);
                     let isDifferentSpecificOrient = (eOrientNorm !== 'CHUNG' && targetOrientNorm !== 'CHUNG' && eOrientNorm !== targetOrientNorm);
 
-                    if (isSameSubjectAndClass && isDifferentSpecificOrient) {
+                    if (isSameSubjectAndClass && isDifferentSpecificOrient && e.type !== 'self_declared') {
                         continue; 
                     }
 
-                    let timeRangeStr = `${new Date(e.start).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'})} - ${new Date(e.end || e.startMs + 4.5*3600000).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'})} (${new Date(e.start).toLocaleDateString('vi-VN')})`;
+                    // Format 24 giờ cho bảng thông báo trùng lịch
+                    let timeRangeStr = `${new Date(e.start).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12: false})} - ${new Date(e.end || e.startMs + 4 * 3600000).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12: false})} (${new Date(e.start).toLocaleDateString('vi-VN')})`;
 
-                    if (targetRoom && e.room && targetRoom !== 'Khác...' && targetRoom !== 'OTHER' && e.room === targetRoom) {
+                    if (targetRoom && e.room && targetRoom !== 'Khác...' && targetRoom !== 'OTHER' && e.room === targetRoom && e.type !== 'self_declared') {
                         return { 
                             hasOverlap: true, 
                             reason: `Phòng "${targetRoom}" đã được sử dụng.`,
@@ -514,7 +519,7 @@
                         };
                     }
 
-                    if (e.class === targetClass && blockingTasks.includes(targetTask) && blockingTasks.includes(e.task)) {
+                    if (e.class === targetClass && blockingTasks.includes(targetTask) && blockingTasks.includes(e.task) && e.type !== 'self_declared') {
                         return { 
                             hasOverlap: true, 
                             reason: `Lớp ${targetClass} đã có lịch học/thi khác vào khung giờ này.`,
@@ -529,15 +534,29 @@
                     let eGVs = e.gv ? e.gv.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
                     let hasCommonGV = targetGVs.some(gv => eGVs.includes(gv));
 
-                    if (hasCommonGV && blockingTasks.includes(targetTask) && blockingTasks.includes(e.task)) {
-                        return { 
-                            hasOverlap: true, 
-                            reason: `Giảng viên phụ trách đã bận dạy/coi thi ở lớp khác.`,
-                            conflictClass: e.class,
-                            conflictSubject: e.subject,
-                            conflictGV: e.gv || 'Chưa rõ',
-                            timeRange: timeRangeStr
-                        };
+                    // NẾU GIẢNG VIÊN ĐÃ CÓ LỊCH KHAI BÁO BẬN THÌ CHẶN LẠI NGAY LẬP TỨC
+                    if (hasCommonGV) {
+                        if (e.type === 'self_declared') {
+                            return { 
+                                hasOverlap: true, 
+                                reason: `Giảng viên đã tự khai báo lịch công tác/bận ("${e.task}").`,
+                                conflictClass: 'Lịch cá nhân',
+                                conflictSubject: e.task,
+                                conflictGV: e.gv,
+                                timeRange: timeRangeStr
+                            };
+                        }
+                        
+                        if (blockingTasks.includes(targetTask) && blockingTasks.includes(e.task)) {
+                            return { 
+                                hasOverlap: true, 
+                                reason: `Giảng viên phụ trách đã bận dạy/coi thi ở lớp khác.`,
+                                conflictClass: e.class,
+                                conflictSubject: e.subject,
+                                conflictGV: e.gv || 'Chưa rõ',
+                                timeRange: timeRangeStr
+                            };
+                        }
                     }
                 }
             }
@@ -572,11 +591,14 @@
             events.forEach(e => {
                 if (e.extendedProps && e.extendedProps.type === 'grouped_normal') {
                     e.extendedProps.events.forEach(subEv => {
+                        // CHẶN: Không xuất lịch Tự Khai Báo vào file báo cáo Word Giảng dạy
+                        if (subEv.type === 'self_declared') return;
+
                         let evStart = new Date(subEv.start);
                         if (evStart >= viewStart && evStart <= viewEnd) {
                             reportData.push({
                                 start: evStart,
-                                end: subEv.end ? new Date(subEv.end) : new Date(evStart.getTime() + 4.5 * 3600000),
+                                end: subEv.end ? new Date(subEv.end) : new Date(evStart.getTime() + 4 * 3600000),
                                 class: subEv.class || '',
                                 subject: subEv.subject || '',
                                 gv: window.formatGvName(subEv.gv) || subEv.gv || '',
@@ -600,7 +622,7 @@
             reportData.forEach((item, index) => {
                 let thu = item.start.toLocaleDateString('vi-VN', {weekday: 'long'});
                 let ngay = item.start.toLocaleDateString('vi-VN', {day:'2-digit', month:'2-digit', year:'numeric'});
-                let gio = `${item.start.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'})} - ${item.end.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'})}`;
+                let gio = `${item.start.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12: false})} - ${item.end.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12: false})}`;
                 
                 let orientStr = item.orient === 'NC' ? 'Nghiên cứu' : (item.orient === 'UD' ? 'Ứng dụng' : 'Học chung (NC & UD)');
                 
@@ -816,13 +838,6 @@
                         const data = userDoc.data();
                         let prefix = data.degree === 'ThS' ? 'ThS. ' : (data.degree === 'TS' ? 'TS. ' : '');
                         currentUserName = `${prefix}${data.fullName}`;
-                        setTimeout(() => {
-                            const btnAuthNav = document.getElementById('btnAuthNav');
-                            if (btnAuthNav) {
-                                btnAuthNav.innerHTML = `<i class="fas fa-user-circle" style="margin-right:5px;"></i> ${currentUserName}`;
-                                btnAuthNav.href = "dashboard.html";
-                            }
-                        }, 300);
                     }
                 } catch(e) { console.error("Lỗi lấy dữ liệu Profile:", e); }
 
@@ -903,13 +918,13 @@
                     }
 
                     if (props.type === 'grouped_normal') {
-                        let sTime = arg.event.start ? arg.event.start.toLocaleTimeString('vi-VN', {hour: 'numeric', minute:'2-digit', hour12: false}) : '';
+                        let sTime = arg.event.start ? arg.event.start.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit', hour12: false}) : '';
                         let eTime = '';
                         if (arg.event.end) {
-                            eTime = arg.event.end.toLocaleTimeString('vi-VN', {hour: 'numeric', minute:'2-digit', hour12: false});
+                            eTime = arg.event.end.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit', hour12: false});
                         } else if (arg.event.start) {
-                            let eObj = new Date(arg.event.start.getTime() + 4.5 * 3600000); 
-                            eTime = eObj.toLocaleTimeString('vi-VN', {hour: 'numeric', minute:'2-digit', hour12: false});
+                            let eObj = new Date(arg.event.start.getTime() + 4 * 3600000); 
+                            eTime = eObj.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit', hour12: false});
                         }
                         const timeStr = `${sTime}–${eTime}`;
 
@@ -917,6 +932,19 @@
                             let gvDisplay = window.formatGvName(e.gv);
                             let shortRoom = e.room || 'Chưa XĐ';
                             
+                            let isSelfDeclared = e.type === 'self_declared';
+
+                            // CSS Nổi bật nếu là lịch Tự Khai Báo
+                            if (isSelfDeclared) {
+                                return `
+                                <div class="evt-item" style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed rgba(139, 92, 246, 0.2); text-align: left; line-height: 1.4;">
+                                    <div style="font-size: 0.85rem; color: #6d28d9; margin-bottom: 4px; white-space: normal; word-break: break-word; font-weight: 700;"><i class="fas fa-user-edit"></i> Lịch Bận: ${e.task}</div>
+                                    <div style="font-size: 0.75rem; font-weight: 600; color: var(--text-dark); margin-bottom: 4px;"><i class="fas fa-chalkboard-teacher" style="color:#64748b; width:14px; text-align:center; margin-right:4px;"></i>${gvDisplay}</div>
+                                    <div style="font-size: 0.75rem; font-weight: 700; color: #b45309;"><i class="fas fa-map-marker-alt" style="width:14px; text-align:center; margin-right:4px;"></i>${shortRoom}</div>
+                                </div>
+                                `;
+                            }
+
                             let eNorm = window.normalizeOrient(e.orientation);
                             let orientHtml = '';
                             if (eNorm === 'NC') {
@@ -943,8 +971,10 @@
                         }).join('');
 
                         let isMyEvent = props.events.some(e => e.gv && currentUserName && e.gv.includes(currentUserName));
-                        let borderLeftColor = isMyEvent ? '#ea580c' : 'var(--primary)';
-                        let bgColor = isMyEvent ? '#fff7ed' : 'white';
+                        let hasSelfDeclared = props.events.some(e => e.type === 'self_declared');
+                        
+                        let borderLeftColor = hasSelfDeclared ? '#8b5cf6' : (isMyEvent ? '#ea580c' : 'var(--primary)');
+                        let bgColor = hasSelfDeclared ? '#f5f3ff' : (isMyEvent ? '#fff7ed' : 'white');
 
                         return {
                             html: `
@@ -1075,10 +1105,10 @@
 
                     if (props.type === 'grouped_normal') {
                         let startObj = info.event.start;
-                        let endObj = info.event.end ? info.event.end : new Date(startObj.getTime() + 4.5*3600000);
+                        let endObj = info.event.end ? info.event.end : new Date(startObj.getTime() + 4*3600000);
                         
-                        let sTime = startObj.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'});
-                        let eTime = endObj.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'});
+                        let sTime = startObj.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit', hour12: false});
+                        let eTime = endObj.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit', hour12: false});
                         const dateStr = startObj.toLocaleDateString('vi-VN', {weekday: 'long', day:'2-digit', month:'2-digit', year:'numeric'});
 
                         let html = `
@@ -1088,8 +1118,24 @@
                         `;
 
                         props.events.forEach(e => {
+                            let isSelfDeclared = e.type === 'self_declared';
                             let canDelete = isCalendarAdmin && (e.scheduledByEmail === currentUserEmail || currentUserEmail === 'hoangtran1483@gmail.com');
-                            let delBtn = canDelete ? `<button class="btn-danger" style="padding:4px 10px; font-size:0.8rem;" onclick="deleteSubEvent('${e.id}')"><i class="fas fa-trash"></i> Xóa</button>` : '';
+                            
+                            // Không hiện nút xóa đối với sự kiện tự khai báo trên modal này
+                            let delBtn = (canDelete && !isSelfDeclared) ? `<button class="btn-danger" style="padding:4px 10px; font-size:0.8rem;" onclick="deleteSubEvent('${e.id}')"><i class="fas fa-trash"></i> Xóa</button>` : '';
+
+                            if (isSelfDeclared) {
+                                html += `
+                                <div style="background:#f5f3ff; border:1px solid #c4b5fd; border-radius:6px; padding:12px; margin-bottom:12px; position:relative; text-align: left; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                                    <div style="position:absolute; right:12px; top:12px;">${delBtn}</div>
+                                    <p style="margin:0 0 5px 0; font-size:1.05rem; color:#6d28d9; font-weight:bold; padding-right:60px;"><i class="fas fa-user-edit"></i> Lịch Bận: ${e.task}</p>
+                                    <p style="margin:0 0 5px 0;"><strong>Giảng viên:</strong> <span style="font-weight:bold;">${e.gv}</span></p>
+                                    <p style="margin:0 0 5px 0;"><strong>Địa điểm:</strong> <span style="background:#fbbf24; color:#78350f; padding:2px 6px; border-radius:4px; font-weight:bold;">${e.room || 'Chưa XĐ'}</span></p>
+                                    <p style="margin:0; font-size:0.8rem; color:#94a3b8; font-style:italic;">Xếp bởi: ${e.scheduledByName || 'Hệ thống'}</p>
+                                </div>
+                                `;
+                                return; // Bỏ qua phần render bên dưới
+                            }
 
                             let eNorm = window.normalizeOrient(e.orientation);
                             let orientText = eNorm === 'NC' ? 'Hệ Nghiên cứu (NC)' : (eNorm === 'UD' ? 'Hệ Ứng dụng (UD)' : 'Học chung / Không phân ĐH');
@@ -1154,7 +1200,7 @@
 
             let allNewEvents = [];
             let originalStart = new Date(info.event.startStr);
-            let originalEnd = info.event.endStr ? new Date(info.event.endStr) : new Date(originalStart.getTime() + 4.5 * 3600000);
+            let originalEnd = info.event.endStr ? new Date(info.event.endStr) : new Date(originalStart.getTime() + 4 * 3600000);
 
             for (let i = 0; i < repeatWeeks; i++) {
                 let currentStart = new Date(originalStart.getTime() + i * 7 * 24 * 3600 * 1000);
@@ -1269,7 +1315,7 @@
             let deduplicatedEventsMap = new Map();
             scheduledEventsNormal.forEach(e => {
                 let sTime = new Date(e.start).getTime();
-                let eTime = e.end ? new Date(e.end).getTime() : sTime + 4.5 * 3600 * 1000;
+                let eTime = e.end ? new Date(e.end).getTime() : sTime + 4 * 3600 * 1000;
                 
                 let deduplicateKey = `${sTime}_${eTime}_${e.room}_${e.subject}_${e.task}_${e.gv}_${e.orientation}_${e.class}`;
 
@@ -1282,7 +1328,7 @@
             let groupedEvents = {};
             deduplicatedEvents.forEach(e => {
                 let sTime = new Date(e.start).getTime();
-                let eTime = e.end ? new Date(e.end).getTime() : sTime + 4.5 * 3600 * 1000;
+                let eTime = e.end ? new Date(e.end).getTime() : sTime + 4 * 3600 * 1000;
                 let key = `${sTime}_${eTime}`;
 
                 if (!groupedEvents[key]) {
