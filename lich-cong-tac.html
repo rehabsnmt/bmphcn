@@ -178,6 +178,7 @@
                 <form id="declareForm" onsubmit="submitDeclaration(event)">
                     <div style="margin-bottom: 15px;">
                         <label style="display:block; margin-bottom:5px; font-weight:bold; color:var(--text-dark);">Ngày *</label>
+                        <!-- Ép trình duyệt hạn chế format nếu hỗ trợ -->
                         <input type="date" id="decDate" class="form-control" required>
                     </div>
                     <div style="display:flex; gap:15px; margin-bottom: 15px;">
@@ -192,7 +193,7 @@
                     </div>
                     <div style="margin-bottom: 15px;">
                         <label style="display:block; margin-bottom:5px; font-weight:bold; color:var(--text-dark);">Nội dung công việc *</label>
-                        <input type="text" id="decTask" class="form-control" required placeholder="VD: Họp khoa, Đi công tác tỉnh...">
+                        <input type="text" id="decTask" class="form-control" required placeholder="VD: Họp đột xuất, Đi công tác tỉnh...">
                     </div>
                     <div style="margin-bottom: 20px;">
                         <label style="display:block; margin-bottom:5px; font-weight:bold; color:var(--text-dark);">Địa điểm</label>
@@ -588,8 +589,9 @@
                         mergedEvents.forEach(ev => {
                             window.renderedEvents[ev.id] = ev; // Lưu vào biến toàn cục để Popup gọi
 
-                            let sTime = new Date(ev.start).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'});
-                            let eTime = ev.end ? new Date(ev.end).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'}) : '';
+                            // ĐÃ THÊM: Ép buộc JavaScript xuất ra chuẩn 24-giờ (hour12: false)
+                            let sTime = new Date(ev.start).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12: false});
+                            let eTime = ev.end ? new Date(ev.end).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12: false}) : '';
                             let timeDisplay = eTime ? `${sTime} - ${eTime}` : `${sTime}`;
 
                             // Xác định Tag Định Hướng
@@ -720,8 +722,9 @@
             const ev = window.renderedEvents[id];
             if (!ev) return;
             
-            let sTime = new Date(ev.start).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'});
-            let eTime = ev.end ? new Date(ev.end).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'}) : '';
+            // ĐÃ THÊM: Ép buộc JavaScript xuất ra chuẩn 24-giờ (hour12: false)
+            let sTime = new Date(ev.start).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12: false});
+            let eTime = ev.end ? new Date(ev.end).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12: false}) : '';
             let dateStr = new Date(ev.start).toLocaleDateString('vi-VN', {weekday: 'long', day:'2-digit', month:'2-digit', year:'numeric'});
             let timeDisplay = eTime ? `${sTime} - ${eTime}` : `${sTime}`;
 
