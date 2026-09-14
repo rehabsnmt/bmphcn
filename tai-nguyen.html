@@ -14,8 +14,7 @@
         main { max-width: 1200px; padding: 2rem 5%; margin: 0 auto; min-height: 75vh; box-sizing: border-box; }
         
         .page-header { text-align: center; margin-bottom: 3rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
-        .page-header h2 { font-size: 1.8rem; color: var(--text-dark); margin-bottom: 10px; font-weight: 800; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 10px;}
-        .page-header h2 i { color: var(--primary); }
+        .page-header h2 { font-size: 1.8rem; color: var(--text-dark); margin-bottom: 10px; font-weight: 800; text-transform: uppercase; }
         .page-header p { color: var(--text-body); font-size: 1.05rem; margin: 0;}
 
         /* LƯỚI TÀI NGUYÊN */
@@ -42,19 +41,6 @@
             transform: translateY(-5px);
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
             border-color: var(--primary-light);
-        }
-
-        .resource-icon {
-            width: 50px;
-            height: 50px;
-            background: #e0f2fe;
-            color: #0284c7;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
         }
 
         .resource-title {
@@ -111,7 +97,7 @@
 
     <main>
         <div class="page-header">
-            <h2><i class="fas fa-folder-open"></i> KHO TÀI NGUYÊN CHUYÊN MÔN</h2>
+            <h2>KHO TÀI NGUYÊN CHUYÊN MÔN</h2>
             <p>Hệ thống biểu mẫu, thang điểm và tài liệu chuyên môn của Bộ môn.</p>
         </div>
 
@@ -139,7 +125,6 @@
             
             try {
                 // Tự động tải danh sách từ file cấu hình tai-nguyen.json
-                // Bạn có thể chỉnh thời gian cache bằng cách thêm ?t=timestamp
                 const response = await fetch(`tai-nguyen.json?t=${new Date().getTime()}`);
                 
                 if (!response.ok) {
@@ -157,7 +142,6 @@
                 } else {
                     grid.innerHTML = `
                         <div class="status-container">
-                            <i class="fas fa-folder-minus" style="font-size: 2.5rem; color: #94a3b8; margin-bottom:15px;"></i>
                             <p>Kho tài nguyên hiện đang trống.</p>
                         </div>
                     `;
@@ -167,7 +151,6 @@
                 console.error("Lỗi:", error.message);
                 grid.innerHTML = `
                     <div class="status-container">
-                        <i class="fas fa-exclamation-triangle"></i>
                         <p style="color: #ef4444; font-weight: bold;">Lỗi hệ thống khi tải danh sách tài nguyên.</p>
                         <p style="font-size: 0.9rem;">Vui lòng đảm bảo bạn đã tạo file <b>tai-nguyen.json</b> đúng định dạng.</p>
                     </div>
@@ -181,18 +164,11 @@
             card.href = filePath;
             card.className = 'resource-card';
 
-            // Luân phiên thay đổi icon dựa vào độ dài tên file để giao diện sinh động
-            const icons = ['fa-file-medical-alt', 'fa-clipboard-list', 'fa-notes-medical', 'fa-laptop-medical'];
-            const randomIcon = icons[filePath.length % icons.length];
-
             card.innerHTML = `
-                <div class="resource-icon">
-                    <i class="fas ${randomIcon}"></i>
-                </div>
                 <div class="resource-title">${name}</div>
                 <div class="resource-desc">${desc}</div>
                 <div class="resource-action">
-                    Truy cập tài nguyên <i class="fas fa-arrow-right"></i>
+                    Truy cập tài liệu <i class="fas fa-arrow-right"></i>
                 </div>
             `;
             
