@@ -11,22 +11,18 @@
   <!-- Nối chung CSS của toàn website -->
   <link rel="stylesheet" href="css/style.css">
   
-  <!-- Bạn có thể giữ lại CSS riêng của trang này nếu muốn -->
+  <!-- CSS riêng biệt (nếu có) -->
   <link rel="stylesheet" href="styles.css">
   
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <!-- Thư viện tải PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  
-  <!-- Cấu hình Firebase (Bản gốc của bạn) -->
-  <!-- <script type="module" src="./firebase-config.js"></script> -->
-  <!-- <script type="module" src="./firebase-counter.js"></script> -->
 
   <style>
-      /* --- Tinh chỉnh CSS để hòa hợp với Theme Website --- */
+      /* --- Tinh chỉnh CSS để hòa hợp với Theme Website và Tối ưu trải nghiệm (Cỡ chữ lớn) --- */
       main { 
-          max-width: 1000px; 
+          max-width: 1100px; /* Tăng độ rộng khung để chứa đáp án ngang */
           padding: 2rem 5%; 
           margin: 0 auto; 
           min-height: 75vh; 
@@ -42,15 +38,15 @@
       }
       
       .tool-header h2 { 
-          font-size: clamp(1.4rem, 4vw, 2rem); 
+          font-size: clamp(1.8rem, 4vw, 2.5rem); /* Chữ tiêu đề lớn hơn */
           color: var(--text-dark); 
-          margin-bottom: 5px; 
+          margin-bottom: 10px; 
           font-weight: 800; 
       }
 
       .tool-header p { 
           color: var(--text-body); 
-          font-size: 1.1rem; 
+          font-size: 1.25rem; 
           font-weight: 600; 
           text-transform: uppercase; 
       }
@@ -59,71 +55,139 @@
           background: #f8fafc;
           padding: 1.5rem;
           border-radius: var(--radius-md);
-          border-left: 4px solid var(--primary);
-          margin-bottom: 2rem;
-          font-size: 0.95rem;
+          border-left: 5px solid var(--primary);
+          margin-bottom: 2.5rem;
+          font-size: 1.1rem; /* Phóng to chữ */
           line-height: 1.6;
-          text-align: left;
+          text-align: justify;
       }
 
       .contact-info a { color: var(--primary); text-decoration: none; font-weight: 600; }
       .contact-info a:hover { text-decoration: underline; }
 
+      /* --- Ô NHẬP LIỆU TO HƠN --- */
       .user-info-form {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 15px;
-          margin-bottom: 2rem;
+          gap: 20px;
+          margin-bottom: 2.5rem;
       }
 
       .user-info-form input {
           width: 100%;
-          padding: 12px;
-          border-radius: 8px;
-          border: 1px solid var(--border);
-          font-size: 1rem;
+          padding: 15px 20px; /* Khung nhập liệu rộng hơn */
+          border-radius: 10px;
+          border: 2px solid var(--border);
+          font-size: 1.2rem; /* Chữ khi nhập lớn hơn */
           outline: none;
           transition: 0.2s;
           box-sizing: border-box;
+          font-family: inherit;
       }
-      .user-info-form input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1); }
+      .user-info-form input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.15); }
 
       .instructions {
           background: #fffbeb;
           border: 1px solid #fde68a;
-          padding: 1.5rem;
+          padding: 1.8rem;
           border-radius: var(--radius-md);
           margin-bottom: 2.5rem;
-          font-size: 0.95rem;
-          line-height: 1.6;
+          font-size: 1.15rem; /* Phóng to hướng dẫn */
+          line-height: 1.7;
           color: #92400e;
+          text-align: justify;
       }
 
-      .section { margin-bottom: 3rem; }
-      .section-title { font-size: 1.3rem; font-weight: 800; color: white; background: var(--primary); padding: 10px 15px; border-radius: 8px; margin-bottom: 10px; display: inline-block; }
-      .section-description { font-style: italic; color: #64748b; margin-bottom: 1.5rem; }
+      .section { margin-bottom: 3.5rem; }
+      .section-title { 
+          font-size: 1.4rem; 
+          font-weight: 800; 
+          color: white; 
+          background: var(--primary); 
+          padding: 12px 20px; 
+          border-radius: 8px; 
+          margin-bottom: 15px; 
+          display: inline-block; 
+      }
+      .section-description { font-style: italic; color: #475569; margin-bottom: 2rem; font-size: 1.15rem; line-height: 1.6; }
 
-      .question { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: var(--shadow-sm); }
-      .question h4 { font-size: 1.05rem; font-weight: 700; color: var(--text-dark); margin-bottom: 1rem; line-height: 1.5; }
+      .question { 
+          background: white; 
+          border: 1px solid var(--border); 
+          border-radius: 12px; 
+          padding: 1.8rem; 
+          margin-bottom: 1.5rem; 
+          box-shadow: 0 4px 6px rgba(0,0,0,0.02); 
+      }
+      .question h4 { 
+          font-size: 1.3rem; /* Cỡ chữ câu hỏi lớn */
+          font-weight: 700; 
+          color: var(--text-dark); 
+          margin-bottom: 1.5rem; 
+          line-height: 1.5; 
+      }
       
-      .options { display: flex; flex-direction: column; gap: 10px; }
-      .options label { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 8px; border-radius: 6px; transition: 0.2s; font-size: 0.95rem;}
-      .options label:hover { background: #f1f5f9; }
-      .options input[type="radio"] { transform: scale(1.2); cursor: pointer; }
+      /* --- THIẾT KẾ ĐÁP ÁN (RADIO BUTTONS) --- */
+      .options { 
+          display: flex; 
+          flex-direction: column; /* Mặc định dọc trên điện thoại */
+          gap: 12px; 
+      }
+      
+      .options label { 
+          display: flex; 
+          align-items: center; 
+          gap: 12px; 
+          cursor: pointer; 
+          padding: 14px 18px; /* Khung bấm to ra */
+          border-radius: 8px; 
+          transition: 0.2s; 
+          font-size: 1.15rem; /* Cỡ chữ đáp án to */
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          font-weight: 500;
+          line-height: 1.4;
+      }
+      .options label:hover { background: #e0f2fe; border-color: var(--primary); }
+      .options input[type="radio"] { 
+          transform: scale(1.5); /* Phóng to nút tick */
+          cursor: pointer; 
+          flex-shrink: 0; 
+          accent-color: var(--primary); /* Đổi màu nút tick theo chuẩn */
+      }
+
+      /* --- ĐÁP ÁN NẰM NGANG TRÊN MÀN HÌNH LỚN --- */
+      @media (min-width: 850px) {
+          .options { 
+              display: grid; 
+              grid-template-columns: repeat(5, 1fr); /* Tự động chia 5 cột bằng nhau */
+              gap: 15px; 
+          }
+          .options label { 
+              flex-direction: column; /* Xếp nút radio nằm trên chữ */
+              justify-content: center;
+              text-align: center;
+              padding: 20px 10px;
+          }
+          .options input[type="radio"] { 
+              margin-bottom: 10px; /* Khoảng cách giữa nút tick và chữ */
+              transform: scale(1.6);
+          }
+      }
 
       .actions { text-align: center; margin: 3rem 0; padding-top: 2rem; border-top: 1px solid var(--border); }
       
-      button { background: var(--primary); color: white; border: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; font-size: 1.1rem; cursor: pointer; transition: 0.2s; }
+      button { background: var(--primary); color: white; border: none; padding: 15px 30px; border-radius: 8px; font-weight: bold; font-size: 1.25rem; cursor: pointer; transition: 0.2s; }
       button:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(2, 132, 199, 0.2); }
       
-      #downloadPdfBtn { background: #10b981; display: none; margin: 0 auto;}
+      #downloadPdfBtn { background: #10b981; display: none; margin: 0 auto; margin-top: 15px;}
       #downloadPdfBtn:hover { background: #059669; }
       
-      #result { font-size: 1.2rem; color: #b91c1c; margin-top: 1.5rem; font-weight: 800; white-space: pre-line; line-height: 1.6;}
+      #result { font-size: 1.4rem; color: #b91c1c; margin-top: 2rem; font-weight: 800; white-space: pre-line; line-height: 1.6;}
 
       @media (max-width: 768px) {
-          .user-info-form { grid-template-columns: 1fr; }
-          .question { padding: 1rem; }
+          .user-info-form { grid-template-columns: 1fr; gap: 15px;}
+          .question { padding: 1.2rem; }
       }
   </style>
 </head>
@@ -654,7 +718,7 @@
     </div>
 
     <!-- KẾT QUẢ VÀ HÀNH ĐỘNG -->
-    <div id="thankYouMessage" style="display: none; text-align: center; color: #059669; font-weight: bold; margin-bottom: 20px;">Cảm ơn bạn rất nhiều đã hoàn thành tất cả câu hỏi của bảng câu hỏi này.</div>
+    <div id="thankYouMessage" style="display: none; text-align: center; color: #059669; font-size: 1.2rem; font-weight: bold; margin-bottom: 20px;">Cảm ơn bạn rất nhiều đã hoàn thành tất cả câu hỏi của bảng khảo sát.</div>
 
     <div class="actions">
         <button type="button" id="calculateBtn"><i class="fas fa-calculator"></i> Tính Điểm KOOS</button>
