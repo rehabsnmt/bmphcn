@@ -255,7 +255,8 @@ function initLayout() {
             // ========================================================
             // Danh sách các trang cho phép khách (chưa đăng nhập) được xem:
             const publicPages = [
-                'login.html', 
+                'login.html',
+                'tuyen-sinh.html',
                 'index.html', 
                 'gioi-thieu.html', 
                 'thong-tin-giang-vien.html',
