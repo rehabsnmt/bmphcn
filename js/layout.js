@@ -250,6 +250,29 @@ function initLayout() {
         const db = fsModule.getFirestore(app);
 
         authModule.onAuthStateChanged(auth, async (user) => {
+            // ========================================================
+            // TÍNH NĂNG BẢO VỆ TRANG (AUTH GUARD) TRỰC TIẾP
+            // ========================================================
+            // Danh sách các trang cho phép khách (chưa đăng nhập) được xem:
+            const publicPages = [
+                'login.html', 
+                'index.html', 
+                'gioi-thieu.html', 
+                'thong-tin-giang-vien.html',
+                '', 
+                '/'
+            ];
+            
+            const currentPageName = window.location.pathname.split('/').pop().split('?')[0] || 'index.html';
+
+            // Nếu người dùng chưa đăng nhập VÀ trang hiện tại KHÔNG có trong danh sách public
+            if (!user && !publicPages.includes(currentPageName)) {
+                alert("Vui lòng đăng nhập để truy cập trang này!");
+                window.location.replace('login.html');
+                return; // Chặn ngang tiến trình, không load tiếp
+            }
+            // ========================================================
+
             const btn = document.getElementById('btnAuthNav');
             if (!btn) return;
 
