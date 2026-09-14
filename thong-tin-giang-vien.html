@@ -27,9 +27,9 @@
         
         .cv-avatar-container { position: relative; display: flex; flex-direction: column; align-items: center; margin-bottom: 1.5rem; width: 100%;}
         
-        /* Chỉnh khung ảnh thành hình vuông (1:1) */
+        /* Chỉnh khung ảnh thành hình vuông (1:1), lấp đầy không bóp méo */
         .cv-avatar { width: 240px; height: 240px; border-radius: 12px; border: 4px solid white; box-shadow: 0 4px 15px rgba(0,0,0,0.1); background-color: white; display: flex; align-items: center; justify-content: center; font-size: 4rem; color: #94a3b8; overflow: hidden; position: relative; margin-bottom: 5px; }
-        .cv-avatar img { width: 100%; height: 100%; object-fit: contain; position: absolute; top: 0; left: 0; z-index: 1; } 
+        .cv-avatar img { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1; } 
         
         .cv-avatar.editable { cursor: pointer; }
         
@@ -43,15 +43,14 @@
         .cv-position { font-size: 0.9rem; font-weight: 600; color: var(--text-body); margin-bottom: 15px; background: var(--bg-page); padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border); display: inline-block; }
         
         .cv-contact { width: 100%; text-align: left; margin-top: 15px; padding-top: 20px; border-top: 1px dashed #cbd5e1; }
-        .cv-contact-item { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; font-size: 0.95rem; color: var(--text-dark); word-break: break-all; }
-        .cv-contact-item i { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; background: var(--primary-light); color: var(--primary); border-radius: 50%; font-size: 0.85rem; flex-shrink: 0;}
+        .cv-contact-item { margin-bottom: 12px; font-size: 0.95rem; color: var(--text-dark); word-break: break-all; }
+        .cv-contact-item strong { color: #64748b; margin-right: 5px; display: inline-block; min-width: 100px; }
 
         /* CỘT PHẢI - NỘI DUNG CHÍNH */
         .cv-main { padding: 2.5rem 2.5rem 2.5rem 1rem; display: flex; flex-direction: column; gap: 2rem; }
         
         .cv-section { margin-bottom: 1rem; }
-        .cv-section-title { font-size: 1.25rem; font-weight: 800; color: var(--text-dark); border-bottom: 2px solid var(--primary-light); padding-bottom: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; text-transform: uppercase; }
-        .cv-section-title i { color: var(--primary); }
+        .cv-section-title { font-size: 1.25rem; font-weight: 800; color: var(--text-dark); border-bottom: 2px solid var(--primary-light); padding-bottom: 8px; margin-bottom: 15px; text-transform: uppercase; }
         
         .cv-content { font-size: 0.95rem; color: var(--text-body); line-height: 1.7; white-space: pre-line; text-align: justify; }
         .cv-content ul { padding-left: 20px; margin-top: 5px; }
@@ -123,11 +122,11 @@
                 <div class="cv-position" id="displayPosition">Chức vụ</div>
                 
                 <div class="cv-contact">
-                    <div class="cv-contact-item" title="Chuyên ngành">
-                        <i class="fas fa-briefcase-medical"></i> <span id="displayMajor">Chưa cập nhật</span>
+                    <div class="cv-contact-item">
+                        <strong>Chuyên ngành:</strong> <span id="displayMajor">Chưa cập nhật</span>
                     </div>
-                    <div class="cv-contact-item" title="Email">
-                        <i class="fas fa-envelope"></i> <span id="displayEmail">Chưa cập nhật</span>
+                    <div class="cv-contact-item">
+                        <strong>Email:</strong> <span id="displayEmail">Chưa cập nhật</span>
                     </div>
                 </div>
             </div>
@@ -135,22 +134,22 @@
             <!-- CỘT PHẢI: CHI TIẾT CV -->
             <div class="cv-main">
                 <div class="cv-section">
-                    <div class="cv-section-title"><i class="fas fa-graduation-cap"></i> Quá trình đào tạo</div>
+                    <div class="cv-section-title">Quá trình đào tạo</div>
                     <div class="cv-content" id="displayEducation"><span class="empty-text">Chưa cập nhật thông tin.</span></div>
                 </div>
 
                 <div class="cv-section">
-                    <div class="cv-section-title"><i class="fas fa-building"></i> Quá trình công tác</div>
+                    <div class="cv-section-title">Quá trình công tác</div>
                     <div class="cv-content" id="displayExperience"><span class="empty-text">Chưa cập nhật thông tin.</span></div>
                 </div>
 
                 <div class="cv-section">
-                    <div class="cv-section-title"><i class="fas fa-microscope"></i> Hướng nghiên cứu chính</div>
+                    <div class="cv-section-title">Hướng nghiên cứu chính</div>
                     <div class="cv-content" id="displayResearch"><span class="empty-text">Chưa cập nhật thông tin.</span></div>
                 </div>
 
                 <div class="cv-section">
-                    <div class="cv-section-title"><i class="fas fa-book-open"></i> Công trình công bố</div>
+                    <div class="cv-section-title">Công trình công bố</div>
                     <div class="cv-content" id="displayPublications"><span class="empty-text">Chưa cập nhật thông tin.</span></div>
                 </div>
             </div>
@@ -161,7 +160,7 @@
     <div id="editModal" class="modal-overlay hidden">
         <div class="modal-content">
             <div class="modal-header">
-                <h3><i class="fas fa-user-edit"></i> Cập nhật Thông tin Hồ sơ</h3>
+                <h3>Cập nhật Thông tin Hồ sơ</h3>
                 <span style="cursor:pointer; font-size:1.2rem; font-weight:bold;" onclick="closeEditModal()">✕</span>
             </div>
             <div class="modal-body">
@@ -213,7 +212,7 @@
                         <textarea id="inputPublications" class="form-control" style="min-height: 150px;"></textarea>
                     </div>
 
-                    <button type="submit" class="btn-save" id="btnSaveSubmit"><i class="fas fa-save"></i> Lưu thông tin</button>
+                    <button type="submit" class="btn-save" id="btnSaveSubmit">Lưu thông tin</button>
                 </form>
             </div>
         </div>
@@ -244,7 +243,7 @@
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
-            toast.innerHTML = `<i class="fas ${type === 'danger' ? 'fa-times-circle' : 'fa-check-circle'}"></i><span>${message}</span>`;
+            toast.innerHTML = `<span>${message}</span>`;
             container.appendChild(toast);
             setTimeout(() => toast.classList.add('show'), 10);
             setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
@@ -277,9 +276,9 @@
             document.getElementById('displayEmail').innerText = data.email || 'Chưa cập nhật';
             document.getElementById('displayMajor').innerText = data.major || 'Chưa cập nhật';
 
-            // Avatar setup kèm hiệu ứng overlay lồng mờ
+            // Avatar setup kèm hiệu ứng overlay lồng mờ (không icon)
             const avatarDiv = document.getElementById('displayAvatar');
-            let overlayHtml = isHasPermissionToEdit ? `<div class="cv-avatar-overlay"><i class="fas fa-camera" style="font-size: 2.5rem; margin-bottom: 8px;"></i><span style="font-size:1rem; font-weight:bold;">Thay ảnh</span></div>` : '';
+            let overlayHtml = isHasPermissionToEdit ? `<div class="cv-avatar-overlay"><span style="font-size:1.1rem; font-weight:bold;">Thay ảnh</span></div>` : '';
             
             if (isHasPermissionToEdit) {
                 avatarDiv.classList.add('editable');
@@ -307,7 +306,7 @@
             if (isHasPermissionToEdit) {
                 const btnEdit = document.createElement('button');
                 btnEdit.id = 'btnEditProfile';
-                btnEdit.innerHTML = '<i class="fas fa-user-edit"></i> Chỉnh sửa Hồ sơ';
+                btnEdit.innerHTML = 'Chỉnh sửa Hồ sơ';
                 btnEdit.onclick = openEditModal;
                 wrapper.appendChild(btnEdit);
             }
@@ -323,7 +322,7 @@
                     currentProfileData = docSnap.data();
                     renderProfileCV(currentProfileData);
                 } else {
-                    document.getElementById('loadingScreen').innerHTML = `<i class="fas fa-user-slash fa-2x"></i><br><br>Không tìm thấy thông tin Giảng viên này.`;
+                    document.getElementById('loadingScreen').innerHTML = `Không tìm thấy thông tin Giảng viên này.`;
                 }
             } catch (error) {
                 console.error("Lỗi tải thông tin:", error);
@@ -389,7 +388,7 @@
             // Hiện hiệu ứng tải trên avatar
             const overlay = document.querySelector('.cv-avatar-overlay');
             if(overlay) {
-                overlay.innerHTML = '<i class="fas fa-spinner fa-spin fa-2x"></i>';
+                overlay.innerHTML = '<span style="font-weight:bold;">Đang tải...</span>';
                 overlay.style.opacity = '1';
             }
             
@@ -440,7 +439,7 @@
         window.saveProfile = async (e) => {
             e.preventDefault();
             const btnSubmit = document.getElementById('btnSaveSubmit');
-            btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang lưu...';
+            btnSubmit.innerHTML = 'Đang lưu...';
             btnSubmit.disabled = true;
 
             const updatedData = {
@@ -467,7 +466,7 @@
                 console.error("Lỗi khi lưu:", error);
                 showToast("Lỗi khi lưu: " + error.message, "danger");
             } finally {
-                btnSubmit.innerHTML = '<i class="fas fa-save"></i> Lưu thông tin';
+                btnSubmit.innerHTML = 'Lưu thông tin';
                 btnSubmit.disabled = false;
             }
         };
