@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- Thư viện jsPDF (Phiên bản gốc của bạn) -->
+  <!-- Thư viện jsPDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <style>
@@ -59,7 +59,7 @@
       .contact-info a { color: var(--primary); text-decoration: none; font-weight: 600; }
       .contact-info a:hover { text-decoration: underline; }
 
-      /* --- Ô NHẬP LIỆU TO HƠN, RỘNG BẰNG NHAU --- */
+      /* --- Ô NHẬP LIỆU --- */
       .user-info-container {
           background: #f1f5f9;
           border: 1px solid var(--border);
@@ -80,7 +80,7 @@
 
       .user-info-form {
           display: grid;
-          grid-template-columns: repeat(2, 1fr); /* Ép buộc chia đúng 2 cột bằng nhau */
+          grid-template-columns: repeat(2, 1fr); 
           gap: 20px;
       }
 
@@ -202,7 +202,7 @@
           }
       }
 
-      /* --- KHU VỰC NÚT BẤM (Cô lập CSS để không phá Header) --- */
+      /* --- KHU VỰC NÚT BẤM --- */
       .tool-actions { text-align: center; margin: 3rem 0; padding-top: 2rem; border-top: 1px solid var(--border); }
       
       .tool-actions button { 
@@ -216,38 +216,44 @@
       #downloadPdfBtn { background: #10b981; display: none; margin: 0 auto; margin-top: 25px; box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3);}
       #downloadPdfBtn:hover { background: #059669; }
       
+      /* --- KẾT QUẢ ĐIỂM SỐ NẰM TRÊN 1 HÀNG HOẶC 1 CỘT (KHÔNG NHẢY DÒNG) --- */
       .score-container { 
-          display: flex; 
-          flex-wrap: wrap; 
+          display: grid; 
+          grid-template-columns: repeat(5, 1fr); /* Bắt buộc xếp thành 5 cột (1 hàng ngang) trên Desktop */
           gap: 15px; 
-          justify-content: center; 
           margin-top: 2rem; 
       }
       .score-item { 
           background: #f0fdf4; 
           border: 2px solid #86efac; 
           color: #166534; 
-          padding: 15px 25px; 
+          padding: 15px 10px; 
           border-radius: 10px; 
-          font-size: 1.5rem; 
+          font-size: 1.4rem; 
           font-weight: 800; 
           display: flex; 
           flex-direction: column; 
           align-items: center; 
-          min-width: 120px;
+          text-align: center;
       }
       .score-item span { 
-          font-size: 0.95rem; 
+          font-size: 0.9rem; 
           font-weight: 700; 
           color: #15803d; 
           text-transform: uppercase; 
           margin-bottom: 5px;
       }
 
+      /* TRÊN ĐIỆN THOẠI / MÀN HÌNH NHỎ */
+      @media (max-width: 900px) {
+          .score-container { 
+              grid-template-columns: 1fr; /* Ép về thành 1 cột dọc thẳng đứng */
+          }
+      }
+      
       @media (max-width: 600px) {
           .user-info-form { grid-template-columns: 1fr; gap: 15px;}
           .question { padding: 1.2rem; }
-          .score-item { width: 100%; box-sizing: border-box; }
       }
   </style>
 </head>
@@ -814,6 +820,7 @@
   <script type="module">
     import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
     import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY",
@@ -825,6 +832,7 @@
     };
     const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
     const db = getFirestore(app);
+    const auth = getAuth(app); // Lấy thông tin phiên đăng nhập
 
     document.addEventListener("DOMContentLoaded", function () {
         
@@ -900,6 +908,10 @@
             document.getElementById("thankYouMessage").style.display = "block";
             document.getElementById("downloadPdfBtn").style.display = "inline-block";
 
+            // Tự động nhận diện Email người nhập liệu
+            const currentUser = auth.currentUser;
+            const submitterEmail = currentUser ? currentUser.email : "Khách (Chưa đăng nhập)";
+
             // LƯU DATABASE FIREBASE BẢNG: koos
             const calculateBtn = document.getElementById("calculateBtn");
             calculateBtn.innerText = 'Đang lưu dữ liệu...';
@@ -912,7 +924,8 @@
                     painRight: parseInt(painRight) || 0,
                     painLeft: parseInt(painLeft) || 0,
                     scores: scores,
-                    timestamp: new Date().toISOString()
+                    timestamp: new Date().toISOString(),
+                    submitterEmail: submitterEmail // Ghi nhận email của người đang thao tác form
                 });
                 calculateBtn.innerText = 'Đã tính điểm & Lưu hệ thống';
                 calculateBtn.style.backgroundColor = '#10b981';
