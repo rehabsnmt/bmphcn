@@ -259,7 +259,7 @@ function initLayout() {
                 'index.html', 
                 'gioi-thieu.html', 
                 'thong-tin-giang-vien.html',
-                'tuyen-sinh.html'
+                'tuyen-sinh.html', // Bổ sung trang tuyển sinh được phép xem
                 '', 
                 '/'
             ];
