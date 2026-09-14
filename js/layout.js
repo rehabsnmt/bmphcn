@@ -61,35 +61,19 @@ function initLayout() {
                 display: flex;
                 flex-direction: column;
                 justify-content: center;
-                width: 335px;
+                width: max-content; /* Chiều ngang ăn theo dòng dài nhất (Dòng 3) */
             }
 
             .logo-text div {
                 text-align: justify;
-                text-align-last: justify;
+                text-align-last: justify; /* Lệnh thần thánh: Ép các chữ giãn đều ra 2 sát mép */
                 width: 100%;
             }
 
             /* Tinh chỉnh size chữ để các dòng có độ dài tự nhiên gần bằng nhau, giúp khoảng trắng giãn ra đẹp hơn */
-            #logo-line-1 {
-                font-weight: 700;
-                color: var(--text-dark);
-                font-size: 0.95rem;
-            }
-            
-            #logo-line-2 {
-                font-weight: 600;
-                color: var(--text-body);
-                font-size: 0.76rem;
-                margin-top: 3px;
-            }
-            
-            #logo-line-3 {
-                font-weight: 500;
-                color: var(--text-body);
-                font-size: 0.68rem;
-                margin-top: 2px;
-            }
+            #logo-line-1 { font-weight: 700; color: var(--text-dark); font-size: 1.15rem; }
+            #logo-line-2 { font-weight: 600; color: var(--text-body); font-size: 0.88rem; margin-top: 2px; }
+            #logo-line-3 { font-weight: 500; color: var(--text-body); font-size: 0.8rem; margin-top: 2px; }
 
             /* MENU ĐIỀU HƯỚNG */
             .nav-links {
