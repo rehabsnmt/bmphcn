@@ -48,21 +48,31 @@
         .cv-email { font-size: clamp(0.8rem, 3vw, 0.95rem); color: var(--text-body); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 
         /* Badge màu sắc chuyên ngành */
-        .major-badge { padding: 4px 12px; border-radius: 20px; font-weight: 700; font-size: 0.85rem; display: inline-block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+        .major-badge { padding: 4px 12px; border-radius: 20px; font-weight: 700; font-size: 0.85rem; display: inline-block; white-space: nowrap; }
         .badge-vltl { background-color: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; } /* Xanh dương */
         .badge-hdtl { background-color: #ffedd5; color: #c2410c; border: 1px solid #fdba74; } /* Cam */
         .badge-nntl { background-color: #dcfce7; color: #15803d; border: 1px solid #86efac; } /* Xanh lá */
         .badge-default { background-color: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
 
-        /* CỘT PHẢI - NỘI DUNG CHÍNH */
-        .cv-main { padding: 2.5rem 2.5rem 2.5rem 1rem; display: flex; flex-direction: column; gap: 2rem; }
+        /* CỘT PHẢI - NỘI DUNG CHÍNH (TABS) */
+        .cv-main { padding: 2.5rem 2.5rem 2.5rem 1rem; display: flex; flex-direction: column; position: relative; }
         
-        .cv-section { margin-bottom: 1rem; }
-        .cv-section-title { font-size: 1.25rem; font-weight: 800; color: var(--text-dark); border-bottom: 2px solid var(--primary-light); padding-bottom: 8px; margin-bottom: 15px; text-transform: uppercase; }
+        /* Logo chìm */
+        .cv-watermark { position: absolute; top: 15px; right: 20px; width: 180px; opacity: 0.08; pointer-events: none; z-index: 0; user-select: none; }
+
+        /* Tabs Selection */
+        .cv-tabs { display: flex; gap: 10px; border-bottom: 2px solid var(--border); margin-bottom: 25px; position: relative; z-index: 1; flex-wrap: wrap; }
+        .cv-tab-btn { padding: 10px 15px; background: none; border: none; font-size: 1.05rem; font-weight: 700; color: #64748b; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: 0.2s; white-space: nowrap; }
+        .cv-tab-btn:hover { color: var(--primary); }
+        .cv-tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
         
-        .cv-content { font-size: 0.95rem; color: var(--text-body); line-height: 1.7; white-space: pre-line; text-align: justify; }
+        .cv-section { display: none; position: relative; z-index: 1; min-height: 250px; }
+        .cv-section.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .cv-content { font-size: 0.95rem; color: var(--text-body); line-height: 1.8; white-space: pre-line; text-align: justify; }
         .cv-content ul { padding-left: 20px; margin-top: 5px; }
-        .cv-content li { margin-bottom: 8px; }
+        .cv-content li { margin-bottom: 10px; }
 
         .empty-text { font-style: italic; color: #94a3b8; }
 
@@ -99,6 +109,9 @@
             .cv-main { padding: 1.5rem; }
             .form-grid { grid-template-columns: 1fr; }
             #btnEditProfile { top: 10px; right: 10px; padding: 6px 10px; font-size: 0.85rem; }
+            .cv-tabs { gap: 5px; justify-content: center; }
+            .cv-tab-btn { padding: 8px 12px; font-size: 0.9rem; }
+            .cv-watermark { width: 100px; top: 10px; right: 10px; }
         }
     </style>
 </head>
@@ -112,8 +125,6 @@
         <div id="loadingScreen"><i class="fas fa-spinner fa-spin fa-2x"></i><br><br>Đang tải thông tin...</div>
 
         <div id="cvWrapper" class="cv-wrapper hidden">
-            <!-- NÚT CHỈNH SỬA ĐƯỢC INJECT BỞI JS NẾU CÓ QUYỀN -->
-            
             <!-- CỘT TRÁI: THÔNG TIN CƠ BẢN -->
             <div class="cv-sidebar">
                 <div class="cv-avatar-container">
@@ -135,25 +146,30 @@
                 <div class="cv-email" id="displayEmail">Chưa cập nhật</div>
             </div>
 
-            <!-- CỘT PHẢI: CHI TIẾT CV -->
+            <!-- CỘT PHẢI: CHI TIẾT CV (ĐÃ CHUYỂN SANG DẠNG TAB) -->
             <div class="cv-main">
-                <div class="cv-section">
-                    <div class="cv-section-title">Quá trình đào tạo</div>
+                <img src="images/logo_Bộ môn.png" class="cv-watermark" alt="Logo Bộ Môn">
+                
+                <div class="cv-tabs">
+                    <button class="cv-tab-btn active" onclick="switchCvTab('edu', this)">Quá trình đào tạo</button>
+                    <button class="cv-tab-btn" onclick="switchCvTab('exp', this)">Quá trình công tác</button>
+                    <button class="cv-tab-btn" onclick="switchCvTab('res', this)">Hướng nghiên cứu</button>
+                    <button class="cv-tab-btn" onclick="switchCvTab('pub', this)">Công trình công bố</button>
+                </div>
+
+                <div class="cv-section active" id="sec-edu">
                     <div class="cv-content" id="displayEducation"><span class="empty-text">Chưa cập nhật thông tin.</span></div>
                 </div>
 
-                <div class="cv-section">
-                    <div class="cv-section-title">Quá trình công tác</div>
+                <div class="cv-section" id="sec-exp">
                     <div class="cv-content" id="displayExperience"><span class="empty-text">Chưa cập nhật thông tin.</span></div>
                 </div>
 
-                <div class="cv-section">
-                    <div class="cv-section-title">Hướng nghiên cứu</div>
+                <div class="cv-section" id="sec-res">
                     <div class="cv-content" id="displayResearch"><span class="empty-text">Chưa cập nhật thông tin.</span></div>
                 </div>
 
-                <div class="cv-section">
-                    <div class="cv-section-title">Công trình công bố</div>
+                <div class="cv-section" id="sec-pub">
                     <div class="cv-content" id="displayPublications"><span class="empty-text">Chưa cập nhật thông tin.</span></div>
                 </div>
             </div>
@@ -257,6 +273,15 @@
         let isHasPermissionToEdit = false;
         let currentProfileData = {};
 
+        // Hiển thị chuyển tab
+        window.switchCvTab = (tabId, btnEl) => {
+            document.querySelectorAll('.cv-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.cv-tab-btn').forEach(b => b.classList.remove('active'));
+            
+            document.getElementById('sec-' + tabId).classList.add('active');
+            btnEl.classList.add('active');
+        };
+
         function showToast(message, type = 'success') {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
@@ -324,15 +349,15 @@
                 document.getElementById('displayMajor').innerHTML = `<span class="major-badge badge-default">Chưa cập nhật</span>`;
             }
 
-            // Xử lý tự động thu nhỏ chữ chuyên ngành nếu văn bản quá dài so với khung sidebar
+            // Xử lý tự động thu nhỏ chữ chuyên ngành nếu văn bản quá dài so với khung
             setTimeout(() => {
                 const majorContainer = document.getElementById('displayMajor');
                 const badge = majorContainer.querySelector('.major-badge');
                 if (badge) {
                     badge.style.fontSize = '0.85rem'; // reset size mặc định
                     let fontSize = 0.85;
-                    // Lặp giảm size cho tới khi vừa khung, kích cỡ nhỏ nhất cho phép là 0.55rem
-                    while (badge.scrollWidth > majorContainer.clientWidth && fontSize > 0.55) {
+                    // Lặp giảm size cho tới khi vừa khung, thu nhỏ thoải mái
+                    while (badge.scrollWidth > majorContainer.clientWidth && fontSize > 0.3) {
                         fontSize -= 0.02;
                         badge.style.fontSize = fontSize + 'rem';
                     }
