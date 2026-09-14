@@ -9,9 +9,10 @@
   <link rel="icon" href="images/logo_Bộ môn.png" type="image/png">
   
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- Thư viện html2pdf để xuất PDF Tiếng Việt có dấu -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <!-- Thư viện jsPDF (Phiên bản gốc của bạn) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <style>
       main { 
@@ -93,7 +94,7 @@
 
       .user-info-form input {
           width: 100%;
-          min-width: 0; /* Xóa giới hạn độ rộng mặc định của input số */
+          min-width: 0; 
           padding: 15px 20px; 
           border-radius: 8px;
           border: 2px solid #cbd5e1;
@@ -201,12 +202,16 @@
           }
       }
 
-      /* --- KẾT QUẢ ĐIỂM SỐ NẰM NGANG --- */
-      .actions { text-align: center; margin: 3rem 0; padding-top: 2rem; border-top: 1px solid var(--border); }
+      /* --- KHU VỰC NÚT BẤM (Cô lập CSS để không phá Header) --- */
+      .tool-actions { text-align: center; margin: 3rem 0; padding-top: 2rem; border-top: 1px solid var(--border); }
       
-      button { background: var(--primary); color: white; border: none; padding: 15px 35px; border-radius: 8px; font-weight: bold; font-size: 1.25rem; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 6px rgba(2, 132, 199, 0.3);}
-      button:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 6px 15px rgba(2, 132, 199, 0.4); }
-      button:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+      .tool-actions button { 
+          background: var(--primary); color: white; border: none; padding: 15px 35px; 
+          border-radius: 8px; font-weight: bold; font-size: 1.25rem; cursor: pointer; 
+          transition: 0.2s; box-shadow: 0 4px 6px rgba(2, 132, 199, 0.3);
+      }
+      .tool-actions button:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 6px 15px rgba(2, 132, 199, 0.4); }
+      .tool-actions button:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
       
       #downloadPdfBtn { background: #10b981; display: none; margin: 0 auto; margin-top: 25px; box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3);}
       #downloadPdfBtn:hover { background: #059669; }
@@ -239,21 +244,6 @@
           margin-bottom: 5px;
       }
 
-      /* Khung kết quả PDF được thiết kế kiểu tàng hình để hệ thống chụp được nhưng ẩn đi */
-      #pdf-template-container {
-          width: 0;
-          height: 0;
-          overflow: hidden;
-      }
-      #pdf-template {
-          width: 800px;
-          padding: 40px;
-          background: white;
-          color: #1e293b;
-          font-family: Arial, Helvetica, sans-serif;
-          box-sizing: border-box;
-      }
-
       @media (max-width: 600px) {
           .user-info-form { grid-template-columns: 1fr; gap: 15px;}
           .question { padding: 1.2rem; }
@@ -263,6 +253,7 @@
 </head>
 <body>
 
+  <!-- GỌI HEADER CHUNG -->
   <div id="header-placeholder"></div>
 
   <main>
@@ -287,7 +278,7 @@
             </div>
             <div class="form-group">
                 <label>Năm sinh *</label>
-                <!-- Dùng inputmode="numeric" thay cho type="number" giúp ô này dài ngang bằng với text -->
+                <!-- Dùng inputmode="numeric" để ô tự kéo rộng bằng ô Text -->
                 <input type="text" inputmode="numeric" pattern="[0-9]*" id="birthYearInput" placeholder="Nhập năm sinh" required>
             </div>
             <div class="form-group">
@@ -806,63 +797,20 @@
     <!-- KẾT QUẢ VÀ HÀNH ĐỘNG -->
     <div id="thankYouMessage" style="display: none; text-align: center; color: #059669; font-size: 1.2rem; font-weight: bold; margin-bottom: 20px;">Cảm ơn bạn rất nhiều đã hoàn thành tất cả câu hỏi của bảng khảo sát.</div>
 
-    <div class="actions">
+    <div class="tool-actions">
         <button type="button" id="calculateBtn">TÍNH ĐIỂM VÀ LƯU KẾT QUẢ</button>
         <div id="result" class="score-container"></div>
         <button id="downloadPdfBtn">Tải kết quả PDF</button>
-    </div>
-
-    <!-- Vùng chứa ẩn của bản mẫu PDF -->
-    <div id="pdf-template-container">
-        <div id="pdf-template">
-            <h2 style="text-align: center; color: #0284c7; margin-bottom: 5px; font-size: 28px; text-transform: uppercase;">KẾT QUẢ KHẢO SÁT KHỚP GỐI</h2>
-            <h3 style="text-align: center; color: #475569; margin-top: 0; font-size: 20px;">Thang điểm KOOS ©</h3>
-            
-            <div style="margin-top: 40px; border: 2px solid #cbd5e1; padding: 20px; border-radius: 10px;">
-                <p style="font-size: 18px; margin: 10px 0;"><strong>Họ và Tên:</strong> <span id="pdf-name"></span></p>
-                <p style="font-size: 18px; margin: 10px 0;"><strong>Năm sinh:</strong> <span id="pdf-year"></span></p>
-                <p style="font-size: 18px; margin: 10px 0;"><strong>Mức độ đau gối Phải:</strong> <span id="pdf-pain-r"></span> / 10</p>
-                <p style="font-size: 18px; margin: 10px 0;"><strong>Mức độ đau gối Trái:</strong> <span id="pdf-pain-l"></span> / 10</p>
-                <p style="font-size: 18px; margin: 10px 0;"><strong>Ngày thực hiện:</strong> <span id="pdf-date"></span></p>
-            </div>
-            
-            <h3 style="color: #0284c7; font-size: 22px; margin-top: 40px; text-align: center;">ĐIỂM SỐ CHI TIẾT (0 - 100)</h3>
-            <table style="width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 18px;">
-                <tr style="background-color: #f1f5f9;">
-                    <td style="padding: 15px; border: 1px solid #cbd5e1; font-weight: bold;">Triệu chứng (Symptoms)</td>
-                    <td style="padding: 15px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold; color: #0369a1;" id="pdf-score-symptoms"></td>
-                </tr>
-                <tr>
-                    <td style="padding: 15px; border: 1px solid #cbd5e1; font-weight: bold;">Đau (Pain)</td>
-                    <td style="padding: 15px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold; color: #0369a1;" id="pdf-score-pain"></td>
-                </tr>
-                <tr style="background-color: #f1f5f9;">
-                    <td style="padding: 15px; border: 1px solid #cbd5e1; font-weight: bold;">Chức năng sinh hoạt (ADL)</td>
-                    <td style="padding: 15px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold; color: #0369a1;" id="pdf-score-adl"></td>
-                </tr>
-                <tr>
-                    <td style="padding: 15px; border: 1px solid #cbd5e1; font-weight: bold;">Thể thao & Giải trí (Sport/Rec)</td>
-                    <td style="padding: 15px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold; color: #0369a1;" id="pdf-score-sport"></td>
-                </tr>
-                <tr style="background-color: #f1f5f9;">
-                    <td style="padding: 15px; border: 1px solid #cbd5e1; font-weight: bold;">Chất lượng sống (QOL)</td>
-                    <td style="padding: 15px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold; color: #0369a1;" id="pdf-score-qol"></td>
-                </tr>
-            </table>
-            
-            <p style="margin-top: 40px; font-style: italic; font-size: 14px; color: #64748b; text-align: center;">Điểm 100 thể hiện không có vấn đề gì và điểm 0 thể hiện vấn đề cực kỳ nghiêm trọng.</p>
-            <div style="font-size: 80px; color: #f1f5f9; text-align: center; margin-top: 50px; font-weight: bold; letter-spacing: 5px;">KOOS</div>
-        </div>
     </div>
 
   </main>
 
   <div id="footer-placeholder"></div>
 
-  <!-- Nạp file layout.js ĐỂ BẢO VỆ TRANG VÀ RENDER HEADER/FOOTER -->
+  <!-- Nạp file layout.js ĐỂ BẢO VỆ TRANG (Auth Guard) VÀ RENDER HEADER/FOOTER -->
   <script src="js/layout.js"></script>
 
-  <!-- Script logic tính điểm, PDF và Firebase -->
+  <!-- Script logic tính điểm, PDF (jsPDF) và Firebase -->
   <script type="module">
     import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
     import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
@@ -1010,16 +958,33 @@
             }
         });
 
-        // XUẤT PDF VỚI HTML2PDF (TIẾNG VIỆT CÓ DẤU)
+        // XUẤT PDF VỚI jsPDF (Bản gốc của bạn có kèm hàm khử dấu Tiếng Việt)
+        function removeAccents(str) {
+            return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D');
+        }
+
         document.getElementById("downloadPdfBtn").addEventListener("click", function () {
-            
-            document.getElementById("pdf-name").innerText = document.getElementById("nameInput").value;
-            document.getElementById("pdf-year").innerText = document.getElementById("birthYearInput").value;
-            document.getElementById("pdf-pain-r").innerText = document.getElementById("painRightInput").value;
-            document.getElementById("pdf-pain-l").innerText = document.getElementById("painLeftInput").value;
-            
-            const now = new Date();
-            document.getElementById("pdf-date").innerText = now.toLocaleDateString('vi-VN') + " " + now.toLocaleTimeString('vi-VN');
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            const nameRaw = document.getElementById("nameInput").value;
+            const name = removeAccents(nameRaw); // Khử dấu để tương thích với jsPDF mặc định
+            const birthYear = document.getElementById("birthYearInput").value;
+            const painRight = document.getElementById("painRightInput").value;
+            const painLeft = document.getElementById("painLeftInput").value;
+
+            const downloadDate = new Date().toLocaleString('vi-VN');
+
+            doc.text("KET QUA KHAO SAT KHOP GOI - KOOS", 105, 20, { align: "center" });
+
+            doc.text(`Ho ten: ${name}`, 10, 30);
+            doc.text(`Nam sinh: ${birthYear}`, 10, 40);
+            doc.text(`Muc do dau goi phai (0-10): ${painRight}`, 10, 50);
+            doc.text(`Muc do dau goi trai (0-10): ${painLeft}`, 10, 60);
+            doc.text(`Thoi gian in: ${downloadDate}`, 10, 70);
+
+            doc.setLineWidth(0.5);
+            doc.line(10, 75, 200, 75);
 
             const scores = {
                 symptoms: calculateKOOSScore(questionGroups.symptoms),
@@ -1029,23 +994,31 @@
                 qol: calculateKOOSScore(questionGroups.qol),
             };
 
-            document.getElementById("pdf-score-symptoms").innerText = scores.symptoms !== null ? scores.symptoms + " / 100" : "-";
-            document.getElementById("pdf-score-pain").innerText = scores.pain !== null ? scores.pain + " / 100" : "-";
-            document.getElementById("pdf-score-adl").innerText = scores.adl !== null ? scores.adl + " / 100" : "-";
-            document.getElementById("pdf-score-sport").innerText = scores.sport !== null ? scores.sport + " / 100" : "-";
-            document.getElementById("pdf-score-qol").innerText = scores.qol !== null ? scores.qol + " / 100" : "-";
+            doc.text("DIEM SO KOOS CHI TIET:", 10, 85);
 
-            const element = document.getElementById('pdf-template');
-            
-            const opt = {
-                margin:       10,
-                filename:     `Ket_Qua_KOOS_${document.getElementById("nameInput").value.replace(/\s+/g, '_')}.pdf`,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            const displayNamesPDF = {
+                symptoms: "Trieu chung (Symptoms)",
+                pain: "Dau (Pain)",
+                adl: "Chuc nang sinh hoat (ADL)",
+                sport: "The thao & Giai tri (Sport/Rec)",
+                qol: "Chat luong song (QOL)"
             };
 
-            html2pdf().set(opt).from(element).save();
+            let yPos = 95;
+            for (const [key, value] of Object.entries(scores)) {
+                const scoreText = `- ${displayNamesPDF[key]}: ${value !== null ? value + " / 100" : "Chua hoan thanh"}`;
+                doc.text(scoreText, 15, yPos);
+                yPos += 10;
+            }
+
+            doc.setLineWidth(0.5);
+            doc.line(10, yPos + 5, 200, yPos + 5);
+
+            doc.setFontSize(40);
+            doc.setTextColor(200, 200, 200);
+            doc.text("KOOS", 15, 280);
+
+            doc.save(`Ket_Qua_KOOS_${name.replace(/\s+/g, '_')}.pdf`);
         });
     });
   </script>
