@@ -259,6 +259,7 @@ function initLayout() {
                 'index.html', 
                 'gioi-thieu.html', 
                 'thong-tin-giang-vien.html',
+                'tuyen-sinh.html'
                 '', 
                 '/'
             ];
