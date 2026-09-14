@@ -96,19 +96,7 @@
             grid-column: 1 / -1;
         }
         .status-container i.fa-spinner { font-size: 2.5rem; color: var(--primary); margin-bottom: 15px; }
-        .status-container i.fa-exclamation-triangle { font-size: 2.5rem; color: #f59e0b; margin-bottom: 15px; }
-
-        .sys-badge {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: #f1f5f9;
-            color: #475569;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: 700;
-        }
+        .status-container i.fa-exclamation-triangle { font-size: 2.5rem; color: #ef4444; margin-bottom: 15px; }
 
         @media (max-width: 768px) {
             .page-header h2 { font-size: 1.5rem; }
@@ -124,14 +112,14 @@
     <main>
         <div class="page-header">
             <h2><i class="fas fa-folder-open"></i> KHO TÀI NGUYÊN CHUYÊN MÔN</h2>
-            <p>Hệ thống tự động quét và nhận diện các biểu mẫu, thang điểm từ máy chủ lưu trữ.</p>
+            <p>Hệ thống biểu mẫu, thang điểm và tài liệu chuyên môn của Bộ môn.</p>
         </div>
 
         <div class="resource-grid" id="resourceGrid">
             <!-- Khu vực trạng thái tải dữ liệu -->
             <div class="status-container" id="loadingState">
                 <i class="fas fa-spinner fa-spin"></i>
-                <p>Đang quét các file tài nguyên trên hệ thống...</p>
+                <p>Đang tải danh sách tài nguyên...</p>
             </div>
         </div>
     </main>
@@ -142,110 +130,67 @@
     <script src="js/layout.js"></script>
 
     <script>
-        // ==========================================
-        // CẤU HÌNH GITHUB CỦA BẠN ĐÃ ĐƯỢC CẬP NHẬT
-        // ==========================================
-        const GITHUB_OWNER = 'rehabsnmt'; 
-        const GITHUB_REPO = 'bmphcn';         
-        const GITHUB_BRANCH = 'main';                   
-
-        // Danh sách dự phòng (Phòng trường hợp GitHub API bị lỗi hoặc repo cài đặt Private)
-        const fallbackResources = [
-            { path: 'tai-nguyen-koos.html', name: 'Thang điểm KOOS', desc: 'Công cụ đánh giá mức độ tổn thương và kết quả chức năng khớp gối.' },
-            { path: 'tai-nguyen-dash.html', name: 'Thang điểm DASH', desc: 'Đánh giá chức năng chi trên (vai, cánh tay, bàn tay).' },
-            { path: 'tai-nguyen-start-back.html', name: 'STarT Back Screening Tool', desc: 'Công cụ sàng lọc, đánh giá tiên lượng đau thắt lưng.' }
-        ];
-
         document.addEventListener('DOMContentLoaded', () => {
-            fetchResourcesFromGithub();
+            fetchResourcesFromJson();
         });
 
-        async function fetchResourcesFromGithub() {
+        async function fetchResourcesFromJson() {
             const grid = document.getElementById('resourceGrid');
             
             try {
-                // Gọi API GitHub để lấy cấu trúc cây thư mục của nhánh main
-                const response = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/git/trees/${GITHUB_BRANCH}?recursive=1`);
+                // Tự động tải danh sách từ file cấu hình tai-nguyen.json
+                // Bạn có thể chỉnh thời gian cache bằng cách thêm ?t=timestamp
+                const response = await fetch(`tai-nguyen.json?t=${new Date().getTime()}`);
                 
                 if (!response.ok) {
-                    throw new Error(`GitHub API Error: ${response.status}`);
+                    throw new Error("Không thể tải file cấu hình danh sách.");
                 }
 
-                const data = await response.json();
-                
-                // Lọc các file nằm ở thư mục gốc, bắt đầu bằng "tai-nguyen-" và kết thúc bằng ".html"
-                // Loại trừ chính file "tai-nguyen.html"
-                const resourceFiles = data.tree.filter(file => 
-                    file.type === 'blob' && 
-                    file.path.startsWith('tai-nguyen-') && 
-                    file.path.endsWith('.html') &&
-                    file.path !== 'tai-nguyen.html'
-                );
+                const resourceList = await response.json();
 
-                if (resourceFiles.length > 0) {
-                    // Render danh sách lấy được từ GitHub
-                    grid.innerHTML = '';
-                    resourceFiles.forEach(file => {
-                        grid.appendChild(createResourceCard(file.path));
+                grid.innerHTML = ''; // Xóa trạng thái loading
+                
+                if (resourceList.length > 0) {
+                    resourceList.forEach(item => {
+                        grid.appendChild(createResourceCard(item.file, item.name, item.desc));
                     });
                 } else {
-                    // Nếu thư mục trống nhưng không lỗi
                     grid.innerHTML = `
                         <div class="status-container">
                             <i class="fas fa-folder-minus" style="font-size: 2.5rem; color: #94a3b8; margin-bottom:15px;"></i>
-                            <p>Không tìm thấy file tài nguyên nào bắt đầu bằng 'tai-nguyen-' trên GitHub.</p>
+                            <p>Kho tài nguyên hiện đang trống.</p>
                         </div>
                     `;
                 }
 
             } catch (error) {
-                console.warn("Không thể kết nối GitHub API. Sử dụng dữ liệu dự phòng (Fallback). Lỗi:", error.message);
-                
-                // Hiển thị dữ liệu dự phòng nếu chưa cấu hình đúng tên Repo hoặc Repo bị Private
-                grid.innerHTML = '';
-                fallbackResources.forEach(item => {
-                    grid.appendChild(createResourceCard(item.path, item.name, item.desc, true));
-                });
+                console.error("Lỗi:", error.message);
+                grid.innerHTML = `
+                    <div class="status-container">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p style="color: #ef4444; font-weight: bold;">Lỗi hệ thống khi tải danh sách tài nguyên.</p>
+                        <p style="font-size: 0.9rem;">Vui lòng đảm bảo bạn đã tạo file <b>tai-nguyen.json</b> đúng định dạng.</p>
+                    </div>
+                `;
             }
-        }
-
-        // Hàm xử lý chuỗi: 'tai-nguyen-koos.html' -> 'KOOS'
-        function formatResourceName(filename) {
-            // Cắt đuôi .html
-            let name = filename.replace('.html', '');
-            // Cắt chữ 'tai-nguyen-'
-            name = name.replace('tai-nguyen-', '');
-            // Thay dấu gạch ngang thành dấu cách
-            name = name.replace(/-/g, ' ');
-            // Viết hoa chữ cái đầu hoặc viết hoa toàn bộ nếu là từ viết tắt
-            if(name.length <= 6) {
-                return name.toUpperCase(); // Nếu tên ngắn (như koos, dash), viết hoa hết
-            }
-            return name.charAt(0).toUpperCase() + name.slice(1);
         }
 
         // Hàm tạo phần tử HTML cho thẻ tài nguyên
-        function createResourceCard(filePath, customName = null, customDesc = null, isFallback = false) {
+        function createResourceCard(filePath, name, desc) {
             const card = document.createElement('a');
             card.href = filePath;
             card.className = 'resource-card';
-
-            // Xử lý Tên và Mô tả
-            const displayName = customName || `Tài nguyên ${formatResourceName(filePath)}`;
-            const displayDesc = customDesc || `Bấm vào để xem và sử dụng tài liệu chuyên môn: ${formatResourceName(filePath)}.`;
-            const badge = isFallback ? `<div class="sys-badge"><i class="fas fa-database"></i> Dữ liệu Offline</div>` : `<div class="sys-badge"><i class="fab fa-github"></i> Đã đồng bộ</div>`;
 
             // Luân phiên thay đổi icon dựa vào độ dài tên file để giao diện sinh động
             const icons = ['fa-file-medical-alt', 'fa-clipboard-list', 'fa-notes-medical', 'fa-laptop-medical'];
             const randomIcon = icons[filePath.length % icons.length];
 
             card.innerHTML = `
-                ${badge}
                 <div class="resource-icon">
                     <i class="fas ${randomIcon}"></i>
                 </div>
-                <div class="resource-title">${displayName}</div>
-                <div class="resource-desc">${displayDesc}</div>
+                <div class="resource-title">${name}</div>
+                <div class="resource-desc">${desc}</div>
                 <div class="resource-action">
                     Truy cập tài nguyên <i class="fas fa-arrow-right"></i>
                 </div>
