@@ -60,9 +60,24 @@
         /* Logo chìm */
         .cv-watermark { position: absolute; top: 15px; right: 20px; width: 180px; opacity: 0.08; pointer-events: none; z-index: 0; user-select: none; }
 
-        /* Tabs Selection */
-        .cv-tabs { display: flex; gap: 10px; border-bottom: 2px solid var(--border); margin-bottom: 25px; position: relative; z-index: 1; flex-wrap: wrap; }
-        .cv-tab-btn { padding: 10px 15px; background: none; border: none; font-size: 1.05rem; font-weight: 700; color: #64748b; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: 0.2s; white-space: nowrap; }
+        /* Tabs Selection - Ép không rớt dòng và có thể lướt ngang */
+        .cv-tabs { 
+            display: flex; 
+            gap: 10px; 
+            border-bottom: 2px solid var(--border); 
+            margin-bottom: 25px; 
+            position: relative; 
+            z-index: 1; 
+            flex-wrap: nowrap; 
+            overflow-x: auto; 
+            -webkit-overflow-scrolling: touch; 
+        }
+        
+        /* Ẩn thanh cuộn ngang để giao diện sạch sẽ */
+        .cv-tabs::-webkit-scrollbar { display: none; }
+        .cv-tabs { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .cv-tab-btn { padding: 10px 15px; background: none; border: none; font-size: 1.05rem; font-weight: 700; color: #64748b; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: 0.2s; white-space: nowrap; flex-shrink: 0; }
         .cv-tab-btn:hover { color: var(--primary); }
         .cv-tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
         
@@ -109,7 +124,6 @@
             .cv-main { padding: 1.5rem; }
             .form-grid { grid-template-columns: 1fr; }
             #btnEditProfile { top: 10px; right: 10px; padding: 6px 10px; font-size: 0.85rem; }
-            .cv-tabs { gap: 5px; justify-content: center; }
             .cv-tab-btn { padding: 8px 12px; font-size: 0.9rem; }
             .cv-watermark { width: 100px; top: 10px; right: 10px; }
         }
@@ -153,8 +167,8 @@
                 <div class="cv-tabs">
                     <button class="cv-tab-btn active" onclick="switchCvTab('edu', this)">Quá trình đào tạo</button>
                     <button class="cv-tab-btn" onclick="switchCvTab('exp', this)">Quá trình công tác</button>
-                    <button class="cv-tab-btn" onclick="switchCvTab('res', this)">Hướng nghiên cứu</button>
-                    <button class="cv-tab-btn" onclick="switchCvTab('pub', this)">Công trình công bố</button>
+                    <button class="cv-tab-btn" onclick="switchCvTab('res', this)">Nghiên cứu khoa học</button>
+                    <button class="cv-tab-btn" onclick="switchCvTab('teach', this)">Hoạt động giảng dạy</button>
                 </div>
 
                 <div class="cv-section active" id="sec-edu">
@@ -169,8 +183,8 @@
                     <div class="cv-content" id="displayResearch"><span class="empty-text">Chưa cập nhật thông tin.</span></div>
                 </div>
 
-                <div class="cv-section" id="sec-pub">
-                    <div class="cv-content" id="displayPublications"><span class="empty-text">Chưa cập nhật thông tin.</span></div>
+                <div class="cv-section" id="sec-teach">
+                    <div class="cv-content" id="displayTeaching"><span class="empty-text">Chưa cập nhật thông tin.</span></div>
                 </div>
             </div>
         </div>
@@ -237,13 +251,13 @@
                     </div>
 
                     <div class="form-group full" style="margin-bottom: 15px;">
-                        <label>Hướng nghiên cứu</label>
+                        <label>Nghiên cứu khoa học</label>
                         <textarea id="inputResearch" class="form-control"></textarea>
                     </div>
 
                     <div class="form-group full">
-                        <label>Công trình công bố</label>
-                        <textarea id="inputPublications" class="form-control" style="min-height: 150px;"></textarea>
+                        <label>Hoạt động giảng dạy</label>
+                        <textarea id="inputTeaching" class="form-control" style="min-height: 150px;"></textarea>
                     </div>
 
                     <button type="submit" class="btn-save" id="btnSaveSubmit">Lưu thông tin</button>
@@ -385,7 +399,7 @@
             document.getElementById('displayEducation').innerHTML = formatText(data.education);
             document.getElementById('displayExperience').innerHTML = formatText(data.experience);
             document.getElementById('displayResearch').innerHTML = formatText(data.research);
-            document.getElementById('displayPublications').innerHTML = formatText(data.publications);
+            document.getElementById('displayTeaching').innerHTML = formatText(data.teaching);
 
             // Xử lý nút Edit
             const existingBtn = document.getElementById('btnEditProfile');
@@ -539,7 +553,7 @@
             document.getElementById('inputEducation').value = currentProfileData.education || '';
             document.getElementById('inputExperience').value = currentProfileData.experience || '';
             document.getElementById('inputResearch').value = currentProfileData.research || '';
-            document.getElementById('inputPublications').value = currentProfileData.publications || '';
+            document.getElementById('inputTeaching').value = currentProfileData.teaching || '';
 
             document.getElementById('editModal').classList.remove('hidden');
         };
@@ -570,7 +584,7 @@
                 education: document.getElementById('inputEducation').value.trim(),
                 experience: document.getElementById('inputExperience').value.trim(),
                 research: document.getElementById('inputResearch').value.trim(),
-                publications: document.getElementById('inputPublications').value.trim()
+                teaching: document.getElementById('inputTeaching').value.trim()
             };
 
             try {
