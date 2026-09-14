@@ -43,12 +43,12 @@
         .cv-name { font-size: 1.4rem; font-weight: 800; color: var(--text-dark); margin-bottom: 8px; white-space: nowrap; }
         .cv-position { font-size: 0.9rem; font-weight: 600; color: var(--text-body); margin-bottom: 15px; background: var(--bg-page); padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border); display: inline-block; }
         
-        /* Xếp dọc Chuyên ngành & Email */
-        .cv-major-container { margin-bottom: 15px; }
-        .cv-email { font-size: 0.95rem; color: var(--text-body); white-space: nowrap; }
+        /* Xếp dọc Chuyên ngành & Email - Tuyệt đối KHÔNG ngắt dòng */
+        .cv-major-container { margin-bottom: 15px; width: 100%; display: flex; justify-content: center; overflow: hidden; }
+        .cv-email { font-size: clamp(0.8rem, 3vw, 0.95rem); color: var(--text-body); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 
         /* Badge màu sắc chuyên ngành */
-        .major-badge { padding: 4px 10px; border-radius: 20px; font-weight: 700; font-size: 0.85rem; display: inline-block; }
+        .major-badge { padding: 4px 12px; border-radius: 20px; font-weight: 700; font-size: 0.85rem; display: inline-block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
         .badge-vltl { background-color: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; } /* Xanh dương */
         .badge-hdtl { background-color: #ffedd5; color: #c2410c; border: 1px solid #fdba74; } /* Cam */
         .badge-nntl { background-color: #dcfce7; color: #15803d; border: 1px solid #86efac; } /* Xanh lá */
@@ -128,7 +128,10 @@
                 <div class="cv-name" id="displayName">Họ và Tên</div>
                 <div class="cv-position" id="displayPosition">Chức vụ</div>
                 
-                <div class="cv-major-container" id="displayMajor">Chưa cập nhật</div>
+                <div class="cv-major-container" id="displayMajor">
+                    <!-- Text chuyên ngành sẽ được chèn vào đây -->
+                </div>
+                
                 <div class="cv-email" id="displayEmail">Chưa cập nhật</div>
             </div>
 
@@ -321,6 +324,21 @@
                 document.getElementById('displayMajor').innerHTML = `<span class="major-badge badge-default">Chưa cập nhật</span>`;
             }
 
+            // Xử lý tự động thu nhỏ chữ chuyên ngành nếu văn bản quá dài so với khung sidebar
+            setTimeout(() => {
+                const majorContainer = document.getElementById('displayMajor');
+                const badge = majorContainer.querySelector('.major-badge');
+                if (badge) {
+                    badge.style.fontSize = '0.85rem'; // reset size mặc định
+                    let fontSize = 0.85;
+                    // Lặp giảm size cho tới khi vừa khung, kích cỡ nhỏ nhất cho phép là 0.55rem
+                    while (badge.scrollWidth > majorContainer.clientWidth && fontSize > 0.55) {
+                        fontSize -= 0.02;
+                        badge.style.fontSize = fontSize + 'rem';
+                    }
+                }
+            }, 50);
+
             // Avatar setup kèm hiệu ứng overlay lồng mờ
             const avatarDiv = document.getElementById('displayAvatar');
             let overlayHtml = isHasPermissionToEdit ? `<div class="cv-avatar-overlay"><span style="font-size:1.1rem; font-weight:bold;">Thay ảnh</span></div>` : '';
@@ -508,7 +526,7 @@
         window.saveProfile = async (e) => {
             e.preventDefault();
             const btnSubmit = document.getElementById('btnSaveSubmit');
-            btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang lưu...';
+            btnSubmit.innerHTML = 'Đang lưu...';
             btnSubmit.disabled = true;
 
             // Xử lý lấy giá trị từ Select hoặc text Khác
