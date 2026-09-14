@@ -257,6 +257,7 @@ function initLayout() {
             const publicPages = [
                 'login.html',
                 'tuyen-sinh.html',
+                'tai-nguyen.html',
                 'index.html', 
                 'gioi-thieu.html', 
                 'thong-tin-giang-vien.html',
