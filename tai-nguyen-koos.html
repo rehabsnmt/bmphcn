@@ -10,7 +10,7 @@
   
   <link rel="stylesheet" href="css/style.css">
   
-  <!-- Sử dụng thư viện html2pdf để hỗ trợ xuất PDF Tiếng Việt có dấu, giữ nguyên CSS -->
+  <!-- Thư viện html2pdf để xuất PDF Tiếng Việt có dấu -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
   <style>
@@ -79,7 +79,7 @@
 
       .user-info-form {
           display: grid;
-          grid-template-columns: 1fr 1fr; /* Chia đúng 2 cột bằng nhau */
+          grid-template-columns: repeat(2, 1fr); /* Ép buộc chia đúng 2 cột bằng nhau */
           gap: 20px;
       }
 
@@ -93,6 +93,7 @@
 
       .user-info-form input {
           width: 100%;
+          min-width: 0; /* Xóa giới hạn độ rộng mặc định của input số */
           padding: 15px 20px; 
           border-radius: 8px;
           border: 2px solid #cbd5e1;
@@ -238,8 +239,20 @@
           margin-bottom: 5px;
       }
 
-      /* Khung kết quả PDF ẩn đi (chỉ dùng để kết xuất) */
-      #pdf-template { display: none; }
+      /* Khung kết quả PDF được thiết kế kiểu tàng hình để hệ thống chụp được nhưng ẩn đi */
+      #pdf-template-container {
+          width: 0;
+          height: 0;
+          overflow: hidden;
+      }
+      #pdf-template {
+          width: 800px;
+          padding: 40px;
+          background: white;
+          color: #1e293b;
+          font-family: Arial, Helvetica, sans-serif;
+          box-sizing: border-box;
+      }
 
       @media (max-width: 600px) {
           .user-info-form { grid-template-columns: 1fr; gap: 15px;}
@@ -264,7 +277,7 @@
         <a href="https://www.sciencedirect.com/science/article/pii/S2214687325000111" target="_blank">https://www.sciencedirect.com/science/article/pii/S2214687325000111</a></p>
     </section>
 
-    <!-- Form nhập thông tin người dùng -->
+    <!-- Form nhập thông tin -->
     <div class="user-info-container">
         <h3>Thông tin bệnh nhân</h3>
         <div id="userInfoForm" class="user-info-form">
@@ -274,20 +287,20 @@
             </div>
             <div class="form-group">
                 <label>Năm sinh *</label>
-                <input type="number" id="birthYearInput" placeholder="VD: 1990" required>
+                <!-- Dùng inputmode="numeric" thay cho type="number" giúp ô này dài ngang bằng với text -->
+                <input type="text" inputmode="numeric" pattern="[0-9]*" id="birthYearInput" placeholder="Nhập năm sinh" required>
             </div>
             <div class="form-group">
                 <label>Mức độ đau gối Phải (0-10) *</label>
-                <input type="number" id="painRightInput" placeholder="Nhập từ 0 đến 10" min="0" max="10" required>
+                <input type="text" inputmode="numeric" pattern="[0-9]*" id="painRightInput" placeholder="Nhập từ 0 đến 10" required>
             </div>
             <div class="form-group">
                 <label>Mức độ đau gối Trái (0-10) *</label>
-                <input type="number" id="painLeftInput" placeholder="Nhập từ 0 đến 10" min="0" max="10" required>
+                <input type="text" inputmode="numeric" pattern="[0-9]*" id="painLeftInput" placeholder="Nhập từ 0 đến 10" required>
             </div>
         </div>
     </div>
 
-    <!-- Instructions Section -->
     <section class="instructions">
       <p><strong>HƯỚNG DẪN:</strong> Bản khảo sát này hỏi quan điểm của bạn về khớp gối của mình. Thông tin này sẽ giúp chúng tôi theo dõi được bạn cảm nhận như thế nào về khớp gối của mình và mức độ bạn có thể thực hiện các hoạt động thông thường. Trả lời mọi câu hỏi bằng cách đánh dấu vào ô thích hợp, chỉ đánh <u>một</u> ô cho mỗi câu hỏi. Nếu bạn không chắc chắn về cách trả lời câu hỏi, vui lòng đưa ra câu trả lời tốt nhất có thể.</p>
     </section>
@@ -799,53 +812,54 @@
         <button id="downloadPdfBtn">Tải kết quả PDF</button>
     </div>
 
-    <!-- Bản mẫu HTML ẩn để xuất PDF Tiếng Việt có dấu tuyệt đẹp -->
-    <div id="pdf-template" style="display: none; padding: 40px; font-family: Arial, sans-serif; color: #1e293b; background: white; width: 800px;">
-        <h2 style="text-align: center; color: #0284c7; margin-bottom: 5px; font-size: 28px; text-transform: uppercase;">KẾT QUẢ KHẢO SÁT KHỚP GỐI</h2>
-        <h3 style="text-align: center; color: #475569; margin-top: 0; font-size: 20px;">Thang điểm KOOS ©</h3>
-        
-        <div style="margin-top: 40px; border: 2px solid #cbd5e1; padding: 20px; border-radius: 10px;">
-            <p style="font-size: 18px; margin: 10px 0;"><strong>Họ và Tên:</strong> <span id="pdf-name"></span></p>
-            <p style="font-size: 18px; margin: 10px 0;"><strong>Năm sinh:</strong> <span id="pdf-year"></span></p>
-            <p style="font-size: 18px; margin: 10px 0;"><strong>Mức độ đau gối Phải:</strong> <span id="pdf-pain-r"></span> / 10</p>
-            <p style="font-size: 18px; margin: 10px 0;"><strong>Mức độ đau gối Trái:</strong> <span id="pdf-pain-l"></span> / 10</p>
-            <p style="font-size: 18px; margin: 10px 0;"><strong>Ngày thực hiện:</strong> <span id="pdf-date"></span></p>
+    <!-- Vùng chứa ẩn của bản mẫu PDF -->
+    <div id="pdf-template-container">
+        <div id="pdf-template">
+            <h2 style="text-align: center; color: #0284c7; margin-bottom: 5px; font-size: 28px; text-transform: uppercase;">KẾT QUẢ KHẢO SÁT KHỚP GỐI</h2>
+            <h3 style="text-align: center; color: #475569; margin-top: 0; font-size: 20px;">Thang điểm KOOS ©</h3>
+            
+            <div style="margin-top: 40px; border: 2px solid #cbd5e1; padding: 20px; border-radius: 10px;">
+                <p style="font-size: 18px; margin: 10px 0;"><strong>Họ và Tên:</strong> <span id="pdf-name"></span></p>
+                <p style="font-size: 18px; margin: 10px 0;"><strong>Năm sinh:</strong> <span id="pdf-year"></span></p>
+                <p style="font-size: 18px; margin: 10px 0;"><strong>Mức độ đau gối Phải:</strong> <span id="pdf-pain-r"></span> / 10</p>
+                <p style="font-size: 18px; margin: 10px 0;"><strong>Mức độ đau gối Trái:</strong> <span id="pdf-pain-l"></span> / 10</p>
+                <p style="font-size: 18px; margin: 10px 0;"><strong>Ngày thực hiện:</strong> <span id="pdf-date"></span></p>
+            </div>
+            
+            <h3 style="color: #0284c7; font-size: 22px; margin-top: 40px; text-align: center;">ĐIỂM SỐ CHI TIẾT (0 - 100)</h3>
+            <table style="width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 18px;">
+                <tr style="background-color: #f1f5f9;">
+                    <td style="padding: 15px; border: 1px solid #cbd5e1; font-weight: bold;">Triệu chứng (Symptoms)</td>
+                    <td style="padding: 15px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold; color: #0369a1;" id="pdf-score-symptoms"></td>
+                </tr>
+                <tr>
+                    <td style="padding: 15px; border: 1px solid #cbd5e1; font-weight: bold;">Đau (Pain)</td>
+                    <td style="padding: 15px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold; color: #0369a1;" id="pdf-score-pain"></td>
+                </tr>
+                <tr style="background-color: #f1f5f9;">
+                    <td style="padding: 15px; border: 1px solid #cbd5e1; font-weight: bold;">Chức năng sinh hoạt (ADL)</td>
+                    <td style="padding: 15px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold; color: #0369a1;" id="pdf-score-adl"></td>
+                </tr>
+                <tr>
+                    <td style="padding: 15px; border: 1px solid #cbd5e1; font-weight: bold;">Thể thao & Giải trí (Sport/Rec)</td>
+                    <td style="padding: 15px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold; color: #0369a1;" id="pdf-score-sport"></td>
+                </tr>
+                <tr style="background-color: #f1f5f9;">
+                    <td style="padding: 15px; border: 1px solid #cbd5e1; font-weight: bold;">Chất lượng sống (QOL)</td>
+                    <td style="padding: 15px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold; color: #0369a1;" id="pdf-score-qol"></td>
+                </tr>
+            </table>
+            
+            <p style="margin-top: 40px; font-style: italic; font-size: 14px; color: #64748b; text-align: center;">Điểm 100 thể hiện không có vấn đề gì và điểm 0 thể hiện vấn đề cực kỳ nghiêm trọng.</p>
+            <div style="font-size: 80px; color: #f1f5f9; text-align: center; margin-top: 50px; font-weight: bold; letter-spacing: 5px;">KOOS</div>
         </div>
-        
-        <h3 style="color: #0284c7; font-size: 22px; margin-top: 40px; text-align: center;">ĐIỂM SỐ CHI TIẾT (0 - 100)</h3>
-        <table style="width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 18px;">
-            <tr style="background-color: #f1f5f9;">
-                <td style="padding: 15px; border: 1px solid #cbd5e1; font-weight: bold;">Triệu chứng (Symptoms)</td>
-                <td style="padding: 15px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold; color: #0369a1;" id="pdf-score-symptoms"></td>
-            </tr>
-            <tr>
-                <td style="padding: 15px; border: 1px solid #cbd5e1; font-weight: bold;">Đau (Pain)</td>
-                <td style="padding: 15px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold; color: #0369a1;" id="pdf-score-pain"></td>
-            </tr>
-            <tr style="background-color: #f1f5f9;">
-                <td style="padding: 15px; border: 1px solid #cbd5e1; font-weight: bold;">Chức năng sinh hoạt (ADL)</td>
-                <td style="padding: 15px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold; color: #0369a1;" id="pdf-score-adl"></td>
-            </tr>
-            <tr>
-                <td style="padding: 15px; border: 1px solid #cbd5e1; font-weight: bold;">Thể thao & Giải trí (Sport/Rec)</td>
-                <td style="padding: 15px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold; color: #0369a1;" id="pdf-score-sport"></td>
-            </tr>
-            <tr style="background-color: #f1f5f9;">
-                <td style="padding: 15px; border: 1px solid #cbd5e1; font-weight: bold;">Chất lượng sống (QOL)</td>
-                <td style="padding: 15px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold; color: #0369a1;" id="pdf-score-qol"></td>
-            </tr>
-        </table>
-        
-        <p style="margin-top: 40px; font-style: italic; font-size: 14px; color: #64748b; text-align: center;">Điểm 100 thể hiện không có vấn đề gì và điểm 0 thể hiện vấn đề cực kỳ nghiêm trọng.</p>
-        <div style="font-size: 80px; color: #f1f5f9; text-align: center; margin-top: 50px; font-weight: bold; letter-spacing: 5px;">KOOS</div>
     </div>
 
   </main>
 
-  <!-- GỌI FOOTER CHUNG TỪ LAYOUT.JS -->
   <div id="footer-placeholder"></div>
 
-  <!-- Nạp file layout.js ĐỂ BẢO VỆ TRANG (Auth Guard) VÀ RENDER HEADER/FOOTER -->
+  <!-- Nạp file layout.js ĐỂ BẢO VỆ TRANG VÀ RENDER HEADER/FOOTER -->
   <script src="js/layout.js"></script>
 
   <!-- Script logic tính điểm, PDF và Firebase -->
@@ -853,7 +867,6 @@
     import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
     import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
 
-    // Khởi tạo Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY",
         authDomain: "bmphcn-aa9c6.firebaseapp.com",
@@ -866,7 +879,7 @@
     const db = getFirestore(app);
 
     document.addEventListener("DOMContentLoaded", function () {
-        // Highlight câu trả lời được chọn
+        
         document.querySelectorAll(".options label").forEach((label) => {
             label.addEventListener("click", function () {
                 const parent = this.parentElement;
@@ -905,7 +918,6 @@
         }
 
         async function displayAndSaveKOOSResults() {
-            // Lấy thông tin bệnh nhân
             const name = document.getElementById("nameInput").value.trim();
             const birthYear = document.getElementById("birthYearInput").value.trim();
             const painRight = document.getElementById("painRightInput").value.trim();
@@ -922,7 +934,6 @@
             const resultContainer = document.getElementById("result");
             resultContainer.innerHTML = ""; 
 
-            // Cấu hình tên hiển thị
             const displayNames = {
                 symptoms: "Triệu chứng",
                 pain: "Đau",
@@ -941,7 +952,7 @@
             document.getElementById("thankYouMessage").style.display = "block";
             document.getElementById("downloadPdfBtn").style.display = "inline-block";
 
-            // LƯU DATABASE FIREBASE (bảng koos)
+            // LƯU DATABASE FIREBASE BẢNG: koos
             const calculateBtn = document.getElementById("calculateBtn");
             calculateBtn.innerText = 'Đang lưu dữ liệu...';
             calculateBtn.disabled = true;
@@ -949,9 +960,9 @@
             try {
                 await addDoc(collection(db, "koos"), {
                     patientName: name,
-                    birthYear: parseInt(birthYear),
-                    painRight: parseInt(painRight),
-                    painLeft: parseInt(painLeft),
+                    birthYear: parseInt(birthYear) || 0,
+                    painRight: parseInt(painRight) || 0,
+                    painLeft: parseInt(painLeft) || 0,
                     scores: scores,
                     timestamp: new Date().toISOString()
                 });
@@ -960,14 +971,12 @@
             } catch (error) {
                 console.error("Lỗi lưu DB: ", error);
                 alert("Tính điểm thành công nhưng có lỗi khi lưu lên hệ thống!");
-                calculateBtn.innerText = 'Tính Điểm KOOS';
+                calculateBtn.innerText = 'TÍNH ĐIỂM VÀ LƯU KẾT QUẢ';
                 calculateBtn.disabled = false;
             }
         }
 
-        // Handle calculate button click
         document.getElementById("calculateBtn").addEventListener("click", function () {
-            // Kiểm tra thông tin hành chính trước
             const name = document.getElementById("nameInput").value.trim();
             const birthYear = document.getElementById("birthYearInput").value.trim();
             const painRight = document.getElementById("painRightInput").value.trim();
@@ -981,7 +990,6 @@
 
             let firstUnansweredQuestion = null;
 
-            // Kiểm tra các câu hỏi chưa làm
             document.querySelectorAll(".question").forEach((question) => {
                 const selectedOption = question.querySelector("input[type='radio']:checked");
                 if (!selectedOption) {
@@ -1002,9 +1010,9 @@
             }
         });
 
-        // Generate PDF với Tiếng Việt
+        // XUẤT PDF VỚI HTML2PDF (TIẾNG VIỆT CÓ DẤU)
         document.getElementById("downloadPdfBtn").addEventListener("click", function () {
-            // Điền dữ liệu vào form ẩn
+            
             document.getElementById("pdf-name").innerText = document.getElementById("nameInput").value;
             document.getElementById("pdf-year").innerText = document.getElementById("birthYearInput").value;
             document.getElementById("pdf-pain-r").innerText = document.getElementById("painRightInput").value;
@@ -1027,23 +1035,17 @@
             document.getElementById("pdf-score-sport").innerText = scores.sport !== null ? scores.sport + " / 100" : "-";
             document.getElementById("pdf-score-qol").innerText = scores.qol !== null ? scores.qol + " / 100" : "-";
 
-            // Hiển thị khung PDF ra để xuất file
             const element = document.getElementById('pdf-template');
-            element.style.display = 'block';
-
-            // Cấu hình xuất file
+            
             const opt = {
                 margin:       10,
-                filename:     `KQ_KOOS_${document.getElementById("nameInput").value.replace(/\s+/g, '_')}.pdf`,
+                filename:     `Ket_Qua_KOOS_${document.getElementById("nameInput").value.replace(/\s+/g, '_')}.pdf`,
                 image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2 },
+                html2canvas:  { scale: 2, useCORS: true },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
-            // Thực thi
-            html2pdf().set(opt).from(element).save().then(() => {
-                element.style.display = 'none'; // Ẩn lại sau khi xuất xong
-            });
+            html2pdf().set(opt).from(element).save();
         });
     });
   </script>
