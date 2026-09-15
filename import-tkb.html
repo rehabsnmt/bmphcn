@@ -160,8 +160,8 @@
             setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
         };
 
-        // Lưu trữ Umpid hợp lệ để đối chiếu
-        window.validUmpids = [];
+        // Lưu trữ ID Môn Học (trường id thay vì umpid)
+        window.validSubjectIds = [];
         let currentUserEmail = '';
 
         // BẢO VỆ: KIỂM TRA ĐĂNG NHẬP (Lấy Email tự động)
@@ -173,11 +173,13 @@
                 currentUserEmail = user.email;
                 document.getElementById('cfgEmail').value = currentUserEmail;
                 
+                // Tải danh sách 'id' từ bảng subjects
                 try {
                     const snap = await getDocs(collection(db, "subjects"));
                     snap.forEach(doc => {
                         const data = doc.data();
-                        if (data.umpid) window.validUmpids.push(String(data.umpid).trim());
+                        let subjectId = data.id || doc.id;
+                        if (subjectId) window.validSubjectIds.push(String(subjectId).trim());
                     });
                 } catch(err) {
                     console.error("Lỗi lấy danh sách môn học:", err);
@@ -218,6 +220,7 @@
             return dateStr;
         }
 
+        // BÓC TÁCH THÔNG MINH BẰNG REGEX
         function parseClassString(classStr) {
             let code = "chưa xác định";
             let subject = "chưa xác định";
@@ -228,24 +231,24 @@
 
             let str = classStr.trim();
             
-            // 1. Tách Nhóm (nếu có)
+            // 1. Tách Nhóm
             let groupMatch = str.match(/-\s*Nhóm:\s*(.+)$/i);
             if (groupMatch) {
                 group = groupMatch[1].trim();
                 str = str.replace(groupMatch[0], '').trim();
             }
 
-            // 2. Tách Mã môn học (chuỗi ký tự/số đầu tiên trước dấu '-')
-            let codeMatch = str.match(/^([a-zA-Z0-9]+)\s*-/);
+            // 2. Tách Mã môn học (chữ/số đầu tiên trước dấu '-')
+            let codeMatch = str.match(/^([a-zA-Z0-9_]+)\s*-/);
             if (codeMatch) {
                 code = codeMatch[1].trim();
                 str = str.replace(codeMatch[0], '').trim();
             }
 
-            // 3. Tách chuỗi còn lại bằng ' - '
-            let parts = str.split(' - ').map(p => p.trim());
+            // 3. Tách chuỗi còn lại bằng dấu '-' và gán 'chưa xác định' nếu trống
+            let parts = str.split('-').map(p => p.trim() === '' ? 'chưa xác định' : p.trim());
 
-            // 4. Bóc tách Tên Môn Học (Chứa ký tự (LT)/(TH)/(TT))
+            // 4. Tìm vị trí kết thúc của tên môn học dựa vào (LT), (TH), (TT)
             let nameEndIdx = -1;
             for (let i = 0; i < parts.length; i++) {
                 if (/\((LT|TH|TT)\)/i.test(parts[i])) {
@@ -271,32 +274,34 @@
                 }
             }
 
-            // Xóa (LT) hoặc (TH) hoặc (TT) khỏi tên môn
             if (rawName.toUpperCase().includes('(TH)') || rawName.toUpperCase().includes('(TT)')) {
                 task = "Thực hành";
             }
+            // Chỉ lấy Tên môn học sạch (Xóa (LT), (TH), (TT))
             subject = rawName.replace(/\((LT|TH|TT)\)/gi, '').trim();
 
-            // 5. Gán GV và Phòng từ parts còn lại
+            // 5. Gán GV và Phòng
             if (parts.length >= 2) {
-                instructor = parts[0] !== "" ? parts[0] : "chưa xác định";
-                room = parts[1] !== "" ? parts[1] : "chưa xác định";
+                instructor = parts[0];
+                room = parts.slice(1).join('-'); // Rejoin phòng nếu phòng có dấu -
             } else if (parts.length === 1) {
-                instructor = parts[0] !== "" ? parts[0] : "chưa xác định";
+                instructor = parts[0];
             }
 
-            // Kiểm tra rỗng lần cuối
             if (subject === "") subject = "chưa xác định";
             if (code === "") code = "chưa xác định";
             if (instructor === "") instructor = "chưa xác định";
             if (room === "") room = "chưa xác định";
 
-            // CHUẨN HÓA GIẢNG VIÊN VÀ PHÒNG
-            if (instructor !== "chưa xác định") {
+            // CHUẨN HÓA GIẢNG VIÊN (không phải GV Bộ môn -> Đơn vị khác, nhưng trống thì giữ nguyên "chưa xác định")
+            if (instructor.toLowerCase() !== "chưa xác định" && instructor.toLowerCase() !== "nan") {
                 let isBM = bmInstructors.some(gv => instructor.includes(gv));
                 if (!isBM) instructor = "Giảng viên đơn vị khác";
+            } else {
+                instructor = "chưa xác định";
             }
 
+            // CHUẨN HÓA PHÒNG ELEARNING
             if (room.toLowerCase().includes('elrn')) room = 'Elearning';
 
             return { code, subject, instructor, room, group, task, rawString: classStr };
@@ -423,8 +428,8 @@
                 let tStart = item.start.split('T')[1].substring(0, 5);
                 let tEnd = item.end.split('T')[1].substring(0, 5);
 
-                // ĐỐI CHIẾU VỚI BẢNG MÔN HỌC
-                let isMatch = window.validUmpids.includes(String(item.code).trim());
+                // Đối chiếu với CSDL Môn học theo ID (Đánh dấu Xanh/Đỏ)
+                let isMatch = window.validSubjectIds.includes(String(item.code).trim());
                 let subjectColor = isMatch ? '#16a34a' : '#dc2626';
 
                 tbodyHtml += `
