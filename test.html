@@ -81,7 +81,7 @@
         <div class="page-header">
             <h2><i class="fas fa-database"></i> Quản Trị CSDL Nâng Cao</h2>
             <div style="font-size: 0.9rem; color: #64748b;">
-                <i class="fas fa-info-circle"></i> Click tiêu đề để <b>Sắp xếp/Lọc</b>. Kéo thả tiêu đề để <b>Dời Cột</b>. Chuột phải để <b>Chèn, Xóa</b>.
+                <i class="fas fa-info-circle"></i> Click tiêu đề để <b>Chọn Cột</b>. Dùng menu thả xuống ở tiêu đề để <b>Sắp xếp/Lọc</b>. Kéo thả góc ô để copy nhanh.
             </div>
         </div>
 
@@ -252,7 +252,8 @@
                     rowHeaders: true, 
                     manualColumnResize: true,
                     manualRowResize: true,
-                    manualColumnMove: true, // TÍNH NĂNG KÉO THẢ DỜI CỘT
+                    manualColumnMove: true, 
+                    manualRowMove: true, // Thêm dời hàng
                     undo: true,
                     width: '100%',
                     height: '100%',
@@ -261,22 +262,14 @@
                     dropdownMenu: true,
                     filters: true,
                     
+                    // --- ĐIỀU CHỈNH GIAO DIỆN GIỐNG EXCEL NHẤT ---
+                    fillHandle: true, // Kéo góc phải dưới để copy hàng loạt
+                    outsideClickDeselects: false, // Bấm ra ngoài không bị mất bôi đen
                     columnSorting: {
-                        compareFunctionFactory: function(sortOrder, columnMeta) {
-                            return function(value, nextValue) {
-                                if (value === nextValue) return 0;
-                                if (value === '' || value === null || value === undefined) return 1; 
-                                if (nextValue === '' || nextValue === null || nextValue === undefined) return -1;
-                                
-                                let str1 = String(value);
-                                let str2 = String(nextValue);
-                                
-                                let result = str1.localeCompare(str2, undefined, {numeric: true, sensitivity: 'base'});
-                                return sortOrder === 'asc' ? result : -result;
-                            };
-                        }
+                        indicator: true,
+                        headerAction: false // KHÔNG TỰ ĐỘNG SORT KHI BẤM VÀO TÊN CỘT
                     },
-
+                    
                     contextMenu: {
                         items: {
                             "row_above": { name: '<i class="fas fa-arrow-up"></i> Chèn hàng lên trên' },
