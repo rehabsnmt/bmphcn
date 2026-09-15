@@ -374,6 +374,18 @@
             return false;
         };
 
+        // ĐIỀU CHỈNH TAG CHUYÊN NGÀNH CÙNG MÀU XÁM CHO TẤT CẢ
+        window.getMajorBadgeHtml = (subObj) => {
+            let tag = "PT,OT,ST";
+            if (subObj && subObj.majorTag) {
+                if (subObj.majorTag === "Vật lý trị liệu") tag = "PT";
+                else if (subObj.majorTag === "Hoạt động trị liệu") tag = "OT";
+                else if (subObj.majorTag === "Ngôn ngữ trị liệu") tag = "ST";
+                else tag = "PT,OT,ST";
+            }
+            return `<span style="background:#e2e8f0; color:#475569; padding:2px 5px; border-radius:3px; font-size:0.7rem; font-weight:bold; margin-bottom:4px; display:inline-block;">[${tag}]</span>`;
+        };
+
         window.toggleSidebar = () => {
             const panel = document.getElementById('external-events');
             const isHidden = panel.style.display === 'none' || panel.classList.contains('hidden');
@@ -417,6 +429,7 @@
             document.getElementById('conflictModal').classList.remove('hidden');
         }
 
+        // ĐIỀU CHỈNH LẤY ĐẦY ĐỦ HỌ TÊN (KHÔNG CẮT NGẮN, CHỈ CẮT HỌC VỊ)
         window.formatGvName = (gvString) => {
             if (!gvString) return '';
             let gvs = gvString.split(/,|&/).map(s => s.trim());
@@ -547,7 +560,6 @@
                     let targetGVs = gvStr ? gvStr.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
                     let eGVs = e.gv ? e.gv.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
                     
-                    // ĐIỀU CHỈNH: Bỏ qua kiểm tra trùng nếu Giảng viên là "Giảng viên đơn vị khác"
                     let commonGVs = targetGVs.filter(gv => eGVs.includes(gv) && gv.toLowerCase() !== 'giảng viên đơn vị khác');
                     let hasCommonGV = commonGVs.length > 0;
 
@@ -800,12 +812,10 @@
                     snapUser.forEach(doc => {
                         const d = doc.data();
                         if(d.fullName) {
+                            // ĐIỀU CHỈNH: GIỮ LẠI ĐẦY ĐỦ HỌ TÊN (Chỉ cắt học vị ThS/TS)
                             let pref = d.degree === 'ThS' ? 'ThS. ' : (d.degree === 'TS' ? 'TS. ' : '');
-                            let savedName = `${pref}${d.fullName}`; 
-                            let nameParts = d.fullName.trim().split(' ');
-                            let firstName = nameParts[nameParts.length - 1]; 
-                            let genderPref = d.gender === 'm' ? 'Thầy ' : (d.gender === 'f' ? 'Cô ' : 'GV ');
-                            gvShortNameMap[savedName] = `${genderPref}${firstName}`;
+                            gvShortNameMap[`${pref}${d.fullName}`] = d.fullName;
+                            gvShortNameMap[d.fullName] = d.fullName;
                         }
                     });
                 } catch(e) { console.error("Lỗi lấy dữ liệu Users:", e); }
@@ -815,10 +825,7 @@
                     snapVisiting.forEach(doc => {
                         const d = doc.data();
                         if (d.name) {
-                            let nameParts = d.name.trim().split(' ');
-                            let firstName = nameParts[nameParts.length - 1]; 
-                            let genderPref = d.gender === 'm' ? 'Thầy ' : (d.gender === 'f' ? 'Cô ' : 'GV ');
-                            gvShortNameMap[d.name] = `${d.name}`; 
+                            gvShortNameMap[d.name] = d.name; 
                         }
                     });
                 } catch(e) { console.error("Lỗi lấy dữ liệu Visiting:", e); }
@@ -827,8 +834,7 @@
                     const userDoc = await getDoc(doc(db, "users", user.uid));
                     if (userDoc.exists()) {
                         const data = userDoc.data();
-                        let prefix = data.degree === 'ThS' ? 'ThS. ' : (data.degree === 'TS' ? 'TS. ' : '');
-                        currentUserName = `${prefix}${data.fullName}`;
+                        currentUserName = data.fullName; // Không lưu kèm học vị
                     }
                 } catch(e) { console.error("Lỗi lấy dữ liệu Profile:", e); }
 
@@ -950,23 +956,13 @@
                             }
 
                             let subObj = subjectsData.find(s => s.name === e.subject);
-                            let majorBadge = '';
-                            if (subObj && subObj.majorTag) {
-                                if (subObj.majorTag === "Vật lý trị liệu") {
-                                    majorBadge = `<span style="background:#fef08a; color:#b45309; padding:2px 5px; border-radius:3px; font-size:0.7rem; font-weight:bold; margin-bottom:4px; display:inline-block;">[PT]</span>`;
-                                } else if (subObj.majorTag === "Hoạt động trị liệu") {
-                                    majorBadge = `<span style="background:#fed7aa; color:#c2410c; padding:2px 5px; border-radius:3px; font-size:0.7rem; font-weight:bold; margin-bottom:4px; display:inline-block;">[OT]</span>`;
-                                } else if (subObj.majorTag === "Ngôn ngữ trị liệu") {
-                                    majorBadge = `<span style="background:#bae6fd; color:#0369a1; padding:2px 5px; border-radius:3px; font-size:0.7rem; font-weight:bold; margin-bottom:4px; display:inline-block;">[ST]</span>`;
-                                } else if (subObj.majorTag === "ALL") {
-                                    majorBadge = `<span style="background:#e2e8f0; color:#475569; padding:2px 5px; border-radius:3px; font-size:0.7rem; font-weight:bold; margin-bottom:4px; display:inline-block;">[PT,OT,ST]</span>`;
-                                }
-                            }
+                            let majorBadge = window.getMajorBadgeHtml(subObj);
 
                             let classColorStyle = window.getClassColor(e.class);
                             let classBadge = `<div style="margin-bottom: 4px;"><span style="display:inline-block; padding:2px 6px; border-radius:3px; font-size:0.7rem; font-weight:bold; ${classColorStyle}">${e.class}</span> ${majorBadge}</div>`;
-
-                            let importNote = isImported ? `<div style="font-size: 0.7rem; color: #10b981; font-style: italic; margin-top: 2px;">(Import từ Excel)</div>` : '';
+                            
+                            // GHI CHÚ (Hệ thống) nếu import từ Excel
+                            let importNote = isImported ? `<div style="font-size: 0.7rem; color: #10b981; font-style: italic; margin-top: 2px;">(Hệ thống)</div>` : '';
 
                             return `
                             <div class="evt-item" style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed rgba(2, 132, 199, 0.2); text-align: left; line-height: 1.4;">
@@ -1163,26 +1159,18 @@
                             }
 
                             let subObj = subjectsData.find(s => s.name === e.subject);
-                            let extraSubInfo = '';
-                            if (subObj) {
-                                let majorText = subObj.majorTag === 'ALL' ? 'Chung / Đa chuyên ngành' : subObj.majorTag;
-                                extraSubInfo = `
-                                    <p style="margin:0 0 5px 0;"><strong>Chuyên ngành:</strong> ${majorText}</p>
-                                    <p style="margin:0 0 5px 0;"><strong>Khối lượng:</strong> ${subObj.credits || 0} TC (LT: ${subObj.theory || 0} - TH: ${subObj.practice || 0})</p>
-                                    <p style="margin:0 0 5px 0;"><strong>Đơn vị:</strong> ${subObj.department || 'Bộ môn PHCN'}</p>
-                                `;
-                            }
+                            let majorBadge = window.getMajorBadgeHtml(subObj);
 
                             let classColorStyle = window.getClassColor(e.class);
-                            let classBadge = `<span style="display:inline-block; padding:2px 6px; border-radius:4px; font-size:0.75rem; font-weight:bold; ${classColorStyle}">${e.class}</span>`;
+                            let classBadge = `<span style="display:inline-block; padding:2px 6px; border-radius:4px; font-size:0.75rem; font-weight:bold; ${classColorStyle}">${e.class}</span> ${majorBadge}`;
 
-                            let importNote = isImported ? `<p style="margin:0; font-size:0.8rem; color:#10b981; font-style:italic; font-weight:bold;">Đã Import tự động từ Excel</p>` : `<p style="margin:0; font-size:0.8rem; color:#94a3b8; font-style:italic;">Xếp bởi: ${e.scheduledByName || 'Admin'}</p>`;
+                            // THAY ĐỔI: Sử dụng "Hệ thống" thay cho "Import từ Excel"
+                            let importNote = isImported ? `<p style="margin:0; font-size:0.8rem; color:#10b981; font-style:italic; font-weight:bold;">Xếp bởi: Hệ thống</p>` : `<p style="margin:0; font-size:0.8rem; color:#94a3b8; font-style:italic;">Xếp bởi: ${e.scheduledByName || 'Admin'}</p>`;
 
                             html += `
                             <div style="background:#fff; border:1px solid #cbd5e1; border-radius:6px; padding:12px; margin-bottom:12px; position:relative; text-align: left; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
                                 <div style="position:absolute; right:12px; top:12px;">${delBtn}</div>
                                 <p style="margin:0 0 5px 0; font-size:1.05rem; color:var(--primary); font-weight:bold; padding-right:60px;">${e.subject}</p>
-                                ${extraSubInfo}
                                 <p style="margin:0 0 5px 0;"><strong>Khóa/Lớp:</strong> ${classBadge}</p>
                                 ${orientHtml}
                                 <p style="margin:0 0 5px 0;"><strong>Phòng học:</strong> <span style="background:#fbbf24; color:#78350f; padding:2px 6px; border-radius:4px; font-weight:bold;">${e.room || 'Chưa XĐ'}</span></p>
@@ -1529,7 +1517,11 @@
                     let eventDiv = document.createElement('div');
                     
                     let classColorStyle = window.getClassColor(item.cls);
-                    let classTag = `<span class="class-tag" style="${classColorStyle}">${item.cls}</span>`;
+                    
+                    let subObj = subjectsData.find(s => s.name === item.subName);
+                    let majorBadge = window.getMajorBadgeHtml(subObj);
+                    
+                    let classTag = `<span class="class-tag" style="${classColorStyle}">${item.cls}</span> ${majorBadge}`;
                     
                     let gvDisplay = window.formatGvName(item.gv);
 
