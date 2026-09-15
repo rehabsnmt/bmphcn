@@ -39,17 +39,32 @@
         .output-section h3 { color: white; margin-top: 0; font-size: 1rem; }
         pre { color: #a5b4fc; overflow-x: auto; font-size: 0.85rem; white-space: pre-wrap; word-wrap: break-word; max-height: 400px; overflow-y: auto;}
         
-        .btn-copy { position: absolute; top: 15px; right: 15px; background: #4f46e5; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-copy { position: absolute; top: 15px; right: 15px; background: #4f46e5; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s; }
         .btn-copy:hover { background: #4338ca; }
+
+        .btn-push-all { position: absolute; top: 15px; right: 140px; background: #10b981; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-push-all:hover { background: #059669; }
+
+        .btn-push { background: #0284c7; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold; transition: 0.2s; white-space: nowrap; }
+        .btn-push:hover { background: #0369a1; }
+        .btn-push.success { background: #22c55e; pointer-events: none; }
 
         .badge { background: #dbeafe; color: #1e40af; padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
         .hidden { display: none !important; }
+
+        /* Toast Thông báo */
+        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;}
+        .toast { min-width: 250px; background-color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: 0.4s; font-weight: 600; border-left: 5px solid #22c55e; opacity: 0; pointer-events: auto; }
+        .toast.show { transform: translateX(0); opacity: 1; }
+        .toast.danger { border-left-color: #ef4444; }
     </style>
 </head>
 <body>
 
+    <div id="toastContainer" class="toast-container"></div>
+
     <div class="container">
-        <h2><i class="fas fa-calendar-check"></i> Chuyển đổi CSV sang JSON Thời Khóa Biểu</h2>
+        <h2><i class="fas fa-calendar-check"></i> Chuyển đổi CSV & Import Thời Khóa Biểu</h2>
         
         <div class="upload-section">
             <!-- Form Cài Đặt Chung -->
@@ -85,7 +100,7 @@
                 <i class="fas fa-file-csv fa-3x" style="color: #94a3b8; margin-bottom: 15px;"></i><br>
                 <label for="csvFileInput" class="btn-upload"><i class="fas fa-upload"></i> Chọn file 2.csv</label>
                 <input type="file" id="csvFileInput" accept=".csv">
-                <p style="color: #64748b; margin-top: 15px; font-size: 0.9rem;">Tự động gộp tiết (Mặc định 4 tiếng/buổi).<br>Lọc Giảng viên BM và tự động đổi Elrn.</p>
+                <p style="color: #64748b; margin-top: 15px; font-size: 0.9rem;">Hỗ trợ đẩy hàng loạt thẳng lên Database.</p>
             </div>
         </div>
 
@@ -99,6 +114,7 @@
                         <th>Giảng Viên (Title)</th>
                         <th>Phòng (Room)</th>
                         <th>Nhóm</th>
+                        <th style="text-align: center;">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody"></tbody>
@@ -106,13 +122,30 @@
         </div>
 
         <div class="output-section hidden" id="jsonPanel">
+            <button class="btn-push-all" id="btnPushAll" onclick="pushAllEvents()"><i class="fas fa-cloud-upload-alt"></i> Đẩy toàn bộ lên DB</button>
             <button class="btn-copy" onclick="copyJSON()"><i class="fas fa-copy"></i> Copy JSON</button>
             <h3><i class="fas fa-code"></i> Dữ liệu JSON chuẩn Firebase</h3>
             <pre id="jsonOutput"></pre>
         </div>
     </div>
 
-    <script>
+    <!-- Tích hợp Firebase Module trực tiếp vào File HTML -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+        import { getFirestore, doc, setDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+
+        // Cấu hình Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY",
+            authDomain: "bmphcn-aa9c6.firebaseapp.com",
+            projectId: "bmphcn-aa9c6",
+            storageBucket: "bmphcn-aa9c6.firebasestorage.app",
+            messagingSenderId: "749494392719",
+            appId: "1:749494392719:web:f220c751ff541620045dfa"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
         // Danh sách Giảng viên nội bộ của Bộ môn
         const bmInstructors = [
             "Lê Thanh Vân", "Nguyễn Thanh Duy", "Nguyễn Ngọc Minh", "Phan Thế Nguyên",
@@ -121,8 +154,21 @@
             "Phạm Ngọc Đạt", "Nguyễn Đức Sinh", "Trần Hữu Đức"
         ];
 
-        let finalJsonData = [];
+        window.finalJsonData = [];
 
+        // Toast thông báo
+        window.showToast = (message, type = 'success') => {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            let icon = type === 'danger' ? 'fa-exclamation-triangle' : 'fa-check-circle';
+            toast.innerHTML = `<i class="fas ${icon}" style="font-size: 1.2rem; color: ${type==='danger'?'#ef4444':'#22c55e'};"></i> <span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
+        };
+
+        // Đọc File CSV bằng PapaParse
         document.getElementById('csvFileInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -132,12 +178,11 @@
                     processMatrixToStandardJSON(results.data);
                 },
                 error: function(err) {
-                    alert("Lỗi đọc file: " + err.message);
+                    showToast("Lỗi đọc file: " + err.message, "danger");
                 }
             });
         });
 
-        // Đổi định dạng DD/MM/YYYY thành YYYY-MM-DD
         function convertDateFormat(dateStr) {
             let parts = dateStr.split('/');
             if (parts.length === 3) {
@@ -146,49 +191,36 @@
             return dateStr;
         }
 
-        // Bóc tách nội dung Text của 1 ô
         function parseClassString(classStr) {
-            // Tách bằng chuỗi " - " để tránh bị cắt nhầm các từ có gạch nối như "Elrn-ĐD" hay "Cấp cứu ban đầu - Điều dưỡng"
             let parts = classStr.split(' - ').map(p => p.trim());
             let group = "", room = "", instructor = "", code = "", name = "";
 
-            // Xử lý Nhóm
             if (parts.length > 0 && parts[parts.length - 1].startsWith('Nhóm:')) {
                 group = parts.pop().replace('Nhóm:', '').trim();
             }
-            // Xử lý Phòng
             if (parts.length > 0) room = parts.pop();
-            // Xử lý Giảng viên
             if (parts.length > 0) {
                 let tempInstructor = parts.pop();
                 if (tempInstructor && tempInstructor !== '') instructor = tempInstructor;
             }
-            // Xử lý Mã môn
             if (parts.length > 0) code = parts.shift();
             
-            // Còn lại là Tên môn học
             name = parts.join(' - ').trim();
 
-            // 1. CHUẨN HÓA GIẢNG VIÊN
+            // CHUẨN HÓA GIẢNG VIÊN
             if (!instructor || instructor === "") {
                 instructor = "Giảng viên đơn vị khác";
             } else {
                 let isBM = bmInstructors.some(gv => instructor.includes(gv));
-                if (!isBM) {
-                    instructor = "Giảng viên đơn vị khác";
-                }
+                if (!isBM) instructor = "Giảng viên đơn vị khác";
             }
 
-            // 2. CHUẨN HÓA PHÒNG ELEARNING
-            if (room.toLowerCase().includes('elrn')) {
-                room = 'Elearning';
-            }
+            // CHUẨN HÓA PHÒNG ELEARNING
+            if (room.toLowerCase().includes('elrn')) room = 'Elearning';
 
-            // Nhận diện Task (Lý thuyết hay Thực hành)
             let task = "Lý thuyết";
             if (name.includes('(TH)') || name.includes('(TT)')) task = "Thực hành";
             
-            // Tên môn học hiển thị (Chống lỗi trống)
             let subject = name;
             if(code && name) subject = `${code} - ${name}`;
             else if (name) subject = name;
@@ -239,7 +271,6 @@
                 }
             }
 
-            // Gom nhóm các tiết liền kề
             let groupedByDateAndClass = {};
             rawCells.forEach(cell => {
                 let key = `${cell.isoDate}_${cell.rawString}`;
@@ -251,13 +282,10 @@
             const configSemester = document.getElementById('cfgSemester').value.trim();
             const configEmail = document.getElementById('cfgEmail').value.trim();
             
-            // XỬ LÝ ĐỊNH HƯỚNG CHO HỆ CỬ NHÂN
             let configOrientation = document.getElementById('cfgOrientation').value;
-            if (configClass.toUpperCase().includes('CN')) {
-                configOrientation = 'Cả hai';
-            }
+            if (configClass.toUpperCase().includes('CN')) configOrientation = 'Cả hai';
 
-            finalJsonData = [];
+            window.finalJsonData = [];
             let itemIndex = 0;
 
             for (let key in groupedByDateAndClass) {
@@ -268,7 +296,6 @@
                 let baseCell = cells[0];
                 let pData = baseCell.parsed;
 
-                // THUẬT TOÁN THỜI GIAN 4 TIẾNG / BUỔI
                 let startTime = "07:00:00";
                 let endTime = "11:00:00";
 
@@ -304,11 +331,11 @@
                     title: pData.instructor
                 };
 
-                finalJsonData.push(eventObj);
+                window.finalJsonData.push(eventObj);
             }
 
-            finalJsonData.sort((a, b) => new Date(a.start) - new Date(b.start));
-            renderUI(finalJsonData);
+            window.finalJsonData.sort((a, b) => new Date(a.start) - new Date(b.start));
+            renderUI(window.finalJsonData);
         }
 
         function renderUI(data) {
@@ -316,7 +343,7 @@
             document.getElementById('jsonPanel').classList.remove('hidden');
 
             let tbodyHtml = '';
-            data.forEach(item => {
+            data.forEach((item, index) => {
                 let d = item.start.split('T')[0];
                 let tStart = item.start.split('T')[1].substring(0, 5);
                 let tEnd = item.end.split('T')[1].substring(0, 5);
@@ -332,6 +359,9 @@
                         <td style="font-weight: 600; color: #0369a1;">${item.title}</td>
                         <td><span class="badge" style="background:#fce7f3; color:#9d174d;">${item.room}</span></td>
                         <td><span class="badge">${item.class}</span></td>
+                        <td style="text-align: center;">
+                            <button class="btn-push" id="btnPush_${index}" onclick="pushSingleEvent(${index})"><i class="fas fa-upload"></i> Đẩy Data</button>
+                        </td>
                     </tr>
                 `;
             });
@@ -339,14 +369,87 @@
             document.getElementById('jsonOutput').textContent = JSON.stringify(data, null, 4);
         }
 
-        function copyJSON() {
+        window.copyJSON = () => {
             const jsonText = document.getElementById('jsonOutput').textContent;
             navigator.clipboard.writeText(jsonText).then(() => {
-                alert("Đã copy toàn bộ JSON! Bạn có thể dán trực tiếp vào CSDL.");
+                window.showToast("Đã copy toàn bộ JSON!");
             }).catch(err => {
-                alert("Lỗi Copy: " + err);
+                window.showToast("Lỗi Copy: " + err, "danger");
             });
-        }
+        };
+
+        // ===============================================
+        // CƠ CHẾ ĐẨY DỮ LIỆU TRỰC TIẾP LÊN FIREBASE
+        // ===============================================
+
+        // Đẩy 1 sự kiện lẻ
+        window.pushSingleEvent = async (index) => {
+            const btn = document.getElementById(`btnPush_${index}`);
+            const eventData = window.finalJsonData[index];
+            
+            try {
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                btn.disabled = true;
+
+                // Lưu vào collection 'calendar_events'
+                await setDoc(doc(db, "calendar_events", eventData.id), eventData);
+                
+                btn.innerHTML = '<i class="fas fa-check"></i> Đã đẩy';
+                btn.classList.add('success');
+                window.showToast(`Đã đẩy sự kiện "${eventData.subject}" thành công!`);
+
+            } catch(err) {
+                console.error(err);
+                window.showToast("Lỗi: " + err.message, "danger");
+                btn.innerHTML = '<i class="fas fa-upload"></i> Thử lại';
+                btn.disabled = false;
+            }
+        };
+
+        // Đẩy Hàng Loạt (Batch Write)
+        window.pushAllEvents = async () => {
+            const btnAll = document.getElementById('btnPushAll');
+            if(!confirm(`Bạn có chắc muốn đẩy toàn bộ ${window.finalJsonData.length} lịch này lên hệ thống?`)) return;
+
+            btnAll.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang đẩy...';
+            btnAll.disabled = true;
+
+            try {
+                // Firestore batch có giới hạn 500 lệnh write 1 lần. Chia nhỏ mảng nếu cần.
+                const chunks = [];
+                for (let i = 0; i < window.finalJsonData.length; i += 500) {
+                    chunks.push(window.finalJsonData.slice(i, i + 500));
+                }
+
+                for (const chunk of chunks) {
+                    const batch = writeBatch(db);
+                    chunk.forEach(ev => {
+                        const evRef = doc(db, "calendar_events", ev.id);
+                        batch.set(evRef, ev);
+                    });
+                    await batch.commit(); // Gửi toàn bộ 1 cục
+                }
+
+                window.showToast(`Tuyệt vời! Đã đẩy thành công ${window.finalJsonData.length} lịch lên Database.`);
+                btnAll.innerHTML = '<i class="fas fa-check-double"></i> Đã đẩy xong';
+                btnAll.style.background = "#22c55e";
+
+                // Cập nhật giao diện toàn bộ nút con
+                window.finalJsonData.forEach((_, idx) => {
+                    const b = document.getElementById(`btnPush_${idx}`);
+                    if(b) {
+                        b.innerHTML = '<i class="fas fa-check"></i> Đã đẩy';
+                        b.classList.add('success');
+                    }
+                });
+
+            } catch (err) {
+                console.error(err);
+                window.showToast("Lỗi khi đẩy hàng loạt: " + err.message, "danger");
+                btnAll.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Đẩy toàn bộ lên DB';
+                btnAll.disabled = false;
+            }
+        };
     </script>
 </body>
 </html>
