@@ -87,7 +87,18 @@
 
         /* Tên / Học vị / Chức vụ */
         .cv-degree { width: 100%; font-size: 0.95rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; overflow-wrap: anywhere; }
-        .cv-name { width: 100%; font-size: 1.4rem; font-weight: 800; color: var(--text-dark); margin-bottom: 8px; white-space: normal; overflow-wrap: anywhere; word-break: break-word; }
+        
+        /* CẬP NHẬT: Ép tên giảng viên nằm trên 1 dòng */
+        .cv-name { 
+            width: 100%; 
+            font-size: 1.4rem; 
+            font-weight: 800; 
+            color: var(--text-dark); 
+            margin-bottom: 8px; 
+            white-space: nowrap; /* Bắt buộc 1 dòng */
+            overflow: hidden; /* Ẩn phần dư thừa để JS tính toán */
+            text-overflow: ellipsis;
+        }
         
         .cv-position { font-size: 0.9rem; font-weight: 600; color: var(--text-body); margin-bottom: 15px; background: #f1f5f9; padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border); display: inline-block; }
         /* Màu sắc Chức vụ */
@@ -416,8 +427,22 @@
 
             document.getElementById('displayMajor').innerHTML = `<span class="major-badge ${badgeClass}">${majorText !== 'Chưa cập nhật' ? majorText : 'Chưa cập nhật'}</span>`;
 
-            // Tự thu nhỏ chữ chuyên ngành
+            // THUẬT TOÁN ĐIỀU CHỈNH FONT SIZE LINH HOẠT
             setTimeout(() => {
+                // Tự thu nhỏ chữ tên Giảng viên nếu vượt quá container
+                const nameEl = document.getElementById('displayName');
+                if (nameEl) {
+                    nameEl.style.fontSize = ''; // Reset CSS
+                    let currentSize = window.innerWidth <= 768 ? 1.3 : 1.4;
+                    nameEl.style.fontSize = currentSize + 'rem';
+                    
+                    while (nameEl.scrollWidth > nameEl.clientWidth && currentSize > 0.7) {
+                        currentSize -= 0.05;
+                        nameEl.style.fontSize = currentSize + 'rem';
+                    }
+                }
+
+                // Tự thu nhỏ chữ chuyên ngành
                 const majorContainer = document.getElementById('displayMajor');
                 const badge = majorContainer.querySelector('.major-badge');
                 if (badge) {
@@ -448,7 +473,7 @@
                 avatarDiv.innerHTML = `<i class="fas fa-user"></i>${overlayHtml}`;
             }
 
-            // Nội dung Text
+            // Nội dung Text (Đã cấu hình Căn đều 2 bên trong CSS)
             const formatText = (text) => text && text.trim() !== '' ? text.trim() : `<span class="empty-text">Chưa cập nhật thông tin.</span>`;
             document.getElementById('displayEducation').innerHTML = formatText(data.education);
             document.getElementById('displayExperience').innerHTML = formatText(data.experience);
