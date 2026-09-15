@@ -374,7 +374,6 @@
             return false;
         };
 
-        // ĐIỀU CHỈNH TAG CHUYÊN NGÀNH CÙNG MÀU XÁM CHO TẤT CẢ
         window.getMajorBadgeHtml = (subObj) => {
             let tag = "PT,OT,ST";
             if (subObj && subObj.majorTag) {
@@ -429,7 +428,6 @@
             document.getElementById('conflictModal').classList.remove('hidden');
         }
 
-        // ĐIỀU CHỈNH LẤY ĐẦY ĐỦ HỌ TÊN (KHÔNG CẮT NGẮN, CHỈ CẮT HỌC VỊ)
         window.formatGvName = (gvString) => {
             if (!gvString) return '';
             let gvs = gvString.split(/,|&/).map(s => s.trim());
@@ -605,6 +603,9 @@
                    pad(date.getSeconds());
         }
 
+        // ============================================
+        // XUẤT FILE WORD BÁO CÁO TUẦN (NGANG)
+        // ============================================
         window.exportWeeklyReport = () => {
             if (!calendar) return;
             
@@ -623,15 +624,29 @@
 
                         let evStart = new Date(subEv.start);
                         if (evStart >= viewStart && evStart <= viewEnd) {
+                            
+                            // Xác định chuyên ngành
+                            let subObj = subjectsData.find(s => s.name === subEv.subject || subEv.subject.includes(s.name));
+                            let majorText = '';
+                            if (subObj && subObj.majorTag) {
+                                if (subObj.majorTag === 'Vật lý trị liệu') majorText = 'Vật lý trị liệu';
+                                else if (subObj.majorTag === 'Hoạt động trị liệu') majorText = 'Hoạt động trị liệu';
+                                else if (subObj.majorTag === 'Ngôn ngữ trị liệu') majorText = 'Ngôn ngữ trị liệu';
+                                else majorText = 'Chung / Đa chuyên ngành';
+                            } else {
+                                majorText = 'Chung';
+                            }
+
                             reportData.push({
                                 start: evStart,
                                 end: subEv.end ? new Date(subEv.end) : new Date(evStart.getTime() + 4 * 3600000),
                                 class: subEv.class || '',
                                 subject: subEv.subject || '',
-                                gv: window.formatGvName(subEv.gv) || subEv.gv || '',
+                                gv: subEv.gv || '', // GIỮ NGUYÊN TÊN ĐẦY ĐỦ
                                 task: subEv.task || '',
                                 room: subEv.room || 'Chưa XĐ',
-                                orient: window.normalizeOrient(subEv.orientation)
+                                orient: window.normalizeOrient(subEv.orientation),
+                                major: majorText
                             });
                         }
                     });
@@ -651,7 +666,14 @@
                 let ngay = item.start.toLocaleDateString('vi-VN', {day:'2-digit', month:'2-digit', year:'numeric'});
                 let gio = `${item.start.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12: false})} - ${item.end.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12: false})}`;
                 
-                let orientStr = item.orient === 'NC' ? 'Nghiên cứu' : (item.orient === 'UD' ? 'Ứng dụng' : 'Học chung (NC & UD)');
+                // Xử lý Lớp CN
+                let isCN = item.class.toUpperCase().includes('CN');
+                let orientStr = '';
+                if (!isCN) {
+                    orientStr = item.orient === 'NC' ? 'Nghiên cứu' : (item.orient === 'UD' ? 'Ứng dụng' : 'Chung (NC & UD)');
+                } else {
+                    orientStr = '—';
+                }
                 
                 tableRows += `
                     <tr>
@@ -659,8 +681,9 @@
                         <td style="border: 1px solid #000; padding: 5px;">${thu}, ${ngay}</td>
                         <td style="text-align:center; border: 1px solid #000; padding: 5px;">${gio}</td>
                         <td style="border: 1px solid #000; padding: 5px;">${item.subject}</td>
+                        <td style="text-align:center; border: 1px solid #000; padding: 5px;">${item.major}</td>
                         <td style="text-align:center; border: 1px solid #000; padding: 5px;">${item.class}</td>
-                        <td style="border: 1px solid #000; padding: 5px;">${orientStr}</td>
+                        <td style="text-align:center; border: 1px solid #000; padding: 5px;">${orientStr}</td>
                         <td style="border: 1px solid #000; padding: 5px;">${item.gv}</td>
                         <td style="border: 1px solid #000; padding: 5px;">${item.task}</td>
                         <td style="text-align:center; border: 1px solid #000; padding: 5px;">${item.room}</td>
@@ -671,30 +694,40 @@
             
             let htmlContent = `
                 <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-                <head><meta charset='utf-8'><title>Báo cáo Thời khóa biểu</title></head>
+                <head>
+                    <meta charset='utf-8'>
+                    <title>Báo cáo Thời khóa biểu</title>
+                    <style>
+                        @page Section1 { size: 841.9pt 595.3pt; mso-page-orientation: landscape; margin: 1in; }
+                        div.Section1 { page: Section1; }
+                    </style>
+                </head>
                 <body style="font-family: 'Times New Roman', serif;">
-                    <h2 style="text-align: center; text-transform: uppercase;">BÁO CÁO THỜI KHÓA BIỂU GIẢNG DẠY</h2>
-                    <h3 style="text-align: center;">${dateStrRange}</h3>
-                    <br>
-                    <table style="width: 100%; border-collapse: collapse; border: 1px solid #000; font-size: 11pt;">
-                        <thead>
-                            <tr style="background-color: #f2f2f2;">
-                                <th style="border: 1px solid #000; padding: 5px;">STT</th>
-                                <th style="border: 1px solid #000; padding: 5px;">Thứ, Ngày</th>
-                                <th style="border: 1px solid #000; padding: 5px;">Thời gian</th>
-                                <th style="border: 1px solid #000; padding: 5px;">Học phần</th>
-                                <th style="border: 1px solid #000; padding: 5px;">Lớp</th>
-                                <th style="border: 1px solid #000; padding: 5px;">Định hướng</th>
-                                <th style="border: 1px solid #000; padding: 5px;">Giảng viên</th>
-                                <th style="border: 1px solid #000; padding: 5px;">Nhiệm vụ</th>
-                                <th style="border: 1px solid #000; padding: 5px;">Phòng học</th>
-                                <th style="border: 1px solid #000; padding: 5px;">Số buổi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${tableRows}
-                        </tbody>
-                    </table>
+                    <div class="Section1">
+                        <h2 style="text-align: center; text-transform: uppercase;">BÁO CÁO THỜI KHÓA BIỂU GIẢNG DẠY</h2>
+                        <h3 style="text-align: center;">${dateStrRange}</h3>
+                        <br>
+                        <table style="width: 100%; border-collapse: collapse; border: 1px solid #000; font-size: 11pt;">
+                            <thead>
+                                <tr style="background-color: #f2f2f2; text-align: center;">
+                                    <th style="border: 1px solid #000; padding: 5px;">STT</th>
+                                    <th style="border: 1px solid #000; padding: 5px;">Thứ, Ngày</th>
+                                    <th style="border: 1px solid #000; padding: 5px;">Thời gian</th>
+                                    <th style="border: 1px solid #000; padding: 5px;">Học phần</th>
+                                    <th style="border: 1px solid #000; padding: 5px;">Chuyên ngành</th>
+                                    <th style="border: 1px solid #000; padding: 5px;">Lớp</th>
+                                    <th style="border: 1px solid #000; padding: 5px;">Định hướng</th>
+                                    <th style="border: 1px solid #000; padding: 5px;">Giảng viên</th>
+                                    <th style="border: 1px solid #000; padding: 5px;">Nhiệm vụ</th>
+                                    <th style="border: 1px solid #000; padding: 5px;">Phòng học</th>
+                                    <th style="border: 1px solid #000; padding: 5px;">Số buổi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${tableRows}
+                            </tbody>
+                        </table>
+                    </div>
                 </body>
                 </html>
             `;
@@ -812,10 +845,11 @@
                     snapUser.forEach(doc => {
                         const d = doc.data();
                         if(d.fullName) {
-                            // ĐIỀU CHỈNH: GIỮ LẠI ĐẦY ĐỦ HỌ TÊN (Chỉ cắt học vị ThS/TS)
+                            let nameParts = d.fullName.trim().split(' ');
+                            let firstName = nameParts[nameParts.length - 1]; 
                             let pref = d.degree === 'ThS' ? 'ThS. ' : (d.degree === 'TS' ? 'TS. ' : '');
-                            gvShortNameMap[`${pref}${d.fullName}`] = d.fullName;
-                            gvShortNameMap[d.fullName] = d.fullName;
+                            gvShortNameMap[`${pref}${d.fullName}`] = firstName;
+                            gvShortNameMap[d.fullName] = firstName;
                         }
                     });
                 } catch(e) { console.error("Lỗi lấy dữ liệu Users:", e); }
@@ -825,7 +859,9 @@
                     snapVisiting.forEach(doc => {
                         const d = doc.data();
                         if (d.name) {
-                            gvShortNameMap[d.name] = d.name; 
+                            let nameParts = d.name.trim().split(' ');
+                            let firstName = nameParts[nameParts.length - 1]; 
+                            gvShortNameMap[d.name] = firstName; 
                         }
                     });
                 } catch(e) { console.error("Lỗi lấy dữ liệu Visiting:", e); }
@@ -961,7 +997,6 @@
                             let classColorStyle = window.getClassColor(e.class);
                             let classBadge = `<div style="margin-bottom: 4px;"><span style="display:inline-block; padding:2px 6px; border-radius:3px; font-size:0.7rem; font-weight:bold; ${classColorStyle}">${e.class}</span> ${majorBadge}</div>`;
                             
-                            // GHI CHÚ (Hệ thống) nếu import từ Excel
                             let importNote = isImported ? `<div style="font-size: 0.7rem; color: #10b981; font-style: italic; margin-top: 2px;">(Hệ thống)</div>` : '';
 
                             return `
@@ -1164,7 +1199,6 @@
                             let classColorStyle = window.getClassColor(e.class);
                             let classBadge = `<span style="display:inline-block; padding:2px 6px; border-radius:4px; font-size:0.75rem; font-weight:bold; ${classColorStyle}">${e.class}</span> ${majorBadge}`;
 
-                            // THAY ĐỔI: Sử dụng "Hệ thống" thay cho "Import từ Excel"
                             let importNote = isImported ? `<p style="margin:0; font-size:0.8rem; color:#10b981; font-style:italic; font-weight:bold;">Xếp bởi: Hệ thống</p>` : `<p style="margin:0; font-size:0.8rem; color:#94a3b8; font-style:italic;">Xếp bởi: ${e.scheduledByName || 'Admin'}</p>`;
 
                             html += `
