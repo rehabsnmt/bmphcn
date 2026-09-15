@@ -81,7 +81,7 @@
         <div class="page-header">
             <h2><i class="fas fa-database"></i> Quản Trị CSDL Nâng Cao</h2>
             <div style="font-size: 0.9rem; color: #64748b;">
-                <i class="fas fa-info-circle"></i> Click tiêu đề để <b>Chọn Cột</b>. Dùng menu thả xuống ở tiêu đề để <b>Sắp xếp/Lọc</b>. Kéo thả góc ô để copy nhanh.
+                <i class="fas fa-info-circle"></i> Click tiêu đề để <b>Bôi đen Cột</b>. Dùng Menu (▼) để <b>Lọc/Sắp xếp</b>. Kéo thả góc ô để copy nhanh.
             </div>
         </div>
 
@@ -259,7 +259,6 @@
                     height: '100%',
                     licenseKey: 'non-commercial-and-evaluation',
                     
-                    dropdownMenu: true,
                     filters: true,
                     
                     // --- ĐIỀU CHỈNH GIAO DIỆN GIỐNG EXCEL NHẤT ---
@@ -267,21 +266,54 @@
                     outsideClickDeselects: false, // Bấm ra ngoài không bị mất bôi đen
                     columnSorting: {
                         indicator: true,
-                        headerAction: false // KHÔNG TỰ ĐỘNG SORT KHI BẤM VÀO TÊN CỘT
+                        headerAction: false // KHÔNG TỰ ĐỘNG SORT KHI BẤM VÀO TÊN CỘT (Để bấm bôi đen giống Excel)
                     },
                     
+                    // --- ĐIỀU CHỈNH MENU DROPDOWN CHO SORT/LỌC ---
+                    dropdownMenu: [
+                        'filter_by_condition',
+                        'filter_operators',
+                        'filter_by_condition2',
+                        'filter_by_value',
+                        'filter_action_bar',
+                        '---------',
+                        {
+                            name: '<b><i class="fas fa-sort-amount-down-alt" style="color:var(--primary); margin-right:5px;"></i> Sắp xếp (A → Z)</b>',
+                            key: 'sort_asc',
+                            callback: function(key, selection) {
+                                let col = selection[0].start.col;
+                                this.getPlugin('columnSorting').sort({ column: col, sortOrder: 'asc' });
+                            }
+                        },
+                        {
+                            name: '<b><i class="fas fa-sort-amount-up" style="color:var(--primary); margin-right:5px;"></i> Sắp xếp (Z → A)</b>',
+                            key: 'sort_desc',
+                            callback: function(key, selection) {
+                                let col = selection[0].start.col;
+                                this.getPlugin('columnSorting').sort({ column: col, sortOrder: 'desc' });
+                            }
+                        },
+                        {
+                            name: '<b><i class="fas fa-ban" style="color:#ef4444; margin-right:5px;"></i> Bỏ sắp xếp</b>',
+                            key: 'clear_sort',
+                            callback: function(key, selection) {
+                                this.getPlugin('columnSorting').clearSort();
+                            }
+                        }
+                    ],
+
                     contextMenu: {
                         items: {
-                            "row_above": { name: '<i class="fas fa-arrow-up"></i> Chèn hàng lên trên' },
-                            "row_below": { name: '<i class="fas fa-arrow-down"></i> Chèn hàng xuống dưới' },
-                            "col_left": { name: '<i class="fas fa-arrow-left"></i> Chèn cột sang trái' },
-                            "col_right": { name: '<i class="fas fa-arrow-right"></i> Chèn cột sang phải' },
+                            "row_above": { name: '<i class="fas fa-arrow-up" style="margin-right:5px; color:#64748b"></i> Chèn hàng lên trên' },
+                            "row_below": { name: '<i class="fas fa-arrow-down" style="margin-right:5px; color:#64748b"></i> Chèn hàng xuống dưới' },
+                            "col_left": { name: '<i class="fas fa-arrow-left" style="margin-right:5px; color:#64748b"></i> Chèn cột sang trái' },
+                            "col_right": { name: '<i class="fas fa-arrow-right" style="margin-right:5px; color:#64748b"></i> Chèn cột sang phải' },
                             "hsep1": "---------",
-                            "remove_row": { name: '<i class="fas fa-trash" style="color:red;"></i> Xóa hàng' },
-                            "remove_col": { name: '<i class="fas fa-times" style="color:red;"></i> Xóa cột' },
+                            "remove_row": { name: '<i class="fas fa-trash" style="color:#ef4444; margin-right:5px;"></i> <b>Xóa hàng</b>' },
+                            "remove_col": { name: '<i class="fas fa-times" style="color:#ef4444; margin-right:5px;"></i> <b>Xóa cột</b>' },
                             "hsep2": "---------",
                             "rename_col": {
-                                name: '<i class="fas fa-edit"></i> <b>Đổi Tên Cột (Key)</b>',
+                                name: '<i class="fas fa-edit" style="color:#f59e0b; margin-right:5px;"></i> <b>Đổi Tên Cột (Key)</b>',
                                 callback: function(key, selection) {
                                     let physicalCol = this.toPhysicalColumn(selection[0].start.col);
                                     if (headers[physicalCol] === '_docId') {
@@ -298,8 +330,8 @@
                                 }
                             },
                             "hsep3": "---------",
-                            "undo": { name: '<i class="fas fa-undo"></i> Hoàn tác (Undo)' },
-                            "redo": { name: '<i class="fas fa-redo"></i> Làm lại (Redo)' }
+                            "undo": { name: '<i class="fas fa-undo" style="margin-right:5px;"></i> Hoàn tác (Undo)' },
+                            "redo": { name: '<i class="fas fa-redo" style="margin-right:5px;"></i> Làm lại (Redo)' }
                         }
                     },
                     cells: function(row, col) {
