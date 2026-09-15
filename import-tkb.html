@@ -58,15 +58,15 @@
                     <label style="color:#0284c7"><i class="fas fa-cog"></i> THÔNG TIN LỚP & HỌC KỲ</label>
                 </div>
                 <div class="form-group">
-                    <label>Lớp (class)</label>
+                    <label>Lớp (VD: THS2026, CN2026)</label>
                     <input type="text" id="cfgClass" class="form-control" value="THS2026-ĐỢT 1">
                 </div>
                 <div class="form-group">
-                    <label>Học kỳ (semester)</label>
+                    <label>Học kỳ</label>
                     <input type="text" id="cfgSemester" class="form-control" value="Học kỳ 1">
                 </div>
                 <div class="form-group">
-                    <label>Định hướng (orientation)</label>
+                    <label>Định hướng <span style="font-weight:normal; color:#64748b;">(Hệ CN sẽ tự động gán Cả hai)</span></label>
                     <select id="cfgOrientation" class="form-control">
                         <option value="Cả hai">Cả hai</option>
                         <option value="Vật lý trị liệu">Vật lý trị liệu</option>
@@ -75,7 +75,7 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Email người xếp lịch</label>
+                    <label>Email người tạo</label>
                     <input type="text" id="cfgEmail" class="form-control" value="hoangtran1483@gmail.com">
                 </div>
             </div>
@@ -85,7 +85,7 @@
                 <i class="fas fa-file-csv fa-3x" style="color: #94a3b8; margin-bottom: 15px;"></i><br>
                 <label for="csvFileInput" class="btn-upload"><i class="fas fa-upload"></i> Chọn file 2.csv</label>
                 <input type="file" id="csvFileInput" accept=".csv">
-                <p style="color: #64748b; margin-top: 15px; font-size: 0.9rem;">Hệ thống sẽ tự động <b>gộp các tiết học liền kề</b> thành một sự kiện Start-End hoàn chỉnh.</p>
+                <p style="color: #64748b; margin-top: 15px; font-size: 0.9rem;">Tự động gộp tiết (Mặc định 4 tiếng/buổi).<br>Lọc Giảng viên BM và tự động đổi Elrn.</p>
             </div>
         </div>
 
@@ -113,25 +113,13 @@
     </div>
 
     <script>
-        // Bảng quy đổi Thời gian Tiết học chuẩn
-        const periodTimes = {
-            1: { start: "07:00:00", end: "07:50:00" },
-            2: { start: "08:00:00", end: "08:50:00" },
-            3: { start: "09:00:00", end: "09:50:00" },
-            4: { start: "10:00:00", end: "10:50:00" },
-            5: { start: "11:00:00", end: "11:50:00" },
-            6: { start: "12:00:00", end: "12:50:00" },
-            7: { start: "13:00:00", end: "13:50:00" },
-            8: { start: "14:00:00", end: "14:50:00" },
-            9: { start: "15:00:00", end: "15:50:00" },
-            10: { start: "16:00:00", end: "16:50:00" },
-            11: { start: "17:00:00", end: "17:50:00" },
-            12: { start: "18:00:00", end: "18:50:00" },
-            13: { start: "18:00:00", end: "18:50:00" },
-            14: { start: "18:50:00", end: "19:40:00" },
-            15: { start: "19:50:00", end: "20:40:00" },
-            16: { start: "20:40:00", end: "21:30:00" }
-        };
+        // Danh sách Giảng viên nội bộ của Bộ môn
+        const bmInstructors = [
+            "Lê Thanh Vân", "Nguyễn Thanh Duy", "Nguyễn Ngọc Minh", "Phan Thế Nguyên",
+            "Nguyễn Mai Ngọc Đoan", "Nguyễn Huỳnh Ngọc Mai Trâm", "Trần Thị Bích Hạnh",
+            "Trần Long Biên", "Cao Minh Hạnh", "Huỳnh Chung", "Nguyễn Minh Sang",
+            "Phạm Ngọc Đạt", "Nguyễn Đức Sinh", "Trần Hữu Đức"
+        ];
 
         let finalJsonData = [];
 
@@ -160,20 +148,41 @@
 
         // Bóc tách nội dung Text của 1 ô
         function parseClassString(classStr) {
-            let parts = classStr.split('-').map(p => p.trim());
-            let group = "", room = "", instructor = "Giảng viên đơn vị khác", code = "", name = "";
+            // Tách bằng chuỗi " - " để tránh bị cắt nhầm các từ có gạch nối như "Elrn-ĐD" hay "Cấp cứu ban đầu - Điều dưỡng"
+            let parts = classStr.split(' - ').map(p => p.trim());
+            let group = "", room = "", instructor = "", code = "", name = "";
 
+            // Xử lý Nhóm
             if (parts.length > 0 && parts[parts.length - 1].startsWith('Nhóm:')) {
                 group = parts.pop().replace('Nhóm:', '').trim();
             }
+            // Xử lý Phòng
             if (parts.length > 0) room = parts.pop();
+            // Xử lý Giảng viên
             if (parts.length > 0) {
                 let tempInstructor = parts.pop();
                 if (tempInstructor && tempInstructor !== '') instructor = tempInstructor;
             }
+            // Xử lý Mã môn
             if (parts.length > 0) code = parts.shift();
             
+            // Còn lại là Tên môn học
             name = parts.join(' - ').trim();
+
+            // 1. CHUẨN HÓA GIẢNG VIÊN
+            if (!instructor || instructor === "") {
+                instructor = "Giảng viên đơn vị khác";
+            } else {
+                let isBM = bmInstructors.some(gv => instructor.includes(gv));
+                if (!isBM) {
+                    instructor = "Giảng viên đơn vị khác";
+                }
+            }
+
+            // 2. CHUẨN HÓA PHÒNG ELEARNING
+            if (room.toLowerCase().includes('elrn')) {
+                room = 'Elearning';
+            }
 
             // Nhận diện Task (Lý thuyết hay Thực hành)
             let task = "Lý thuyết";
@@ -189,7 +198,6 @@
         }
 
         function processMatrixToStandardJSON(matrix) {
-            // 1. Trích xuất tất cả tiết đơn lẻ
             let rawCells = [];
             let currentDates = [];
 
@@ -231,8 +239,7 @@
                 }
             }
 
-            // 2. Gom nhóm các tiết liền kề (Thuật toán Merge)
-            // Nhóm theo Date + Nội dung nguyên bản của ô (rawString)
+            // Gom nhóm các tiết liền kề
             let groupedByDateAndClass = {};
             rawCells.forEach(cell => {
                 let key = `${cell.isoDate}_${cell.rawString}`;
@@ -242,32 +249,40 @@
 
             const configClass = document.getElementById('cfgClass').value.trim();
             const configSemester = document.getElementById('cfgSemester').value.trim();
-            const configOrientation = document.getElementById('cfgOrientation').value;
             const configEmail = document.getElementById('cfgEmail').value.trim();
+            
+            // XỬ LÝ ĐỊNH HƯỚNG CHO HỆ CỬ NHÂN
+            let configOrientation = document.getElementById('cfgOrientation').value;
+            if (configClass.toUpperCase().includes('CN')) {
+                configOrientation = 'Cả hai';
+            }
 
             finalJsonData = [];
             let itemIndex = 0;
 
-            // Xử lý Gộp và Gen JSON Format
             for (let key in groupedByDateAndClass) {
                 let cells = groupedByDateAndClass[key];
-                
-                // Sắp xếp các tiết tăng dần
                 cells.sort((a, b) => a.period - b.period);
 
                 let startPeriod = cells[0].period;
-                let endPeriod = cells[cells.length - 1].period;
                 let baseCell = cells[0];
                 let pData = baseCell.parsed;
 
-                // Lấy giờ bắt đầu của tiết đầu, giờ kết thúc của tiết cuối
-                let startTime = periodTimes[startPeriod]?.start || "07:00:00";
-                let endTime = periodTimes[endPeriod]?.end || "17:00:00";
+                // THUẬT TOÁN THỜI GIAN 4 TIẾNG / BUỔI
+                let startTime = "07:00:00";
+                let endTime = "11:00:00";
+
+                if (startPeriod >= 7 && startPeriod <= 12) {
+                    startTime = "13:00:00";
+                    endTime = "17:00:00";
+                } else if (startPeriod > 12) {
+                    startTime = "18:00:00";
+                    endTime = "22:00:00";
+                }
 
                 let isoStart = `${baseCell.isoDate}T${startTime}`;
                 let isoEnd = `${baseCell.isoDate}T${endTime}`;
 
-                // Render ID
                 let generatedId = `sub_${pData.code}_${configOrientation}_${pData.instructor.replace(/\s/g,'')}_${pData.task}_${configClass}_${Date.now()}_${itemIndex}`;
                 itemIndex++;
 
@@ -292,20 +307,16 @@
                 finalJsonData.push(eventObj);
             }
 
-            // Sắp xếp lại theo thời gian
             finalJsonData.sort((a, b) => new Date(a.start) - new Date(b.start));
-
             renderUI(finalJsonData);
         }
 
-        // Render ra bảng HTML để kiểm chứng
         function renderUI(data) {
             document.getElementById('tablePanel').classList.remove('hidden');
             document.getElementById('jsonPanel').classList.remove('hidden');
 
             let tbodyHtml = '';
             data.forEach(item => {
-                // Tách thời gian để hiển thị
                 let d = item.start.split('T')[0];
                 let tStart = item.start.split('T')[1].substring(0, 5);
                 let tEnd = item.end.split('T')[1].substring(0, 5);
@@ -331,7 +342,7 @@
         function copyJSON() {
             const jsonText = document.getElementById('jsonOutput').textContent;
             navigator.clipboard.writeText(jsonText).then(() => {
-                alert("Đã copy toàn bộ JSON! Bạn có thể dán trực tiếp vào Firebase hoặc Data Script.");
+                alert("Đã copy toàn bộ JSON! Bạn có thể dán trực tiếp vào CSDL.");
             }).catch(err => {
                 alert("Lỗi Copy: " + err);
             });
