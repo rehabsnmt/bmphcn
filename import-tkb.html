@@ -91,7 +91,7 @@
                 </div>
                 <div class="form-group">
                     <label>Email người tạo</label>
-                    <input type="text" id="cfgEmail" class="form-control" value="hoangtran1483@gmail.com">
+                    <input type="text" id="cfgEmail" class="form-control" value="hoangtran1483@gmail.com" readonly style="background-color: #f1f5f9;">
                 </div>
             </div>
 
@@ -133,6 +133,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
         import { getFirestore, doc, setDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
 
         // Cấu hình Firebase
         const firebaseConfig = {
@@ -145,16 +146,7 @@
         };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-
-        // Danh sách Giảng viên nội bộ của Bộ môn
-        const bmInstructors = [
-            "Lê Thanh Vân", "Nguyễn Thanh Duy", "Nguyễn Ngọc Minh", "Phan Thế Nguyên",
-            "Nguyễn Mai Ngọc Đoan", "Nguyễn Huỳnh Ngọc Mai Trâm", "Trần Thị Bích Hạnh",
-            "Trần Long Biên", "Cao Minh Hạnh", "Huỳnh Chung", "Nguyễn Minh Sang",
-            "Phạm Ngọc Đạt", "Nguyễn Đức Sinh", "Trần Hữu Đức"
-        ];
-
-        window.finalJsonData = [];
+        const auth = getAuth(app);
 
         // Toast thông báo
         window.showToast = (message, type = 'success') => {
@@ -167,6 +159,28 @@
             setTimeout(() => toast.classList.add('show'), 10);
             setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
         };
+
+        // BẢO VỆ: KIỂM TRA ĐĂNG NHẬP (Lấy Email tự động)
+        let currentUserEmail = '';
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                showToast("Bạn chưa đăng nhập! Dữ liệu sẽ KHÔNG thể đẩy lên Database.", "danger");
+                document.getElementById('btnPushAll').disabled = true;
+            } else {
+                currentUserEmail = user.email;
+                document.getElementById('cfgEmail').value = currentUserEmail; // Tự động điền email
+            }
+        });
+
+        // Danh sách Giảng viên nội bộ của Bộ môn
+        const bmInstructors = [
+            "Lê Thanh Vân", "Nguyễn Thanh Duy", "Nguyễn Ngọc Minh", "Phan Thế Nguyên",
+            "Nguyễn Mai Ngọc Đoan", "Nguyễn Huỳnh Ngọc Mai Trâm", "Trần Thị Bích Hạnh",
+            "Trần Long Biên", "Cao Minh Hạnh", "Huỳnh Chung", "Nguyễn Minh Sang",
+            "Phạm Ngọc Đạt", "Nguyễn Đức Sinh", "Trần Hữu Đức"
+        ];
+
+        window.finalJsonData = [];
 
         // Đọc File CSV bằng PapaParse
         document.getElementById('csvFileInput').addEventListener('change', function(e) {
@@ -282,6 +296,7 @@
             const configSemester = document.getElementById('cfgSemester').value.trim();
             const configEmail = document.getElementById('cfgEmail').value.trim();
             
+            // XỬ LÝ ĐỊNH HƯỚNG CHO HỆ CỬ NHÂN
             let configOrientation = document.getElementById('cfgOrientation').value;
             if (configClass.toUpperCase().includes('CN')) configOrientation = 'Cả hai';
 
@@ -384,6 +399,11 @@
 
         // Đẩy 1 sự kiện lẻ
         window.pushSingleEvent = async (index) => {
+            if (!currentUserEmail) {
+                showToast("Bạn chưa đăng nhập Admin!", "danger");
+                return;
+            }
+
             const btn = document.getElementById(`btnPush_${index}`);
             const eventData = window.finalJsonData[index];
             
@@ -391,7 +411,6 @@
                 btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
                 btn.disabled = true;
 
-                // Lưu vào collection 'calendar_events'
                 await setDoc(doc(db, "calendar_events", eventData.id), eventData);
                 
                 btn.innerHTML = '<i class="fas fa-check"></i> Đã đẩy';
@@ -400,7 +419,7 @@
 
             } catch(err) {
                 console.error(err);
-                window.showToast("Lỗi: " + err.message, "danger");
+                window.showToast("Lỗi (Bạn có phải Admin không?): " + err.message, "danger");
                 btn.innerHTML = '<i class="fas fa-upload"></i> Thử lại';
                 btn.disabled = false;
             }
@@ -408,6 +427,11 @@
 
         // Đẩy Hàng Loạt (Batch Write)
         window.pushAllEvents = async () => {
+            if (!currentUserEmail) {
+                showToast("Bạn chưa đăng nhập Admin!", "danger");
+                return;
+            }
+
             const btnAll = document.getElementById('btnPushAll');
             if(!confirm(`Bạn có chắc muốn đẩy toàn bộ ${window.finalJsonData.length} lịch này lên hệ thống?`)) return;
 
@@ -415,7 +439,6 @@
             btnAll.disabled = true;
 
             try {
-                // Firestore batch có giới hạn 500 lệnh write 1 lần. Chia nhỏ mảng nếu cần.
                 const chunks = [];
                 for (let i = 0; i < window.finalJsonData.length; i += 500) {
                     chunks.push(window.finalJsonData.slice(i, i + 500));
@@ -427,14 +450,13 @@
                         const evRef = doc(db, "calendar_events", ev.id);
                         batch.set(evRef, ev);
                     });
-                    await batch.commit(); // Gửi toàn bộ 1 cục
+                    await batch.commit();
                 }
 
                 window.showToast(`Tuyệt vời! Đã đẩy thành công ${window.finalJsonData.length} lịch lên Database.`);
                 btnAll.innerHTML = '<i class="fas fa-check-double"></i> Đã đẩy xong';
                 btnAll.style.background = "#22c55e";
 
-                // Cập nhật giao diện toàn bộ nút con
                 window.finalJsonData.forEach((_, idx) => {
                     const b = document.getElementById(`btnPush_${idx}`);
                     if(b) {
@@ -445,7 +467,7 @@
 
             } catch (err) {
                 console.error(err);
-                window.showToast("Lỗi khi đẩy hàng loạt: " + err.message, "danger");
+                window.showToast("Lỗi khi đẩy (Chỉ Admin mới có quyền Push): " + err.message, "danger");
                 btnAll.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Đẩy toàn bộ lên DB';
                 btnAll.disabled = false;
             }
