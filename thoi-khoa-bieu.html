@@ -128,7 +128,6 @@
             .controls-wrapper { width: 100%; justify-content: space-between; }
             .filter-select { flex: 1; min-width: 0; padding: 6px; font-size: 0.85rem;}
             
-            /* Ẩn nút Xuất Word trên thiết bị di động */
             #btnExportWord { display: none !important; }
             
             #calendar-container { padding: 5px; border: none; border-radius: 0; box-shadow: none; border-top: 1px solid var(--border); width: 100vw; margin-left: -5px;}
@@ -140,14 +139,13 @@
             
             .fc-button-primary { padding: 4px 8px !important; font-size: 0.85rem !important; }
             
-            /* Tùy chỉnh chế độ List trên Mobile */
             .fc-list-day-cushion { background-color: var(--primary-light) !important; padding: 8px 10px !important; }
             .fc-list-event-time { font-weight: bold; color: var(--primary); width: 85px !important;}
             .fc-list-event-title { padding: 8px !important; }
             .fc-list-event-dot { display: none; }
             
             .evt-group-container { border: none; border-left: 3px solid var(--primary); padding: 5px; border-radius: 0; box-shadow: none;}
-            .evt-group-header { display: none; } /* Chế độ list đã có giờ ở cột bên trái */
+            .evt-group-header { display: none; } 
         }
     </style>
 </head>
@@ -474,12 +472,19 @@
             return count;
         };
 
-        // --- ĐÃ ĐƯỢC CHỈNH SỬA ĐỂ BẮT SỰ KIỆN TỰ KHAI BÁO & 4 TIẾNG MẶC ĐỊNH ---
+        // --- CẬP NHẬT THUẬT TOÁN KIỂM TRA OVERLAP (CHO PHÉP TRÙNG LỚP NẾU KHÁC NGÀNH) ---
         function hasOverlap(targetStartStr, targetEndStr, gvStr, targetClass, targetTask, targetRoom, targetSubject, targetOrient, ignoreEventIds) {
             let ignoreList = Array.isArray(ignoreEventIds) ? ignoreEventIds : [ignoreEventIds];
             let tStart = new Date(targetStartStr).getTime();
             let tEnd = targetEndStr ? new Date(targetEndStr).getTime() : tStart + 4 * 3600000;
             let targetOrientNorm = window.normalizeOrient(targetOrient);
+            
+            // Hàm tra cứu Chuyên ngành (majorTag) dựa vào Tên Môn từ CSDL
+            let getMajorTag = (subName) => {
+                let s = subjectsData.find(x => x.name === subName);
+                return (s && s.majorTag) ? s.majorTag : "ALL";
+            };
+            let targetSubjectGroup = getMajorTag(targetSubject);
             
             let allSubEvents = [];
             
@@ -495,19 +500,13 @@
             for (let e of allSubEvents) {
                 if (ignoreList.includes(e.id)) continue; 
 
+                // Nếu thời gian đụng nhau
                 if (tStart < e.endMs && tEnd > e.startMs) {
                     let eOrientNorm = window.normalizeOrient(e.orientation);
-                    
-                    let isSameSubjectAndClass = (e.class === targetClass && e.subject === targetSubject);
-                    let isDifferentSpecificOrient = (eOrientNorm !== 'CHUNG' && targetOrientNorm !== 'CHUNG' && eOrientNorm !== targetOrientNorm);
-
-                    if (isSameSubjectAndClass && isDifferentSpecificOrient && e.type !== 'self_declared') {
-                        continue; 
-                    }
-
-                    // Format 24 giờ cho bảng thông báo trùng lịch
+                    let eSubjectGroup = getMajorTag(e.subject);
                     let timeRangeStr = `${new Date(e.start).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12: false})} - ${new Date(e.end || e.startMs + 4 * 3600000).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12: false})} (${new Date(e.start).toLocaleDateString('vi-VN')})`;
 
+                    // 1. Kiểm tra trùng phòng học
                     if (targetRoom && e.room && targetRoom !== 'Khác...' && targetRoom !== 'OTHER' && e.room === targetRoom && e.type !== 'self_declared') {
                         return { 
                             hasOverlap: true, 
@@ -519,22 +518,37 @@
                         };
                     }
 
+                    // 2. Kiểm tra trùng lịch của CÙNG MỘT LỚP
                     if (e.class === targetClass && blockingTasks.includes(targetTask) && blockingTasks.includes(e.task) && e.type !== 'self_declared') {
-                        return { 
-                            hasOverlap: true, 
-                            reason: `Lớp ${targetClass} đã có lịch học/thi khác vào khung giờ này.`,
-                            conflictClass: e.class,
-                            conflictSubject: e.subject,
-                            conflictGV: e.gv || 'Chưa rõ',
-                            timeRange: timeRangeStr
-                        };
+                        
+                        let isSameSubject = (e.subject === targetSubject);
+                        let isDifferentSpecificOrient = (eOrientNorm !== 'CHUNG' && targetOrientNorm !== 'CHUNG' && eOrientNorm !== targetOrientNorm);
+                        let isDifferentMajor = (eSubjectGroup !== "ALL" && targetSubjectGroup !== "ALL" && eSubjectGroup !== targetSubjectGroup);
+                        
+                        if (isSameSubject && isDifferentSpecificOrient) {
+                            // Không làm gì, để nó pass qua (Khác định hướng NC/UD được học song song)
+                        } 
+                        else if (isDifferentMajor) {
+                            // Không làm gì, để nó pass qua (Khác chuyên ngành VLTL/HĐTL/NNTL được học song song)
+                        }
+                        else {
+                            // Trùng lớp, trùng hệ/chuyên ngành -> CHẶN
+                            return { 
+                                hasOverlap: true, 
+                                reason: `Lớp ${targetClass} đã có lịch học/thi khác vào khung giờ này.`,
+                                conflictClass: e.class,
+                                conflictSubject: e.subject,
+                                conflictGV: e.gv || 'Chưa rõ',
+                                timeRange: timeRangeStr
+                            };
+                        }
                     }
                     
+                    // 3. Kiểm tra Giảng viên (Có bị bận hay trùng lịch nơi khác không)
                     let targetGVs = gvStr ? gvStr.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
                     let eGVs = e.gv ? e.gv.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
                     let hasCommonGV = targetGVs.some(gv => eGVs.includes(gv));
 
-                    // NẾU GIẢNG VIÊN ĐÃ CÓ LỊCH KHAI BÁO BẬN THÌ CHẶN LẠI NGAY LẬP TỨC
                     if (hasCommonGV) {
                         if (e.type === 'self_declared') {
                             return { 
@@ -576,7 +590,6 @@
                    pad(date.getSeconds());
         }
 
-        // --- HÀM XUẤT FILE WORD BÁO CÁO TUẦN HIỆN TẠI ---
         window.exportWeeklyReport = () => {
             if (!calendar) return;
             
@@ -591,7 +604,6 @@
             events.forEach(e => {
                 if (e.extendedProps && e.extendedProps.type === 'grouped_normal') {
                     e.extendedProps.events.forEach(subEv => {
-                        // CHẶN: Không xuất lịch Tự Khai Báo vào file báo cáo Word Giảng dạy
                         if (subEv.type === 'self_declared') return;
 
                         let evStart = new Date(subEv.start);
@@ -672,10 +684,7 @@
                 </html>
             `;
             
-            let blob = new Blob(['\ufeff', htmlContent], {
-                type: 'application/msword'
-            });
-            
+            let blob = new Blob(['\ufeff', htmlContent], { type: 'application/msword' });
             let downloadLink = document.createElement("a");
             document.body.appendChild(downloadLink);
             
@@ -690,7 +699,6 @@
                 downloadLink.click();
             }
             document.body.removeChild(downloadLink);
-            
             showToast("Đã xuất file Word báo cáo tuần thành công!");
         };
 
@@ -727,23 +735,15 @@
                         d.id = d.id || doc.id;
                         if (typeof d.orientations === 'string') {
                             d.orientations = d.orientations.split(',').map(s => s.trim()).filter(s => s);
-                        } else if (!d.orientations) {
-                            d.orientations = [];
-                        }
+                        } else if (!d.orientations) d.orientations = [];
                         
                         let grp = d.group || '';
                         let match = grp.match(/\(([^)]+)\)/);
-                        if (grp.includes("TỰ CHỌN") && match) {
-                            d.majorTag = match[1].trim();
-                        } else if (grp.includes("Vật lý trị liệu")) {
-                            d.majorTag = "Vật lý trị liệu";
-                        } else if (grp.includes("Hoạt động trị liệu")) {
-                            d.majorTag = "Hoạt động trị liệu";
-                        } else if (grp.includes("Ngôn ngữ trị liệu")) {
-                            d.majorTag = "Ngôn ngữ trị liệu";
-                        } else {
-                            d.majorTag = "ALL";
-                        }
+                        if (grp.includes("TỰ CHỌN") && match) d.majorTag = match[1].trim();
+                        else if (grp.includes("Vật lý trị liệu")) d.majorTag = "Vật lý trị liệu";
+                        else if (grp.includes("Hoạt động trị liệu")) d.majorTag = "Hoạt động trị liệu";
+                        else if (grp.includes("Ngôn ngữ trị liệu")) d.majorTag = "Ngôn ngữ trị liệu";
+                        else d.majorTag = "ALL";
 
                         let shortMajor = d.majorTag;
                         if (d.majorTag === "Vật lý trị liệu") shortMajor = "VLTL";
@@ -753,26 +753,16 @@
                         if(shortMajor !== 'ALL') tempMajors.add(shortMajor);
 
                         if (d.class) {
-                            if (Array.isArray(d.class)) {
-                                d.classArray = d.class.map(c => c.trim());
-                            } else if (typeof d.class === 'string') {
-                                d.classArray = d.class.split(',').map(c => c.trim());
-                            } else {
-                                d.classArray = [String(d.class).trim()];
-                            }
-                        } else {
-                            d.classArray = ['Chưa rõ'];
-                        }
+                            if (Array.isArray(d.class)) d.classArray = d.class.map(c => c.trim());
+                            else if (typeof d.class === 'string') d.classArray = d.class.split(',').map(c => c.trim());
+                            else d.classArray = [String(d.class).trim()];
+                        } else d.classArray = ['Chưa rõ'];
 
-                        d.classArray.forEach(c => {
-                            if(c !== 'Chưa rõ') tempClasses.add(c);
-                        });
-
+                        d.classArray.forEach(c => { if(c !== 'Chưa rõ') tempClasses.add(c); });
                         subjectsData.push(d);
                     });
 
                     managedClasses = Array.from(tempClasses).sort((a,b) => b.localeCompare(a));
-                    
                     if (isRestrictedUser) {
                         managedClasses = managedClasses.filter(c => c === 'THS2026' || c === 'THS2026-ĐỢT 1' || c === 'THS2026-ĐỢT 2');
                     }
@@ -780,9 +770,7 @@
                     const calClassSelect = document.getElementById('calendarClassFilter');
                     const poolClassSelect = document.getElementById('poolClassFilter');
                     let classHtml = '<option value="ALL">Tất cả Lớp</option>';
-                    managedClasses.forEach(c => {
-                        classHtml += `<option value="${c}">${c}</option>`;
-                    });
+                    managedClasses.forEach(c => { classHtml += `<option value="${c}">${c}</option>`; });
                     if(calClassSelect) calClassSelect.innerHTML = classHtml;
                     if(poolClassSelect) {
                         poolClassSelect.innerHTML = classHtml;
@@ -934,7 +922,6 @@
                             
                             let isSelfDeclared = e.type === 'self_declared';
 
-                            // CSS Nổi bật nếu là lịch Tự Khai Báo
                             if (isSelfDeclared) {
                                 return `
                                 <div class="evt-item" style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed rgba(139, 92, 246, 0.2); text-align: left; line-height: 1.4;">
@@ -955,7 +942,6 @@
                                 orientHtml = `<div style="font-size: 0.75rem; color: #d97706; margin-bottom: 4px; font-weight:600;"><i class="fas fa-users" style="width:14px; text-align:center; margin-right:4px;"></i>Học chung (NC & UD)</div>`;
                             }
 
-                            // Dynamic Tag Color
                             let classColorStyle = window.getClassColor(e.class);
                             let classBadge = `<div style="margin-bottom: 4px;"><span style="display:inline-block; padding:2px 6px; border-radius:3px; font-size:0.7rem; font-weight:bold; ${classColorStyle}">${e.class}</span></div>`;
 
@@ -1121,7 +1107,6 @@
                             let isSelfDeclared = e.type === 'self_declared';
                             let canDelete = isCalendarAdmin && (e.scheduledByEmail === currentUserEmail || currentUserEmail === 'hoangtran1483@gmail.com');
                             
-                            // Không hiện nút xóa đối với sự kiện tự khai báo trên modal này
                             let delBtn = (canDelete && !isSelfDeclared) ? `<button class="btn-danger" style="padding:4px 10px; font-size:0.8rem;" onclick="deleteSubEvent('${e.id}')"><i class="fas fa-trash"></i> Xóa</button>` : '';
 
                             if (isSelfDeclared) {
@@ -1134,7 +1119,7 @@
                                     <p style="margin:0; font-size:0.8rem; color:#94a3b8; font-style:italic;">Xếp bởi: ${e.scheduledByName || 'Hệ thống'}</p>
                                 </div>
                                 `;
-                                return; // Bỏ qua phần render bên dưới
+                                return; 
                             }
 
                             let eNorm = window.normalizeOrient(e.orientation);
@@ -1394,7 +1379,6 @@
                         
                         asgData.allocations.forEach(a => {
                             const totalAssigned = parseInt(a.assigned) || 0;
-                            // Cập nhật tính năng gộp thông minh: Đã bỏ actualOrient khỏi mapKey
                             const mapKey = `${sub.id}_${a.gv}_${a.task}_${clsMatch}`;
                             
                             if (!rawTaskMap.has(mapKey)) {
@@ -1436,7 +1420,6 @@
                         let onlyNC = remNC - shared;
                         let onlyUD = remUD - shared;
 
-                        // Tính năng thông minh: Nếu tổng số buổi của NC và UD ban đầu không giống nhau thì không gộp
                         if (data.totalNC !== data.totalUD) {
                             shared = 0;
                             onlyNC = remNC;
