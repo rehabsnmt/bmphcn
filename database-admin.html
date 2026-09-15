@@ -60,6 +60,7 @@
         .toast { min-width: 250px; background-color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: 0.4s; font-weight: 600; border-left: 5px solid #22c55e; opacity: 0; pointer-events: auto; }
         .toast.show { transform: translateX(0); opacity: 1; }
         .toast.danger { border-left-color: #ef4444; }
+        .toast.warning { border-left-color: #f59e0b; }
 
         @media (max-width: 768px) {
             .toolbar { flex-direction: column; align-items: flex-start; }
@@ -80,7 +81,7 @@
         <div class="page-header">
             <h2><i class="fas fa-database"></i> Quản Trị CSDL Nâng Cao</h2>
             <div style="font-size: 0.9rem; color: #64748b;">
-                <i class="fas fa-info-circle"></i> Click tiêu đề để <b>Sắp xếp/Lọc</b>. Kéo thả tiêu đề để <b>Dời Cột</b>. Chuột phải để <b>Chèn, Xóa</b>.
+                <i class="fas fa-info-circle"></i> Click tiêu đề để <b>Bôi đen Cột</b>. Dùng Menu (▼) để <b>Lọc/Sắp xếp</b>. Kéo thả góc ô để copy nhanh.
             </div>
         </div>
 
@@ -152,8 +153,8 @@
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
-            let icon = type === 'danger' ? 'fa-exclamation-triangle' : 'fa-check-circle';
-            toast.innerHTML = `<i class="fas ${icon}" style="font-size: 1.2rem; color: ${type==='danger'?'#ef4444':'#22c55e'};"></i> <span>${message}</span>`;
+            let icon = type === 'danger' ? 'fa-exclamation-triangle' : (type === 'warning' ? 'fa-exclamation-circle' : 'fa-check-circle');
+            toast.innerHTML = `<i class="fas ${icon}" style="font-size: 1.2rem; color: ${type==='danger'?'#ef4444':(type==='warning'?'#f59e0b':'#22c55e')};"></i> <span>${message}</span>`;
             container.appendChild(toast);
             setTimeout(() => toast.classList.add('show'), 10);
             setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
@@ -172,6 +173,25 @@
                 window.location.href = "login.html";
             }
         });
+
+        // ----------------------------------------------------
+        // HÀM SO SÁNH OBJECT ĐỂ PHÁT HIỆN SỰ THAY ĐỔI DỮ LIỆU
+        // ----------------------------------------------------
+        const isObjectEqual = (obj1, obj2) => {
+            const clean1 = {};
+            const clean2 = {};
+            // Lọc bỏ các thuộc tính null, undefined hoặc rỗng để so sánh chính xác
+            for (let k in obj1) { if (obj1[k] !== null && obj1[k] !== '' && obj1[k] !== undefined) clean1[k] = obj1[k]; }
+            for (let k in obj2) { if (obj2[k] !== null && obj2[k] !== '' && obj2[k] !== undefined) clean2[k] = obj2[k]; }
+            
+            let keys1 = Object.keys(clean1);
+            let keys2 = Object.keys(clean2);
+            if (keys1.length !== keys2.length) return false;
+            for (let key of keys1) {
+                if (JSON.stringify(clean1[key]) !== JSON.stringify(clean2[key])) return false;
+            }
+            return true;
+        };
 
         // ----------------------------------------------------
         // 1. TẢI DỮ LIỆU LÊN BẢNG HANDSONTABLE
@@ -199,10 +219,12 @@
                 const snap = await getDocs(collection(db, col));
                 let rawDocs = [];
                 let keySet = new Set();
+                window.originalDataMap = new Map(); // LƯU TRỮ DỮ LIỆU GỐC ĐỂ SO SÁNH
                 
                 snap.forEach(d => {
                     let data = d.data();
                     rawDocs.push({ _docId: d.id, ...data });
+                    window.originalDataMap.set(d.id, data); // Lưu object thô
                     Object.keys(data).forEach(k => keySet.add(k));
                 });
 
@@ -230,45 +252,97 @@
                     rowHeaders: true, 
                     manualColumnResize: true,
                     manualRowResize: true,
-                    manualColumnMove: true, // TÍNH NĂNG KÉO THẢ DỜI CỘT
+                    manualColumnMove: true, 
+                    manualRowMove: true, // Thêm dời hàng
                     undo: true,
                     width: '100%',
                     height: '100%',
                     licenseKey: 'non-commercial-and-evaluation',
                     
-                    dropdownMenu: true,
                     filters: true,
                     
+                    // --- ĐIỀU CHỈNH GIAO DIỆN GIỐNG EXCEL NHẤT ---
+                    fillHandle: true, // Kéo góc phải dưới để copy hàng loạt
+                    outsideClickDeselects: false, // Bấm ra ngoài không bị mất bôi đen
+                    
+                    // --- SỬA LỖI TỰ ĐỘNG SORT BẰNG CÁCH CHUẨN HÓA LOGIC COMPARE ---
                     columnSorting: {
+                        indicator: true,
+                        headerAction: false, // TẮT TỰ ĐỘNG SORT KHI BẤM VÀO TÊN CỘT
                         compareFunctionFactory: function(sortOrder, columnMeta) {
                             return function(value, nextValue) {
                                 if (value === nextValue) return 0;
                                 if (value === '' || value === null || value === undefined) return 1; 
                                 if (nextValue === '' || nextValue === null || nextValue === undefined) return -1;
                                 
+                                // Ép kiểu thử sang số nếu nó là chuỗi chứa toàn số
+                                let isNum1 = !isNaN(value) && !isNaN(parseFloat(value));
+                                let isNum2 = !isNaN(nextValue) && !isNaN(parseFloat(nextValue));
+
+                                // Nếu cả 2 đều là số nguyên hoặc số thực thì tiến hành so sánh Numeric chuẩn
+                                if (isNum1 && isNum2) {
+                                    let num1 = parseFloat(value);
+                                    let num2 = parseFloat(nextValue);
+                                    if (num1 < num2) return sortOrder === 'asc' ? -1 : 1;
+                                    if (num1 > num2) return sortOrder === 'asc' ? 1 : -1;
+                                    return 0;
+                                }
+                                
+                                // Nếu là chuỗi, dùng localeCompare với tham số numeric: true để xếp "A2" trước "A11"
                                 let str1 = String(value);
                                 let str2 = String(nextValue);
-                                
                                 let result = str1.localeCompare(str2, undefined, {numeric: true, sensitivity: 'base'});
                                 return sortOrder === 'asc' ? result : -result;
                             };
                         }
                     },
+                    
+                    // --- ĐIỀU CHỈNH MENU DROPDOWN CHO SORT/LỌC ---
+                    dropdownMenu: [
+                        'filter_by_condition',
+                        'filter_operators',
+                        'filter_by_condition2',
+                        'filter_by_value',
+                        'filter_action_bar',
+                        '---------',
+                        {
+                            name: '<b><i class="fas fa-sort-amount-down-alt" style="color:var(--primary); margin-right:5px;"></i> Sắp xếp (Nhỏ → Lớn / A → Z)</b>',
+                            key: 'sort_asc',
+                            callback: function(key, selection) {
+                                let col = selection[0].start.col;
+                                this.getPlugin('columnSorting').sort({ column: col, sortOrder: 'asc' });
+                            }
+                        },
+                        {
+                            name: '<b><i class="fas fa-sort-amount-up" style="color:var(--primary); margin-right:5px;"></i> Sắp xếp (Lớn → Nhỏ / Z → A)</b>',
+                            key: 'sort_desc',
+                            callback: function(key, selection) {
+                                let col = selection[0].start.col;
+                                this.getPlugin('columnSorting').sort({ column: col, sortOrder: 'desc' });
+                            }
+                        },
+                        {
+                            name: '<b><i class="fas fa-ban" style="color:#ef4444; margin-right:5px;"></i> Bỏ sắp xếp</b>',
+                            key: 'clear_sort',
+                            callback: function(key, selection) {
+                                this.getPlugin('columnSorting').clearSort();
+                            }
+                        }
+                    ],
 
                     contextMenu: {
                         items: {
-                            "row_above": { name: '<i class="fas fa-arrow-up"></i> Chèn hàng lên trên' },
-                            "row_below": { name: '<i class="fas fa-arrow-down"></i> Chèn hàng xuống dưới' },
-                            "col_left": { name: '<i class="fas fa-arrow-left"></i> Chèn cột sang trái' },
-                            "col_right": { name: '<i class="fas fa-arrow-right"></i> Chèn cột sang phải' },
+                            "row_above": { name: '<i class="fas fa-arrow-up" style="margin-right:5px; color:#64748b"></i> Chèn hàng lên trên' },
+                            "row_below": { name: '<i class="fas fa-arrow-down" style="margin-right:5px; color:#64748b"></i> Chèn hàng xuống dưới' },
+                            "col_left": { name: '<i class="fas fa-arrow-left" style="margin-right:5px; color:#64748b"></i> Chèn cột sang trái' },
+                            "col_right": { name: '<i class="fas fa-arrow-right" style="margin-right:5px; color:#64748b"></i> Chèn cột sang phải' },
                             "hsep1": "---------",
-                            "remove_row": { name: '<i class="fas fa-trash" style="color:red;"></i> Xóa hàng' },
-                            "remove_col": { name: '<i class="fas fa-times" style="color:red;"></i> Xóa cột' },
+                            "remove_row": { name: '<i class="fas fa-trash" style="color:#ef4444; margin-right:5px;"></i> <b>Xóa hàng</b>' },
+                            "remove_col": { name: '<i class="fas fa-times" style="color:#ef4444; margin-right:5px;"></i> <b>Xóa cột</b>' },
                             "hsep2": "---------",
                             "rename_col": {
-                                name: '<i class="fas fa-edit"></i> <b>Đổi Tên Cột (Key)</b>',
+                                name: '<i class="fas fa-edit" style="color:#f59e0b; margin-right:5px;"></i> <b>Đổi Tên Cột (Key)</b>',
                                 callback: function(key, selection) {
-                                    // Lấy index thật của cột (sau khi bị người dùng kéo thả dời vị trí)
                                     let physicalCol = this.toPhysicalColumn(selection[0].start.col);
                                     if (headers[physicalCol] === '_docId') {
                                         alert("Không thể đổi tên cột khóa chính (_docId)!");
@@ -284,13 +358,12 @@
                                 }
                             },
                             "hsep3": "---------",
-                            "undo": { name: '<i class="fas fa-undo"></i> Hoàn tác (Undo)' },
-                            "redo": { name: '<i class="fas fa-redo"></i> Làm lại (Redo)' }
+                            "undo": { name: '<i class="fas fa-undo" style="margin-right:5px;"></i> Hoàn tác (Undo)' },
+                            "redo": { name: '<i class="fas fa-redo" style="margin-right:5px;"></i> Làm lại (Redo)' }
                         }
                     },
                     cells: function(row, col) {
                         let cellProperties = {};
-                        // Luôn khóa cột chứa _docId dù nó bị kéo dời đi đâu
                         let physicalCol = this.instance.toPhysicalColumn(col);
                         if (headers[physicalCol] === '_docId') {
                             cellProperties.readOnly = true;
@@ -317,79 +390,115 @@
         };
 
         // ----------------------------------------------------
-        // 2. LƯU TOÀN BỘ THAY ĐỔI LÊN FIREBASE
+        // 2. THUẬT TOÁN AN TOÀN ĐỂ LƯU THAY ĐỔI
         // ----------------------------------------------------
         window.saveData = async () => {
             if(!hotInstance) {
                 showToast("Chưa có bảng nào được tải!", "danger");
                 return;
             }
-            if(!confirm(`Lưu ý: Hành động này sẽ CẬP NHẬT hàng đã sửa, THÊM hàng mới và XÓA các hàng bạn đã xóa trên Excel. Xác nhận lưu lên Firebase?`)){
+
+            const data = hotInstance.getData();
+            let currentIds = [];
+            let toAdd = [];
+            let toUpdate = [];
+
+            let docIdIndex = headers.indexOf('_docId');
+
+            // Cảnh báo nếu nhập Excel làm mất cột Khóa chính
+            if (docIdIndex === -1 && originalIds.length > 0) {
+                if (!confirm("BẢO MẬT: Bảng hiện tại đang bị thiếu cột khóa chính (_docId). Nếu lưu, hệ thống sẽ XÓA TOÀN BỘ dữ liệu cũ và coi tất cả các dòng hiện tại là dữ liệu được THÊM MỚI. Bạn có chắc chắn muốn GHI ĐÈ không?")) {
+                    return;
+                }
+            }
+
+            for (let r = 0; r < data.length; r++) {
+                let row = data[r];
+                let isEmpty = row.every(cell => cell === null || cell === '');
+                if (isEmpty) continue;
+
+                let docId = docIdIndex !== -1 ? row[docIdIndex] : null;
+                let docData = {};
+
+                for (let c = 0; c < headers.length; c++) {
+                    if (headers[c] === '_docId') continue;
+
+                    let key = headers[c];
+                    let val = row[c];
+                    
+                    // Chỉ lọc và lưu các trường có giá trị thực tế
+                    if (val !== null && val !== '') {
+                        if (val === 'true') val = true;
+                        else if (val === 'false') val = false;
+                        else if (!isNaN(val) && val !== '') val = Number(val);
+                        else {
+                            try {
+                                let parsed = JSON.parse(val);
+                                if (typeof parsed === 'object') val = parsed;
+                            } catch(e) {}
+                        }
+                        docData[key] = val;
+                    }
+                }
+
+                if (docId) {
+                    currentIds.push(docId);
+                    let origData = window.originalDataMap.get(docId);
+                    
+                    // Chỉ thêm vào list toUpdate nếu thực sự có sự thay đổi
+                    if (!isObjectEqual(origData, docData)) {
+                        toUpdate.push({id: docId, data: docData});
+                    }
+                } else {
+                    toAdd.push({data: docData});
+                }
+            }
+
+            // Mọi ID cũ mà không còn xuất hiện trong Data hiện tại thì xem như bị xóa
+            let toDelete = originalIds.filter(id => !currentIds.includes(id));
+
+            if (toAdd.length === 0 && toUpdate.length === 0 && toDelete.length === 0) {
+                showToast("Không có thao tác nào được thay đổi so với dữ liệu gốc!", "warning");
                 return;
             }
 
-            // getData() lấy theo thứ tự cột vật lý (physical) của Array gốc, 
-            // KHÔNG bị ảnh hưởng bởi tính năng kéo thả dời cột của UI
-            const data = hotInstance.getData();
-            let currentIds = [];
+            // HIỂN THỊ TÓM TẮT THAO TÁC RÕ RÀNG
+            let confirmMsg = `TỔNG HỢP THAY ĐỔI BẢNG [${currentCollection.toUpperCase()}]:\n`;
+            confirmMsg += `------------------------------------\n`;
+            if (toAdd.length > 0) confirmMsg += `+ THÊM MỚI: ${toAdd.length} dòng\n`;
+            if (toUpdate.length > 0) confirmMsg += `~ CẬP NHẬT: ${toUpdate.length} dòng\n`;
+            if (toDelete.length > 0) confirmMsg += `- XÓA BỎ: ${toDelete.length} dòng\n`;
+            confirmMsg += `------------------------------------\n`;
+
+            if (toDelete.length > 0) {
+                let userInput = prompt(confirmMsg + `\nCẢNH BÁO BẢO MẬT: Có ${toDelete.length} dòng dữ liệu sắp bị xóa vĩnh viễn khỏi Database.\nĐể đảm bảo an toàn, vui lòng gõ chữ "XOA" (không dấu) vào đây để xác nhận tiếp tục:`);
+                if (userInput !== "XOA") {
+                    showToast("Đã hủy thao tác lưu do xác nhận bảo mật không đúng.", "danger");
+                    return;
+                }
+            } else {
+                if (!confirm(confirmMsg + "\nCác thao tác này không thể hoàn tác. Bạn có chắc chắn muốn lưu lên Firebase?")) {
+                    return;
+                }
+            }
+
+            // Đẩy dữ liệu lên Firebase
             let promises = [];
-            let countAdd = 0, countUpdate = 0;
-
+            
             try {
-                for (let r = 0; r < data.length; r++) {
-                    let row = data[r];
-                    let isEmpty = row.every(cell => cell === null || cell === '');
-                    if (isEmpty) continue;
-
-                    // Header và Row đang đồng bộ index vật lý
-                    let docIdIndex = headers.indexOf('_docId');
-                    let docId = docIdIndex !== -1 ? row[docIdIndex] : null;
-                    
-                    let docData = {};
-
-                    for (let c = 0; c < headers.length; c++) {
-                        if (headers[c] === '_docId') continue;
-
-                        let key = headers[c];
-                        let val = row[c];
-                        if (val !== null && val !== '') {
-                            if (val === 'true') val = true;
-                            else if (val === 'false') val = false;
-                            else if (!isNaN(val) && val !== '') val = Number(val);
-                            else {
-                                try {
-                                    let parsed = JSON.parse(val);
-                                    if (typeof parsed === 'object') val = parsed;
-                                } catch(e) {}
-                            }
-                            docData[key] = val;
-                        }
-                    }
-
-                    if (docId) {
-                        currentIds.push(docId);
-                        promises.push(setDoc(doc(db, currentCollection, docId), docData));
-                        countUpdate++;
-                    } else {
-                        let newDocRef = doc(collection(db, currentCollection));
-                        promises.push(setDoc(newDocRef, docData));
-                        currentIds.push(newDocRef.id);
-                        countAdd++;
-                    }
-                }
-
-                let deletedIds = originalIds.filter(id => !currentIds.includes(id));
-                for (let id of deletedIds) {
-                    promises.push(deleteDoc(doc(db, currentCollection, id)));
-                }
+                toUpdate.forEach(item => promises.push(setDoc(doc(db, currentCollection, item.id), item.data)));
+                toAdd.forEach(item => {
+                    let newDocRef = doc(collection(db, currentCollection));
+                    promises.push(setDoc(newDocRef, item.data));
+                });
+                toDelete.forEach(id => promises.push(deleteDoc(doc(db, currentCollection, id))));
 
                 await Promise.all(promises);
-                showToast(`Lưu DB thành công! (Mới: ${countAdd}, Sửa: ${countUpdate}, Xóa: ${deletedIds.length})`);
+                showToast(`Lưu thành công! Đã thêm ${toAdd.length}, Sửa ${toUpdate.length}, Xóa ${toDelete.length} dòng.`, "success");
                 
-                loadData(); 
-
+                loadData(); // Tải lại bảng để reset originalIds và originalDataMap
             } catch(e) {
-                showToast("Lỗi trong quá trình lưu: " + e.message, "danger");
+                showToast("Lỗi trong quá trình lưu dữ liệu: " + e.message, "danger");
             }
         };
 
@@ -431,7 +540,7 @@
 
         window.importTableFromExcel = (event) => {
             if(!currentCollection || !hotInstance) { 
-                showToast("Vui lòng tải hoặc chọn 1 bảng trước khi nhập Excel!", "danger"); 
+                showToast("Vui lòng tải hoặc chọn 1 bảng trước khi nhập Excel!", "warning"); 
                 return; 
             }
             const file = event.target.files[0];
@@ -444,7 +553,6 @@
                 const firstSheetName = workbook.SheetNames[0];
                 const worksheet = workbook.Sheets[firstSheetName];
                 
-                // Trích xuất thành Array of Arrays (Hàng đầu tiên là Header)
                 const json = XLSX.utils.sheet_to_json(worksheet, {header: 1, defval: ""}); 
 
                 if (json.length === 0) { 
@@ -503,7 +611,7 @@
             const file = event.target.files[0];
             if (!file) return;
 
-            if (!confirm(`CẢNH BÁO TỐI CAO: Khôi phục từ file [${file.name}] sẽ ghi đè toàn bộ các bảng trong CSDL. Bạn có chắc không?`)) {
+            if (!confirm(`CẢNH BÁO TỐI CAO: Khôi phục từ file [${file.name}] sẽ GHI ĐÈ toàn bộ các bảng trong CSDL. Bạn có chắc không?`)) {
                 event.target.value = ''; 
                 return;
             }
