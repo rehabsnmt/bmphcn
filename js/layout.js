@@ -12,26 +12,16 @@ function initLayout() {
     const headerHTML = `
         <style>
             /* Cố định phần chứa Header */
-            #header-placeholder {
-                position: sticky;
-                top: 0;
-                z-index: 1000;
-            }
+            #header-placeholder { position: sticky; top: 0; z-index: 1000; }
 
             /* Cố định thẻ header và thêm hiệu ứng mượt mà */
             header {
-                position: sticky;
-                top: 0;
-                z-index: 1000;
+                position: sticky; top: 0; z-index: 1000;
                 background: rgba(255, 255, 255, 0.95);
-                backdrop-filter: blur(10px);
-                -webkit-backdrop-filter: blur(10px);
+                backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
                 transition: box-shadow 0.3s ease, background-color 0.3s ease;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 1rem 5%;
-                gap: clamp(1rem, 2vw, 3rem); /* Co giãn khoảng cách giữa Logo và Menu */
+                display: flex; justify-content: space-between; align-items: center;
+                padding: 1rem 5%; gap: clamp(1rem, 2vw, 3rem);
             }
 
             /* Đổ bóng tự động khi cuộn trang xuống */
@@ -40,104 +30,43 @@ function initLayout() {
                 background: rgba(255, 255, 255, 0.98);
             }
 
-            /* LOGO & CHỮ: Kỹ thuật Typography căn đều 2 bên hoàn hảo */
-            .logo-link {
-                display: flex;
-                align-items: center;
-                gap: 15px;
-                text-decoration: none;
-                cursor: pointer;
-                flex-shrink: 1; /* Cho phép co lại nếu cần */
-            }
+            .logo-link { display: flex; align-items: center; gap: 15px; text-decoration: none; cursor: pointer; flex-shrink: 1; }
+            .logo img { height: 48px; width: auto; object-fit: contain; flex-shrink: 0; }
+            
+            .logo-text { display: flex; flex-direction: column; justify-content: center; width: max-content; }
+            .logo-text div { text-align: justify; text-align-last: justify; width: 100%; }
 
-            .logo img {
-                height: 48px;
-                width: auto;
-                object-fit: contain;
-                flex-shrink: 0;
-            }
-
-            .logo-text {
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                width: max-content; /* Chiều ngang ăn theo dòng dài nhất (Dòng 3) */
-            }
-
-            .logo-text div {
-                text-align: justify;
-                text-align-last: justify; /* Lệnh thần thánh: Ép các chữ giãn đều ra 2 sát mép */
-                width: 100%;
-            }
-
-            /* Tinh chỉnh size chữ để các dòng có độ dài tự nhiên gần bằng nhau, giúp khoảng trắng giãn ra đẹp hơn */
             #logo-line-1 { font-weight: 700; color: var(--text-dark); font-size: 1.15rem; }
             #logo-line-2 { font-weight: 600; color: var(--text-body); font-size: 0.88rem; margin-top: 2px; }
             #logo-line-3 { font-weight: 500; color: var(--text-body); font-size: 0.8rem; margin-top: 2px; }
 
-            /* MENU ĐIỀU HƯỚNG */
-            .nav-links {
-                display: flex;
-                align-items: center;
-                gap: clamp(0.5rem, 1.5vw, 2.5rem); /* Co giãn khoảng cách menu linh hoạt */
-                flex-shrink: 0;
-            }
-
+            .nav-links { display: flex; align-items: center; gap: clamp(0.5rem, 1.5vw, 2.5rem); flex-shrink: 0; }
             .nav-item {
-                text-decoration: none;
-                color: var(--text-body);
-                font-weight: 500;
-                font-size: clamp(0.85rem, 1vw, 0.95rem);
-                transition: var(--transition);
-                position: relative;
-                padding: 0.5rem 0;
-                white-space: nowrap; /* SỬA LỖI: Cấm tuyệt đối việc "Giới thiệu" bị bẻ xuống 2 dòng */
+                text-decoration: none; color: var(--text-body); font-weight: 500;
+                font-size: clamp(0.85rem, 1vw, 0.95rem); transition: var(--transition);
+                position: relative; padding: 0.5rem 0; white-space: nowrap; 
             }
-
             .nav-item::after {
-                content: '';
-                position: absolute;
-                width: 0;
-                height: 2px;
-                bottom: 0;
-                left: 0;
-                background-color: var(--primary);
-                transition: var(--transition);
-                border-radius: 2px;
+                content: ''; position: absolute; width: 0; height: 2px; bottom: 0; left: 0;
+                background-color: var(--primary); transition: var(--transition); border-radius: 2px;
             }
-
             .nav-item:hover { color: var(--text-dark); }
             .nav-item:hover::after { width: 100%; }
 
             .menu-toggle { display: none; font-size: 1.5rem; color: var(--text-dark); cursor: pointer; }
 
-            /* NÚT ĐĂNG NHẬP */
             .btn-login {
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                background-color: var(--primary);
-                color: white;
-                padding: 0.6rem 1.2rem;
-                border-radius: 50px;
-                font-weight: 500;
-                font-size: clamp(0.8rem, 1vw, 0.9rem);
-                text-decoration: none;
-                border: none;
-                white-space: nowrap;
-                transition: var(--transition);
+                display: inline-flex; align-items: center; justify-content: center;
+                background-color: var(--primary); color: white; padding: 0.6rem 1.2rem;
+                border-radius: 50px; font-weight: 500; font-size: clamp(0.8rem, 1vw, 0.9rem);
+                text-decoration: none; border: none; white-space: nowrap; transition: var(--transition);
             }
             .btn-login:hover {
-                background-color: var(--primary-hover);
-                transform: translateY(-1px);
+                background-color: var(--primary-hover); transform: translateY(-1px);
                 box-shadow: 0 4px 12px rgba(2, 132, 199, 0.2);
             }
 
-            /* Responsive: Ẩn chữ logo trên iPad hẹp / Điện thoại để dành chỗ cho Menu */
-            @media (max-width: 1100px) {
-                .logo-text { display: none; } 
-            }
-
+            @media (max-width: 1100px) { .logo-text { display: none; } }
             @media (max-width: 900px) {
                 .menu-toggle { display: block; }
                 .nav-links {
@@ -157,7 +86,6 @@ function initLayout() {
                 <div class="logo">
                     <img src="images/logo_Bộ môn.png" alt="Logo Bộ môn Phục hồi chức năng">
                 </div>
-                <!-- 3 Dòng chữ được phục hồi và căn đều 2 bên (Justify) -->
                 <div class="logo-text">
                     <div id="logo-line-1">Bộ môn Phục hồi chức năng</div>
                     <div id="logo-line-2">Trường Điều dưỡng - Kỹ thuật Y học</div>
@@ -189,7 +117,6 @@ function initLayout() {
         </footer>
     `;
 
-    // Chèn vào DOM
     if (headerPlaceholder) headerPlaceholder.innerHTML = headerHTML;
     if (footerPlaceholder) footerPlaceholder.innerHTML = footerHTML;
 
@@ -226,11 +153,10 @@ function initLayout() {
     });
 
     // ==========================================
-    // 5. FIREBASE AUTH & ĐIỀU HƯỚNG NÚT ĐĂNG XUẤT
+    // 5. FIREBASE AUTH & ĐIỀU HƯỚNG NÚT
     // ==========================================
     const btnAuthNav = document.getElementById('btnAuthNav');
 
-    // Tải đồng thời App, Auth và Firestore để lấy thông tin cá nhân
     Promise.all([
         import('https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js'),
         import('https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js'),
@@ -250,51 +176,59 @@ function initLayout() {
         const db = fsModule.getFirestore(app);
 
         authModule.onAuthStateChanged(auth, async (user) => {
+            
             // ========================================================
-            // TÍNH NĂNG BẢO VỆ TRANG (AUTH GUARD) TRỰC TIẾP
+            // HỆ THỐNG BẢO VỆ TRANG (STRICT AUTH GUARD)
             // ========================================================
-            // Danh sách các trang cho phép khách (chưa đăng nhập) được xem:
-            const publicPages = [
-                'login.html',
-                'tuyen-sinh.html',
-                'tai-nguyen.html',
-                'index.html', 
-                'gioi-thieu.html', 
-                'thong-tin-giang-vien.html',
-                '', 
-                '/'
+            
+            // 1. Danh sách Học viên (Chừa sẵn chỗ để phẩy thêm email sau này)
+            const studentEmails = [
+                'ths.phcn26@ump.edu.vn',
+                // 'nguyenvana@ump.edu.vn', 
+                // 'tranthib@ump.edu.vn'
             ];
             
-            // Danh sách các trang Quản trị (Chỉ dành cho Giảng viên/Admin)
-            const adminPages = [
-                'dashboard.html',
-                'an-ninh.html',
-                'database-admin.html',
-                'gio-giang.html',
-                'lich-ca-nhan.html',
-                'lich-cong-tac.html',
-                'phan-cong-cong-tac.html',
-                'profile.html',
-                'quan-ly-nguoi-hoc.html'
-                'tai-nguyen-koos.html',
-                'thong-bao-ca-nhan.html',
-                // Bạn có thể thêm các trang quản trị khác vào mảng này
-            ];
-            
-            const currentPageName = window.location.pathname.split('/').pop().split('?')[0] || 'index.html';
+            const isStudent = user && studentEmails.includes(user.email.toLowerCase());
 
-            // 1. Chặn khách chưa đăng nhập truy cập các trang nội bộ
-            if (!user && !publicPages.includes(currentPageName)) {
+            // 2. Những trang khách (chưa đăng nhập) được quyền xem
+            const publicPages = [
+                'login.html', 'tuyen-sinh.html', 'tai-nguyen.html', 'index.html', 
+                'gioi-thieu.html', 'thong-tin-giang-vien.html', '', '/'
+            ];
+            
+            // 3. Những TỪ KHÓA thuộc trang Quản trị (Cấm Học viên)
+            const adminKeywords = [
+                'dashboard', 'admin', 'quan-ly'
+            ];
+
+            const fullPath = window.location.pathname.toLowerCase();
+            const currentPageName = fullPath.split('/').pop().split('?')[0] || 'index.html';
+
+            // [LUẬT 1]: KHÁCH LẠ LẠC VÀO TRANG NỘI BỘ -> ĐÁ VỀ LOGIN
+            if (!user && !publicPages.includes(currentPageName) && currentPageName !== '') {
                 alert("Vui lòng đăng nhập để truy cập trang này!");
                 window.location.replace('login.html');
-                return; // Dừng tiến trình
+                return;
             }
 
-            // 2. Chặn tài khoản Học viên truy cập các trang Quản trị
-            if (user && user.email === 'ths.phcn26@ump.edu.vn' && adminPages.includes(currentPageName)) {
-                alert("Tài khoản học viên không có quyền truy cập khu vực quản trị!");
-                window.location.replace('index.html');
-                return; // Dừng tiến trình
+            // [LUẬT 2]: HỌC VIÊN LẠC VÀO TRANG QUẢN TRỊ -> ĐÁ VỀ TRANG CHỦ LẬP TỨC
+            if (isStudent) {
+                // Quét xem đường dẫn hiện tại có chứa từ khóa cấm không
+                const isTryingToAccessAdmin = adminKeywords.some(keyword => fullPath.includes(keyword));
+                
+                if (isTryingToAccessAdmin) {
+                    // Xóa trắng toàn bộ trang ngay lập tức để không lộ dữ liệu
+                    document.body.innerHTML = `
+                        <div style="text-align:center; padding: 100px 20px; font-family:sans-serif;">
+                            <i class="fas fa-ban" style="font-size:4rem; color:#dc2626; margin-bottom:20px;"></i>
+                            <h2 style="color:#dc2626;">TRUY CẬP TỪ CHỐI</h2>
+                            <p>Tài khoản học viên không có quyền truy cập khu vực quản trị.</p>
+                        </div>
+                    `;
+                    alert("Truy cập từ chối! Chuyển hướng về trang chủ.");
+                    window.location.replace('index.html');
+                    return;
+                }
             }
             // ========================================================
 
@@ -302,8 +236,8 @@ function initLayout() {
             if (!btn) return;
 
             if (user) {
-                // Nếu là tài khoản học viên -> Ép hiển thị nút "Đăng xuất" (Chính sách bảo mật)
-                if (user.email === 'ths.phcn26@ump.edu.vn') {
+                // Hiển thị nút "Đăng xuất" cho học viên
+                if (isStudent) {
                     setInterval(() => {
                         if (!btn.innerText.toLowerCase().includes('đăng xuất')) {
                             btn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Đăng xuất';
@@ -312,14 +246,13 @@ function initLayout() {
                         }
                     }, 500);
                 } 
-                // Nếu là tài khoản Ban chủ nhiệm/Giảng viên -> Truy xuất Tên từ DB để hiển thị (KHÔNG KÈM HỌC VỊ)
+                // Hiển thị Tên cho Giảng viên / Ban chủ nhiệm
                 else {
                     try {
                         const userDoc = await fsModule.getDoc(fsModule.doc(db, "users", user.uid));
                         if (userDoc.exists()) {
                             const data = userDoc.data();
-                            let fullName = data.fullName || 'Tài khoản';
-                            btn.innerHTML = `<i class="fas fa-user-circle" style="margin-right:5px;"></i> ${fullName}`;
+                            btn.innerHTML = `<i class="fas fa-user-circle" style="margin-right:5px;"></i> ${data.fullName || 'Tài khoản'}`;
                         } else {
                             btn.innerHTML = `<i class="fas fa-user-circle" style="margin-right:5px;"></i> ${user.email.split('@')[0]}`;
                         }
@@ -334,13 +267,11 @@ function initLayout() {
         });
     }).catch(e => console.log("Bỏ qua kiểm tra auth tĩnh:", e));
 
-    // Xử lý logic khi click vào nút
     if (btnAuthNav) {
         btnAuthNav.addEventListener('click', function(e) {
             e.preventDefault(); 
             const currentText = this.innerText.toLowerCase();
             
-            // Bấm khi đang hiển thị chữ "Đăng xuất" (Áp dụng cho Học viên)
             if (currentText.includes('đăng xuất')) {
                 if(confirm("Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?")) {
                     import('https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js').then((appModule) => {
@@ -349,26 +280,19 @@ function initLayout() {
                             if(app) {
                                 const auth = authModule.getAuth(app);
                                 authModule.signOut(auth).then(() => window.location.href = "login.html");
-                            } else {
-                                window.location.href = "login.html";
-                            }
+                            } else window.location.href = "login.html";
                         });
                     });
                 }
-            } 
-            // Chưa đăng nhập -> Chuyển đến trang Đăng nhập
-            else if (currentText.includes('đăng nhập')) {
+            } else if (currentText.includes('đăng nhập')) {
                 window.location.href = 'login.html';
-            } 
-            // Bấm vào Tên của mình -> Chuyển đến Dashboard Quản trị
-            else {
+            } else {
                 window.location.href = 'dashboard.html';
             }
         });
     }
 }
 
-// BƯỚC QUAN TRỌNG: KIỂM TRA TRẠNG THÁI DOM CHUẨN XÁC
 if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", initLayout);
 } else {
@@ -376,7 +300,7 @@ if (document.readyState === "loading") {
 }
 
 // ==========================================
-// 6. HỆ THỐNG GHI NHẬN NHẬT KÝ TRUY CẬP (ACCESS LOGGER)
+// 6. GHI NHẬN NHẬT KÝ TRUY CẬP (ACCESS LOGGER)
 // ==========================================
 async function recordAccessLog(userEmail = "Khách (Chưa đăng nhập)") {
     try {
@@ -390,17 +314,13 @@ async function recordAccessLog(userEmail = "Khách (Chưa đăng nhập)") {
         let ip = "Không xác định";
         try {
             const ipResponse = await fetch('https://api.ipify.org?format=json');
-            if (ipResponse.ok) {
-                const ipData = await ipResponse.json();
-                ip = ipData.ip;
-            }
+            if (ipResponse.ok) ip = (await ipResponse.json()).ip;
         } catch (e) {}
 
         const lastLogTime = sessionStorage.getItem("lastLogTime");
         const currentPathLog = window.location.pathname.split('/').pop() || 'index.html';
         const now = Date.now();
         
-        // Chống spam log (Mỗi máy chỉ gửi log mỗi 1 phút / 1 trang)
         if (lastLogTime && (now - parseInt(lastLogTime) < 60000)) return;
 
         const logData = {
@@ -413,12 +333,9 @@ async function recordAccessLog(userEmail = "Khách (Chưa đăng nhập)") {
 
         await fsModule.addDoc(fsModule.collection(db, "access_logs"), logData);
         sessionStorage.setItem("lastLogTime", now.toString());
-    } catch (error) {
-        console.error("Logger Error:", error);
-    }
+    } catch (error) {}
 }
 
-// Chạy bộ đếm sau 2s để không làm nghẽn quá trình tải giao diện
 setTimeout(() => {
     import('https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js').then((appModule) => {
         import('https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js').then((authModule) => {
@@ -430,12 +347,8 @@ setTimeout(() => {
                         if (user && user.email) recordAccessLog(user.email);
                         else recordAccessLog("Khách (Chưa đăng nhập)");
                     });
-                } else {
-                    recordAccessLog("Khách (Chưa đăng nhập)");
-                }
-            } catch (e) {
-                recordAccessLog("Khách (Chưa đăng nhập)");
-            }
+                } else recordAccessLog("Khách (Chưa đăng nhập)");
+            } catch (e) { recordAccessLog("Khách (Chưa đăng nhập)"); }
         });
     }).catch(() => recordAccessLog("Khách (Chưa đăng nhập)"));
 }, 2000);
