@@ -20,8 +20,20 @@
 
         /* Bảng Thông báo Đề xuất */
         #pendingProposalsAlert { background: #fffbeb; border: 1px dashed #f59e0b; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-        .pending-chip { background: white; border: 1px solid #facc15; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: #92400e; font-weight: 600; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; text-align: left;}
-        .pending-chip:hover { background: #fef08a; transform: translateY(-2px); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .pending-chip { 
+            background: white; border: 1px solid #facc15; padding: 10px 15px; border-radius: 6px; 
+            cursor: pointer; transition: 0.2s; display: inline-flex; align-items: flex-start; gap: 10px; 
+            text-align: left; min-width: 250px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .pending-chip:hover { background: #fef08a; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.08); }
+        .pending-chip-content { display: flex; flex-direction: column; gap: 4px; }
+        .pending-chip-title { color: var(--primary); font-weight: 700; font-size: 0.95rem; line-height: 1.3; }
+        .pending-chip-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+        .pending-chip-badge { font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
+        .badge-class { background: #e2e8f0; color: #475569; }
+        .badge-credit { background: #dbeafe; color: #1e40af; }
+        .badge-orient-nc { background: #fef08a; color: #b45309; }
+        .badge-orient-ud { background: #e0f2fe; color: #0369a1; }
         
         /* Tabs & Controls */
         .controls-wrapper { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; background: var(--surface); padding: 15px 20px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 20px; gap: 15px; box-shadow: var(--shadow-sm); }
@@ -170,12 +182,12 @@
     <main id="mainContent" class="hidden">
         <div class="header-title-box">
             <h2>PHÂN CÔNG CÔNG TÁC GIẢNG DẠY</h2>
-            <div class="subtitle">CHƯƠNG TRÌNH THẠC SĨ KỸ THUẬT PHỤC HỒI CHỨC NĂNG</div>
+            <div class="subtitle">CHƯƠNG TRÌNH THẠC SĨ VÀ CỬ NHÂN</div>
         </div>
 
-        <!-- KHUNG THÔNG BÁO CHỜ DUYỆT ĐƯỢC TỐI GIẢN -->
+        <!-- KHUNG THÔNG BÁO CHỜ DUYỆT -->
         <div id="pendingProposalsAlert" class="hidden">
-            <h4 style="margin: 0 0 10px 0; color: #b45309; font-size: 1.1rem;"><i class="fas fa-bell"></i> Đề xuất chờ duyệt (<span id="pendingCount">0</span>)</h4>
+            <h4 style="margin: 0 0 10px 0; color: #b45309; font-size: 1.1rem; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">Đề xuất chờ duyệt (<span id="pendingCount">0</span>)</h4>
             <div id="pendingList" style="display: flex; flex-wrap: wrap; gap: 10px;">
                 <!-- Dữ liệu JS đổ vào -->
             </div>
@@ -317,7 +329,7 @@
             </div>
 
             <div id="proposalBanner" class="hidden" style="background: #fefce8; color: #b45309; padding: 10px; border-radius: 6px; border: 1px dashed #facc15; font-weight: bold; margin-bottom: 15px; font-size: 0.9rem;">
-                <i class="fas fa-exclamation-circle"></i> Đang hiển thị Bản đề xuất. Trưởng BM có thể điều chỉnh và bấm "Duyệt".
+                Đang hiển thị Bản đề xuất. Trưởng BM có thể điều chỉnh và bấm "Duyệt".
             </div>
 
             <div id="asgLimits" style="font-size: 0.95rem; color: var(--text-body); margin-bottom: 20px; display: flex; gap: 20px;">
@@ -358,7 +370,7 @@
             </div>
 
             <div id="thesisProposalBanner" class="hidden" style="background: #fefce8; color: #b45309; padding: 10px; border-radius: 6px; border: 1px dashed #facc15; font-weight: bold; margin-bottom: 15px; font-size: 0.9rem;">
-                <i class="fas fa-exclamation-circle"></i> Đang hiển thị Bản đề xuất. Trưởng BM có thể điều chỉnh và bấm "Duyệt".
+                Đang hiển thị Bản đề xuất. Trưởng BM có thể điều chỉnh và bấm "Duyệt".
             </div>
 
             <div style="margin-bottom: 20px; max-width: 300px;">
@@ -420,7 +432,6 @@
             }
 
             const isNotPHCN = (sub.isPHCN === false) || (sub.department && sub.department !== 'Bộ môn Phục hồi chức năng' && sub.department !== 'Bộ môn PHCN');
-
             if (isNotPHCN) return key;
 
             let major = sub.majorTag || 'ALL';
@@ -432,7 +443,6 @@
             return `${key}_${shortMajor}`;
         };
 
-        // Hàm hỗ trợ tạo dbKey cho hệ chéo (khi nhân bản NC/UD)
         const getSiblingDbKey = (sub, cls, orient) => {
             let siblingOrient = orient === 'NC' ? 'UD' : 'NC';
             let key = cls;
@@ -607,7 +617,6 @@
                     filterClassEl.innerHTML = `<option value="ALL">Chưa có dữ liệu</option>`;
                 }
 
-                // Sắp xếp môn học theo thuật toán Natural Sort (ưu tiên giá trị số)
                 subjectsData.sort((a, b) => {
                     let nameA = a.name || "";
                     let nameB = b.name || "";
@@ -619,8 +628,8 @@
                 snapUser.forEach(doc => {
                     const d = doc.data();
                     if(d.fullName) {
-                        let pref = d.degree === 'ThS' ? 'ThS. ' : (d.degree === 'TS' ? 'TS. ' : '');
-                        internalLecturers.push(`${pref}${d.fullName}`);
+                        // KHÔNG KÈM HỌC VỊ VÀO internalLecturers
+                        internalLecturers.push(d.fullName);
                     }
                 });
                 
@@ -679,10 +688,10 @@
                 let htmlList = [];
                 for (let stu in stuMap) {
                     let textArr = stuMap[stu].map(a => `<b>${a.gv}</b> <span style="color:#64748b; font-size:0.85rem;">(${a.role})</span>`);
-                    htmlList.push(`<div class="gv-allocation-text"><i class="fas fa-user-graduate" style="color:var(--primary);"></i> <b>${stu}</b>: ${textArr.join(' | ')}</div>`);
+                    htmlList.push(`<div class="gv-allocation-text"><b>${stu}</b>: ${textArr.join(' | ')}</div>`);
                 }
                 let content = htmlList.join('<hr style="border-top:1px dashed #cbd5e1; margin: 8px 0;">');
-                if (isProposed) return `<div class="proposal-box"><b style="color: #b45309;"><i class="fas fa-clock"></i> ĐỀ XUẤT CHỜ DUYỆT:</b><br>${content}</div>`;
+                if (isProposed) return `<div class="proposal-box"><b style="color: #b45309;">ĐỀ XUẤT CHỜ DUYỆT:</b><br>${content}</div>`;
                 return `<div>${content}</div>`;
 
             } else {
@@ -710,7 +719,7 @@
                 
                 if (isProposed) {
                     return `<div class="proposal-box">
-                                <b style="color: #b45309; font-size: 0.85rem;"><i class="fas fa-clock"></i> BẢN ĐỀ XUẤT MỚI CHỜ DUYỆT:</b><br>
+                                <b style="color: #b45309; font-size: 0.85rem;">BẢN ĐỀ XUẤT MỚI CHỜ DUYỆT:</b><br>
                                 ${content}
                             </div>`;
                 }
@@ -718,7 +727,7 @@
             }
         }
 
-        // HÀM KIỂM TRA PHÂN CÔNG CHỜ DUYỆT ĐÃ KHẮC PHỤC TRÙNG LẶP VÀ TÁCH MÔN KHÁC TÍN CHỈ
+        // HÀM KIỂM TRA PHÂN CÔNG CHỜ DUYỆT ĐÃ CHỈNH LẠI GIAO DIỆN CHIP
         window.checkPendingProposals = () => {
             if (!isHOD) return; 
             
@@ -732,7 +741,6 @@
                     if (asgDoc[dbKey].status === 'proposed') {
                         let asg = asgDoc[dbKey];
                         
-                        // Rút gọn lấy tên lớp, tên môn và số tín chỉ
                         let cls = asg.class || dbKey.split('_')[0];
                         let name = asg.name || (sub ? sub.name : 'Môn học');
                         let credits = asg.credits || (sub ? sub.credits : 0);
@@ -743,7 +751,6 @@
                             else if (dbKey.includes('_UD')) orient = 'UD';
                         }
 
-                        // Tính năng thông minh: Gộp chung 1 thẻ nếu cùng lớp, cùng môn VÀ CÙNG SỐ TÍN CHỈ
                         let mapKey = `${cls}_${name}_${credits}`;
 
                         if (!pendingMap.has(mapKey)) {
@@ -763,16 +770,14 @@
                 let listHtml = '';
                 
                 pendingItems.forEach(item => {
-                    let badgeText = `[${item.cls}]`;
+                    let orientBadgeHtml = '';
                     if (item.cls.toUpperCase().includes('THS')) {
                         if (item.orients.has('NC') && item.orients.has('UD')) {
-                            badgeText = `[${item.cls} - Học chung NC & UD]`;
+                            orientBadgeHtml = `<span class="pending-chip-badge badge-class">Học chung NC & UD</span>`;
                         } else if (item.orients.has('NC')) {
-                            badgeText = `[${item.cls} - Nghiên cứu]`;
+                            orientBadgeHtml = `<span class="pending-chip-badge badge-orient-nc">Nghiên cứu</span>`;
                         } else if (item.orients.has('UD')) {
-                            badgeText = `[${item.cls} - Ứng dụng]`;
-                        } else {
-                            badgeText = `[${item.cls} - Dữ liệu cũ]`;
+                            orientBadgeHtml = `<span class="pending-chip-badge badge-orient-ud">Ứng dụng</span>`;
                         }
                     }
 
@@ -780,11 +785,17 @@
                     if (item.orients.has('NC') && !item.orients.has('UD')) targetOrient = 'NC';
                     if (item.orients.has('UD') && !item.orients.has('NC')) targetOrient = 'UD';
 
-                    // Hiển thị thêm số TC để phân biệt rõ ràng các môn trùng tên
-                    listHtml += `<button class="pending-chip" onclick="goToProposal('${item.cls}', '${targetOrient}', '${item.subId}')">
-                        <i class="fas fa-hand-point-right" style="color: #f59e0b; font-size: 1.1rem;"></i> 
-                        <span>${badgeText} <b style="color: var(--primary);">${item.name}</b> <span style="font-size: 0.8rem; color: #64748b;">(${item.credits} TC)</span></span>
-                    </button>`;
+                    listHtml += `
+                    <div class="pending-chip" onclick="goToProposal('${item.cls}', '${targetOrient}', '${item.subId}')">
+                        <div class="pending-chip-content">
+                            <span class="pending-chip-title">${item.name}</span>
+                            <div class="pending-chip-tags">
+                                <span class="pending-chip-badge badge-class">${item.cls}</span>
+                                <span class="pending-chip-badge badge-credit">${item.credits} TC</span>
+                                ${orientBadgeHtml}
+                            </div>
+                        </div>
+                    </div>`;
                 });
                 
                 document.getElementById('pendingList').innerHTML = listHtml;
@@ -794,14 +805,12 @@
             }
         };
 
-        // ĐIỀU HƯỚNG NHANH 
         window.goToProposal = (cls, orient, subId) => {
             const classSel = document.getElementById('filterClass');
             classSel.value = cls;
             window.handleClassChange();
             
             if (cls.toUpperCase().includes('THS')) {
-                // Nếu dữ liệu cũ không có định hướng, ép mặc định về NC để tránh lỗi
                 const targetOrient = orient === 'ALL' ? 'NC' : orient; 
                 const orientSel = document.getElementById('filterOrient');
                 orientSel.value = targetOrient;
@@ -821,7 +830,7 @@
                     const userDoc = await getDoc(doc(db, "users", user.uid));
                     if (userDoc.exists()) {
                         const data = userDoc.data();
-                        let currentUserName = data.fullName; // Header không kèm học vị
+                        let currentUserName = data.fullName; 
                         setTimeout(() => {
                             const btnAuthNav = document.getElementById('btnAuthNav');
                             if (btnAuthNav) {
@@ -1061,8 +1070,15 @@
             tbody.innerHTML += `
                 <tr class="subject-row ${gClass}">
                     <td>
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <button type="button" class="subject-link" onclick="openSubjectModal('${sub.id}')">${sub.name} ${orientTag} ${creditsBadge} ${statusBadge}</button>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                            <div style="flex: 1;">
+                                <button type="button" class="subject-link" onclick="openSubjectModal('${sub.id}')">${sub.name}</button>
+                                <div style="margin-top: 6px; display: flex; align-items: center; flex-wrap: wrap; gap: 5px;">
+                                    ${creditsBadge}
+                                    ${orientTag}
+                                    ${statusBadge}
+                                </div>
+                            </div>
                             <button type="button" class="mobile-toggle-btn" onclick="toggleMobileRow(this)" aria-label="Mở hoặc thu gọn thông tin học phần"><i class="fas fa-chevron-down"></i></button>
                         </div>
                     </td>
@@ -1123,7 +1139,6 @@
                 return;
             }
 
-            // TẠO OPTIONS HỌC KỲ ĐỘNG TÙY THEO HỆ THS (4) HAY CỬ NHÂN (8)
             let maxSemester = cls.toUpperCase().includes('THS') ? 4 : 8;
             let semOptionsHTML = '<option value="">-- Chưa xác định --</option>';
             for(let i=1; i<=maxSemester; i++){
@@ -1496,7 +1511,7 @@
                         <span class="alloc-label" style="margin-bottom: 5px;">Chọn Học viên thực hiện:</span>
                         <div style="display: flex; gap: 5px;">
                             <select class="sel-student" style="flex: 1;" onchange="checkOtherStudent(this)">${studentOpts}</select>
-                            <button class="btn-info" onclick="showThesisInfo(this)" title="Xem thông tin Đề tài"><i class="fas fa-info-circle"></i></button>
+                            <button class="btn-info" onclick="showThesisInfo(this)" title="Xem thông tin Đề tài">Info</button>
                         </div>
                         <input type="text" class="inp-student-other ${isCustomStudent ? '' : 'hidden'}" placeholder="Nhập tên HV..." value="${isCustomStudent ? student : ''}" style="width: 100%; margin-top: 5px;">
                     </div>
@@ -1669,7 +1684,7 @@
                 }
 
                 if (cls.toUpperCase().includes('THS')) {
-                    updates[cls] = deleteField();
+                    updates[cls] = deleteField(); 
                     let major = currentSub.majorTag || 'ALL';
                     let shortMajor = major === "Vật lý trị liệu" ? "VLTL" : (major === "Hoạt động trị liệu" ? "HĐTL" : (major === "Ngôn ngữ trị liệu" ? "NNTL" : major));
                     let legacyKey = `${cls}_${shortMajor}`;
