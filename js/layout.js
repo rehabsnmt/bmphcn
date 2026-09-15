@@ -265,13 +265,26 @@ function initLayout() {
                 '/'
             ];
             
+            // Danh sách các trang Quản trị (Chỉ dành cho Giảng viên/Admin)
+            const adminPages = [
+                'dashboard.html'
+                // Bạn có thể thêm các trang quản trị khác vào mảng này
+            ];
+            
             const currentPageName = window.location.pathname.split('/').pop().split('?')[0] || 'index.html';
 
-            // Nếu người dùng chưa đăng nhập VÀ trang hiện tại KHÔNG có trong danh sách public
+            // 1. Chặn khách chưa đăng nhập truy cập các trang nội bộ
             if (!user && !publicPages.includes(currentPageName)) {
                 alert("Vui lòng đăng nhập để truy cập trang này!");
                 window.location.replace('login.html');
-                return; // Chặn ngang tiến trình, không load tiếp
+                return; // Dừng tiến trình
+            }
+
+            // 2. Chặn tài khoản Học viên truy cập các trang Quản trị
+            if (user && user.email === 'ths.phcn26@ump.edu.vn' && adminPages.includes(currentPageName)) {
+                alert("Tài khoản học viên không có quyền truy cập khu vực quản trị!");
+                window.location.replace('index.html');
+                return; // Dừng tiến trình
             }
             // ========================================================
 
