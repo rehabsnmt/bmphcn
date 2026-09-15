@@ -234,9 +234,9 @@
             name = parts.join(' - ').trim();
             if (name === "") name = "chưa xác định";
 
-            // CHUẨN HÓA GIẢNG VIÊN
-            if (!instructor || instructor === "chưa xác định") {
-                instructor = "Giảng viên đơn vị khác";
+            // CHUẨN HÓA GIẢNG VIÊN (Không áp đặt "Giảng viên đơn vị khác" nếu trống)
+            if (!instructor || instructor === "chưa xác định" || instructor === "") {
+                instructor = "chưa xác định";
             } else {
                 let isBM = bmInstructors.some(gv => instructor.includes(gv));
                 if (!isBM) instructor = "Giảng viên đơn vị khác";
@@ -486,7 +486,7 @@
 
             } catch (err) {
                 console.error(err);
-                window.showToast("Lỗi khi đẩy (Chỉ Admin mới có quyền Push): " + err.message, "danger");
+                window.showToast("Lỗi khi đẩy hàng loạt: " + err.message, "danger");
                 btnAll.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Đẩy toàn bộ lên DB';
                 btnAll.disabled = false;
             }
