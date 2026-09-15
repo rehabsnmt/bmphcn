@@ -267,7 +267,17 @@ function initLayout() {
             
             // Danh sách các trang Quản trị (Chỉ dành cho Giảng viên/Admin)
             const adminPages = [
-                'dashboard.html'
+                'dashboard.html',
+                'an-ninh.html',
+                'database-admin.html',
+                'gio-giang.html',
+                'lich-ca-nhan.html',
+                'lich-cong-tac.html',
+                'phan-cong-cong-tac.html',
+                'profile.html',
+                'quan-ly-nguoi-hoc.html'
+                'tai-nguyen-koos.html',
+                'thong-bao-ca-nhan.html',
                 // Bạn có thể thêm các trang quản trị khác vào mảng này
             ];
             
