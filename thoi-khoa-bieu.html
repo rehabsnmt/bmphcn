@@ -374,7 +374,6 @@
             return false;
         };
 
-        // ĐIỀU CHỈNH TAG CHUYÊN NGÀNH CÙNG MÀU XÁM CHO TẤT CẢ
         window.getMajorBadgeHtml = (subObj) => {
             let tag = "PT,OT,ST";
             if (subObj && subObj.majorTag) {
@@ -429,7 +428,6 @@
             document.getElementById('conflictModal').classList.remove('hidden');
         }
 
-        // ĐIỀU CHỈNH LẤY ĐẦY ĐỦ HỌ TÊN (KHÔNG CẮT NGẮN, CHỈ CẮT HỌC VỊ)
         window.formatGvName = (gvString) => {
             if (!gvString) return '';
             let gvs = gvString.split(/,|&/).map(s => s.trim());
@@ -624,7 +622,6 @@
                         let evStart = new Date(subEv.start);
                         if (evStart >= viewStart && evStart <= viewEnd) {
                             
-                            // Xác định chuyên ngành
                             let subObj = subjectsData.find(s => s.name === subEv.subject || subEv.subject.includes(s.name));
                             let majorText = '';
                             if (subObj && subObj.majorTag) {
@@ -641,7 +638,7 @@
                                 end: subEv.end ? new Date(subEv.end) : new Date(evStart.getTime() + 4 * 3600000),
                                 class: subEv.class || '',
                                 subject: subEv.subject || '',
-                                gv: subEv.gv || '', // GIỮ NGUYÊN TÊN ĐẦY ĐỦ
+                                gv: subEv.gv || '', 
                                 task: subEv.task || '',
                                 room: subEv.room || 'Chưa XĐ',
                                 orient: window.normalizeOrient(subEv.orientation),
@@ -665,7 +662,6 @@
                 let ngay = item.start.toLocaleDateString('vi-VN', {day:'2-digit', month:'2-digit', year:'numeric'});
                 let gio = `${item.start.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12: false})} - ${item.end.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12: false})}`;
                 
-                // Xử lý Lớp CN
                 let isCN = item.class.toUpperCase().includes('CN');
                 let orientStr = '';
                 if (!isCN) {
@@ -844,7 +840,6 @@
                     snapUser.forEach(doc => {
                         const d = doc.data();
                         if(d.fullName) {
-                            // ĐIỀU CHỈNH: GIỮ LẠI ĐẦY ĐỦ HỌ TÊN (Chỉ cắt học vị ThS/TS)
                             let pref = d.degree === 'ThS' ? 'ThS. ' : (d.degree === 'TS' ? 'TS. ' : '');
                             gvShortNameMap[`${pref}${d.fullName}`] = d.fullName;
                             gvShortNameMap[d.fullName] = d.fullName;
@@ -866,7 +861,7 @@
                     const userDoc = await getDoc(doc(db, "users", user.uid));
                     if (userDoc.exists()) {
                         const data = userDoc.data();
-                        currentUserName = data.fullName; // Không lưu kèm học vị
+                        currentUserName = data.fullName;
                     }
                 } catch(e) { console.error("Lỗi lấy dữ liệu Profile:", e); }
 
