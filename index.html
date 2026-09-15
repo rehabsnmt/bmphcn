@@ -39,6 +39,21 @@
             flex-shrink: 0; 
         }
 
+        /* --- CSS CHO LƯỚI QUICK LINKS --- */
+        #quickLinksContainer {
+            min-height: 200px;
+            position: relative;
+        }
+
+        .loading-spinner {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--primary);
+            font-size: 2rem;
+            text-align: center;
+        }
+
         /* --- CSS CHO NÚT LƯỢT XEM --- */
         .view-counter-widget {
             position: fixed;
@@ -92,12 +107,6 @@
         .visitor-info-row:last-child { border-bottom: 0; }
         .visitor-info-row i { width: 18px; color: var(--primary); text-align: center; }
 
-        @keyframes pulse-icon {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.2); opacity: 0.8; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
         /* --- RESPONSIVE MOBILE --- */
         @media (max-width: 768px) {
             .slider-track { height: 250px; }
@@ -111,10 +120,9 @@
 </head>
 <body style="display: flex; flex-direction: column; min-height: 100vh;">
     
-    <!-- 1. HEADER CHUNG (Tự động load từ layout.js) -->
+    <!-- HEADER CHUNG -->
     <div id="header-placeholder"></div>
 
-    <!-- 2. NỘI DUNG CHÍNH (Riêng của trang chủ) -->
     <main style="flex: 1; padding-top: 2rem;">
         
         <!-- PHẦN SLIDESHOW CHẠY ẢNH -->
@@ -128,50 +136,14 @@
             </div>
         </div>
 
-        <!-- LƯỚI CÁC PHÂN MỤC CHÍNH (CARDS) -->
-        <section class="quick-links" style="margin-bottom: 2rem;">
-            
-            <a href="gioi-thieu.html" class="quick-card">
-                <div class="icon-wrapper">
-                    <i class="fas fa-users"></i>
-                </div>
-                <h3>Giới thiệu</h3>
-                <p>Lịch sử hình thành, đội ngũ giảng viên, cơ cấu tổ chức và công tác đào tạo của Bộ môn.</p>
-            </a>
-
-            <a href="cong-bo.html" class="quick-card">
-                <div class="icon-wrapper">
-                    <i class="fas fa-flask"></i>
-                </div>
-                <h3>Công bố khoa học</h3>
-                <p>Các bài báo, công trình nghiên cứu khoa học được công bố bởi đội ngũ giảng viên và sinh viên.</p>
-            </a>
-
-            <a href="luan-van.html" class="quick-card">
-                <div class="icon-wrapper">
-                    <i class="fas fa-graduation-cap"></i>
-                </div>
-                <h3>Luận văn & Khóa luận</h3>
-                <p>Danh sách và thông tin chi tiết về các đề án, luận văn thạc sĩ và khóa luận tốt nghiệp của sinh viên.</p>
-            </a>
-
-            <a href="tai-nguyen.html" class="quick-card">
-                <div class="icon-wrapper">
-                    <i class="fas fa-file-medical"></i>
-                </div>
-                <h3>Tài nguyên</h3>
-                <p>Hệ thống các văn bản, biểu mẫu và các công cụ lượng giá.</p>
-            </a>
-
-            <a href="thong-bao.html" class="quick-card">
-                <div class="icon-wrapper" style="color: var(--accent); background-color: var(--accent-light);">
-                    <i class="fas fa-bell"></i>
-                </div>
-                <h3>Thông báo</h3>
-                <p>Cập nhật các tin tức, lịch học, lịch thi và thông báo mới nhất từ Bộ môn.</p>
-            </a>
-
+        <!-- LƯỚI CÁC PHÂN MỤC CHÍNH ĐƯỢC LOAD TỰ ĐỘNG -->
+        <section class="quick-links" id="quickLinksContainer" style="margin-bottom: 2rem;">
+            <div class="loading-spinner">
+                <i class="fas fa-spinner fa-spin"></i><br>
+                <span style="font-size: 1rem; color: var(--text-body); font-weight: normal;">Đang tải danh mục...</span>
+            </div>
         </section>
+
     </main>
 
     <!-- NÚT HIỂN THỊ LƯỢT XEM NỔI -->
@@ -184,13 +156,13 @@
         </div>
     </div>
 
-    <!-- 3. FOOTER CHUNG (Tự động load từ layout.js) -->
+    <!-- FOOTER CHUNG -->
     <div id="footer-placeholder"></div>
 
-    <!-- 4. GỌI LAYOUT CHUNG -->
+    <!-- GỌI LAYOUT CHUNG -->
     <script src="js/layout.js"></script>
 
-    <!-- CÁC SCRIPT XỬ LÝ GIAO DIỆN RIÊNG -->
+    <!-- SCRIPT TẢI DỮ LIỆU JSON & XỬ LÝ GIAO DIỆN -->
     <script>
         // --- XỬ LÝ SLIDESHOW LƯỚT NGANG ---
         const track = document.getElementById('slider-track');
@@ -206,73 +178,53 @@
         }
 
         setInterval(moveSlides, 3000);
-    </script>
 
-    <!-- Cấu hình Firebase V9 Modular -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, updateDoc, increment, setDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY",
-            authDomain: "bmphcn-aa9c6.firebaseapp.com",
-            projectId: "bmphcn-aa9c6",
-            storageBucket: "bmphcn-aa9c6.firebasestorage.app",
-            messagingSenderId: "749494392719",
-            appId: "1:749494392719:web:f220c751ff541620045dfa",
-            measurementId: "G-LBLG62PTDK"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        // --- XỬ LÝ BỘ ĐẾM LƯỢT XEM TRANG CHỦ ---
-        async function updateAndFetchViews() {
-            const counterRef = doc(db, "settings", "viewCounter");
-            
+        // --- TẢI DANH MỤC TỪ JSON (TƯƠNG TỰ TRANG TÀI NGUYÊN) ---
+        async function loadQuickLinks() {
+            const container = document.getElementById('quickLinksContainer');
             try {
-                // 1. Lấy thông tin bộ đếm hiện tại
-                const docSnap = await getDoc(counterRef);
+                // Đọc file json/index_links.json
+                const response = await fetch('json/index_links.json');
+                if (!response.ok) throw new Error('Không thể tải file cấu hình danh mục.');
                 
-                // Tránh tình trạng F5 (reload liên tục) làm tăng bộ đếm ảo.
-                // Chỉ đếm 1 lượt xem cho mỗi Session (phiên làm việc của trình duyệt).
-                const hasVisited = sessionStorage.getItem("hasVisitedIndex");
+                const linksData = await response.json();
+                
+                // Xóa trạng thái loading
+                container.innerHTML = '';
 
-                if (!docSnap.exists()) {
-                    // Nếu bảng đếm chưa từng được tạo, tạo mới nó
-                    await setDoc(counterRef, { totalViews: 1 });
-                    document.getElementById('viewCountNumber').innerText = "1";
-                    sessionStorage.setItem("hasVisitedIndex", "true");
-                } else {
-                    let currentViews = docSnap.data().totalViews || 0;
+                // Duyệt qua mảng JSON và tạo thẻ HTML tương ứng
+                linksData.forEach(link => {
+                    const card = document.createElement('a');
+                    card.href = link.url;
+                    card.className = 'quick-card';
                     
-                    if (!hasVisited) {
-                        // Nếu đây là lần truy cập mới, cộng thêm 1 lượt xem vào Database
-                        await updateDoc(counterRef, {
-                            totalViews: increment(1)
-                        });
-                        currentViews += 1;
-                        sessionStorage.setItem("hasVisitedIndex", "true");
+                    // Nếu JSON có quy định màu tùy chỉnh, thì áp dụng, nếu không để trống
+                    let customStyle = '';
+                    if (link.color || link.bgColor) {
+                        customStyle = `style="color: ${link.color || 'inherit'}; background-color: ${link.bgColor || 'inherit'};"`;
                     }
+
+                    card.innerHTML = `
+                        <div class="icon-wrapper" ${customStyle}>
+                            <i class="${link.icon}"></i>
+                        </div>
+                        <h3>${link.title}</h3>
+                        <p>${link.description}</p>
+                    `;
                     
-                    // Hiển thị số lượt xem lên màn hình (định dạng dấu chấm hàng nghìn)
-                    document.getElementById('viewCountNumber').innerText = currentViews.toLocaleString('vi-VN');
-                }
-                
-                // Hiển thị nút lên màn hình sau khi đã có dữ liệu
-                document.getElementById('viewCounterWidget').style.display = 'flex';
+                    container.appendChild(card);
+                });
 
             } catch (error) {
-                console.error("Lỗi khi kết nối bộ đếm lượt xem:", error);
+                console.error("Lỗi tải danh mục từ JSON:", error);
+                container.innerHTML = `<div style="text-align:center; padding: 2rem; color: #dc2626; width: 100%;"><i class="fas fa-exclamation-triangle fa-2x mb-3"></i><br>Không thể tải danh mục. Vui lòng tải lại trang.</div>`;
             }
         }
 
-        // Gọi hàm đếm view ngay khi trang tải xong
-        updateAndFetchViews();
+        // Kích hoạt ngay khi trình duyệt đọc đến đoạn script này
+        loadQuickLinks();
 
-        // Hiển thị IP công khai cho chính khách đang mở trang; không lưu lại dữ liệu này.
+        // --- CÁC HÀM XỬ LÝ WIDGET THÔNG TIN TRUY CẬP ---
         async function showVisitorIp() {
             const ipAddress = document.getElementById('visitorIpAddress');
             try {
@@ -286,9 +238,6 @@
             }
         }
 
-        showVisitorIp();
-
-        // Nhận diện thiết bị ở mức khái quát để hiển thị cho khách truy cập.
         function showVisitorDevice() {
             const deviceOutput = document.getElementById('visitorDevice');
             const agent = navigator.userAgent;
@@ -308,6 +257,7 @@
             deviceOutput.textContent = `${platform} · ${browser}`;
         }
 
+        showVisitorIp();
         showVisitorDevice();
 
         window.toggleVisitorInfo = () => {
@@ -334,6 +284,58 @@
                 document.getElementById('visitorInfoTrigger').setAttribute('aria-expanded', 'false');
             }
         });
+    </script>
+
+    <!-- Cấu hình Firebase V9 Modular (Đếm Lượt Xem) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, updateDoc, increment, setDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY",
+            authDomain: "bmphcn-aa9c6.firebaseapp.com",
+            projectId: "bmphcn-aa9c6",
+            storageBucket: "bmphcn-aa9c6.firebasestorage.app",
+            messagingSenderId: "749494392719",
+            appId: "1:749494392719:web:f220c751ff541620045dfa",
+            measurementId: "G-LBLG62PTDK"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        async function updateAndFetchViews() {
+            const counterRef = doc(db, "settings", "viewCounter");
+            try {
+                const docSnap = await getDoc(counterRef);
+                const hasVisited = sessionStorage.getItem("hasVisitedIndex");
+
+                if (!docSnap.exists()) {
+                    await setDoc(counterRef, { totalViews: 1 });
+                    document.getElementById('viewCountNumber').innerText = "1";
+                    sessionStorage.setItem("hasVisitedIndex", "true");
+                } else {
+                    let currentViews = docSnap.data().totalViews || 0;
+                    
+                    if (!hasVisited) {
+                        await updateDoc(counterRef, { totalViews: increment(1) });
+                        currentViews += 1;
+                        sessionStorage.setItem("hasVisitedIndex", "true");
+                    }
+                    
+                    document.getElementById('viewCountNumber').innerText = currentViews.toLocaleString('vi-VN');
+                }
+                
+                document.getElementById('viewCounterWidget').style.display = 'flex';
+
+            } catch (error) {
+                console.error("Lỗi khi kết nối bộ đếm lượt xem:", error);
+            }
+        }
+
+        updateAndFetchViews();
     </script>
 </body>
 </html>
