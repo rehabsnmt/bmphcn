@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Import Thời Khóa Biểu (CSV sang JSON chuẩn TKB)</title>
+    <title>Import Thời Khóa Biểu (Excel sang JSON chuẩn TKB)</title>
 
-    <!-- Thư viện PapaParse để đọc file CSV chính xác -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <!-- Thư viện SheetJS để đọc file Excel (.xls, .xlsx) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
@@ -64,7 +64,7 @@
     <div id="toastContainer" class="toast-container"></div>
 
     <div class="container">
-        <h2><i class="fas fa-calendar-check"></i> Chuyển đổi CSV & Import Thời Khóa Biểu</h2>
+        <h2><i class="fas fa-file-excel"></i> Nhập Lịch Giảng Dạy Từ Excel</h2>
         
         <div class="upload-section">
             <!-- Form Cài Đặt Chung -->
@@ -97,10 +97,10 @@
 
             <!-- Upload Box -->
             <div class="upload-box">
-                <i class="fas fa-file-csv fa-3x" style="color: #94a3b8; margin-bottom: 15px;"></i><br>
-                <label for="csvFileInput" class="btn-upload"><i class="fas fa-upload"></i> Chọn file 2.csv</label>
-                <input type="file" id="csvFileInput" accept=".csv">
-                <p style="color: #64748b; margin-top: 15px; font-size: 0.9rem;">Hỗ trợ đẩy hàng loạt thẳng lên Database.</p>
+                <i class="fas fa-file-excel fa-3x" style="color: #10b981; margin-bottom: 15px;"></i><br>
+                <label for="excelFileInput" class="btn-upload" style="background:#10b981;"><i class="fas fa-upload"></i> Chọn file Excel (2.xls / 2.xlsx)</label>
+                <input type="file" id="excelFileInput" accept=".xls,.xlsx">
+                <p style="color: #64748b; margin-top: 15px; font-size: 0.9rem;">Hệ thống sẽ tự động quét, không lo lỗi font Tiếng Việt.</p>
             </div>
         </div>
 
@@ -182,29 +182,53 @@
 
         window.finalJsonData = [];
 
-        // Đọc File CSV bằng PapaParse
-        document.getElementById('csvFileInput').addEventListener('change', function(e) {
+        // ===============================================
+        // ĐỌC FILE EXCEL BẰNG SHEETJS (thay thế PapaParse)
+        // ===============================================
+        document.getElementById('excelFileInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
 
-            Papa.parse(file, {
-                complete: function(results) {
-                    processMatrixToStandardJSON(results.data);
-                },
-                error: function(err) {
-                    showToast("Lỗi đọc file: " + err.message, "danger");
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    // Đọc file excel
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    
+                    // Lấy sheet đầu tiên
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    
+                    // Chuyển đổi sheet thành mảng 2 chiều (matrix) để khớp với thuật toán cũ
+                    // Lệnh này tương đương với kết quả trả về của PapaParse
+                    const matrix = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                    
+                    processMatrixToStandardJSON(matrix);
+                    
+                } catch(err) {
+                    showToast("Lỗi xử lý file Excel: " + err.message, "danger");
                 }
-            });
+            };
+
+            reader.readAsArrayBuffer(file);
         });
 
+        // Xử lý Ngày tháng (Bởi vì Excel đôi khi sẽ tự format ngày)
+        // Hàm này bọc thêm logic chống lỗi nếu format bị dính khoảng trắng
         function convertDateFormat(dateStr) {
-            let parts = dateStr.split('/');
+            if(!dateStr) return "";
+            let cleaned = dateStr.toString().trim();
+            let parts = cleaned.split('/');
             if (parts.length === 3) {
+                // Đảm bảo định dạng YYYY-MM-DD
                 return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
             }
-            return dateStr;
+            return cleaned;
         }
 
+        // Bóc tách nội dung Text của 1 ô (Giữ nguyên thuật toán hoàn hảo)
         function parseClassString(classStr) {
             let parts = classStr.split(' - ').map(p => p.trim());
             let group = "", room = "", instructor = "", code = "", name = "";
@@ -255,17 +279,21 @@
                 const c1 = (row[1] || '').toString().trim();
 
                 if (c0 === 'Ngày') {
+                    // Dòng này chứa các ngày (Lấy từ cột Index 2 -> 8)
                     currentDates = [
-                        row[2]?.trim(), row[3]?.trim(), row[4]?.trim(), 
-                        row[5]?.trim(), row[6]?.trim(), row[7]?.trim(), row[8]?.trim()
+                        row[2]?.toString().trim(), row[3]?.toString().trim(), row[4]?.toString().trim(), 
+                        row[5]?.toString().trim(), row[6]?.toString().trim(), row[7]?.toString().trim(), row[8]?.toString().trim()
                     ];
                     continue;
                 }
 
+                // Dòng này chứa Tiết (cột 1)
                 if (!isNaN(parseInt(c1)) && currentDates.length === 7) {
                     const period = parseInt(c1);
                     for (let dayIdx = 0; dayIdx < 7; dayIdx++) {
                         const cellValue = (row[dayIdx + 2] || '').toString().trim();
+                        
+                        // Cấu trúc của Excel sau khi import nếu có xuống dòng thì nó vẫn là ký tự \n
                         if (cellValue !== '' && cellValue.toLowerCase() !== 'nan') {
                             const classes = cellValue.split('\n');
                             classes.forEach(cls => {
@@ -285,6 +313,7 @@
                 }
             }
 
+            // Gộp nhóm (Các tiết của cùng 1 môn trong 1 ngày sẽ vào chung 1 mảng)
             let groupedByDateAndClass = {};
             rawCells.forEach(cell => {
                 let key = `${cell.isoDate}_${cell.rawString}`;
@@ -311,6 +340,7 @@
                 let baseCell = cells[0];
                 let pData = baseCell.parsed;
 
+                // Quy tắc gộp 4 tiếng / 1 buổi
                 let startTime = "07:00:00";
                 let endTime = "11:00:00";
 
@@ -349,6 +379,7 @@
                 window.finalJsonData.push(eventObj);
             }
 
+            // Sắp xếp lịch theo ngày tăng dần
             window.finalJsonData.sort((a, b) => new Date(a.start) - new Date(b.start));
             renderUI(window.finalJsonData);
         }
@@ -411,6 +442,7 @@
                 btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
                 btn.disabled = true;
 
+                // Lưu vào collection 'calendar_events'
                 await setDoc(doc(db, "calendar_events", eventData.id), eventData);
                 
                 btn.innerHTML = '<i class="fas fa-check"></i> Đã đẩy';
@@ -439,6 +471,7 @@
             btnAll.disabled = true;
 
             try {
+                // Firestore batch có giới hạn 500 lệnh write 1 lần. Chia nhỏ mảng nếu cần.
                 const chunks = [];
                 for (let i = 0; i < window.finalJsonData.length; i += 500) {
                     chunks.push(window.finalJsonData.slice(i, i + 500));
@@ -450,13 +483,14 @@
                         const evRef = doc(db, "calendar_events", ev.id);
                         batch.set(evRef, ev);
                     });
-                    await batch.commit();
+                    await batch.commit(); // Gửi toàn bộ 1 cục
                 }
 
                 window.showToast(`Tuyệt vời! Đã đẩy thành công ${window.finalJsonData.length} lịch lên Database.`);
                 btnAll.innerHTML = '<i class="fas fa-check-double"></i> Đã đẩy xong';
                 btnAll.style.background = "#22c55e";
 
+                // Cập nhật giao diện toàn bộ nút con
                 window.finalJsonData.forEach((_, idx) => {
                     const b = document.getElementById(`btnPush_${idx}`);
                     if(b) {
