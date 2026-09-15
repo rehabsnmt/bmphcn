@@ -196,15 +196,15 @@ function initLayout() {
                 'gioi-thieu.html', 'thong-tin-giang-vien.html', '', '/'
             ];
             
-            // 3. Những TỪ KHÓA thuộc trang Quản trị (Cấm Học viên)
-            const adminKeywords = [
-                'dashboard', 'admin', 'quan-ly'
+            // 3. Danh sách chính xác các trang Quản trị (Cấm Học viên)
+            const adminPages = [
+                'dashboard.html'
+                // Thêm chính xác tên các trang html quản trị khác vào đây, ví dụ: 'quan-ly-user.html'
             ];
 
-            const fullPath = window.location.pathname.toLowerCase();
-            const currentPageName = fullPath.split('/').pop().split('?')[0] || 'index.html';
+            const currentPageName = window.location.pathname.split('/').pop().split('?')[0] || 'index.html';
 
-            // [LUẬT 1]: KHÁCH LẠ LẠC VÀO TRANG NỘI BỘ -> ĐÁ VỀ LOGIN
+            // [LUẬT 1]: KHÁCH LẠC VÀO TRANG NỘI BỘ -> ĐÁ VỀ LOGIN
             if (!user && !publicPages.includes(currentPageName) && currentPageName !== '') {
                 alert("Vui lòng đăng nhập để truy cập trang này!");
                 window.location.replace('login.html');
@@ -212,23 +212,19 @@ function initLayout() {
             }
 
             // [LUẬT 2]: HỌC VIÊN LẠC VÀO TRANG QUẢN TRỊ -> ĐÁ VỀ TRANG CHỦ LẬP TỨC
-            if (isStudent) {
-                // Quét xem đường dẫn hiện tại có chứa từ khóa cấm không
-                const isTryingToAccessAdmin = adminKeywords.some(keyword => fullPath.includes(keyword));
-                
-                if (isTryingToAccessAdmin) {
-                    // Xóa trắng toàn bộ trang ngay lập tức để không lộ dữ liệu
-                    document.body.innerHTML = `
-                        <div style="text-align:center; padding: 100px 20px; font-family:sans-serif;">
-                            <i class="fas fa-ban" style="font-size:4rem; color:#dc2626; margin-bottom:20px;"></i>
-                            <h2 style="color:#dc2626;">TRUY CẬP TỪ CHỐI</h2>
-                            <p>Tài khoản học viên không có quyền truy cập khu vực quản trị.</p>
-                        </div>
-                    `;
-                    alert("Truy cập từ chối! Chuyển hướng về trang chủ.");
-                    window.location.replace('index.html');
-                    return;
-                }
+            // Kiểm tra khớp CHÍNH XÁC tên file HTML
+            if (isStudent && adminPages.includes(currentPageName)) {
+                // Xóa trắng toàn bộ trang ngay lập tức để không lộ dữ liệu
+                document.body.innerHTML = `
+                    <div style="text-align:center; padding: 100px 20px; font-family:sans-serif;">
+                        <i class="fas fa-ban" style="font-size:4rem; color:#dc2626; margin-bottom:20px;"></i>
+                        <h2 style="color:#dc2626;">TRUY CẬP TỪ CHỐI</h2>
+                        <p>Tài khoản học viên không có quyền truy cập khu vực quản trị.</p>
+                    </div>
+                `;
+                alert("Truy cập từ chối! Chuyển hướng về trang chủ.");
+                window.location.replace('index.html');
+                return;
             }
             // ========================================================
 
