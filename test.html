@@ -128,7 +128,6 @@
             .controls-wrapper { width: 100%; justify-content: space-between; }
             .filter-select { flex: 1; min-width: 0; padding: 6px; font-size: 0.85rem;}
             
-            /* Ẩn nút Xuất Word trên thiết bị di động */
             #btnExportWord { display: none !important; }
             
             #calendar-container { padding: 5px; border: none; border-radius: 0; box-shadow: none; border-top: 1px solid var(--border); width: 100vw; margin-left: -5px;}
@@ -140,14 +139,13 @@
             
             .fc-button-primary { padding: 4px 8px !important; font-size: 0.85rem !important; }
             
-            /* Tùy chỉnh chế độ List trên Mobile */
             .fc-list-day-cushion { background-color: var(--primary-light) !important; padding: 8px 10px !important; }
             .fc-list-event-time { font-weight: bold; color: var(--primary); width: 85px !important;}
             .fc-list-event-title { padding: 8px !important; }
             .fc-list-event-dot { display: none; }
             
             .evt-group-container { border: none; border-left: 3px solid var(--primary); padding: 5px; border-radius: 0; box-shadow: none;}
-            .evt-group-header { display: none; } /* Chế độ list đã có giờ ở cột bên trái */
+            .evt-group-header { display: none; } 
         }
     </style>
 </head>
@@ -328,15 +326,6 @@
         let gvShortNameMap = {};
         let pendingDropInfo = null;
 
-        // Trích xuất "Nhóm/Ngành" từ string
-        window.getGroupTagFromSubject = (subjectName) => {
-            if (!subjectName) return "ALL";
-            if (subjectName.includes("Vật lý trị liệu")) return "VLTL";
-            if (subjectName.includes("Hoạt động trị liệu")) return "HĐTL";
-            if (subjectName.includes("Ngôn ngữ trị liệu")) return "NNTL";
-            return "ALL";
-        };
-
         window.getClassColor = (className) => {
             if (!className) return 'background:#e2e8f0; color:#475569; border: 1px solid #cbd5e1;';
             const palettes = [
@@ -483,15 +472,19 @@
             return count;
         };
 
-        // --- CẬP NHẬT THUẬT TOÁN KIỂM TRA OVERLAP ---
+        // --- CẬP NHẬT THUẬT TOÁN KIỂM TRA OVERLAP (CHO PHÉP TRÙNG LỚP NẾU KHÁC NGÀNH) ---
         function hasOverlap(targetStartStr, targetEndStr, gvStr, targetClass, targetTask, targetRoom, targetSubject, targetOrient, ignoreEventIds) {
             let ignoreList = Array.isArray(ignoreEventIds) ? ignoreEventIds : [ignoreEventIds];
             let tStart = new Date(targetStartStr).getTime();
             let tEnd = targetEndStr ? new Date(targetEndStr).getTime() : tStart + 4 * 3600000;
             let targetOrientNorm = window.normalizeOrient(targetOrient);
             
-            // Xác định xem môn học đang xếp thuộc chuyên ngành nào (VLTL, HĐTL, NNTL, hay Chung)
-            let targetSubjectGroup = window.getGroupTagFromSubject(targetSubject);
+            // Hàm tra cứu Chuyên ngành (majorTag) dựa vào Tên Môn từ CSDL
+            let getMajorTag = (subName) => {
+                let s = subjectsData.find(x => x.name === subName);
+                return (s && s.majorTag) ? s.majorTag : "ALL";
+            };
+            let targetSubjectGroup = getMajorTag(targetSubject);
             
             let allSubEvents = [];
             
@@ -510,7 +503,7 @@
                 // Nếu thời gian đụng nhau
                 if (tStart < e.endMs && tEnd > e.startMs) {
                     let eOrientNorm = window.normalizeOrient(e.orientation);
-                    let eSubjectGroup = window.getGroupTagFromSubject(e.subject);
+                    let eSubjectGroup = getMajorTag(e.subject);
                     let timeRangeStr = `${new Date(e.start).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12: false})} - ${new Date(e.end || e.startMs + 4 * 3600000).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12: false})} (${new Date(e.start).toLocaleDateString('vi-VN')})`;
 
                     // 1. Kiểm tra trùng phòng học
@@ -528,19 +521,18 @@
                     // 2. Kiểm tra trùng lịch của CÙNG MỘT LỚP
                     if (e.class === targetClass && blockingTasks.includes(targetTask) && blockingTasks.includes(e.task) && e.type !== 'self_declared') {
                         
-                        // Nếu CÙNG MÔN HỌC nhưng khác định hướng Nghiên cứu/Ứng dụng => Bỏ qua (Cho phép dạy song song chia lớp)
-                        let isSameSubjectAndClass = (e.subject === targetSubject);
+                        let isSameSubject = (e.subject === targetSubject);
                         let isDifferentSpecificOrient = (eOrientNorm !== 'CHUNG' && targetOrientNorm !== 'CHUNG' && eOrientNorm !== targetOrientNorm);
+                        let isDifferentMajor = (eSubjectGroup !== "ALL" && targetSubjectGroup !== "ALL" && eSubjectGroup !== targetSubjectGroup);
                         
-                        if (isSameSubjectAndClass && isDifferentSpecificOrient) {
-                            // Không làm gì, để nó pass qua
+                        if (isSameSubject && isDifferentSpecificOrient) {
+                            // Không làm gì, để nó pass qua (Khác định hướng NC/UD được học song song)
                         } 
-                        // Nếu KHÁC MÔN HỌC, và các môn này lại có phân chuyên ngành khác nhau (VLTL, HĐTL, NNTL) => Bỏ qua (Cho phép dạy song song chia lớp theo chuyên ngành)
-                        else if (!isSameSubjectAndClass && eSubjectGroup !== "ALL" && targetSubjectGroup !== "ALL" && eSubjectGroup !== targetSubjectGroup) {
-                            // Không làm gì, để nó pass qua
+                        else if (isDifferentMajor) {
+                            // Không làm gì, để nó pass qua (Khác chuyên ngành VLTL/HĐTL/NNTL được học song song)
                         }
-                        // Nếu không thuộc 2 trường hợp trên => Chặn (Học sinh 1 lớp không thể học 2 chỗ cùng lúc)
                         else {
+                            // Trùng lớp, trùng hệ/chuyên ngành -> CHẶN
                             return { 
                                 hasOverlap: true, 
                                 reason: `Lớp ${targetClass} đã có lịch học/thi khác vào khung giờ này.`,
