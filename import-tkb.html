@@ -132,7 +132,7 @@
     <!-- Tích hợp Firebase Module trực tiếp vào File HTML -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
-        import { getFirestore, doc, setDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, writeBatch, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
 
         // Cấu hình Firebase
@@ -160,15 +160,29 @@
             setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
         };
 
-        // BẢO VỆ: KIỂM TRA ĐĂNG NHẬP (Lấy Email tự động)
+        // Lưu trữ Umpid hợp lệ để đối chiếu
+        window.validUmpids = [];
         let currentUserEmail = '';
-        onAuthStateChanged(auth, (user) => {
+
+        // BẢO VỆ: KIỂM TRA ĐĂNG NHẬP (Lấy Email tự động)
+        onAuthStateChanged(auth, async (user) => {
             if (!user) {
                 showToast("Bạn chưa đăng nhập! Dữ liệu sẽ KHÔNG thể đẩy lên Database.", "danger");
                 document.getElementById('btnPushAll').disabled = true;
             } else {
                 currentUserEmail = user.email;
                 document.getElementById('cfgEmail').value = currentUserEmail; // Tự động điền email
+                
+                // Tải danh sách umpid từ bảng subjects
+                try {
+                    const snap = await getDocs(collection(db, "subjects"));
+                    snap.forEach(doc => {
+                        const data = doc.data();
+                        if (data.umpid) window.validUmpids.push(String(data.umpid).trim());
+                    });
+                } catch(err) {
+                    console.error("Lỗi lấy danh sách môn học:", err);
+                }
             }
         });
 
@@ -206,23 +220,22 @@
         }
 
         function parseClassString(classStr) {
-            let parts = classStr.split(' - ').map(p => p.trim());
-            let group = "", room = "", instructor = "", code = "", name = "";
+            // Thay các khoảng trống giữa 2 dấu '-' thành 'chưa xác định'
+            let parts = classStr.split(' - ').map(p => p.trim() === '' ? 'chưa xác định' : p.trim());
+            let group = "chưa xác định", room = "chưa xác định", instructor = "chưa xác định", code = "chưa xác định", name = "chưa xác định";
 
             if (parts.length > 0 && parts[parts.length - 1].startsWith('Nhóm:')) {
                 group = parts.pop().replace('Nhóm:', '').trim();
             }
             if (parts.length > 0) room = parts.pop();
-            if (parts.length > 0) {
-                let tempInstructor = parts.pop();
-                if (tempInstructor && tempInstructor !== '') instructor = tempInstructor;
-            }
+            if (parts.length > 0) instructor = parts.pop();
             if (parts.length > 0) code = parts.shift();
             
             name = parts.join(' - ').trim();
+            if (name === "") name = "chưa xác định";
 
             // CHUẨN HÓA GIẢNG VIÊN
-            if (!instructor || instructor === "") {
+            if (!instructor || instructor === "chưa xác định") {
                 instructor = "Giảng viên đơn vị khác";
             } else {
                 let isBM = bmInstructors.some(gv => instructor.includes(gv));
@@ -233,12 +246,10 @@
             if (room.toLowerCase().includes('elrn')) room = 'Elearning';
 
             let task = "Lý thuyết";
-            if (name.includes('(TH)') || name.includes('(TT)')) task = "Thực hành";
+            if (classStr.includes('(TH)') || classStr.includes('(TT)')) task = "Thực hành";
             
-            let subject = name;
-            if(code && name) subject = `${code} - ${name}`;
-            else if (name) subject = name;
-            else subject = classStr;
+            // Xóa (LT) hoặc (TH) hoặc (TT) khỏi tên môn, chỉ lấy tên môn học
+            let subject = name.replace(/\(LT\)/gi, '').replace(/\(TH\)/gi, '').replace(/\(TT\)/gi, '').trim();
 
             return { code, subject, instructor, room, group, task, rawString: classStr };
         }
@@ -335,13 +346,14 @@
                     gv: pData.instructor,
                     id: generatedId,
                     orientation: configOrientation,
-                    room: pData.room + (pData.group ? ` (Nhóm ${pData.group})` : ''),
+                    room: pData.room + (pData.group && pData.group !== 'chưa xác định' ? ` (Nhóm ${pData.group})` : ''),
                     scheduledByEmail: configEmail,
                     scheduledByName: "",
                     semester: configSemester,
                     start: isoStart,
                     status: "scheduled",
                     subject: pData.subject,
+                    code: pData.code,
                     task: pData.task,
                     title: pData.instructor
                 };
@@ -363,13 +375,17 @@
                 let tStart = item.start.split('T')[1].substring(0, 5);
                 let tEnd = item.end.split('T')[1].substring(0, 5);
 
+                // Đối chiếu với CSDL để đổi màu
+                let isMatch = window.validUmpids.includes(String(item.code).trim());
+                let subjectColor = isMatch ? '#16a34a' : '#dc2626';
+
                 tbodyHtml += `
                     <tr>
                         <td style="font-weight: 600; color: #0284c7;">${d}</td>
                         <td><span class="badge" style="background:#e2e8f0; color:#0f172a">${tStart} - ${tEnd}</span></td>
                         <td>
-                            <div style="font-weight: bold; color: #1e293b;">${item.subject}</div>
-                            <div style="font-size: 0.8rem; color: #64748b; margin-top: 3px;">Loại: ${item.task}</div>
+                            <div style="font-weight: bold; color: ${subjectColor};">${item.subject}</div>
+                            <div style="font-size: 0.8rem; color: #64748b; margin-top: 3px;">Mã: ${item.code} | Loại: ${item.task}</div>
                         </td>
                         <td style="font-weight: 600; color: #0369a1;">${item.title}</td>
                         <td><span class="badge" style="background:#fce7f3; color:#9d174d;">${item.room}</span></td>
@@ -411,6 +427,7 @@
                 btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
                 btn.disabled = true;
 
+                // Lưu vào collection 'calendar_events'
                 await setDoc(doc(db, "calendar_events", eventData.id), eventData);
                 
                 btn.innerHTML = '<i class="fas fa-check"></i> Đã đẩy';
@@ -439,6 +456,7 @@
             btnAll.disabled = true;
 
             try {
+                // Firestore batch có giới hạn 500 lệnh write 1 lần. Chia nhỏ mảng nếu cần.
                 const chunks = [];
                 for (let i = 0; i < window.finalJsonData.length; i += 500) {
                     chunks.push(window.finalJsonData.slice(i, i + 500));
@@ -450,13 +468,14 @@
                         const evRef = doc(db, "calendar_events", ev.id);
                         batch.set(evRef, ev);
                     });
-                    await batch.commit();
+                    await batch.commit(); // Gửi toàn bộ 1 cục
                 }
 
                 window.showToast(`Tuyệt vời! Đã đẩy thành công ${window.finalJsonData.length} lịch lên Database.`);
                 btnAll.innerHTML = '<i class="fas fa-check-double"></i> Đã đẩy xong';
                 btnAll.style.background = "#22c55e";
 
+                // Cập nhật giao diện toàn bộ nút con
                 window.finalJsonData.forEach((_, idx) => {
                     const b = document.getElementById(`btnPush_${idx}`);
                     if(b) {
