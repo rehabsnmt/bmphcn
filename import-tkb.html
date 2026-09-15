@@ -171,9 +171,8 @@
                 document.getElementById('btnPushAll').disabled = true;
             } else {
                 currentUserEmail = user.email;
-                document.getElementById('cfgEmail').value = currentUserEmail; // Tự động điền email
+                document.getElementById('cfgEmail').value = currentUserEmail;
                 
-                // Tải danh sách umpid từ bảng subjects
                 try {
                     const snap = await getDocs(collection(db, "subjects"));
                     snap.forEach(doc => {
@@ -220,36 +219,85 @@
         }
 
         function parseClassString(classStr) {
-            // Thay các khoảng trống giữa 2 dấu '-' thành 'chưa xác định'
-            let parts = classStr.split(' - ').map(p => p.trim() === '' ? 'chưa xác định' : p.trim());
-            let group = "chưa xác định", room = "chưa xác định", instructor = "chưa xác định", code = "chưa xác định", name = "chưa xác định";
+            let code = "chưa xác định";
+            let subject = "chưa xác định";
+            let instructor = "chưa xác định";
+            let room = "chưa xác định";
+            let group = "chưa xác định";
+            let task = "Lý thuyết";
 
-            if (parts.length > 0 && parts[parts.length - 1].startsWith('Nhóm:')) {
-                group = parts.pop().replace('Nhóm:', '').trim();
-            }
-            if (parts.length > 0) room = parts.pop();
-            if (parts.length > 0) instructor = parts.pop();
-            if (parts.length > 0) code = parts.shift();
+            let str = classStr.trim();
             
-            name = parts.join(' - ').trim();
-            if (name === "") name = "chưa xác định";
+            // 1. Tách Nhóm (nếu có)
+            let groupMatch = str.match(/-\s*Nhóm:\s*(.+)$/i);
+            if (groupMatch) {
+                group = groupMatch[1].trim();
+                str = str.replace(groupMatch[0], '').trim();
+            }
 
-            // CHUẨN HÓA GIẢNG VIÊN (Không áp đặt "Giảng viên đơn vị khác" nếu trống)
-            if (!instructor || instructor === "chưa xác định" || instructor === "") {
-                instructor = "chưa xác định";
+            // 2. Tách Mã môn học (chuỗi ký tự/số đầu tiên trước dấu '-')
+            let codeMatch = str.match(/^([a-zA-Z0-9]+)\s*-/);
+            if (codeMatch) {
+                code = codeMatch[1].trim();
+                str = str.replace(codeMatch[0], '').trim();
+            }
+
+            // 3. Tách chuỗi còn lại bằng ' - '
+            let parts = str.split(' - ').map(p => p.trim());
+
+            // 4. Bóc tách Tên Môn Học (Chứa ký tự (LT)/(TH)/(TT))
+            let nameEndIdx = -1;
+            for (let i = 0; i < parts.length; i++) {
+                if (/\((LT|TH|TT)\)/i.test(parts[i])) {
+                    nameEndIdx = i;
+                    break;
+                }
+            }
+
+            let rawName = "";
+            if (nameEndIdx !== -1) {
+                rawName = parts.slice(0, nameEndIdx + 1).join(' - ');
+                parts = parts.slice(nameEndIdx + 1);
             } else {
+                if (parts.length >= 3) {
+                    rawName = parts.slice(0, parts.length - 2).join(' - ');
+                    parts = parts.slice(parts.length - 2);
+                } else if (parts.length === 2) {
+                    rawName = parts[0];
+                    parts = [parts[1]];
+                } else {
+                    rawName = parts[0] || "";
+                    parts = [];
+                }
+            }
+
+            // Xóa (LT) hoặc (TH) hoặc (TT) khỏi tên môn
+            if (rawName.toUpperCase().includes('(TH)') || rawName.toUpperCase().includes('(TT)')) {
+                task = "Thực hành";
+            }
+            subject = rawName.replace(/\((LT|TH|TT)\)/gi, '').trim();
+
+            // 5. Gán GV và Phòng từ parts còn lại
+            if (parts.length >= 2) {
+                instructor = parts[0] !== "" ? parts[0] : "chưa xác định";
+                room = parts[1] !== "" ? parts[1] : "chưa xác định";
+            } else if (parts.length === 1) {
+                instructor = parts[0] !== "" ? parts[0] : "chưa xác định";
+            }
+
+            // Kiểm tra rỗng lần cuối
+            if (subject === "") subject = "chưa xác định";
+            if (code === "") code = "chưa xác định";
+            if (instructor === "") instructor = "chưa xác định";
+            if (room === "") room = "chưa xác định";
+
+            // CHUẨN HÓA GIẢNG VIÊN VÀ PHÒNG
+            if (instructor !== "chưa xác định") {
                 let isBM = bmInstructors.some(gv => instructor.includes(gv));
                 if (!isBM) instructor = "Giảng viên đơn vị khác";
             }
 
-            // CHUẨN HÓA PHÒNG ELEARNING
             if (room.toLowerCase().includes('elrn')) room = 'Elearning';
-
-            let task = "Lý thuyết";
-            if (classStr.includes('(TH)') || classStr.includes('(TT)')) task = "Thực hành";
-            
-            // Xóa (LT) hoặc (TH) hoặc (TT) khỏi tên môn, chỉ lấy tên môn học
-            let subject = name.replace(/\(LT\)/gi, '').replace(/\(TH\)/gi, '').replace(/\(TT\)/gi, '').trim();
 
             return { code, subject, instructor, room, group, task, rawString: classStr };
         }
@@ -375,7 +423,7 @@
                 let tStart = item.start.split('T')[1].substring(0, 5);
                 let tEnd = item.end.split('T')[1].substring(0, 5);
 
-                // Đối chiếu với CSDL để đổi màu
+                // ĐỐI CHIẾU VỚI BẢNG MÔN HỌC
                 let isMatch = window.validUmpids.includes(String(item.code).trim());
                 let subjectColor = isMatch ? '#16a34a' : '#dc2626';
 
@@ -413,7 +461,6 @@
         // CƠ CHẾ ĐẨY DỮ LIỆU TRỰC TIẾP LÊN FIREBASE
         // ===============================================
 
-        // Đẩy 1 sự kiện lẻ
         window.pushSingleEvent = async (index) => {
             if (!currentUserEmail) {
                 showToast("Bạn chưa đăng nhập Admin!", "danger");
@@ -427,7 +474,6 @@
                 btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
                 btn.disabled = true;
 
-                // Lưu vào collection 'calendar_events'
                 await setDoc(doc(db, "calendar_events", eventData.id), eventData);
                 
                 btn.innerHTML = '<i class="fas fa-check"></i> Đã đẩy';
@@ -442,7 +488,6 @@
             }
         };
 
-        // Đẩy Hàng Loạt (Batch Write)
         window.pushAllEvents = async () => {
             if (!currentUserEmail) {
                 showToast("Bạn chưa đăng nhập Admin!", "danger");
@@ -456,7 +501,6 @@
             btnAll.disabled = true;
 
             try {
-                // Firestore batch có giới hạn 500 lệnh write 1 lần. Chia nhỏ mảng nếu cần.
                 const chunks = [];
                 for (let i = 0; i < window.finalJsonData.length; i += 500) {
                     chunks.push(window.finalJsonData.slice(i, i + 500));
@@ -468,14 +512,13 @@
                         const evRef = doc(db, "calendar_events", ev.id);
                         batch.set(evRef, ev);
                     });
-                    await batch.commit(); // Gửi toàn bộ 1 cục
+                    await batch.commit(); 
                 }
 
                 window.showToast(`Tuyệt vời! Đã đẩy thành công ${window.finalJsonData.length} lịch lên Database.`);
                 btnAll.innerHTML = '<i class="fas fa-check-double"></i> Đã đẩy xong';
                 btnAll.style.background = "#22c55e";
 
-                // Cập nhật giao diện toàn bộ nút con
                 window.finalJsonData.forEach((_, idx) => {
                     const b = document.getElementById(`btnPush_${idx}`);
                     if(b) {
@@ -486,7 +529,7 @@
 
             } catch (err) {
                 console.error(err);
-                window.showToast("Lỗi khi đẩy hàng loạt: " + err.message, "danger");
+                window.showToast("Lỗi khi đẩy (Chỉ Admin mới có quyền Push): " + err.message, "danger");
                 btnAll.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Đẩy toàn bộ lên DB';
                 btnAll.disabled = false;
             }
