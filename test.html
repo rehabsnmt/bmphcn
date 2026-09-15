@@ -326,7 +326,6 @@
         let gvShortNameMap = {};
         let pendingDropInfo = null;
 
-        // Trích xuất "Nhóm/Ngành" từ string
         window.getGroupTagFromSubject = (subjectName) => {
             if (!subjectName) return "ALL";
             if (subjectName.includes("Vật lý trị liệu")) return "VLTL";
@@ -421,7 +420,6 @@
         window.formatGvName = (gvString) => {
             if (!gvString) return '';
             let gvs = gvString.split(/,|&/).map(s => s.trim());
-            // KHÔNG KÈM HỌC VỊ -> CHỈ LẤY TÊN
             let shortGvs = gvs.map(gv => gvShortNameMap[gv] ? gvShortNameMap[gv] : gv);
             return shortGvs.join(', ');
         };
@@ -548,13 +546,17 @@
                     
                     let targetGVs = gvStr ? gvStr.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
                     let eGVs = e.gv ? e.gv.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
-                    let hasCommonGV = targetGVs.some(gv => eGVs.includes(gv));
+                    
+                    // ĐIỀU CHỈNH: Bỏ qua kiểm tra trùng nếu Giảng viên là "Giảng viên đơn vị khác"
+                    let commonGVs = targetGVs.filter(gv => eGVs.includes(gv) && gv.toLowerCase() !== 'giảng viên đơn vị khác');
+                    let hasCommonGV = commonGVs.length > 0;
 
                     if (hasCommonGV) {
+                        let overlapGVName = commonGVs.join(', ');
                         if (e.type === 'self_declared') {
                             return { 
                                 hasOverlap: true, 
-                                reason: `Giảng viên đã tự khai báo lịch công tác/bận ("${e.task}").`,
+                                reason: `Giảng viên ${overlapGVName} đã tự khai báo lịch công tác/bận ("${e.task}").`,
                                 conflictClass: 'Lịch cá nhân',
                                 conflictSubject: e.task,
                                 conflictGV: e.gv,
@@ -565,7 +567,7 @@
                         if (blockingTasks.includes(targetTask) && blockingTasks.includes(e.task)) {
                             return { 
                                 hasOverlap: true, 
-                                reason: `Giảng viên phụ trách đã bận dạy/coi thi ở lớp khác.`,
+                                reason: `Giảng viên ${overlapGVName} đã bận dạy/coi thi ở lớp khác.`,
                                 conflictClass: e.class,
                                 conflictSubject: e.subject,
                                 conflictGV: e.gv || 'Chưa rõ',
@@ -798,15 +800,12 @@
                     snapUser.forEach(doc => {
                         const d = doc.data();
                         if(d.fullName) {
-                            // LẤY TÊN KHÔNG CẦN HỌC VỊ
+                            let pref = d.degree === 'ThS' ? 'ThS. ' : (d.degree === 'TS' ? 'TS. ' : '');
+                            let savedName = `${pref}${d.fullName}`; 
                             let nameParts = d.fullName.trim().split(' ');
                             let firstName = nameParts[nameParts.length - 1]; 
                             let genderPref = d.gender === 'm' ? 'Thầy ' : (d.gender === 'f' ? 'Cô ' : 'GV ');
-                            
-                            // Map theo nhiều keys để lỡ DB lưu có học vị hay không học vị vẫn hiển thị ra đúng
-                            let pref = d.degree === 'ThS' ? 'ThS. ' : (d.degree === 'TS' ? 'TS. ' : '');
-                            gvShortNameMap[`${pref}${d.fullName}`] = `${genderPref}${firstName}`;
-                            gvShortNameMap[d.fullName] = `${genderPref}${firstName}`;
+                            gvShortNameMap[savedName] = `${genderPref}${firstName}`;
                         }
                     });
                 } catch(e) { console.error("Lỗi lấy dữ liệu Users:", e); }
@@ -828,7 +827,8 @@
                     const userDoc = await getDoc(doc(db, "users", user.uid));
                     if (userDoc.exists()) {
                         const data = userDoc.data();
-                        currentUserName = data.fullName; // Không lưu kèm học vị vào currentUserName
+                        let prefix = data.degree === 'ThS' ? 'ThS. ' : (data.degree === 'TS' ? 'TS. ' : '');
+                        currentUserName = `${prefix}${data.fullName}`;
                     }
                 } catch(e) { console.error("Lỗi lấy dữ liệu Profile:", e); }
 
@@ -924,7 +924,7 @@
                             let shortRoom = e.room || 'Chưa XĐ';
                             
                             let isSelfDeclared = e.type === 'self_declared';
-                            let isImported = (!e.scheduledByName || e.scheduledByName === ''); // Import từ Excel thường không có Tên người tạo
+                            let isImported = (!e.scheduledByName || e.scheduledByName === ''); 
 
                             if (isSelfDeclared) {
                                 return `
@@ -936,7 +936,6 @@
                                 `;
                             }
 
-                            // ẨN ĐỊNH HƯỚNG NẾU LÀ LỚP CN
                             let isCN = e.class.toUpperCase().includes('CN');
                             let eNorm = window.normalizeOrient(e.orientation);
                             let orientHtml = '';
@@ -950,7 +949,6 @@
                                 }
                             }
 
-                            // TAG MÀU SẮC CHUYÊN NGÀNH VLTL (PT), HĐTL (OT), NNTL (ST)
                             let subObj = subjectsData.find(s => s.name === e.subject);
                             let majorBadge = '';
                             if (subObj && subObj.majorTag) {
@@ -967,7 +965,7 @@
 
                             let classColorStyle = window.getClassColor(e.class);
                             let classBadge = `<div style="margin-bottom: 4px;"><span style="display:inline-block; padding:2px 6px; border-radius:3px; font-size:0.7rem; font-weight:bold; ${classColorStyle}">${e.class}</span> ${majorBadge}</div>`;
-                            
+
                             let importNote = isImported ? `<div style="font-size: 0.7rem; color: #10b981; font-style: italic; margin-top: 2px;">(Import từ Excel)</div>` : '';
 
                             return `
@@ -1011,7 +1009,6 @@
                         let orientLabelText = '';
                         let finalOrientVal = '';
 
-                        // ẨN ĐỊNH HƯỚNG NẾU LÀ CỬ NHÂN
                         let isCN = props.eventClass.toUpperCase().includes('CN');
 
                         if (isCN) {
@@ -1157,7 +1154,6 @@
                                 return; 
                             }
 
-                            // ẨN ĐỊNH HƯỚNG NẾU LÀ LỚP CN TRÊN MODAL
                             let isCN = e.class.toUpperCase().includes('CN');
                             let eNorm = window.normalizeOrient(e.orientation);
                             let orientHtml = '';
