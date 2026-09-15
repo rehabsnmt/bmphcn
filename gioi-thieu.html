@@ -107,33 +107,35 @@
         
         .faculty-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-hover); border-color: var(--primary); }
 
-        .faculty-avatar { width: 115px; height: 115px; border-radius: 50%; object-fit: cover; margin-bottom: 1.2rem; border: 3px solid var(--primary); background: var(--bg-page); display: flex; align-items: center; justify-content: center; font-size: 3rem; color: var(--text-body); box-shadow: 0 4px 10px rgba(2, 132, 199, 0.1); flex-shrink: 0; overflow: hidden; }
+        .faculty-avatar { width: 115px; height: 115px; border-radius: 50%; object-fit: cover; margin-bottom: 1.2rem; border: 3px solid white; background: var(--bg-page); display: flex; align-items: center; justify-content: center; font-size: 3rem; color: var(--text-body); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15); flex-shrink: 0; overflow: hidden; }
         .faculty-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
         .faculty-degree { 
-            font-size: 0.9rem; 
-            font-weight: 600; 
-            color: var(--text-body); 
+            font-size: 0.85rem; 
+            font-weight: 700; 
+            color: var(--primary); 
             margin-bottom: 0.2rem; 
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
         .faculty-name { 
-            font-size: 1.2rem; 
-            font-weight: 700; 
+            font-size: 1.25rem; 
+            font-weight: 800; 
             color: var(--text-dark); 
             margin-bottom: 0.4rem; 
             white-space: nowrap;
         }
 
-        .faculty-position { font-size: 0.95rem; font-weight: 600; color: var(--primary); margin-bottom: 0.6rem; }
-        
+        .faculty-position { font-size: 0.9rem; font-weight: 600; color: var(--text-body); margin-bottom: 1rem; }
+        .pos-head { color: #dc2626 !important; font-weight: 700 !important; }
+        .pos-admin { color: #16a34a !important; font-weight: 700 !important; }
+
         /* Nhãn Chuyên ngành: Ép không rớt dòng & Tự thu nhỏ */
         .faculty-major {
-            font-size: clamp(0.6rem, 2.5vw, 0.75rem); 
+            font-size: clamp(0.65rem, 2.5vw, 0.8rem); 
             font-weight: 700;
-            padding: 4px 10px;
+            padding: 5px 12px;
             border-radius: 20px;
             margin-bottom: 1rem;
             display: inline-block;
@@ -273,7 +275,7 @@
                     ? `<a href="mailto:${data.email}" style="color: inherit; text-decoration: none;">${data.email}</a>` 
                     : `<span style="font-style: italic; color: #94a3b8;">Đang cập nhật</span>`;
 
-                const avatarHtml = `<img src="${data.image}" alt="Ảnh ${data.name}" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\\'fas fa-user\\' style=\\'font-size: 3rem; color: var(--text-body);\\'></i>';">`;
+                const avatarHtml = `<img src="${data.image}" alt="Ảnh ${data.name}" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\\'fas fa-user\\' style=\\'font-size: 3rem; color: #cbd5e1;\\'></i>';">`;
 
                 // Thuật toán nhận diện màu chuyên ngành đồng bộ với trang chi tiết CV
                 let majorClass = 'major-default';
@@ -287,13 +289,18 @@
                     majorClass = 'major-nntl';
                 }
 
+                // Thuật toán đổi màu chức vụ đặc biệt
+                let positionClass = '';
+                if (data.position === 'Trưởng Bộ môn') positionClass = 'pos-head';
+                else if (data.position === 'Giáo vụ') positionClass = 'pos-admin';
+
                 card.innerHTML = `
                     <div class="faculty-avatar">
                         ${avatarHtml}
                     </div>
                     <div class="faculty-degree">${data.degree}</div>
                     <div class="faculty-name">${data.name}</div>
-                    <div class="faculty-position">${data.position}</div>
+                    <div class="faculty-position ${positionClass}">${data.position}</div>
                     <div class="faculty-major ${majorClass}">${data.major}</div>
                     <div class="faculty-email">
                         <i class="fas fa-envelope" style="margin-right: 6px; color: var(--primary);"></i> ${emailHtml}
