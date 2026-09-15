@@ -60,6 +60,8 @@
         button:disabled { opacity: 0.6; cursor: not-allowed; }
         .btn-page { background-color: var(--surface); color: var(--text-dark); border: 1px solid var(--border); padding: 5px 15px; border-radius: 6px; font-weight: 600; }
         .btn-page:hover:not(:disabled) { background-color: var(--primary-light); color: var(--primary); border-color: var(--primary); }
+        .btn-outline { background-color: white; color: var(--primary); border: 1px solid var(--primary); padding: 0.6rem 1.2rem; border-radius: var(--radius-pill); font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-outline:hover { background-color: var(--primary-light); }
 
         /* Bảng hiển thị */
         .table-container { overflow-x: auto; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--surface); box-shadow: var(--shadow-sm); position: relative; }
@@ -330,24 +332,21 @@
         </div>
     </div>
 
-    <!-- MODAL 2: THÔNG TIN GIẢNG VIÊN -->
+    <!-- MODAL 2: THÔNG TIN GIẢNG VIÊN ĐƯỢC THIẾT KẾ LẠI -->
     <div id="advisorModal" class="modal-overlay hidden">
-        <div class="modal-content" style="text-align: center;">
+        <div class="modal-content" style="text-align: center; max-width: 420px;">
             <button class="modal-close" onclick="closeAdvisorModal()"><i class="fas fa-times"></i></button>
             <img id="modalAvatar" src="" alt="Avatar GV" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin: 0 auto 15px auto; border: 3px solid var(--primary); display: block; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-            <h2 id="modalName" style="color: var(--text-dark); margin-bottom: 5px;">Tên GV</h2>
-            <p id="modalDegree" style="color: var(--text-body); font-size: 0.9rem; margin-bottom: 20px;">Học hàm / Học vị</p>
-            <div style="border-top: 1px solid var(--border); padding-top: 20px; text-align: left; font-size: 0.95rem;">
-                <p><strong><i class="fas fa-envelope" style="color:var(--primary); margin-right:8px;"></i></strong> <span id="modalEmail">...</span></p>
-                <p><strong><i class="fas fa-microscope" style="color:var(--primary); margin-right:8px;"></i></strong> <span id="modalResearch">...</span></p>
-                <p style="margin-top: 15px; margin-bottom: 5px;"><strong><i class="fas fa-info-circle" style="color:var(--primary); margin-right:8px;"></i>Giới thiệu:</strong></p>
-                <p id="modalBio" style="background: var(--bg-page); padding: 12px; border-radius: 8px; color: var(--text-body); margin: 0; line-height: 1.6;">...</p>
-                
-                <div style="text-align: center; margin-top: 20px;">
-                    <a id="modalResearchLink" href="#" target="_blank" style="display: inline-block; padding: 10px 20px; background-color: var(--primary); color: white; text-decoration: none; border-radius: 6px; font-weight: bold; transition: 0.3s;">
-                        <i class="fas fa-external-link-alt" style="margin-right: 8px;"></i>Xem các nghiên cứu khoa học của giảng viên
-                    </a>
-                </div>
+            <h2 id="modalName" style="color: var(--text-dark); margin-bottom: 5px; font-size: 1.3rem;">Tên GV</h2>
+            <p id="modalDegree" style="color: var(--text-body); font-size: 0.95rem; margin-bottom: 25px;">Học hàm / Học vị</p>
+            
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <button class="btn-primary" onclick="filterThesisByAdvisor()" style="width: 100%; padding: 12px; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 1rem; box-shadow: 0 4px 6px rgba(2, 132, 199, 0.2);">
+                    <i class="fas fa-filter"></i> Xem các đề tài đang hướng dẫn
+                </button>
+                <button class="btn-outline" onclick="goToAdvisorProfile()" style="width: 100%; padding: 12px; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 1rem;">
+                    <i class="fas fa-external-link-alt"></i> Xem hồ sơ & Nghiên cứu khoa học
+                </button>
             </div>
         </div>
     </div>
@@ -467,6 +466,10 @@
         const itemsPerPage = 30;
         let totalPages = 1;
         let unsubscribeLogs = null;
+        
+        let usersMap = {}; // Lưu trữ dữ liệu User
+        let currentSelectedAdvisor = "";
+        let currentSelectedAdvisorId = "";
 
         const tableBody = document.getElementById('dataTableBody');
         const thAction = document.getElementById('thAction');
@@ -533,6 +536,18 @@
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
+                // TẢI DANH SÁCH USERS VÀ AVATAR
+                try {
+                    const snapUser = await getDocs(collection(db, "users"));
+                    snapUser.forEach(doc => {
+                        const d = doc.data();
+                        if (d.fullName) {
+                            usersMap[d.fullName.trim()] = { id: doc.id, avatar: d.avatar || d.photoURL || '', ...d };
+                        }
+                    });
+                } catch(e) { console.error("Lỗi tải thông tin GV:", e); }
+
+                // CHẶN QUYỀN HỌC VIÊN
                 if (user.email.toLowerCase() === 'ths.phcn26@ump.edu.vn') {
                     isAdmin = false;
                     thesisFormModal.classList.add('hidden');
@@ -542,7 +557,6 @@
                     btnOpenAdd.classList.add('hidden');
                     document.getElementById('btnOpenHistory').classList.add('hidden');
                     document.getElementById('btnOpenTrash').classList.add('hidden');
-                    
                     renderTable();
                     return; 
                 }
@@ -574,10 +588,7 @@
                     });
                 });
             } else {
-                if (unsubscribeLogs) {
-                    unsubscribeLogs();
-                    unsubscribeLogs = null;
-                }
+                if (unsubscribeLogs) { unsubscribeLogs(); unsubscribeLogs = null; }
                 isAdmin = false;
                 thesisFormModal.classList.add('hidden');
                 document.getElementById('bulkSection').classList.add('hidden');
@@ -744,41 +755,59 @@
             document.getElementById('thesisDetailModal').classList.add('hidden');
         };
 
+        // ==========================================
+        // CẬP NHẬT MODAL GIẢNG VIÊN THÔNG MINH
+        // ==========================================
         window.openAdvisorModal = (enN) => {
             const n = decodeURIComponent(enN);
             const inf = internalAdvisors[n];
             if(!inf) return;
+
+            currentSelectedAdvisor = n;
             
-            // LỌC TỰ ĐỘNG THEO TÊN GV
-            document.getElementById('searchInput').value = n;
-            currentPage = 1;
-            renderTable();
+            // Tìm ID tài khoản trong usersMap dựa vào tên đã lọc học vị (nằm trong inf.bio)
+            const rawName = inf.bio; 
+            const userData = usersMap[rawName];
+            currentSelectedAdvisorId = userData ? userData.id : '';
 
             const avatarImg = document.getElementById('modalAvatar');
-            avatarImg.src = `images/${n}.jpg`;
+            if (userData && userData.avatar) {
+                avatarImg.src = userData.avatar;
+            } else {
+                avatarImg.src = `images/${n}.jpg`;
+            }
             avatarImg.onerror = function() {
                 this.src = 'images/logo_Bộ môn.png';
             };
 
             document.getElementById('modalName').innerText = n;
             document.getElementById('modalDegree').innerText = inf.degree;
-            document.getElementById('modalEmail').innerText = inf.email;
-            document.getElementById('modalResearch').innerText = inf.research;
-            document.getElementById('modalBio').innerText = inf.bio;
-            
-            // ĐIỀU CHỈNH: NÚT CHUYỂN TRANG NGHIÊN CỨU
-            const researchLink = document.getElementById('modalResearchLink');
-            // Truyền tham số n qua URL (VD: nghien-cuu.html?gv=Nguyễn Thanh Duy)
-            researchLink.href = `nghien-cuu.html?gv=${encodeURIComponent(n)}`;
             
             document.getElementById('advisorModal').classList.remove('hidden');
-            
-            // Ẩn modal luận văn nếu đang mở
             document.getElementById('thesisDetailModal').classList.add('hidden');
+        };
+
+        window.filterThesisByAdvisor = () => {
+            document.getElementById('searchInput').value = currentSelectedAdvisor;
+            currentPage = 1;
+            renderTable();
+            closeAdvisorModal();
+            showToast(`Đã lọc đề tài của ${currentSelectedAdvisor}`, "success");
+        };
+
+        window.goToAdvisorProfile = () => {
+            if (currentSelectedAdvisorId) {
+                window.open(`thong-tin-giang-vien.html?id=${currentSelectedAdvisorId}&tab=research`, '_blank');
+            } else {
+                showToast("Giảng viên này chưa có trang hồ sơ chuyên sâu trên hệ thống!", "warning");
+            }
         };
         
         window.closeAdvisorModal = () => document.getElementById('advisorModal').classList.add('hidden');
 
+        // ==========================================
+        // QUẢN LÝ THÙNG RÁC / LỊCH SỬ / FORM
+        // ==========================================
         window.openHistoryModal = () => document.getElementById('historyModal').classList.remove('hidden');
         window.closeHistoryModal = () => document.getElementById('historyModal').classList.add('hidden');
 
