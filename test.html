@@ -112,6 +112,7 @@
         .btn-danger { background: var(--accent); color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s;}
         .btn-primary { background: var(--primary); color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s;}
         .btn-secondary { background: white; color: var(--text-dark); border: 1px solid var(--border); padding: 8px 15px; border-radius: 4px; cursor: pointer; transition: 0.2s; font-weight: 600; }
+        .btn-info { background: #0ea5e9; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s;}
 
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; font-weight: 600; margin-bottom: 5px; color: var(--text-dark); font-size:0.9rem;}
@@ -374,9 +375,9 @@
         window.normalizeOrient = (orient) => {
             if (!orient) return 'CHUNG';
             let str = String(orient).toUpperCase().trim();
+            if (str.includes('CẢ HAI') || str.includes('CHUNG') || str.includes('NC,UD') || str.includes('UD,NC')) return 'CHUNG';
             if (str === 'NC' || str.includes('NGHIÊN CỨU')) return 'NC';
             if (str === 'UD' || str.includes('ỨNG DỤNG')) return 'UD';
-            if (str === 'CẢ HAI' || str.includes('CHUNG') || str.includes('NC,UD') || str.includes('UD,NC')) return 'CHUNG';
             return 'CHUNG';
         };
 
@@ -481,11 +482,11 @@
             }
         };
 
-        window.getScheduledCount = (cls, targetOrientCode, subName, gv, task) => {
+        window.getScheduledCount = (cls, targetOrientCode, subName, gv, task, combinedEventsArray) => {
             let count = 0;
             let targetNorm = window.normalizeOrient(targetOrientCode);
 
-            scheduledEventsDB.forEach(e => {
+            combinedEventsArray.forEach(e => {
                 if (e.status === 'returned' || e.type === 'self_declared') return;
                 
                 let eNorm = window.normalizeOrient(e.orientation);
@@ -507,7 +508,7 @@
             return count;
         };
 
-        // --- KIỂM TRA OVERLAP ---
+        // --- KIỂM TRA OVERLAP CHỐNG LỖI TÊN MÔN ---
         function hasOverlap(targetStartStr, targetEndStr, gvStr, targetClass, targetTask, targetRoom, targetSubject, targetOrient, ignoreEventIds) {
             let ignoreList = Array.isArray(ignoreEventIds) ? ignoreEventIds : [ignoreEventIds];
             let tStart = new Date(targetStartStr).getTime();
@@ -519,6 +520,16 @@
                 return (s && s.majorTag) ? s.majorTag : "ALL";
             };
             let targetSubjectGroup = getMajorTag(targetSubject);
+
+            // Bóc tách tên môn (bỏ phần số đằng trước) để cho phép gộp các môn cùng tên
+            let getBaseSubjectName = (name) => {
+                if (!name) return "";
+                let parts = name.split('.');
+                if (parts.length > 1 && !isNaN(parts[0].trim())) {
+                    return parts.slice(1).join('.').trim().toLowerCase();
+                }
+                return name.trim().toLowerCase();
+            };
             
             let allSubEvents = [];
             
@@ -539,6 +550,7 @@
                     let eSubjectGroup = getMajorTag(e.subject);
                     let timeRangeStr = `${new Date(e.start).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12: false})} - ${new Date(e.end || e.startMs + 4 * 3600000).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12: false})} (${new Date(e.start).toLocaleDateString('vi-VN')})`;
 
+                    // 1. Trùng phòng
                     if (targetRoom && e.room && targetRoom !== 'Khác...' && targetRoom !== 'OTHER' && e.room === targetRoom && e.type !== 'self_declared') {
                         return { 
                             hasOverlap: true, 
@@ -550,13 +562,14 @@
                         };
                     }
 
+                    // 2. Trùng lớp
                     if (e.class === targetClass && blockingTasks.includes(targetTask) && blockingTasks.includes(e.task) && e.type !== 'self_declared') {
-                        let isSameSubject = (e.subject === targetSubject);
+                        let isSameSubject = (getBaseSubjectName(e.subject) === getBaseSubjectName(targetSubject));
                         let isDifferentSpecificOrient = (eOrientNorm !== 'CHUNG' && targetOrientNorm !== 'CHUNG' && eOrientNorm !== targetOrientNorm);
                         let isDifferentMajor = (eSubjectGroup !== "ALL" && targetSubjectGroup !== "ALL" && eSubjectGroup !== targetSubjectGroup);
                         
                         if (isSameSubject && isDifferentSpecificOrient) {
-                            // Bỏ qua
+                            // Bỏ qua vì đây là trường hợp gộp lớp NC và UD cho cùng 1 tên môn
                         } else if (isDifferentMajor) {
                             // Bỏ qua
                         } else {
@@ -571,6 +584,7 @@
                         }
                     }
                     
+                    // 3. Trùng giảng viên
                     let targetGVs = gvStr ? gvStr.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
                     let eGVs = e.gv ? e.gv.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
                     
@@ -611,12 +625,8 @@
 
         function toLocalISOString(date) {
             const pad = (n) => (n < 10 ? '0' + n : n);
-            return date.getFullYear() + '-' +
-                   pad(date.getMonth() + 1) + '-' +
-                   pad(date.getDate()) + 'T' +
-                   pad(date.getHours()) + ':' +
-                   pad(date.getMinutes()) + ':' +
-                   pad(date.getSeconds());
+            return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate()) + 'T' +
+                   pad(date.getHours()) + ':' + pad(date.getMinutes()) + ':' + pad(date.getSeconds());
         }
 
         window.exportWeeklyReport = () => {
@@ -1216,7 +1226,7 @@
 
                             let classColorStyle = window.getClassColor(e.class);
                             let classBadge = `<span style="display:inline-block; padding:2px 6px; border-radius:4px; font-size:0.75rem; font-weight:bold; ${classColorStyle}">${e.class}</span> ${majorBadge}`;
-
+                            
                             let importNote = isImported ? `<p style="margin:0; font-size:0.8rem; color:#10b981; font-style:italic; font-weight:bold;">Xếp bởi: Hệ thống</p>` : `<p style="margin:0; font-size:0.8rem; color:#94a3b8; font-style:italic;">Xếp bởi: ${e.scheduledByName || 'Admin'}</p>`;
 
                             html += `
@@ -1266,7 +1276,6 @@
             }
 
             let allNewEvents = [];
-            // FIX KÉO THẢ: Sử dụng đối tượng start/end nguyên bản của info
             let originalStart = info.event.start;
             let originalEnd = info.event.end ? info.event.end : new Date(originalStart.getTime() + 4 * 3600000);
 
@@ -1407,15 +1416,16 @@
             rawTaskMap.forEach((data, mapKey) => {
                 let scheduledNC = window.getScheduledCount(data.cls, 'NC', data.subName, data.gv, data.task, combinedEvents);
                 let scheduledUD = window.getScheduledCount(data.cls, 'UD', data.subName, data.gv, data.task, combinedEvents);
-                let scheduledGeneral = window.getScheduledCount(data.cls, '', data.subName, data.gv, data.task, combinedEvents);
+                let scheduledGeneral = window.getScheduledCount(data.cls, 'CHUNG', data.subName, data.gv, data.task, combinedEvents);
 
                 let remNC = Math.max(0, data.totalNC - scheduledNC);
                 let remUD = Math.max(0, data.totalUD - scheduledUD);
                 let remGeneral = Math.max(0, data.totalGeneral - scheduledGeneral);
 
                 if (data.totalGeneral > 0 && remGeneral > 0) {
-                    poolTasksList.push({ ...data, orientCode: '', remaining: remGeneral });
-                } else if (data.totalNC > 0 || data.totalUD > 0) {
+                    poolTasksList.push({ ...data, orientCode: 'CHUNG', remaining: remGeneral });
+                } 
+                if (data.totalNC > 0 || data.totalUD > 0) {
                     if (data.allowJoint) {
                         let shared = Math.min(remNC, remUD);
                         let onlyNC = remNC - shared;
@@ -1454,8 +1464,15 @@
                 unscheduledCount += item.remaining;
             });
 
+            let statUnscheduledEl = document.getElementById('statUnscheduled');
+            if (statUnscheduledEl) statUnscheduledEl.innerText = unscheduledCount;
+
             const orderedSubjectNames = Array.from(subjectGroups.keys()).sort((a,b) => a.localeCompare(b, 'vi'));
             
+            if (orderedSubjectNames.length === 0) {
+                if(poolDiv) poolDiv.innerHTML = '<div style="padding: 15px; text-align: center; color: #64748b; font-style: italic;">Không có môn học nào đang chờ xếp.</div>';
+            }
+
             orderedSubjectNames.forEach((subName, gIdx) => {
                 let subjectContainer = document.createElement('div');
                 subjectContainer.className = 'pool-subject-group';
@@ -1482,6 +1499,15 @@
                     let classTag = `<span class="class-tag" style="${classColorStyle}">${item.cls}</span> ${majorBadge}`;
                     let gvDisplay = window.formatGvName(item.gv);
 
+                    let normCode = window.normalizeOrient(item.orientCode);
+                    let isCN = item.cls.toUpperCase().includes('CN');
+                    let orientDisplay = '';
+                    if (!isCN) {
+                        if (normCode === 'NC') orientDisplay = '<div class="badge-orient badge-nc" style="display:block; text-align:center; margin-bottom:5px;">Hệ Nghiên cứu (NC)</div>';
+                        else if (normCode === 'UD') orientDisplay = '<div class="badge-orient badge-ud" style="display:block; text-align:center; margin-bottom:5px;">Hệ Ứng dụng (UD)</div>';
+                        else orientDisplay = '<div class="badge-orient badge-chung" style="display:block; text-align:center; margin-bottom:5px;">Học chung (NC & UD)</div>';
+                    }
+
                     if (item.isRejected) {
                         eventDiv.className = `fc-event ${item.cls} rejected-task`;
                         eventDiv.setAttribute('data-id', item.rTask.id); 
@@ -1499,20 +1525,7 @@
                         let rBadge = `<span class="reject-badge"><i class="fas fa-exclamation-circle"></i> Bị từ chối (Trả về)</span>`;
                         eventDiv.innerHTML = `${classTag}<div class="event-gv">${gvDisplay}</div><span class="event-info">[${item.task}]</span>${rBadge}`;
                     } else {
-                        let normCode = window.normalizeOrient(item.orientCode);
                         let orientAttr = normCode === 'NC' ? 'Nghiên cứu' : (normCode === 'UD' ? 'Ứng dụng' : 'Cả hai');
-                        
-                        let isCN = item.cls.toUpperCase().includes('CN');
-                        let orientDisplay = '';
-                        if (!isCN) {
-                            if (normCode === 'NC') {
-                                orientDisplay = '<div class="badge-orient badge-nc" style="display:block; text-align:center; margin-bottom:5px;">Hệ Nghiên cứu (NC)</div>';
-                            } else if (normCode === 'UD') {
-                                orientDisplay = '<div class="badge-orient badge-ud" style="display:block; text-align:center; margin-bottom:5px;">Hệ Ứng dụng (UD)</div>';
-                            } else {
-                                orientDisplay = '<div class="badge-orient badge-chung" style="display:block; text-align:center; margin-bottom:5px;">Học chung (NC & UD)</div>';
-                            }
-                        }
 
                         eventDiv.className = `fc-event ${item.cls}`;
                         eventDiv.setAttribute('data-id', `${item.subId}_${item.orientCode}_${item.gv}_${item.task}_${item.cls}`); 
