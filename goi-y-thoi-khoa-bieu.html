@@ -17,111 +17,142 @@
 
     <style>
         /* APP LAYOUT */
-        html, body { min-height: 100vh; margin: 0; padding: 0; display: flex; flex-direction: column; background: var(--bg-page); overflow-x: hidden; }
+        * { box-sizing: border-box; }
+        html, body { min-height: 100vh; margin: 0; padding: 0; display: flex; flex-direction: column; background: var(--bg-page); overflow-x: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
 
         #header-placeholder { flex-shrink: 0; transition: 0.3s; z-index: 1001; position: relative;}
         body.header-hidden #header-placeholder { display: none !important; }
         #footer-placeholder { display: none; }
 
         /* Thanh công cụ gọn nhẹ trên cùng */
-        .top-toolbar { position: sticky; top: 75px; z-index: 990; display: flex; justify-content: space-between; align-items: center; padding: 10px 2%; background: var(--surface); border-bottom: 1px solid var(--border); margin-bottom: 15px; box-shadow: var(--shadow-sm); transition: top 0.3s; flex-wrap: wrap; gap: 10px;}
-        .top-toolbar h2 { margin: 0; font-size: clamp(1.1rem, 3vw, 1.4rem); color: #8b5cf6; display: flex; align-items: center; gap: 8px; font-weight: 800; text-transform: uppercase; white-space: nowrap; }
+        .top-toolbar { position: sticky; top: 75px; z-index: 990; display: flex; justify-content: space-between; align-items: center; padding: 12px 2%; background: var(--surface); border-bottom: 1px solid var(--border); margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); transition: top 0.3s; flex-wrap: wrap; gap: 15px;}
+        .top-toolbar h2 { margin: 0; font-size: clamp(1.1rem, 3vw, 1.4rem); color: #8b5cf6; display: flex; align-items: center; gap: 10px; font-weight: 800; text-transform: uppercase; white-space: nowrap; }
 
         body.header-hidden .top-toolbar { top: 0; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
 
         .controls-wrapper { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-        .filter-select { padding: 6px 12px; font-size: 0.95rem; font-weight: 600; border-radius: 6px; border: 1px solid var(--primary); outline: none; cursor: pointer; color: var(--primary); background: var(--primary-light); max-width: 100%; transition: 0.2s; }
-        .filter-select:hover { background: white; }
         
-        .btn-toggle { background: white; color: var(--primary); border: 1px solid var(--primary); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.2s; font-size: 0.9rem; white-space: nowrap; }
-        .btn-toggle:hover:not(:disabled) { background: var(--primary-light); }
+        .filter-select { padding: 8px 14px; font-size: 0.95rem; font-weight: 600; border-radius: 6px; border: 1px solid var(--primary); outline: none; cursor: pointer; color: var(--primary); background: var(--primary-light); max-width: 100%; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .filter-select:hover { background: white; box-shadow: 0 4px 8px rgba(0,0,0,0.05); transform: translateY(-1px); }
+        
+        /* Buttons Chung */
+        .btn-toggle { background: white; color: var(--primary); border: 1px solid var(--primary); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.2s; font-size: 0.9rem; white-space: nowrap; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; align-items: center; gap: 6px; }
+        .btn-toggle:hover:not(:disabled) { background: var(--primary-light); transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
+        .btn-toggle:active:not(:disabled) { transform: translateY(0); box-shadow: none; }
         .btn-toggle:disabled { opacity: 0.5; cursor: not-allowed; }
         
         .btn-suggest { background: #8b5cf6; color: white; border: 1px solid #8b5cf6; }
-        .btn-suggest:hover:not(:disabled) { background: #7c3aed; border-color: #7c3aed; box-shadow: 0 4px 10px rgba(139, 92, 246, 0.3); }
+        .btn-suggest:hover:not(:disabled) { background: #7c3aed; border-color: #7c3aed; box-shadow: 0 6px 12px rgba(139, 92, 246, 0.3); }
 
         .btn-save { background: #10b981; color: white; border: 1px solid #10b981; }
-        .btn-save:hover:not(:disabled) { background: #059669; border-color: #059669; }
+        .btn-save:hover:not(:disabled) { background: #059669; border-color: #059669; box-shadow: 0 6px 12px rgba(16, 185, 129, 0.3); }
 
         .btn-cancel { background: #ef4444; color: white; border: 1px solid #ef4444; }
-        .btn-cancel:hover:not(:disabled) { background: #dc2626; border-color: #dc2626; }
+        .btn-cancel:hover:not(:disabled) { background: #dc2626; border-color: #dc2626; box-shadow: 0 6px 12px rgba(239, 68, 68, 0.3); }
+
+        .btn-secondary { background: white; color: var(--text-dark); border: 1px solid #cbd5e1; padding: 8px 16px; border-radius: 6px; cursor: pointer; transition: 0.2s; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+        .btn-secondary:hover { background: #f8fafc; border-color: #94a3b8; }
+
+        .btn-danger { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 0.8rem; display: flex; align-items: center; gap: 4px;}
+        .btn-danger:hover { background: #fecaca; border-color: #f87171; }
 
         /* Khu vực Lịch & Kho */
-        main { flex: 1; max-width: 100%; width: 100%; padding: 0 1% 30px 1%; display: flex; gap: 15px; box-sizing: border-box; align-items: flex-start; overflow-x: hidden; }
+        main { flex: 1; max-width: 100%; width: 100%; padding: 0 2% 30px 2%; display: flex; gap: 20px; align-items: flex-start; overflow-x: hidden; }
 
         /* Khung bên trái (Cài đặt Gợi ý) */
-        #suggestion-settings { position: sticky; top: 80px; width: 320px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 15px; box-shadow: var(--shadow-sm); flex-shrink: 0; display: flex; flex-direction: column; max-height: calc(100vh - 100px); overflow-y: auto; transition: 0.3s; }
-        #suggestion-settings h4 { margin: 0 0 15px 0; color: #8b5cf6; border-bottom: 2px dashed #ede9fe; padding-bottom: 10px; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;}
+        #suggestion-settings { position: sticky; top: 85px; width: 340px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.03); flex-shrink: 0; display: flex; flex-direction: column; max-height: calc(100vh - 100px); overflow-y: auto; transition: 0.3s; }
+        #suggestion-settings h4 { margin: 0 0 15px 0; color: #8b5cf6; border-bottom: 2px dashed #ede9fe; padding-bottom: 12px; font-size: 1.15rem; display: flex; align-items: center; gap: 8px;}
         
-        .setting-group { margin-bottom: 12px; }
-        .setting-group label { display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-dark); margin-bottom: 4px; }
-        .setting-group select, .setting-group input[type="date"] { width: 100%; padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; outline: none; box-sizing: border-box; font-family: inherit; font-size: 0.9rem; }
-        .setting-group select:focus, .setting-group input:focus { border-color: #8b5cf6; box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2); }
+        .setting-group { margin-bottom: 15px; }
+        .setting-group label { display: block; font-size: 0.85rem; font-weight: 700; color: var(--text-dark); margin-bottom: 6px; }
+        .setting-group select, .setting-group input[type="date"] { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; outline: none; font-family: inherit; font-size: 0.95rem; background: #fff; transition: 0.2s; }
+        .setting-group select:focus, .setting-group input:focus { border-color: #8b5cf6; box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15); }
         
         /* Stats Box */
-        .stats-box { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; margin-top: auto; margin-bottom: 15px; font-size: 0.85rem; line-height: 1.6; }
-        .stats-box strong { color: var(--primary); }
+        .stats-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 15px; margin-top: auto; margin-bottom: 15px; font-size: 0.9rem; line-height: 1.7; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); }
+        .stats-box strong { color: var(--primary); font-size: 1rem;}
 
         /* Thẻ sự kiện xem trước (Preview) */
         .preview-event { animation: pulse-border 1.5s infinite; border-width: 2px !important; }
         @keyframes pulse-border {
             0% { border-color: #8b5cf6; box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.4); }
-            70% { border-color: #7c3aed; box-shadow: 0 0 0 6px rgba(139, 92, 246, 0); }
+            70% { border-color: #7c3aed; box-shadow: 0 0 0 8px rgba(139, 92, 246, 0); }
             100% { border-color: #8b5cf6; box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); }
         }
 
-        .class-tag { display: inline-block; padding: 2px 5px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; margin-bottom: 4px; margin-right: 4px;}
+        .class-tag { display: inline-block; padding: 3px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; margin-bottom: 4px; margin-right: 4px;}
 
         /* Khung Lịch */
-        #calendar-container { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 15px; box-shadow: var(--shadow-sm); min-width: 0; min-height: 650px; transition: 0.3s; box-sizing: border-box;}
+        #calendar-container { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.03); min-width: 0; min-height: 650px; transition: 0.3s; }
         #calendar { min-height: 600px; height: 100%; width: 100%; }
 
-        .fc-toolbar-title { font-size: clamp(1.1rem, 2.5vw, 1.3rem) !important; color: var(--primary); font-weight: bold; text-transform: capitalize; }
-        .fc-button-primary { background-color: var(--primary) !important; border-color: var(--primary) !important; text-transform: capitalize; font-weight: 600 !important; padding: 6px 15px !important; font-size: 0.95rem !important;}
-        
+        .fc-toolbar-title { font-size: clamp(1.2rem, 2.5vw, 1.4rem) !important; color: var(--primary); font-weight: 800; text-transform: capitalize; }
+        .fc-button-primary { background-color: var(--primary) !important; border-color: var(--primary) !important; text-transform: capitalize; font-weight: 600 !important; padding: 8px 16px !important; font-size: 0.95rem !important; border-radius: 6px !important;}
+        .fc-button-primary:hover { background-color: var(--primary-dark) !important; }
+
+        /* Tinh chỉnh thẻ Lịch */
         .fc-event-main { padding: 0 !important; }
         .evt-group-container {
             background: white; border: 1px solid #cbd5e1;
-            border-radius: 4px; padding: 6px; box-sizing: border-box;
+            border-radius: 6px; box-sizing: border-box;
             height: 100%; display: flex; flex-direction: column;
             overflow: hidden; border-left: 4px solid var(--primary);
-            color: var(--text-dark); box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            cursor: pointer;
+            color: var(--text-dark); box-shadow: 0 2px 5px rgba(0,0,0,0.04);
+            cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
         }
-        .evt-group-header { font-size: 0.8rem; font-weight: 700; color: #64748b; margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; }
-        .evt-items-list { flex: 1; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; gap: 8px; }
+        .evt-group-container:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.08); }
+        .evt-group-header { font-size: 0.85rem; font-weight: 700; color: #475569; padding: 8px 10px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 6px; }
+        .evt-items-list { flex: 1; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; gap: 8px; padding: 8px; }
         
         .hidden { display: none !important; }
 
-        .toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
-        .toast { min-width: 250px; background-color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: 0.4s; font-weight: 600; border-left: 5px solid #22c55e; opacity: 0; pointer-events: auto; }
+        /* Toasts */
+        .toast-container { position: fixed; top: 90px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .toast { min-width: 280px; background-color: white; padding: 16px 20px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); font-weight: 600; border-left: 5px solid #22c55e; opacity: 0; pointer-events: auto; }
         .toast.show { transform: translateX(0); opacity: 1; }
         .toast.danger { border-left-color: #ef4444; }
         .toast.warning { border-left-color: #f59e0b; }
 
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 2000; padding: 20px; }
-        .modal-content { background: var(--surface); padding: 20px; border-radius: var(--radius-md); width: 100%; box-shadow: 0 20px 40px rgba(0,0,0,0.2); position: relative; max-height: 95vh; display: flex; flex-direction: column; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border); padding-bottom: 10px; margin-bottom: 15px; }
-        .modal-header h3 { margin: 0; color: var(--primary); font-size: 1.2rem; }
-        .modal-body { flex: 1; overflow-y: auto; margin-bottom: 15px; }
-        .modal-footer { display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border); padding-top: 15px; }
+        /* Modals */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 2000; padding: 20px; }
+        .modal-content { background: var(--surface); padding: 0; border-radius: 12px; width: 100%; max-width: 650px; box-shadow: 0 25px 50px rgba(0,0,0,0.25); display: flex; flex-direction: column; max-height: 90vh; overflow: hidden; animation: modalFadeIn 0.3s ease-out; }
+        @keyframes modalFadeIn { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        
+        .modal-header { padding: 18px 24px; background: var(--primary); color: white; display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h3 { margin: 0; font-size: 1.25rem; font-weight: 700; display: flex; align-items: center; gap: 8px;}
+        .modal-body { padding: 24px; overflow-y: auto; font-size: 0.95rem; line-height: 1.6; }
+        .modal-footer { padding: 16px 24px; background: #f8fafc; display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid var(--border); }
 
-        .btn-danger { background: var(--accent); color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s;}
-        .btn-primary { background: var(--primary); color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s;}
-        .btn-secondary { background: white; color: var(--text-dark); border: 1px solid var(--border); padding: 8px 15px; border-radius: 4px; cursor: pointer; transition: 0.2s; font-weight: 600; }
+        /* Form Control in Modal */
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; font-weight: 700; margin-bottom: 6px; color: var(--text-dark); font-size: 0.9rem;}
+        .form-group select, .form-group input { width: 100%; padding: 10px 14px; border-radius: 6px; border: 1px solid var(--border); font-size: 1rem; outline: none; transition: 0.2s; background: #fff;}
+        .form-group select:focus, .form-group input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15); }
 
+        /* Kho sự kiện (Event Pool) */
+        #event-pool { flex: 1; overflow-y: auto; padding-right: 5px; padding-top: 5px; } 
+        #event-pool .fc-event { background: #ffffff; cursor: move; margin: 0 0 8px 0; padding: 10px; color: var(--text-dark); border: 1px solid #cbd5e1; border-radius: 6px; text-align: left; transition: all 0.2s; position: relative; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        #event-pool .fc-event:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.06); border-color: #94a3b8; }
+        .pool-subject-group { margin-bottom: 12px; background: white; border-radius: 8px; border: 1px solid #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.03); overflow: hidden;}
+        .pool-subject-title { font-size: 0.9rem; font-weight: 800; color: var(--text-dark); padding: 12px 15px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; line-height: 1.3; transition: background 0.2s; user-select: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center;}
+        .pool-subject-title:hover { background: #f1f5f9; }
+        .pool-cards-container { padding: 12px 12px 4px 12px; background: #fff; }
+
+        /* MOBILE OPTIMIZATION */
         @media (max-width: 768px) {
-            main { flex-direction: column; padding: 0 5px 20px 5px; width: 100vw; overflow-x: hidden; }
-            #suggestion-settings { position: relative; width: 100%; top: 0; max-height: none; margin-bottom: 15px; }
-            .top-toolbar { flex-direction: column; align-items: stretch; padding: 10px; top: 0; } 
-            .controls-wrapper { width: 100%; justify-content: space-between; margin-top: 10px;}
+            main { flex-direction: column; padding: 15px 10px; width: 100vw; gap: 15px; }
+            #suggestion-settings { width: 100%; top: 0; max-height: none; margin-bottom: 0; padding: 15px; border-radius: 8px;}
+            .top-toolbar { flex-direction: column; align-items: stretch; padding: 12px 15px; top: 0; gap: 12px;} 
+            .controls-wrapper { width: 100%; justify-content: space-between; gap: 10px;}
+            .filter-select { flex: 1 1 calc(50% - 5px); min-width: 0; padding: 8px; font-size: 0.9rem;}
+            .btn-toggle { flex: 1 1 calc(50% - 5px); justify-content: center; }
             
-            #calendar-container { padding: 5px; border: none; border-radius: 0; box-shadow: none; border-top: 1px solid var(--border); width: 100vw; margin-left: -5px;}
-            .fc-toolbar { flex-direction: column; gap: 8px; margin-bottom: 10px !important;}
-            .fc-toolbar-chunk:nth-child(1) { order: 2; width: 100%; display: flex; justify-content: space-between; } 
-            .fc-toolbar-chunk:nth-child(2) { order: 1; width: 100%; text-align: center;} 
-            .fc-toolbar-chunk:nth-child(3) { order: 3; width: 100%; display: flex; justify-content: center;} 
-            .fc-button-primary { padding: 4px 8px !important; font-size: 0.85rem !important; }
+            #calendar-container { padding: 10px; border-radius: 8px; width: 100%; min-height: 500px;}
+            .fc-toolbar { flex-direction: column; gap: 10px; margin-bottom: 12px !important;}
+            .fc-toolbar-chunk { width: 100%; display: flex; justify-content: center; }
+            .fc-toolbar-chunk:nth-child(1) { order: 2; justify-content: space-between; } 
+            .fc-toolbar-chunk:nth-child(2) { order: 1; } 
+            .fc-toolbar-chunk:nth-child(3) { order: 3; } 
         }
     </style>
 </head>
@@ -144,7 +175,7 @@
                 <i class="fas fa-play"></i> Bắt đầu Gợi ý
             </button>
             <button id="btnToggleSidebar" class="btn-toggle" onclick="toggleSidebar()">
-                <i class="fas fa-cogs"></i> Cài đặt
+                <i class="fas fa-cogs"></i> Tùy chỉnh AI
             </button>
         </div>
     </div>
@@ -196,7 +227,7 @@
 
             <div class="setting-group">
                 <label>Bỏ qua thứ (Ngày nghỉ):</label>
-                <select id="suggestSkipDays" multiple style="height: 100px;">
+                <select id="suggestSkipDays" multiple style="height: 110px;">
                     <option value="0" selected>Chủ nhật</option>
                     <option value="6" selected>Thứ Bảy</option>
                     <option value="1">Thứ Hai</option>
@@ -205,22 +236,22 @@
                     <option value="4">Thứ Năm</option>
                     <option value="5">Thứ Sáu</option>
                 </select>
-                <div style="font-size:0.75rem; color:#64748b; margin-top:5px;">Giữ Ctrl/Cmd để chọn nhiều ngày.</div>
+                <div style="font-size:0.75rem; color:#64748b; margin-top:6px;"><i class="fas fa-keyboard"></i> Giữ Ctrl/Cmd để chọn nhiều ngày.</div>
             </div>
 
             <div class="stats-box">
                 Sự kiện trong Kho chờ xếp: <strong id="statUnscheduled">0</strong><br>
                 Sự kiện đã được Gợi ý: <strong id="statSuggested" style="color:#8b5cf6;">0</strong><br>
-                Bị nghẽn (Hết phòng/Trùng lịch): <strong id="statFailed" style="color:#ef4444;">0</strong>
+                Bị nghẽn (Hết phòng/Trùng): <strong id="statFailed" style="color:#ef4444;">0</strong>
             </div>
             
-            <div id="suggestActionGroup" class="hidden" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px;">
-                <button id="btnSaveBulk" style="padding: 8px; border-radius: 4px; border: none; background: #10b981; color: white; font-weight: bold; cursor: pointer; font-size: 0.85rem; transition: 0.2s;" onclick="openReviewSuggestModal()"><i class="fas fa-list-check"></i> Duyệt hàng loạt</button>
-                <button id="btnCancelBulk" style="padding: 8px; border-radius: 4px; border: none; background: #ef4444; color: white; font-weight: bold; cursor: pointer; font-size: 0.85rem; transition: 0.2s;" onclick="cancelSuggestion()"><i class="fas fa-times"></i> Hủy tất cả xem trước</button>
+            <div id="suggestActionGroup" class="hidden" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;">
+                <button id="btnSaveBulk" style="padding: 10px; border-radius: 6px; border: none; background: #10b981; color: white; font-weight: bold; cursor: pointer; font-size: 0.95rem; transition: 0.2s; box-shadow: 0 4px 6px rgba(16, 185, 129, 0.25);" onclick="openReviewSuggestModal()"><i class="fas fa-list-check"></i> Duyệt hàng loạt</button>
+                <button id="btnCancelBulk" style="padding: 10px; border-radius: 6px; border: none; background: #ef4444; color: white; font-weight: bold; cursor: pointer; font-size: 0.95rem; transition: 0.2s; box-shadow: 0 4px 6px rgba(239, 68, 68, 0.25);" onclick="cancelSuggestion()"><i class="fas fa-trash-alt"></i> Hủy tất cả xem trước</button>
             </div>
 
-            <div style="font-size: 0.8rem; color: #64748b; font-style: italic; line-height: 1.4; margin-bottom: 10px;">
-                <i class="fas fa-info-circle"></i> Hệ thống chỉ xếp vào 2 ca cố định: <b>07:00</b> và <b>13:00</b>. Mỗi buổi kéo dài 4 tiếng.
+            <div style="font-size: 0.8rem; color: #64748b; font-style: italic; line-height: 1.5; margin-bottom: 10px; padding: 10px; background: #f8fafc; border-radius: 6px; border-left: 3px solid #cbd5e1;">
+                <i class="fas fa-info-circle"></i> Hệ thống chỉ xếp vào 2 ca cố định: <b>07:00</b> và <b>13:00</b>. Mỗi buổi học kéo dài 4 tiếng.
             </div>
 
             <div id="event-pool">
@@ -236,23 +267,23 @@
 
     <!-- MODAL DUYỆT VÀ CHỌN CÁC GỢI Ý ĐỂ LƯU -->
     <div id="reviewSuggestModal" class="modal-overlay hidden" style="z-index: 4000;">
-        <div class="modal-content" style="max-width: 800px; max-height: 90vh;">
+        <div class="modal-content" style="max-width: 900px; max-height: 90vh;">
             <div class="modal-header" style="background: #8b5cf6;">
-                <h3>Xác nhận Lưu Gợi ý Xếp Lịch</h3>
-                <span style="cursor: pointer; font-weight: bold; font-size:1.2rem; color:white;" onclick="document.getElementById('reviewSuggestModal').classList.add('hidden')">X</span>
+                <h3><i class="fas fa-clipboard-check"></i> Xác nhận Lưu Gợi ý Xếp Lịch</h3>
+                <span style="cursor: pointer; font-weight: bold; font-size:1.4rem; color:white; opacity: 0.8;" onclick="document.getElementById('reviewSuggestModal').classList.add('hidden')">&times;</span>
             </div>
-            <div class="modal-body" style="overflow-y: hidden;">
-                <p style="margin-top:0; font-size:0.95rem; color:var(--text-body);">Đã tạo ra các gợi ý dưới đây. Vui lòng chọn các buổi học bạn muốn nhập vào Thời khóa biểu chính thức:</p>
-                <div style="max-height: 350px; overflow-y: auto; border: 1px solid var(--border); border-radius: 6px;">
-                    <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
-                        <thead style="position: sticky; top: 0; z-index: 5;">
+            <div class="modal-body" style="padding: 20px 24px; overflow-y: hidden; display: flex; flex-direction: column;">
+                <p style="margin:0 0 15px 0; font-size:0.95rem; color:var(--text-body);">Đã tạo ra các gợi ý dưới đây. Vui lòng đánh dấu chọn các buổi học bạn muốn nhập vào Thời khóa biểu chính thức:</p>
+                <div style="flex: 1; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.02);">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem; text-align: left;">
+                        <thead style="position: sticky; top: 0; z-index: 5; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
                             <tr>
-                                <th style="padding: 10px; background:var(--bg-page); border-bottom: 2px solid #cbd5e1; width: 40px; text-align: center;"><input type="checkbox" id="checkAllSuggest" checked onchange="toggleAllSuggest(this)"></th>
-                                <th style="padding: 10px; background:var(--bg-page); border-bottom: 2px solid #cbd5e1;">Thời gian</th>
-                                <th style="padding: 10px; background:var(--bg-page); border-bottom: 2px solid #cbd5e1;">Môn học</th>
-                                <th style="padding: 10px; background:var(--bg-page); border-bottom: 2px solid #cbd5e1;">Lớp</th>
-                                <th style="padding: 10px; background:var(--bg-page); border-bottom: 2px solid #cbd5e1;">Phòng</th>
-                                <th style="padding: 10px; background:var(--bg-page); border-bottom: 2px solid #cbd5e1;">Giảng viên</th>
+                                <th style="padding: 12px; background:#f8fafc; border-bottom: 2px solid #cbd5e1; width: 50px; text-align: center;"><input type="checkbox" id="checkAllSuggest" checked onchange="toggleAllSuggest(this)" style="transform: scale(1.2); cursor: pointer;"></th>
+                                <th style="padding: 12px; background:#f8fafc; border-bottom: 2px solid #cbd5e1;">Thời gian</th>
+                                <th style="padding: 12px; background:#f8fafc; border-bottom: 2px solid #cbd5e1;">Môn học</th>
+                                <th style="padding: 12px; background:#f8fafc; border-bottom: 2px solid #cbd5e1;">Khóa/Lớp</th>
+                                <th style="padding: 12px; background:#f8fafc; border-bottom: 2px solid #cbd5e1;">Phòng học</th>
+                                <th style="padding: 12px; background:#f8fafc; border-bottom: 2px solid #cbd5e1;">Giảng viên</th>
                             </tr>
                         </thead>
                         <tbody id="reviewSuggestTableBody"></tbody>
@@ -260,20 +291,20 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn-secondary" onclick="document.getElementById('reviewSuggestModal').classList.add('hidden')">Đóng</button>
-                <button class="btn-primary" style="background: #10b981; border-color: #10b981;" id="btnConfirmSaveSuggest" onclick="confirmSaveSuggestedEvents()"><i class="fas fa-save"></i> Ghi vào CSDL</button>
+                <button class="btn-secondary" onclick="document.getElementById('reviewSuggestModal').classList.add('hidden')">Đóng bảng</button>
+                <button class="btn-primary" style="background: #10b981; border-color: #10b981; padding: 10px 20px; font-size: 1rem;" id="btnConfirmSaveSuggest" onclick="confirmSaveSuggestedEvents()"><i class="fas fa-save"></i> Lưu vào Hệ thống</button>
             </div>
         </div>
     </div>
 
     <!-- MODAL CHI TIẾT TỔ HỢP SỰ KIỆN ĐỂ LƯU TỪNG CÁI TRÊN LỊCH -->
     <div id="multiEventModal" class="modal-overlay hidden" style="z-index: 5000;">
-        <div class="modal-content" style="max-width: 650px;">
-            <div class="modal-header" id="multiEventModalHeader" style="background: var(--primary);">
-                <h3 id="multiEventModalTitle">Chi tiết Thời khóa biểu</h3>
-                <span style="cursor: pointer; font-weight: bold; font-size: 1.2rem; color:white;" onclick="document.getElementById('multiEventModal').classList.add('hidden')">X</span>
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3 id="multiEventModalTitle"><i class="fas fa-info-circle"></i> Chi tiết Thời khóa biểu</h3>
+                <span style="cursor: pointer; font-weight: bold; font-size: 1.4rem; color:white; opacity: 0.8;" onclick="document.getElementById('multiEventModal').classList.add('hidden')">&times;</span>
             </div>
-            <div class="modal-body" id="multiEventModalBody">
+            <div class="modal-body" id="multiEventModalBody" style="background: #f8fafc; padding: 20px;">
                 <!-- Nội dung được đổ bằng JS -->
             </div>
             <div class="modal-footer" id="multiEventModalFooter">
@@ -287,13 +318,13 @@
         <div class="modal-content" style="max-width: 480px;">
             <div class="modal-header" style="background: #ef4444;">
                 <h3><i class="fas fa-exclamation-triangle"></i> Xung đột lịch giảng dạy</h3>
-                <span style="cursor: pointer; font-weight: bold; font-size: 1.2rem; color:white;" onclick="document.getElementById('conflictModal').classList.add('hidden')">X</span>
+                <span style="cursor: pointer; font-weight: bold; font-size: 1.4rem; color:white; opacity: 0.8;" onclick="document.getElementById('conflictModal').classList.add('hidden')">&times;</span>
             </div>
-            <div class="modal-body" id="conflictModalBody" style="font-size: 0.95rem; line-height: 1.6;">
+            <div class="modal-body" id="conflictModalBody" style="font-size: 0.95rem; line-height: 1.6; padding: 24px;">
                 <!-- Nội dung chi tiết xung đột được đổ qua JS -->
             </div>
             <div class="modal-footer">
-                <button class="btn-primary" style="background: #ef4444;" onclick="document.getElementById('conflictModal').classList.add('hidden')">Đã hiểu / Đóng</button>
+                <button class="btn-primary" style="background: #ef4444; border-color: #ef4444;" onclick="document.getElementById('conflictModal').classList.add('hidden')">Đã hiểu / Đóng</button>
             </div>
         </div>
     </div>
@@ -312,7 +343,6 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Biến lưu trữ danh sách phòng từ json/phonghoc.json
         window.ROOM_LIST = ["Phòng 3", "Phòng 4", "Phòng OT", "Phòng ST", "Hội trường"];
         
         async function loadRoomsConfig() {
@@ -367,12 +397,11 @@
             return name.trim().toLowerCase();
         };
 
-        // --- HÀM CHUẨN HÓA ĐỊNH HƯỚNG BẢO VỆ CHỮ CHUNG ---
+        // --- HÀM CHUẨN HÓA ĐỊNH HƯỚNG ---
         window.normalizeOrient = (orient) => {
             if (!orient) return 'CHUNG';
             let str = String(orient).toUpperCase().trim();
             
-            // Ưu tiên các cụm từ thể hiện sự gộp chung trước
             if (str.includes('CẢ HAI') || str.includes('CHUNG') || str.includes('KHÔNG PHÂN')) return 'CHUNG';
             if (str === 'NC,UD' || str === 'UD,NC' || (str.includes('NC') && str.includes('UD'))) return 'CHUNG';
             
@@ -398,7 +427,7 @@
                 else if (subObj.majorTag === "Ngôn ngữ trị liệu") tag = "ST";
                 else tag = "PT,OT,ST";
             }
-            return `<span style="background:#e2e8f0; color:#475569; padding:2px 5px; border-radius:3px; font-size:0.7rem; font-weight:bold; margin-bottom:4px; display:inline-block;">[${tag}]</span>`;
+            return `<span style="background:#e2e8f0; color:#475569; padding:3px 6px; border-radius:4px; font-size:0.7rem; font-weight:bold; margin-bottom:4px; display:inline-block;">[${tag}]</span>`;
         };
 
         window.formatGvName = (gvString) => {
@@ -413,10 +442,26 @@
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
             let icon = type === 'danger' ? 'fa-exclamation-triangle' : (type === 'warning' ? 'fa-exclamation-circle' : 'fa-check-circle');
-            toast.innerHTML = `<i class="fas ${icon}" style="font-size: 1.2rem; color: ${type==='danger'?'#ef4444':(type==='warning'?'#f59e0b':'#22c55e')};"></i> <span>${message}</span>`;
+            toast.innerHTML = `<i class="fas ${icon}" style="font-size: 1.3rem; color: ${type==='danger'?'#ef4444':(type==='warning'?'#f59e0b':'#22c55e')};"></i> <span style="line-height:1.4;">${message}</span>`;
             container.appendChild(toast);
             setTimeout(() => toast.classList.add('show'), 10);
             setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
+        }
+
+        function showConflictModal(conflictDetails) {
+            const modalBody = document.getElementById('conflictModalBody');
+            modalBody.innerHTML = `
+                <p style="margin: 0 0 12px 0; color: #b91c1c; font-weight: bold; font-size: 1.05rem;">Không thể xếp lịch do trùng lặp tài nguyên:</p>
+                <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 15px; margin-bottom: 12px;">
+                    <p style="margin: 0 0 8px 0;"><strong>Nguyên nhân:</strong> <span style="color:#ef4444;">${conflictDetails.reason}</span></p>
+                    <p style="margin: 0 0 8px 0;"><strong>Lớp bị trùng:</strong> <span style="color: var(--primary); font-weight: bold;">${conflictDetails.conflictClass}</span></p>
+                    <p style="margin: 0 0 8px 0;"><strong>Nội dung:</strong> ${conflictDetails.conflictSubject}</p>
+                    <p style="margin: 0 0 8px 0;"><strong>Giảng viên:</strong> ${conflictDetails.conflictGV}</p>
+                    <p style="margin: 0;"><strong>Thời gian:</strong> ${conflictDetails.timeRange}</p>
+                </div>
+                <p style="margin: 0; font-size: 0.9rem; color: #64748b; font-style: italic;">Vui lòng Chọn Lưu các lịch Gợi ý trước khi thay đổi để tránh trùng lặp.</p>
+            `;
+            document.getElementById('conflictModal').classList.remove('hidden');
         }
 
         window.toggleSidebar = () => {
@@ -430,22 +475,6 @@
             }
             setTimeout(() => { if(calendar) calendar.updateSize(); }, 100);
         };
-
-        function showConflictModal(conflictDetails) {
-            const modalBody = document.getElementById('conflictModalBody');
-            modalBody.innerHTML = `
-                <p style="margin: 0 0 10px 0; color: #b91c1c; font-weight: bold;">Không thể xếp lịch do trùng lặp tài nguyên:</p>
-                <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px; margin-bottom: 10px;">
-                    <p style="margin: 0 0 6px 0;"><strong>Nguyên nhân:</strong> ${conflictDetails.reason}</p>
-                    <p style="margin: 0 0 6px 0;"><strong>Lớp bị trùng:</strong> <span style="color: var(--primary); font-weight: bold;">${conflictDetails.conflictClass}</span></p>
-                    <p style="margin: 0 0 6px 0;"><strong>Nội dung:</strong> ${conflictDetails.conflictSubject}</p>
-                    <p style="margin: 0 0 6px 0;"><strong>Giảng viên:</strong> ${conflictDetails.conflictGV}</p>
-                    <p style="margin: 0;"><strong>Thời gian:</strong> ${conflictDetails.timeRange}</p>
-                </div>
-                <p style="margin: 0; font-size: 0.85rem; color: #64748b; font-style: italic;">Vui lòng Chọn Lưu các lịch Gợi ý trước khi thay đổi để tránh trùng lặp.</p>
-            `;
-            document.getElementById('conflictModal').classList.remove('hidden');
-        }
 
         // --- CÁC HÀM XỬ LÝ LƯU/HỦY TỪ GIAO DIỆN LỊCH ---
         window.saveGroupSuggest = async (idsString) => {
@@ -651,33 +680,33 @@
                             let majorBadge = window.getMajorBadgeHtml(subObj);
 
                             let classColorStyle = window.getClassColor(e.class);
-                            let classBadge = `<span style="display:inline-block; padding:2px 6px; border-radius:3px; font-size:0.7rem; font-weight:bold; ${classColorStyle}">${e.class}</span> ${majorBadge}`;
+                            let classBadge = `<span style="display:inline-block; padding:3px 6px; border-radius:4px; font-size:0.75rem; font-weight:bold; ${classColorStyle}">${e.class}</span> ${majorBadge}`;
 
                             return `
-                            <div class="evt-item" style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed rgba(2, 132, 199, 0.2); text-align: left; line-height: 1.4;">
-                                <div style="font-size: 0.85rem; color: var(--primary); margin-bottom: 4px; white-space: normal; word-break: break-word; font-weight: 700;">${e.subject}</div>
-                                <p style="margin:0 0 5px 0;"><strong>Khóa/Lớp:</strong> ${classBadge}</p>
+                            <div class="evt-item" style="background:white; border: 1px solid #cbd5e1; border-radius:8px; padding:12px; margin-bottom:10px; box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
+                                <div style="font-size: 0.95rem; color: var(--primary); margin-bottom: 6px; white-space: normal; word-break: break-word; font-weight: 800; line-height: 1.3;">${e.subject}</div>
+                                <p style="margin:0 0 6px 0;"><strong>Khóa/Lớp:</strong> ${classBadge}</p>
                                 ${orientHtml}
-                                <p style="margin:0 0 5px 0;"><strong>Phòng học:</strong> <span style="background:#fbbf24; color:#78350f; padding:2px 6px; border-radius:4px; font-weight:bold;">${shortRoom}</span></p>
-                                <p style="margin:0 0 5px 0;"><strong>Nhiệm vụ:</strong> ${e.task}</p>
-                                <p style="margin:0 0 5px 0;"><strong>Giảng viên:</strong> <span style="font-weight:bold;">${gvDisplay}</span></p>
+                                <p style="margin:0 0 6px 0;"><strong>Phòng học:</strong> <span style="background:#fef3c7; color:#b45309; border: 1px solid #fde68a; padding:2px 8px; border-radius:4px; font-weight:bold;">${shortRoom}</span></p>
+                                <p style="margin:0 0 6px 0;"><strong>Nhiệm vụ:</strong> ${e.task}</p>
+                                <p style="margin:0 0 4px 0;"><strong>Giảng viên:</strong> <span style="font-weight:bold; color:#0f172a;">${gvDisplay}</span></p>
                             </div>
                             `;
                         }).join('');
 
                         let hasPreview = props.events.some(e => e.isPreview);
                         let borderLeftColor = hasPreview ? '#8b5cf6' : 'var(--primary)';
-                        let bgColor = hasPreview ? '#f5f3ff' : 'white';
+                        let bgColor = hasPreview ? '#f5f3ff' : 'transparent';
                         let extraClass = hasPreview ? 'preview-event' : '';
 
                         return {
                             html: `
-                            <div class="evt-group-container ${extraClass}" style="background: ${bgColor}; border-left-color: ${borderLeftColor};">
-                                <div class="evt-group-header">
-                                    <span>${timeStr}</span>
-                                    ${hasPreview ? '<span style="color:#8b5cf6; font-size:0.75rem;"><i class="fas fa-magic"></i> Xem trước</span>' : ''}
+                            <div class="evt-group-container ${extraClass}" style="background: ${bgColor}; border-left-color: ${borderLeftColor}; border-radius: 8px;">
+                                <div class="evt-group-header" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: ${hasPreview ? '#ede9fe' : '#f1f5f9'}; border-bottom: 1px solid ${hasPreview ? '#ddd6fe' : '#e2e8f0'};">
+                                    <span style="font-size: 0.85rem; font-weight: 800; color: ${hasPreview ? '#7c3aed' : '#334155'};"><i class="far fa-clock"></i> ${timeStr}</span>
+                                    ${hasPreview ? '<span style="background:#8b5cf6; color:white; padding: 3px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: bold; box-shadow: 0 2px 4px rgba(139,92,246,0.3);"><i class="fas fa-magic"></i> Gợi ý mới</span>' : ''}
                                 </div>
-                                <div class="evt-items-list">${itemsHtml}</div>
+                                <div class="evt-items-list" style="padding: 10px; background: ${hasPreview ? 'transparent' : 'white'};">${itemsHtml}</div>
                             </div>
                             `
                         };
@@ -702,53 +731,47 @@
                         let previewIds = props.events.filter(e => e.isPreview).map(e => e.id).join(',');
 
                         let html = `
-                            <div style="color: var(--primary); font-weight:bold; font-size:1.1rem; margin-bottom:15px; border-bottom: 2px solid var(--border); padding-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
-                                <span><i class="far fa-clock"></i> ${sTime} - ${eTime} <br><span style="font-size:0.9rem; color:#64748b;">(${dateStr})</span></span>
-                                ${hasPreview ? `<span style="background:#8b5cf6; color:white; padding:4px 8px; border-radius:4px; font-size:0.8rem;"><i class="fas fa-magic"></i> Gợi ý mới</span>` : ''}
+                            <div style="background: white; border-radius: 8px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display:flex; justify-content:space-between; align-items:center; border-left: 4px solid var(--primary);">
+                                <div>
+                                    <span style="font-weight: 800; font-size: 1.1rem; color: var(--primary);"><i class="far fa-clock"></i> ${sTime} - ${eTime}</span>
+                                    <div style="font-size:0.85rem; color:#64748b; margin-top:4px; font-weight: 600;">${dateStr}</div>
+                                </div>
+                                ${hasPreview ? `<span style="background:#8b5cf6; color:white; padding:6px 12px; border-radius:6px; font-size:0.8rem; font-weight: bold; box-shadow: 0 4px 6px rgba(139,92,246,0.3);"><i class="fas fa-magic"></i> Gợi ý xếp lịch</span>` : ''}
                             </div>
                         `;
 
                         props.events.forEach(e => {
-                            let isSelfDeclared = e.type === 'self_declared';
                             let isImported = (!e.scheduledByName || e.scheduledByName === ''); 
-
-                            if (isSelfDeclared) {
-                                html += `
-                                <div style="background:#f5f3ff; border:1px solid #c4b5fd; border-radius:6px; padding:12px; margin-bottom:12px; position:relative; text-align: left; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
-                                    <p style="margin:0 0 5px 0; font-size:1.05rem; color:#6d28d9; font-weight:bold; padding-right:60px;">Lịch Bận: ${e.task}</p>
-                                    <p style="margin:0 0 5px 0;"><strong>Giảng viên:</strong> <span style="font-weight:bold;">${e.gv}</span></p>
-                                    <p style="margin:0 0 5px 0;"><strong>Địa điểm:</strong> <span style="background:#fbbf24; color:#78350f; padding:2px 6px; border-radius:4px; font-weight:bold;">${e.room || 'Chưa XĐ'}</span></p>
-                                    <p style="margin:0; font-size:0.8rem; color:#94a3b8; font-style:italic;">Xếp bởi: ${e.scheduledByName || 'Hệ thống'}</p>
-                                </div>
-                                `;
-                                return; 
-                            }
 
                             let isCN = e.class.toUpperCase().includes('CN');
                             let eNorm = window.normalizeOrient(e.orientation);
                             let orientHtml = '';
                             if (!isCN) {
                                 let orientText = eNorm === 'NC' ? 'Hệ Nghiên cứu (NC)' : (eNorm === 'UD' ? 'Hệ Ứng dụng (UD)' : 'Học chung / Không phân ĐH');
-                                orientHtml = `<p style="margin:0 0 5px 0; color:var(--text-dark);"><strong>Phạm vi:</strong> <span style="font-weight:bold; color:${eNorm==='NC'?'#b45309':(eNorm==='UD'?'#0369a1':'#d97706')};">${orientText}</span></p>`;
+                                orientHtml = `<p style="margin:0 0 6px 0; font-size: 0.9rem;"><strong>Phạm vi:</strong> <span style="font-weight:bold; color:${eNorm==='NC'?'#b45309':(eNorm==='UD'?'#0369a1':'#d97706')};">${orientText}</span></p>`;
                             }
 
                             let subObj = subjectsData.find(s => s.name === e.subject);
                             let majorBadge = window.getMajorBadgeHtml(subObj);
 
                             let classColorStyle = window.getClassColor(e.class);
-                            let classBadge = `<span style="display:inline-block; padding:2px 6px; border-radius:4px; font-size:0.75rem; font-weight:bold; ${classColorStyle}">${e.class}</span> ${majorBadge}`;
+                            let classBadge = `<span style="display:inline-block; padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold; ${classColorStyle}">${e.class}</span> ${majorBadge}`;
                             
-                            let importNote = e.isPreview ? `<p style="margin:0; font-size:0.8rem; color:#8b5cf6; font-style:italic; font-weight:bold;"><i class="fas fa-magic"></i> Bản gợi ý (Chưa lưu)</p>` : (isImported ? `<p style="margin:0; font-size:0.8rem; color:#10b981; font-style:italic; font-weight:bold;">Xếp bởi: Hệ thống</p>` : `<p style="margin:0; font-size:0.8rem; color:#94a3b8; font-style:italic;">Xếp bởi: ${e.scheduledByName || 'Admin'}</p>`);
+                            let importNote = e.isPreview ? 
+                                `<span style="background:#ede9fe; color:#7c3aed; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: bold;"><i class="fas fa-eye"></i> Bản xem trước</span>` : 
+                                (isImported ? `<span style="background:#d1fae5; color:#059669; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: bold;"><i class="fas fa-robot"></i> Xếp bởi Hệ thống</span>` : `<span style="background:#f1f5f9; color:#475569; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: bold;"><i class="fas fa-user-edit"></i> Xếp bởi: ${e.scheduledByName || 'Admin'}</span>`);
 
                             html += `
-                            <div style="background:#fff; border:1px solid #cbd5e1; border-radius:6px; padding:12px; margin-bottom:12px; position:relative; text-align: left; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
-                                <p style="margin:0 0 5px 0; font-size:1.05rem; color:var(--primary); font-weight:bold; padding-right:60px;">${e.subject}</p>
-                                <p style="margin:0 0 5px 0;"><strong>Khóa/Lớp:</strong> ${classBadge}</p>
+                            <div style="background:white; border:1px solid #cbd5e1; border-radius:10px; padding:20px; margin-bottom:15px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); display: flex; flex-direction: column;">
+                                <p style="margin:0 0 10px 0; font-size:1.15rem; color:var(--primary); font-weight:800; line-height: 1.4;">${e.subject}</p>
+                                <p style="margin:0 0 6px 0; font-size: 0.9rem;"><strong>Khóa/Lớp:</strong> ${classBadge}</p>
                                 ${orientHtml}
-                                <p style="margin:0 0 5px 0;"><strong>Phòng học:</strong> <span style="background:#fbbf24; color:#78350f; padding:2px 6px; border-radius:4px; font-weight:bold;">${e.room || 'Chưa XĐ'}</span></p>
-                                <p style="margin:0 0 5px 0;"><strong>Nhiệm vụ:</strong> ${e.task}</p>
-                                <p style="margin:0 0 5px 0;"><strong>Giảng viên:</strong> <span style="font-weight:bold;">${e.gv}</span></p>
-                                ${importNote}
+                                <p style="margin:0 0 6px 0; font-size: 0.9rem;"><strong>Phòng học:</strong> <span style="background:#fef3c7; border: 1px solid #fde68a; color:#b45309; padding:4px 8px; border-radius:6px; font-weight:bold;">${e.room || 'Chưa XĐ'}</span></p>
+                                <p style="margin:0 0 6px 0; font-size: 0.9rem;"><strong>Nhiệm vụ:</strong> ${e.task}</p>
+                                <p style="margin:0 0 15px 0; font-size: 0.9rem;"><strong>Giảng viên:</strong> <span style="font-weight:bold; color: #0f172a;">${e.gv}</span></p>
+                                <div style="display: flex; justify-content: flex-start; align-items: center; padding-top: 15px; border-top: 1px dashed #e2e8f0;">
+                                    ${importNote}
+                                </div>
                             </div>
                             `;
                         });
@@ -757,13 +780,12 @@
 
                         if (hasPreview) {
                             modalFooter.innerHTML = `
-                                <button class="btn-cancel" onclick="document.getElementById('multiEventModal').classList.add('hidden'); window.removeGroupSuggest('${previewIds}')"><i class="fas fa-times"></i> Hủy gợi ý này</button>
-                                <button class="btn-save" onclick="document.getElementById('multiEventModal').classList.add('hidden'); window.saveGroupSuggest('${previewIds}')"><i class="fas fa-save"></i> Lưu gợi ý này</button>
-                                <button class="btn-toggle" onclick="document.getElementById('multiEventModal').classList.add('hidden')">Đóng</button>
+                                <button class="btn-cancel" onclick="document.getElementById('multiEventModal').classList.add('hidden'); window.removeGroupSuggest('${previewIds}')" style="padding: 10px 20px; font-size: 1rem; border-radius: 6px; box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);"><i class="fas fa-trash-alt"></i> Hủy gợi ý</button>
+                                <button class="btn-save" onclick="document.getElementById('multiEventModal').classList.add('hidden'); window.saveGroupSuggest('${previewIds}')" style="padding: 10px 20px; font-size: 1rem; border-radius: 6px; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);"><i class="fas fa-check-circle"></i> Lưu gợi ý</button>
                             `;
                         } else {
                             modalFooter.innerHTML = `
-                                <button class="btn-toggle" onclick="document.getElementById('multiEventModal').classList.add('hidden')">Đóng</button>
+                                <button class="btn-secondary" onclick="document.getElementById('multiEventModal').classList.add('hidden')" style="padding: 10px 20px; font-size: 1rem;">Đóng bảng</button>
                             `;
                         }
 
@@ -894,7 +916,7 @@
             return { hasOverlap: false };
         }
 
-        window.getScheduledCount = (cls, targetOrientCode, exactSubName, gv, task, combinedEventsArray) => {
+        window.getScheduledCount = (cls, targetOrientCode, baseSubName, gv, task, combinedEventsArray) => {
             let count = 0;
             let targetNorm = window.normalizeOrient(targetOrientCode);
             let sourceDB = combinedEventsArray || scheduledEventsDB;
@@ -914,7 +936,7 @@
                 }
 
                 let eGVs = e.gv ? e.gv.split(/,|&/).map(s => s.trim()) : [];
-                if (e.class === cls && matchOrient && e.subject === exactSubName && eGVs.includes(gv) && e.task === task) {
+                if (e.class === cls && matchOrient && window.getBaseSubjectName(e.subject) === baseSubName && eGVs.includes(gv) && e.task === task) {
                     count++;
                 }
             });
@@ -979,12 +1001,12 @@
                         
                         asgData.allocations.forEach(a => {
                             const totalAssigned = parseInt(a.assigned) || 0;
-                            // Dùng ID để khóa cứng phân môn, tránh đè lên nhau nếu trùng tên cơ sở
-                            const mapKey = `${sub.id}_${a.gv}_${a.task}_${clsMatch}`;
+                            let baseSubName = window.getBaseSubjectName(sub.name);
+                            const mapKey = `${baseSubName}_${a.gv}_${a.task}_${clsMatch}`;
                             
                             if (!rawTaskMap.has(mapKey)) {
                                 rawTaskMap.set(mapKey, {
-                                    subName: sub.name, subId: sub.id, cls: clsMatch, gv: a.gv, task: a.task,
+                                    subName: sub.name, subId: sub.id, baseSubName: baseSubName, cls: clsMatch, gv: a.gv, task: a.task,
                                     totalNC: 0, totalUD: 0, totalGeneral: 0, semester: semester,
                                     allowJoint: asgData.allowJoint !== false
                                 });
@@ -1004,9 +1026,9 @@
             let poolTasksList = [];
 
             rawTaskMap.forEach((data, mapKey) => {
-                let scheduledNC = window.getScheduledCount(data.cls, 'NC', data.subName, data.gv, data.task, combinedEvents);
-                let scheduledUD = window.getScheduledCount(data.cls, 'UD', data.subName, data.gv, data.task, combinedEvents);
-                let scheduledGeneral = window.getScheduledCount(data.cls, 'CHUNG', data.subName, data.gv, data.task, combinedEvents);
+                let scheduledNC = window.getScheduledCount(data.cls, 'NC', data.baseSubName, data.gv, data.task, combinedEvents);
+                let scheduledUD = window.getScheduledCount(data.cls, 'UD', data.baseSubName, data.gv, data.task, combinedEvents);
+                let scheduledGeneral = window.getScheduledCount(data.cls, 'CHUNG', data.baseSubName, data.gv, data.task, combinedEvents);
 
                 let remNC = Math.max(0, data.totalNC - scheduledNC);
                 let remUD = Math.max(0, data.totalUD - scheduledUD);
@@ -1049,7 +1071,7 @@
             const orderedSubjectNames = Array.from(subjectGroups.keys()).sort((a,b) => a.localeCompare(b, 'vi'));
             
             if (orderedSubjectNames.length === 0) {
-                if(poolDiv) poolDiv.innerHTML = '<div style="padding: 15px; text-align: center; color: #64748b; font-style: italic;">Không có môn học nào đang chờ xếp.</div>';
+                if(poolDiv) poolDiv.innerHTML = '<div style="padding: 25px 15px; text-align: center; color: #94a3b8; font-style: italic; font-weight: 600;"><i class="fas fa-check-circle" style="font-size: 2rem; color: #10b981; margin-bottom: 10px; display: block;"></i> Tuyệt vời! Không còn môn học nào chờ xếp.</div>';
             }
 
             orderedSubjectNames.forEach((subName, gIdx) => {
@@ -1058,11 +1080,7 @@
 
                 let subjectHeader = document.createElement('div');
                 subjectHeader.className = 'pool-subject-title';
-                subjectHeader.style.cursor = 'pointer';
-                subjectHeader.style.display = 'flex';
-                subjectHeader.style.justifyContent = 'space-between';
-                subjectHeader.style.alignItems = 'center';
-                subjectHeader.innerHTML = `<span><i class="fas fa-book"></i> ${subName}</span> <i class="fas fa-chevron-down toggle-icon" style="color: #64748b;"></i>`;
+                subjectHeader.innerHTML = `<span><i class="fas fa-book" style="color:var(--primary); margin-right:5px;"></i> ${subName}</span> <i class="fas fa-chevron-down toggle-icon" style="color: #94a3b8;"></i>`;
                 subjectContainer.appendChild(subjectHeader);
 
                 let cardsContainer = document.createElement('div');
@@ -1082,9 +1100,9 @@
                     let isCN = item.cls.toUpperCase().includes('CN');
                     let orientDisplay = '';
                     if (!isCN) {
-                        if (normCode === 'NC') orientDisplay = '<div class="badge-orient badge-nc" style="display:block; text-align:center; margin-bottom:5px;">Hệ Nghiên cứu (NC)</div>';
-                        else if (normCode === 'UD') orientDisplay = '<div class="badge-orient badge-ud" style="display:block; text-align:center; margin-bottom:5px;">Hệ Ứng dụng (UD)</div>';
-                        else orientDisplay = '<div class="badge-orient badge-chung" style="display:block; text-align:center; margin-bottom:5px;">Học chung (NC & UD)</div>';
+                        if (normCode === 'NC') orientDisplay = '<div class="badge-orient badge-nc" style="display:inline-block; text-align:center; margin-bottom:6px;">Hệ Nghiên cứu (NC)</div>';
+                        else if (normCode === 'UD') orientDisplay = '<div class="badge-orient badge-ud" style="display:inline-block; text-align:center; margin-bottom:6px;">Hệ Ứng dụng (UD)</div>';
+                        else orientDisplay = '<div class="badge-orient badge-chung" style="display:inline-block; text-align:center; margin-bottom:6px;">Học chung (NC & UD)</div>';
                     }
 
                     eventDiv.className = `fc-event ${item.cls}`;
@@ -1106,9 +1124,9 @@
                     eventDiv.innerHTML = `
                         ${countBadge}
                         ${orientDisplay}
-                        ${classTag} 
+                        <br>${classTag} 
                         <div class="event-gv">${gvDisplay}</div>
-                        <span class="event-info">[${item.task}]</span>
+                        <span class="event-info"><i class="fas fa-tasks"></i> [${item.task}]</span>
                     `;
                     cardsContainer.appendChild(eventDiv);
                 });
@@ -1123,7 +1141,7 @@
                         icon.classList.remove('fa-chevron-down'); icon.classList.add('fa-chevron-up');
                     }
                 };
-                if(poolDiv) poolDiv.appendChild(subjectContainer);
+                poolDiv.appendChild(subjectContainer);
             });
 
             // 2. RENDER LỊCH CHÍNH (Sử dụng combinedEvents)
@@ -1174,7 +1192,7 @@
                 
                 let deduplicateKey = `${sTime}_${eTime}_${e.room}_${e.subject}_${e.task}_${e.gv}_${e.orientation}_${e.class}`;
 
-                // Ưu tiên event preview (của AI) hơn là event thường
+                // Ưu tiên event preview (của AI) hơn là event thường (trường hợp trùng lắp hiển thị)
                 if (!deduplicatedEventsMap.has(deduplicateKey) || e.isPreview) {
                     deduplicatedEventsMap.set(deduplicateKey, e);
                 }
@@ -1223,12 +1241,15 @@
             const majorFilter = document.getElementById('suggestMajorFilter').value;
             const orientFilter = document.getElementById('suggestOrientFilter').value;
             
+            // Lấy các ngày nghỉ (Bỏ qua)
             const skipDaysSelect = document.getElementById('suggestSkipDays');
             const skipDays = Array.from(skipDaysSelect.selectedOptions).map(opt => parseInt(opt.value));
 
+            // Khởi tạo mảng sự kiện tổng hợp (DB cũ + Gợi ý mới) để tính Overlap liên tục
             suggestedEventsArray = [];
             let combinedEvents = [...scheduledEventsDB]; 
             
+            // BƯỚC 1: QUÉT TẠO DANH SÁCH NHIỆM VỤ CẦN XẾP DỰA TRÊN BỘ LỌC
             let rawTaskMap = new Map();
 
             subjectsData.forEach(sub => {
@@ -1246,6 +1267,7 @@
                     if (!clsMatch) return;
                     if (clsFilter !== 'ALL' && !window.isClassMatch(clsMatch, clsFilter)) return;
 
+                    // Lọc Ngành
                     let shortMajor = sub.majorTag;
                     if (sub.majorTag === "Vật lý trị liệu") shortMajor = "VLTL";
                     else if (sub.majorTag === "Hoạt động trị liệu") shortMajor = "HĐTL";
@@ -1270,11 +1292,12 @@
                         
                         asgData.allocations.forEach(a => {
                             const totalAssigned = parseInt(a.assigned) || 0;
-                            const mapKey = `${sub.id}_${a.gv}_${a.task}_${clsMatch}`;
+                            let baseSubName = window.getBaseSubjectName(sub.name);
+                            const mapKey = `${baseSubName}_${a.gv}_${a.task}_${clsMatch}`;
                             
                             if (!rawTaskMap.has(mapKey)) {
                                 rawTaskMap.set(mapKey, {
-                                    subName: sub.name, subId: sub.id, cls: clsMatch, gv: a.gv, task: a.task,
+                                    subName: sub.name, subId: sub.id, baseSubName: baseSubName, cls: clsMatch, gv: a.gv, task: a.task,
                                     totalNC: 0, totalUD: 0, totalGeneral: 0, semester: semester,
                                     allowJoint: asgData.allowJoint !== false
                                 });
@@ -1294,9 +1317,9 @@
             let tasksToSchedule = [];
 
             rawTaskMap.forEach((data, mapKey) => {
-                let scheduledNC = window.getScheduledCount(data.cls, 'NC', data.subName, data.gv, data.task, combinedEvents);
-                let scheduledUD = window.getScheduledCount(data.cls, 'UD', data.subName, data.gv, data.task, combinedEvents);
-                let scheduledGeneral = window.getScheduledCount(data.cls, 'CHUNG', data.subName, data.gv, data.task, combinedEvents);
+                let scheduledNC = window.getScheduledCount(data.cls, 'NC', data.baseSubName, data.gv, data.task, combinedEvents);
+                let scheduledUD = window.getScheduledCount(data.cls, 'UD', data.baseSubName, data.gv, data.task, combinedEvents);
+                let scheduledGeneral = window.getScheduledCount(data.cls, 'CHUNG', data.baseSubName, data.gv, data.task, combinedEvents);
 
                 let remNC = Math.max(0, data.totalNC - scheduledNC);
                 let remUD = Math.max(0, data.totalUD - scheduledUD);
@@ -1330,10 +1353,12 @@
                 return;
             }
 
+            // BƯỚC 2: XẾP LỊCH THEO THUẬT TOÁN GREEDY
             let currentDate = new Date(startDateVal);
             currentDate.setHours(0,0,0,0);
             
             let failedCount = 0;
+
             let loopGuard = 0;
             
             while(tasksToSchedule.length > 0 && loopGuard < 365) {
@@ -1345,6 +1370,7 @@
                     continue;
                 }
 
+                // Xét 2 ca: Sáng (7h) và Chiều (13h)
                 const slots = [
                     { hStart: 7, hEnd: 11 },
                     { hStart: 13, hEnd: 17 }
@@ -1367,6 +1393,7 @@
                         
                         if (availableRooms.length === 0) break; 
 
+                        // Tìm 1 phòng trống
                         let assignedRoom = null;
                         for (let r = 0; r < availableRooms.length; r++) {
                             let overlapCheck = hasOverlap(slotStartStr, slotEndStr, t.gv, t.cls, t.task, availableRooms[r], t.subName, t.orientCode, [], combinedEvents);
@@ -1405,7 +1432,7 @@
 
                         t.remaining -= 1;
 
-                        // Tìm Twin Event (Chỉ áp dụng nếu là môn bị tách 1. 2. ra làm 2 Sub ID khác nhau)
+                        // Tìm Twin Event (Ghép đôi NC/UD)
                         let twinIndex = tasksToSchedule.findIndex((other, idx) => 
                             idx !== i && 
                             other.remaining > 0 &&
@@ -1446,8 +1473,10 @@
                 loopGuard++;
             }
 
+            // Những Task còn kẹt lại (chưa xếp được)
             tasksToSchedule.forEach(t => failedCount += t.remaining);
 
+            // BƯỚC 3: RENDER RA LỊCH VÀ CẬP NHẬT GIAO DIỆN
             processAndRenderEvents();
 
             document.getElementById('statSuggested') ? document.getElementById('statSuggested').innerText = suggestedEventsArray.length : null;
@@ -1457,8 +1486,9 @@
             document.getElementById('suggestActionGroup').classList.remove('hidden');
 
             if (suggestedEventsArray.length > 0) {
+                // Tự động chuyển view lịch đến ngày bắt đầu gợi ý
                 calendar.gotoDate(startDateVal);
-                showToast(`Đã tạo ${suggestedEventsArray.length} gợi ý! Bấm 'Chọn Lưu' để xác nhận.`);
+                showToast(`Đã tạo ${suggestedEventsArray.length} gợi ý! Có thể chọn lưu trên lịch hoặc duyệt hàng loạt.`);
             } else {
                 showToast(`Không xếp được thêm sự kiện nào! (Trùng lịch hoặc quá tải)`, "warning");
             }
@@ -1483,6 +1513,7 @@
             const tbody = document.getElementById('reviewSuggestTableBody');
             tbody.innerHTML = '';
             
+            // Sắp xếp các đề xuất theo thời gian tăng dần
             suggestedEventsArray.sort((a,b) => new Date(a.start) - new Date(b.start));
 
             suggestedEventsArray.forEach((ev) => {
@@ -1498,7 +1529,7 @@
                 tbody.innerHTML += `
                     <tr style="border-bottom: 1px solid #e2e8f0; transition: background 0.2s;">
                         <td style="padding: 10px; text-align: center;">
-                            <input type="checkbox" class="suggest-check" value="${ev.id}" checked style="width:16px; height:16px; cursor:pointer;" onchange="toggleAllSuggest(this)">
+                            <input type="checkbox" class="suggest-check" value="${ev.id}" checked style="transform: scale(1.2); cursor:pointer;" onchange="toggleAllSuggest(this)">
                         </td>
                         <td style="padding: 10px;">${timeStr}</td>
                         <td style="padding: 10px;">
@@ -1564,7 +1595,7 @@
                 
                 if(btnSaveUI) {
                     btnSaveUI.disabled = false;
-                    btnSaveUI.innerHTML = '<i class="fas fa-save"></i> Ghi vào CSDL';
+                    btnSaveUI.innerHTML = '<i class="fas fa-save"></i> Lưu vào Hệ thống';
                 }
 
                 processAndRenderEvents();
@@ -1573,7 +1604,7 @@
                 showToast("Lỗi khi lưu DB: " + e.message, "danger");
                 if(btnSaveUI) {
                     btnSaveUI.disabled = false;
-                    btnSaveUI.innerHTML = '<i class="fas fa-save"></i> Ghi vào CSDL';
+                    btnSaveUI.innerHTML = '<i class="fas fa-save"></i> Lưu vào Hệ thống';
                 }
             }
         };
