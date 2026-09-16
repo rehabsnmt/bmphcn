@@ -34,7 +34,8 @@
         .filter-select:hover { background: white; }
         
         .btn-toggle { background: white; color: var(--primary); border: 1px solid var(--primary); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.2s; font-size: 0.9rem; white-space: nowrap; }
-        .btn-toggle:hover { background: var(--primary-light); }
+        .btn-toggle:hover:not(:disabled) { background: var(--primary-light); }
+        .btn-toggle:disabled { opacity: 0.5; cursor: not-allowed; }
         .btn-export { background: #10b981; color: white; border: 1px solid #10b981; }
         .btn-export:hover { background: #059669; border-color: #059669; }
 
@@ -54,7 +55,7 @@
         #event-pool .fc-event { background: #ffffff; cursor: move; margin: 0 0 6px 0; padding: 6px 8px; color: var(--text-dark); border: 1px solid #cbd5e1; border-radius: 4px; text-align: left; transition: 0.2s; position: relative; }
 
         .pool-subject-group { margin-bottom: 8px; background: white; border-radius: 6px; border: 1px solid #cbd5e1; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-        .pool-subject-title { font-size: 0.85rem; font-weight: 800; color: var(--text-dark); padding: 10px 8px; line-height: 1.3; transition: background 0.2s; border-radius: 6px; user-select: none; }
+        .pool-subject-title { font-size: 0.85rem; font-weight: 800; color: var(--text-dark); padding: 10px 8px; line-height: 1.3; transition: background 0.2s; border-radius: 6px; user-select: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center;}
         .pool-subject-title:hover { background: #f8fafc; }
         .pool-cards-container { padding: 0 8px 8px 8px; }
 
@@ -94,7 +95,7 @@
         }
         .evt-group-header { font-size: 0.8rem; font-weight: 700; color: #64748b; margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; }
         .evt-items-list { flex: 1; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; gap: 8px; }
-        
+
         /* Hiệu ứng Xem trước của Gợi ý */
         .preview-event { animation: pulse-border 1.5s infinite; border-width: 2px !important; }
         @keyframes pulse-border {
@@ -102,13 +103,14 @@
             70% { border-color: #7c3aed; box-shadow: 0 0 0 6px rgba(139, 92, 246, 0); }
             100% { border-color: #8b5cf6; box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); }
         }
-
+        
         .hidden { display: none !important; }
 
         .toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
         .toast { min-width: 250px; background-color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: 0.4s; font-weight: 600; border-left: 5px solid #22c55e; opacity: 0; pointer-events: auto; }
         .toast.show { transform: translateX(0); opacity: 1; }
         .toast.danger { border-left-color: #ef4444; }
+        .toast.warning { border-left-color: #f59e0b; }
 
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 2000; padding: 10px; }
         .modal-content { background: white; width: 95%; max-width: 450px; border-radius: 8px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); overflow: hidden; display: flex; flex-direction: column; }
@@ -120,7 +122,6 @@
         .btn-danger { background: var(--accent); color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s;}
         .btn-primary { background: var(--primary); color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s;}
         .btn-secondary { background: white; color: var(--text-dark); border: 1px solid var(--border); padding: 8px 15px; border-radius: 4px; cursor: pointer; transition: 0.2s; font-weight: 600; }
-        .btn-info { background: #0ea5e9; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s;}
 
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; font-weight: 600; margin-bottom: 5px; color: var(--text-dark); font-size:0.9rem;}
@@ -130,10 +131,10 @@
         /* ========= MOBILE OPTIMIZATION ========= */
         @media (max-width: 768px) {
             main { flex-direction: column; padding: 0 5px 20px 5px; width: 100vw; overflow-x: hidden; }
-            #external-events { position: relative; width: 100%; top: 0; max-height: 350px; margin-bottom: 15px; }
+            #external-events { position: relative; width: 100%; top: 0; max-height: 550px; margin-bottom: 15px; }
             
             .top-toolbar { flex-direction: column; align-items: stretch; padding: 10px; top: 0; } 
-            .controls-wrapper { width: 100%; justify-content: space-between; }
+            .controls-wrapper { width: 100%; justify-content: space-between; margin-top: 10px;}
             .filter-select { flex: 1; min-width: 0; padding: 6px; font-size: 0.85rem;}
             
             #btnExportWord { display: none !important; }
@@ -146,12 +147,6 @@
             .fc-toolbar-chunk:nth-child(3) { order: 3; width: 100%; display: flex; justify-content: center;} 
             
             .fc-button-primary { padding: 4px 8px !important; font-size: 0.85rem !important; }
-            
-            .fc-list-day-cushion { background-color: var(--primary-light) !important; padding: 8px 10px !important; }
-            .fc-list-event-time { font-weight: bold; color: var(--primary); width: 85px !important;}
-            .fc-list-event-title { padding: 8px !important; }
-            .fc-list-event-dot { display: none; }
-            
             .evt-group-container { border: none; border-left: 3px solid var(--primary); padding: 5px; border-radius: 0; box-shadow: none;}
             .evt-group-header { display: none; } 
         }
@@ -166,7 +161,7 @@
     <!-- THANH CÔNG CỤ CHÍNH -->
     <div class="top-toolbar">
         <div>
-            <h2>THỜI KHÓA BIỂU GIẢNG DẠY</h2>
+            <h2 id="pageTitle">THỜI KHÓA BIỂU GIẢNG DẠY</h2>
         </div>
         <div class="controls-wrapper">
             <select id="calendarClassFilter" class="filter-select" onchange="processAndRenderEvents()">
@@ -185,7 +180,7 @@
                 <i class="fas fa-file-word"></i> Xuất Word
             </button>
             <button id="btnToggleSidebar" class="btn-toggle hidden" onclick="toggleSidebar()" title="Thu gọn/Mở rộng Kho sự kiện">
-                <i class="fas fa-bars"></i> Kho Sự Kiện
+                <i class="fas fa-bars"></i> Bảng điều khiển
             </button>
         </div>
     </div>
@@ -252,7 +247,7 @@
                     <button style="flex: 1; padding: 6px; border-radius: 4px; border: none; background: #ef4444; color: white; font-weight: bold; cursor: pointer; font-size: 0.8rem; transition: 0.2s;" onclick="cancelSuggestion()"><i class="fas fa-times"></i> Hủy</button>
                 </div>
 
-                <div style="font-size: 0.7rem; color: #64748b; font-style: italic; margin-top: 5px; text-align: center;">Hệ thống sẽ lấy các Tùy chọn lọc ngay bên trên để phân bổ.</div>
+                <div style="font-size: 0.7rem; color: #64748b; font-style: italic; margin-top: 5px; text-align: center;">Hệ thống sẽ lấy các Tùy chọn lọc của Kho sự kiện để phân bổ.</div>
             </div>
 
             <div style="font-size: 0.75rem; color: #64748b; margin-bottom: 10px; font-style: italic; line-height: 1.3;">
@@ -1171,12 +1166,18 @@
                     if (props.type === 'grouped_normal') {
                         const subEvents = props.events;
                         const groupIds = subEvents.map(ev => ev.id);
+                        
+                        let isPreviewEvent = subEvents.some(e => e.isPreview);
+                        if(isPreviewEvent) {
+                            showToast("Vui lòng Chọn Lưu các lịch Gợi ý trước khi thay đổi vị trí!", "warning");
+                            info.revert(); return;
+                        }
 
                         let newStartStr = toLocalISOString(info.event.start);
                         let newEndStr = info.event.end ? toLocalISOString(info.event.end) : null;
                         
                         for (let e of subEvents) {
-                            const overlapCheck = hasOverlap(newStartStr, newEndStr, e.gv, e.class, e.task, e.room, e.subject, e.orientation, groupIds);
+                            const overlapCheck = hasOverlap(newStartStr, newEndStr, e.gv, e.class, e.task, e.room, e.subject, e.orientation, groupIds, [...scheduledEventsDB, ...suggestedEventsArray]);
                             if (overlapCheck.hasOverlap) {
                                 showConflictModal(overlapCheck);
                                 info.revert(); return;
@@ -1207,12 +1208,18 @@
                     if (props.type === 'grouped_normal') {
                         const subEvents = props.events;
                         const groupIds = subEvents.map(ev => ev.id);
+                        
+                        let isPreviewEvent = subEvents.some(e => e.isPreview);
+                        if(isPreviewEvent) {
+                            showToast("Vui lòng Chọn Lưu các lịch Gợi ý trước khi thay đổi thời lượng!", "warning");
+                            info.revert(); return;
+                        }
 
                         let newStartStr = toLocalISOString(info.event.start);
                         let newEndStr = info.event.end ? toLocalISOString(info.event.end) : null;
 
                         for (let e of subEvents) {
-                            const overlapCheck = hasOverlap(newStartStr, newEndStr, e.gv, e.class, e.task, e.room, e.subject, e.orientation, groupIds);
+                            const overlapCheck = hasOverlap(newStartStr, newEndStr, e.gv, e.class, e.task, e.room, e.subject, e.orientation, groupIds, [...scheduledEventsDB, ...suggestedEventsArray]);
                             if (overlapCheck.hasOverlap) {
                                 showConflictModal(overlapCheck);
                                 info.revert(); return;
@@ -1258,7 +1265,7 @@
                             let canDelete = isCalendarAdmin && (e.scheduledByEmail === currentUserEmail || currentUserEmail === 'hoangtran1483@gmail.com');
                             let isImported = (!e.scheduledByName || e.scheduledByName === ''); 
 
-                            // Không cho xóa nếu là bản Preview
+                            // Không cho xóa riêng lẻ các lịch Preview
                             let delBtn = (canDelete && !isSelfDeclared && !e.isPreview) ? `<button class="btn-danger" style="padding:4px 10px; font-size:0.8rem;" onclick="deleteSubEvent('${e.id}')"><i class="fas fa-trash"></i> Xóa</button>` : '';
 
                             if (isSelfDeclared) {
@@ -1287,8 +1294,9 @@
 
                             let classColorStyle = window.getClassColor(e.class);
                             let classBadge = `<span style="display:inline-block; padding:2px 6px; border-radius:4px; font-size:0.75rem; font-weight:bold; ${classColorStyle}">${e.class}</span> ${majorBadge}`;
-
+                            
                             let importNote = isImported ? `<p style="margin:0; font-size:0.8rem; color:#10b981; font-style:italic; font-weight:bold;">Xếp bởi: Hệ thống</p>` : `<p style="margin:0; font-size:0.8rem; color:#94a3b8; font-style:italic;">Xếp bởi: ${e.scheduledByName || 'Admin'}</p>`;
+
                             let previewNote = e.isPreview ? `<div style="font-size: 0.75rem; color: #8b5cf6; font-weight: bold; margin-top: 5px;"><i class="fas fa-magic"></i> Bản Gợi ý (Chưa lưu)</div>` : '';
 
                             html += `
@@ -1339,8 +1347,9 @@
             }
 
             let allNewEvents = [];
-            let originalStart = new Date(info.event.startStr);
-            let originalEnd = info.event.endStr ? new Date(info.event.endStr) : new Date(originalStart.getTime() + 4 * 3600000);
+            // TRÁNH UTC SHIFT: Bắt buộc lấy đối tượng info.event.start
+            let originalStart = info.event.start;
+            let originalEnd = info.event.end ? info.event.end : new Date(originalStart.getTime() + 4 * 3600000);
 
             for (let i = 0; i < repeatWeeks; i++) {
                 let currentStart = new Date(originalStart.getTime() + i * 7 * 24 * 3600 * 1000);
@@ -1349,7 +1358,7 @@
                 let startStr = toLocalISOString(currentStart);
                 let endStr = toLocalISOString(currentEnd);
 
-                const overlapCheck = hasOverlap(startStr, endStr, props.gv, props.eventClass, props.task, selectedRoom, props.subject, finalOrientation, []);
+                const overlapCheck = hasOverlap(startStr, endStr, props.gv, props.eventClass, props.task, selectedRoom, props.subject, finalOrientation, [], [...scheduledEventsDB, ...suggestedEventsArray]);
                 if (overlapCheck.hasOverlap) {
                     showConflictModal(overlapCheck);
                     info.revert(); pendingDropInfo = null; return; 
@@ -1734,6 +1743,8 @@
                         const semester = asgData.semester || 'Chưa xác định';
                         if (semFilter !== 'ALL' && semester !== semFilter) return; 
 
+                        let actualOrient = dbOrientCode;
+                        
                         asgData.allocations.forEach(a => {
                             const totalAssigned = parseInt(a.assigned) || 0;
                             let scheduledCount = window.getScheduledCount(clsMatch, dbOrientCode, sub.name, a.gv, a.task, combinedEvents);
@@ -1785,11 +1796,19 @@
                         let t = tasksToSchedule[i];
                         if (availableRooms.length === 0) break;
 
-                        if (hasOverlap(slotStartStr, slotEndStr, t.gv, t.cls, t.task, availableRooms[0], t.subName, t.orientCode, [], combinedEvents).hasOverlap) {
-                            continue; 
+                        let assignedRoom = null;
+                        for (let r = 0; r < availableRooms.length; r++) {
+                            let overlapCheck = hasOverlap(slotStartStr, slotEndStr, t.gv, t.cls, t.task, availableRooms[r], t.subName, t.orientCode, [], combinedEvents);
+                            if (!overlapCheck.hasOverlap) {
+                                assignedRoom = availableRooms[r];
+                                availableRooms.splice(r, 1);
+                                break;
+                            }
                         }
 
-                        let assignedRoom = availableRooms.shift();
+                        if (!assignedRoom) {
+                            continue; 
+                        }
 
                         let newEvent = {
                             id: `suggest_${Date.now()}_${Math.random().toString(36).substr(2,9)}`,
