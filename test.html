@@ -485,15 +485,16 @@
         window.getScheduledCount = (cls, targetOrientCode, subName, gv, task, combinedEventsArray) => {
             let count = 0;
             let targetNorm = window.normalizeOrient(targetOrientCode);
+            let sourceDB = combinedEventsArray || scheduledEventsDB;
 
-            combinedEventsArray.forEach(e => {
+            sourceDB.forEach(e => {
                 if (e.status === 'returned' || e.type === 'self_declared') return;
                 
                 let eNorm = window.normalizeOrient(e.orientation);
                 let matchOrient = false;
 
                 if (targetNorm === 'CHUNG') {
-                    matchOrient = true;
+                    if (eNorm === 'CHUNG') matchOrient = true;
                 } else {
                     if (eNorm === 'CHUNG' || eNorm === targetNorm) {
                         matchOrient = true;
@@ -508,8 +509,8 @@
             return count;
         };
 
-        // --- KIỂM TRA OVERLAP CHỐNG LỖI TÊN MÔN ---
-        function hasOverlap(targetStartStr, targetEndStr, gvStr, targetClass, targetTask, targetRoom, targetSubject, targetOrient, ignoreEventIds) {
+        // --- KIỂM TRA OVERLAP CHỐNG LỖI TÊN MÔN VÀ GỘP LỚP ---
+        function hasOverlap(targetStartStr, targetEndStr, gvStr, targetClass, targetTask, targetRoom, targetSubject, targetOrient, ignoreEventIds, customEventArray = null) {
             let ignoreList = Array.isArray(ignoreEventIds) ? ignoreEventIds : [ignoreEventIds];
             let tStart = new Date(targetStartStr).getTime();
             let tEnd = targetEndStr ? new Date(targetEndStr).getTime() : tStart + 4 * 3600000;
@@ -532,8 +533,9 @@
             };
             
             let allSubEvents = [];
+            let sourceDB = customEventArray || scheduledEventsDB;
             
-            scheduledEventsDB.forEach(e => {
+            sourceDB.forEach(e => {
                 if (e.status === 'returned' || !e.start) return;
                 let eStart = new Date(e.start).getTime();
                 let eEnd = e.end ? new Date(e.end).getTime() : eStart + 4 * 3600000;
@@ -550,29 +552,46 @@
                     let eSubjectGroup = getMajorTag(e.subject);
                     let timeRangeStr = `${new Date(e.start).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12: false})} - ${new Date(e.end || e.startMs + 4 * 3600000).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12: false})} (${new Date(e.start).toLocaleDateString('vi-VN')})`;
 
+                    let isSameSubject = (getBaseSubjectName(e.subject) === getBaseSubjectName(targetSubject));
+                    let isDifferentSpecificOrient = (eOrientNorm !== 'CHUNG' && targetOrientNorm !== 'CHUNG' && eOrientNorm !== targetOrientNorm);
+                    let isDifferentMajor = (eSubjectGroup !== "ALL" && targetSubjectGroup !== "ALL" && eSubjectGroup !== targetSubjectGroup);
+
+                    let targetGVs = gvStr ? gvStr.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
+                    let eGVs = e.gv ? e.gv.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
+                    let commonGVs = targetGVs.filter(gv => eGVs.includes(gv) && gv.toLowerCase() !== 'giảng viên đơn vị khác');
+                    let hasCommonGV = commonGVs.length > 0;
+                    
+                    // Trường hợp đặc biệt gộp NC và UD: Cùng môn (tên gốc), cùng lớp, cùng GV, CÙNG PHÒNG
+                    let isGopHe = (isSameSubject && isDifferentSpecificOrient && e.class === targetClass && hasCommonGV && targetRoom === e.room);
+
                     // 1. Trùng phòng
                     if (targetRoom && e.room && targetRoom !== 'Khác...' && targetRoom !== 'OTHER' && e.room === targetRoom && e.type !== 'self_declared') {
-                        return { 
-                            hasOverlap: true, 
-                            reason: `Phòng "${targetRoom}" đã được sử dụng.`,
-                            conflictClass: e.class,
-                            conflictSubject: e.subject,
-                            conflictGV: e.gv || 'Chưa rõ',
-                            timeRange: timeRangeStr
-                        };
+                        if (!isGopHe) {
+                            return { 
+                                hasOverlap: true, 
+                                reason: `Phòng "${targetRoom}" đã được sử dụng.`,
+                                conflictClass: e.class,
+                                conflictSubject: e.subject,
+                                conflictGV: e.gv || 'Chưa rõ',
+                                timeRange: timeRangeStr
+                            };
+                        }
                     }
 
                     // 2. Trùng lớp
                     if (e.class === targetClass && blockingTasks.includes(targetTask) && blockingTasks.includes(e.task) && e.type !== 'self_declared') {
-                        let isSameSubject = (getBaseSubjectName(e.subject) === getBaseSubjectName(targetSubject));
-                        let isDifferentSpecificOrient = (eOrientNorm !== 'CHUNG' && targetOrientNorm !== 'CHUNG' && eOrientNorm !== targetOrientNorm);
-                        let isDifferentMajor = (eSubjectGroup !== "ALL" && targetSubjectGroup !== "ALL" && eSubjectGroup !== targetSubjectGroup);
-                        
                         if (isSameSubject && isDifferentSpecificOrient) {
-                            // Bỏ qua vì đây là trường hợp gộp lớp NC và UD cho cùng 1 tên môn
-                        } else if (isDifferentMajor) {
-                            // Bỏ qua
-                        } else {
+                            if (targetRoom && e.room && targetRoom !== e.room && targetRoom !== 'Khác...' && targetRoom !== 'OTHER') {
+                                return { 
+                                    hasOverlap: true, 
+                                    reason: `Gộp môn ${targetSubject} (NC và UD) nhưng khác phòng học. Phải xếp cùng một phòng.`,
+                                    conflictClass: e.class,
+                                    conflictSubject: e.subject,
+                                    conflictGV: e.gv || 'Chưa rõ',
+                                    timeRange: timeRangeStr
+                                };
+                            }
+                        } else if (!isDifferentMajor) {
                             return { 
                                 hasOverlap: true, 
                                 reason: `Lớp ${targetClass} đã có lịch học/thi khác vào khung giờ này.`,
@@ -585,18 +604,11 @@
                     }
                     
                     // 3. Trùng giảng viên
-                    let targetGVs = gvStr ? gvStr.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
-                    let eGVs = e.gv ? e.gv.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
-                    
-                    let commonGVs = targetGVs.filter(gv => eGVs.includes(gv) && gv.toLowerCase() !== 'giảng viên đơn vị khác');
-                    let hasCommonGV = commonGVs.length > 0;
-
                     if (hasCommonGV) {
-                        let overlapGVName = commonGVs.join(', ');
                         if (e.type === 'self_declared') {
                             return { 
                                 hasOverlap: true, 
-                                reason: `Giảng viên ${overlapGVName} đã tự khai báo lịch công tác/bận ("${e.task}").`,
+                                reason: `Giảng viên ${commonGVs.join(', ')} đã tự khai báo lịch công tác/bận ("${e.task}").`,
                                 conflictClass: 'Lịch cá nhân',
                                 conflictSubject: e.task,
                                 conflictGV: e.gv,
@@ -605,14 +617,16 @@
                         }
                         
                         if (blockingTasks.includes(targetTask) && blockingTasks.includes(e.task)) {
-                            return { 
-                                hasOverlap: true, 
-                                reason: `Giảng viên ${overlapGVName} đã bận dạy/coi thi ở lớp khác.`,
-                                conflictClass: e.class,
-                                conflictSubject: e.subject,
-                                conflictGV: e.gv || 'Chưa rõ',
-                                timeRange: timeRangeStr
-                            };
+                            if (!isGopHe) {
+                                return { 
+                                    hasOverlap: true, 
+                                    reason: `Giảng viên ${commonGVs.join(', ')} đã bận dạy/coi thi ở lớp khác.`,
+                                    conflictClass: e.class,
+                                    conflictSubject: e.subject,
+                                    conflictGV: e.gv || 'Chưa rõ',
+                                    timeRange: timeRangeStr
+                                };
+                            }
                         }
                     }
                 }
@@ -1376,10 +1390,12 @@
                     if (poolMajorFilter !== 'ALL' && shortMajor !== 'ALL' && shortMajor !== poolMajorFilter) return;
 
                     let dbOrientCode = '';
-                    if (dbKey.includes('_NC')) dbOrientCode = 'NC';
+                    if (dbKey.includes('_NC') && dbKey.includes('_UD')) dbOrientCode = 'CHUNG';
+                    else if (dbKey.includes('_NC')) dbOrientCode = 'NC';
                     else if (dbKey.includes('_UD')) dbOrientCode = 'UD';
+                    else dbOrientCode = 'CHUNG';
 
-                    if (poolOrientFilter !== 'ALL' && dbOrientCode !== '' && dbOrientCode !== poolOrientFilter) return;
+                    if (poolOrientFilter !== 'ALL' && dbOrientCode !== 'CHUNG' && dbOrientCode !== poolOrientFilter) return;
 
                     const asgData = asgObj[dbKey];
                     if (asgData && asgData.allocations && asgData.status !== 'proposed') {
@@ -1463,9 +1479,6 @@
                 subjectGroups.get(item.subName).push(item);
                 unscheduledCount += item.remaining;
             });
-
-            let statUnscheduledEl = document.getElementById('statUnscheduled');
-            if (statUnscheduledEl) statUnscheduledEl.innerText = unscheduledCount;
 
             const orderedSubjectNames = Array.from(subjectGroups.keys()).sort((a,b) => a.localeCompare(b, 'vi'));
             
@@ -1556,11 +1569,9 @@
                     cardsContainer.classList.toggle('hidden');
                     let icon = subjectHeader.querySelector('.toggle-icon');
                     if (cardsContainer.classList.contains('hidden')) {
-                        icon.classList.remove('fa-chevron-up');
-                        icon.classList.add('fa-chevron-down');
+                        icon.classList.remove('fa-chevron-up'); icon.classList.add('fa-chevron-down');
                     } else {
-                        icon.classList.remove('fa-chevron-down');
-                        icon.classList.add('fa-chevron-up');
+                        icon.classList.remove('fa-chevron-down'); icon.classList.add('fa-chevron-up');
                     }
                 };
                 if(poolDiv) poolDiv.appendChild(subjectContainer);
