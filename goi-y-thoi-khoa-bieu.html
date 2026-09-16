@@ -63,11 +63,11 @@
         .stats-box strong { color: var(--primary); }
 
         /* Thẻ sự kiện xem trước (Preview) */
-        .preview-event { animation: pulse-border 2s infinite; border-width: 2px !important; }
+        .preview-event { animation: pulse-border 1.5s infinite; border-width: 2px !important; }
         @keyframes pulse-border {
-            0% { border-color: #38bdf8; box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.4); }
-            70% { border-color: #0284c7; box-shadow: 0 0 0 6px rgba(56, 189, 248, 0); }
-            100% { border-color: #38bdf8; box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
+            0% { border-color: #8b5cf6; box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.4); }
+            70% { border-color: #7c3aed; box-shadow: 0 0 0 6px rgba(139, 92, 246, 0); }
+            100% { border-color: #8b5cf6; box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); }
         }
 
         .class-tag { display: inline-block; padding: 2px 5px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; margin-bottom: 4px; margin-right: 4px;}
@@ -105,6 +105,10 @@
         .modal-header h3 { margin: 0; color: var(--primary); font-size: 1.2rem; }
         .modal-body { flex: 1; overflow-y: auto; margin-bottom: 15px; }
         .modal-footer { display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border); padding-top: 15px; }
+
+        .btn-danger { background: var(--accent); color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s;}
+        .btn-primary { background: var(--primary); color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s;}
+        .btn-secondary { background: white; color: var(--text-dark); border: 1px solid var(--border); padding: 8px 15px; border-radius: 4px; cursor: pointer; transition: 0.2s; font-weight: 600; }
 
         @media (max-width: 768px) {
             main { flex-direction: column; padding: 0 5px 20px 5px; width: 100vw; overflow-x: hidden; }
@@ -262,12 +266,28 @@
         </div>
     </div>
 
+    <!-- MODAL CHI TIẾT TỔ HỢP SỰ KIỆN ĐỂ LƯU TỪNG CÁI TRÊN LỊCH -->
+    <div id="multiEventModal" class="modal-overlay hidden" style="z-index: 5000;">
+        <div class="modal-content" style="max-width: 650px;">
+            <div class="modal-header" id="multiEventModalHeader" style="background: var(--primary);">
+                <h3 id="multiEventModalTitle">Chi tiết Thời khóa biểu</h3>
+                <span style="cursor: pointer; font-weight: bold; font-size: 1.2rem; color:white;" onclick="document.getElementById('multiEventModal').classList.add('hidden')">X</span>
+            </div>
+            <div class="modal-body" id="multiEventModalBody">
+                <!-- Nội dung được đổ bằng JS -->
+            </div>
+            <div class="modal-footer" id="multiEventModalFooter">
+                <!-- Nút bấm được đổ bằng JS -->
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL POPUP CHI TIẾT CẢNH BÁO XUNG ĐỘT LỊCH -->
-    <div id="conflictModal" class="modal-overlay hidden" style="z-index: 5000;">
+    <div id="conflictModal" class="modal-overlay hidden" style="z-index: 6000;">
         <div class="modal-content" style="max-width: 480px;">
             <div class="modal-header" style="background: #ef4444;">
                 <h3><i class="fas fa-exclamation-triangle"></i> Xung đột lịch giảng dạy</h3>
-                <span style="cursor: pointer; font-weight: bold; font-size: 1.2rem;" onclick="document.getElementById('conflictModal').classList.add('hidden')">X</span>
+                <span style="cursor: pointer; font-weight: bold; font-size: 1.2rem; color:white;" onclick="document.getElementById('conflictModal').classList.add('hidden')">X</span>
             </div>
             <div class="modal-body" id="conflictModalBody" style="font-size: 0.95rem; line-height: 1.6;">
                 <!-- Nội dung chi tiết xung đột được đổ qua JS -->
@@ -292,6 +312,7 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // Biến lưu trữ danh sách phòng từ json/phonghoc.json
         window.ROOM_LIST = ["Phòng 3", "Phòng 4", "Phòng OT", "Phòng ST", "Hội trường"];
         
         async function loadRoomsConfig() {
@@ -398,22 +419,6 @@
             setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
         }
 
-        function showConflictModal(conflictDetails) {
-            const modalBody = document.getElementById('conflictModalBody');
-            modalBody.innerHTML = `
-                <p style="margin: 0 0 10px 0; color: #b91c1c; font-weight: bold;">Không thể xếp lịch do trùng lặp tài nguyên:</p>
-                <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px; margin-bottom: 10px;">
-                    <p style="margin: 0 0 6px 0;"><strong>Nguyên nhân:</strong> ${conflictDetails.reason}</p>
-                    <p style="margin: 0 0 6px 0;"><strong>Lớp bị trùng:</strong> <span style="color: var(--primary); font-weight: bold;">${conflictDetails.conflictClass}</span></p>
-                    <p style="margin: 0 0 6px 0;"><strong>Nội dung:</strong> ${conflictDetails.conflictSubject}</p>
-                    <p style="margin: 0 0 6px 0;"><strong>Giảng viên:</strong> ${conflictDetails.conflictGV}</p>
-                    <p style="margin: 0;"><strong>Thời gian:</strong> ${conflictDetails.timeRange}</p>
-                </div>
-                <p style="margin: 0; font-size: 0.85rem; color: #64748b; font-style: italic;">Vui lòng chọn phòng học khác hoặc dịch chuyển thời gian để tránh trùng lặp.</p>
-            `;
-            document.getElementById('conflictModal').classList.remove('hidden');
-        }
-
         window.toggleSidebar = () => {
             const panel = document.getElementById('suggestion-settings');
             if (panel.classList.contains('hidden')) {
@@ -426,7 +431,23 @@
             setTimeout(() => { if(calendar) calendar.updateSize(); }, 100);
         };
 
-        // --- CÁC HÀM XỬ LÝ LƯU/HỦY NHANH TỪ GIAO DIỆN LỊCH ---
+        function showConflictModal(conflictDetails) {
+            const modalBody = document.getElementById('conflictModalBody');
+            modalBody.innerHTML = `
+                <p style="margin: 0 0 10px 0; color: #b91c1c; font-weight: bold;">Không thể xếp lịch do trùng lặp tài nguyên:</p>
+                <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px; margin-bottom: 10px;">
+                    <p style="margin: 0 0 6px 0;"><strong>Nguyên nhân:</strong> ${conflictDetails.reason}</p>
+                    <p style="margin: 0 0 6px 0;"><strong>Lớp bị trùng:</strong> <span style="color: var(--primary); font-weight: bold;">${conflictDetails.conflictClass}</span></p>
+                    <p style="margin: 0 0 6px 0;"><strong>Nội dung:</strong> ${conflictDetails.conflictSubject}</p>
+                    <p style="margin: 0 0 6px 0;"><strong>Giảng viên:</strong> ${conflictDetails.conflictGV}</p>
+                    <p style="margin: 0;"><strong>Thời gian:</strong> ${conflictDetails.timeRange}</p>
+                </div>
+                <p style="margin: 0; font-size: 0.85rem; color: #64748b; font-style: italic;">Vui lòng Chọn Lưu các lịch Gợi ý trước khi thay đổi để tránh trùng lặp.</p>
+            `;
+            document.getElementById('conflictModal').classList.remove('hidden');
+        }
+
+        // --- CÁC HÀM XỬ LÝ LƯU/HỦY TỪ GIAO DIỆN LỊCH ---
         window.saveGroupSuggest = async (idsString) => {
             if (!idsString) return;
             const ids = idsString.split(',');
@@ -441,9 +462,8 @@
                 });
 
                 await Promise.all(promises);
-                showToast(`Đã đẩy ${eventsToSave.length} lịch vào TKB chính thức!`, "success");
+                showToast(`Đã đẩy lịch vào TKB chính thức!`, "success");
                 
-                // Xóa khỏi mảng preview
                 suggestedEventsArray = suggestedEventsArray.filter(ev => !ids.includes(ev.id));
                 
                 if (suggestedEventsArray.length === 0) {
@@ -452,7 +472,6 @@
                 }
                 if(document.getElementById('statSuggested')) document.getElementById('statSuggested').innerText = suggestedEventsArray.length;
                 
-                // Cập nhật lại màn hình
                 processAndRenderEvents();
             } catch(e) {
                 showToast("Lỗi khi lưu DB: " + e.message, "danger");
@@ -474,7 +493,6 @@
             showToast("Đã hủy bỏ gợi ý này.");
         };
 
-
         // --- KHỞI TẠO DỮ LIỆU ---
         onAuthStateChanged(auth, async (user) => {
             if (user) {
@@ -492,10 +510,8 @@
                     return;
                 }
 
-                // Tải danh sách phòng
                 await loadRoomsConfig();
 
-                // Thiết lập ngày mặc định là thứ Hai tuần tới
                 let today = new Date();
                 let nextMonday = new Date(today);
                 nextMonday.setDate(today.getDate() + ((1 + 7 - today.getDay()) % 7 || 7));
@@ -654,26 +670,104 @@
                         let bgColor = hasPreview ? '#f5f3ff' : 'white';
                         let extraClass = hasPreview ? 'preview-event' : '';
 
-                        // Nút hành động nội tuyến
-                        let previewIds = props.events.filter(e => e.isPreview).map(e => e.id).join(',');
-                        let groupPreviewActions = hasPreview ? `
-                            <div style="display:flex; gap:5px;">
-                                <button onclick="event && event.stopPropagation(); window.saveGroupSuggest('${previewIds}')" style="background:#10b981; color:white; border:none; padding:3px 8px; border-radius:4px; font-size:0.7rem; cursor:pointer; font-weight:bold; transition: 0.2s;"><i class="fas fa-check"></i> Lưu</button>
-                                <button onclick="event && event.stopPropagation(); window.removeGroupSuggest('${previewIds}')" style="background:#ef4444; color:white; border:none; padding:3px 8px; border-radius:4px; font-size:0.7rem; cursor:pointer; font-weight:bold; transition: 0.2s;"><i class="fas fa-times"></i> Hủy</button>
-                            </div>
-                        ` : '';
-
                         return {
                             html: `
                             <div class="evt-group-container ${extraClass}" style="background: ${bgColor}; border-left-color: ${borderLeftColor};">
                                 <div class="evt-group-header">
-                                    <span>${timeStr} ${hasPreview ? '<span style="color:#8b5cf6; font-size:0.75rem; margin-left:5px;"><i class="fas fa-magic"></i> Gợi ý mới</span>' : ''}</span>
-                                    ${groupPreviewActions}
+                                    <span>${timeStr}</span>
+                                    ${hasPreview ? '<span style="color:#8b5cf6; font-size:0.75rem;"><i class="fas fa-magic"></i> Xem trước</span>' : ''}
                                 </div>
                                 <div class="evt-items-list">${itemsHtml}</div>
                             </div>
                             `
                         };
+                    }
+                },
+
+                eventClick: function(info) {
+                    const props = info.event.extendedProps;
+                    const modal = document.getElementById('multiEventModal');
+                    const modalBody = document.getElementById('multiEventModalBody');
+                    const modalFooter = document.getElementById('multiEventModalFooter');
+
+                    if (props.type === 'grouped_normal') {
+                        let startObj = info.event.start;
+                        let endObj = info.event.end ? info.event.end : new Date(startObj.getTime() + 4*3600000);
+                        
+                        let sTime = startObj.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit', hour12: false});
+                        let eTime = endObj.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit', hour12: false});
+                        const dateStr = startObj.toLocaleDateString('vi-VN', {weekday: 'long', day:'2-digit', month:'2-digit', year:'numeric'});
+
+                        let hasPreview = props.events.some(e => e.isPreview);
+                        let previewIds = props.events.filter(e => e.isPreview).map(e => e.id).join(',');
+
+                        let html = `
+                            <div style="color: var(--primary); font-weight:bold; font-size:1.1rem; margin-bottom:15px; border-bottom: 2px solid var(--border); padding-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+                                <span><i class="far fa-clock"></i> ${sTime} - ${eTime} <br><span style="font-size:0.9rem; color:#64748b;">(${dateStr})</span></span>
+                                ${hasPreview ? `<span style="background:#8b5cf6; color:white; padding:4px 8px; border-radius:4px; font-size:0.8rem;"><i class="fas fa-magic"></i> Gợi ý mới</span>` : ''}
+                            </div>
+                        `;
+
+                        props.events.forEach(e => {
+                            let isSelfDeclared = e.type === 'self_declared';
+                            let isImported = (!e.scheduledByName || e.scheduledByName === ''); 
+
+                            if (isSelfDeclared) {
+                                html += `
+                                <div style="background:#f5f3ff; border:1px solid #c4b5fd; border-radius:6px; padding:12px; margin-bottom:12px; position:relative; text-align: left; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                                    <p style="margin:0 0 5px 0; font-size:1.05rem; color:#6d28d9; font-weight:bold; padding-right:60px;">Lịch Bận: ${e.task}</p>
+                                    <p style="margin:0 0 5px 0;"><strong>Giảng viên:</strong> <span style="font-weight:bold;">${e.gv}</span></p>
+                                    <p style="margin:0 0 5px 0;"><strong>Địa điểm:</strong> <span style="background:#fbbf24; color:#78350f; padding:2px 6px; border-radius:4px; font-weight:bold;">${e.room || 'Chưa XĐ'}</span></p>
+                                    <p style="margin:0; font-size:0.8rem; color:#94a3b8; font-style:italic;">Xếp bởi: ${e.scheduledByName || 'Hệ thống'}</p>
+                                </div>
+                                `;
+                                return; 
+                            }
+
+                            let isCN = e.class.toUpperCase().includes('CN');
+                            let eNorm = window.normalizeOrient(e.orientation);
+                            let orientHtml = '';
+                            if (!isCN) {
+                                let orientText = eNorm === 'NC' ? 'Hệ Nghiên cứu (NC)' : (eNorm === 'UD' ? 'Hệ Ứng dụng (UD)' : 'Học chung / Không phân ĐH');
+                                orientHtml = `<p style="margin:0 0 5px 0; color:var(--text-dark);"><strong>Phạm vi:</strong> <span style="font-weight:bold; color:${eNorm==='NC'?'#b45309':(eNorm==='UD'?'#0369a1':'#d97706')};">${orientText}</span></p>`;
+                            }
+
+                            let subObj = subjectsData.find(s => s.name === e.subject);
+                            let majorBadge = window.getMajorBadgeHtml(subObj);
+
+                            let classColorStyle = window.getClassColor(e.class);
+                            let classBadge = `<span style="display:inline-block; padding:2px 6px; border-radius:4px; font-size:0.75rem; font-weight:bold; ${classColorStyle}">${e.class}</span> ${majorBadge}`;
+                            
+                            let importNote = e.isPreview ? `<p style="margin:0; font-size:0.8rem; color:#8b5cf6; font-style:italic; font-weight:bold;"><i class="fas fa-magic"></i> Bản gợi ý (Chưa lưu)</p>` : (isImported ? `<p style="margin:0; font-size:0.8rem; color:#10b981; font-style:italic; font-weight:bold;">Xếp bởi: Hệ thống</p>` : `<p style="margin:0; font-size:0.8rem; color:#94a3b8; font-style:italic;">Xếp bởi: ${e.scheduledByName || 'Admin'}</p>`);
+
+                            html += `
+                            <div style="background:#fff; border:1px solid #cbd5e1; border-radius:6px; padding:12px; margin-bottom:12px; position:relative; text-align: left; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                                <p style="margin:0 0 5px 0; font-size:1.05rem; color:var(--primary); font-weight:bold; padding-right:60px;">${e.subject}</p>
+                                <p style="margin:0 0 5px 0;"><strong>Khóa/Lớp:</strong> ${classBadge}</p>
+                                ${orientHtml}
+                                <p style="margin:0 0 5px 0;"><strong>Phòng học:</strong> <span style="background:#fbbf24; color:#78350f; padding:2px 6px; border-radius:4px; font-weight:bold;">${e.room || 'Chưa XĐ'}</span></p>
+                                <p style="margin:0 0 5px 0;"><strong>Nhiệm vụ:</strong> ${e.task}</p>
+                                <p style="margin:0 0 5px 0;"><strong>Giảng viên:</strong> <span style="font-weight:bold;">${e.gv}</span></p>
+                                ${importNote}
+                            </div>
+                            `;
+                        });
+
+                        modalBody.innerHTML = html;
+
+                        if (hasPreview) {
+                            modalFooter.innerHTML = `
+                                <button class="btn-cancel" onclick="document.getElementById('multiEventModal').classList.add('hidden'); window.removeGroupSuggest('${previewIds}')"><i class="fas fa-times"></i> Hủy gợi ý này</button>
+                                <button class="btn-save" onclick="document.getElementById('multiEventModal').classList.add('hidden'); window.saveGroupSuggest('${previewIds}')"><i class="fas fa-save"></i> Lưu gợi ý này</button>
+                                <button class="btn-toggle" onclick="document.getElementById('multiEventModal').classList.add('hidden')">Đóng</button>
+                            `;
+                        } else {
+                            modalFooter.innerHTML = `
+                                <button class="btn-toggle" onclick="document.getElementById('multiEventModal').classList.add('hidden')">Đóng</button>
+                            `;
+                        }
+
+                        modal.classList.remove('hidden');
                     }
                 }
             });
@@ -800,7 +894,7 @@
             return { hasOverlap: false };
         }
 
-        window.getScheduledCount = (cls, targetOrientCode, baseSubName, gv, task, combinedEventsArray) => {
+        window.getScheduledCount = (cls, targetOrientCode, exactSubName, gv, task, combinedEventsArray) => {
             let count = 0;
             let targetNorm = window.normalizeOrient(targetOrientCode);
             let sourceDB = combinedEventsArray || scheduledEventsDB;
@@ -820,7 +914,7 @@
                 }
 
                 let eGVs = e.gv ? e.gv.split(/,|&/).map(s => s.trim()) : [];
-                if (e.class === cls && matchOrient && window.getBaseSubjectName(e.subject) === baseSubName && eGVs.includes(gv) && e.task === task) {
+                if (e.class === cls && matchOrient && e.subject === exactSubName && eGVs.includes(gv) && e.task === task) {
                     count++;
                 }
             });
@@ -885,12 +979,12 @@
                         
                         asgData.allocations.forEach(a => {
                             const totalAssigned = parseInt(a.assigned) || 0;
-                            let baseSubName = window.getBaseSubjectName(sub.name);
-                            const mapKey = `${baseSubName}_${a.gv}_${a.task}_${clsMatch}`;
+                            // Dùng ID để khóa cứng phân môn, tránh đè lên nhau nếu trùng tên cơ sở
+                            const mapKey = `${sub.id}_${a.gv}_${a.task}_${clsMatch}`;
                             
                             if (!rawTaskMap.has(mapKey)) {
                                 rawTaskMap.set(mapKey, {
-                                    subName: sub.name, subId: sub.id, baseSubName: baseSubName, cls: clsMatch, gv: a.gv, task: a.task,
+                                    subName: sub.name, subId: sub.id, cls: clsMatch, gv: a.gv, task: a.task,
                                     totalNC: 0, totalUD: 0, totalGeneral: 0, semester: semester,
                                     allowJoint: asgData.allowJoint !== false
                                 });
@@ -910,9 +1004,9 @@
             let poolTasksList = [];
 
             rawTaskMap.forEach((data, mapKey) => {
-                let scheduledNC = window.getScheduledCount(data.cls, 'NC', data.baseSubName, data.gv, data.task, combinedEvents);
-                let scheduledUD = window.getScheduledCount(data.cls, 'UD', data.baseSubName, data.gv, data.task, combinedEvents);
-                let scheduledGeneral = window.getScheduledCount(data.cls, 'CHUNG', data.baseSubName, data.gv, data.task, combinedEvents);
+                let scheduledNC = window.getScheduledCount(data.cls, 'NC', data.subName, data.gv, data.task, combinedEvents);
+                let scheduledUD = window.getScheduledCount(data.cls, 'UD', data.subName, data.gv, data.task, combinedEvents);
+                let scheduledGeneral = window.getScheduledCount(data.cls, 'CHUNG', data.subName, data.gv, data.task, combinedEvents);
 
                 let remNC = Math.max(0, data.totalNC - scheduledNC);
                 let remUD = Math.max(0, data.totalUD - scheduledUD);
@@ -942,17 +1036,6 @@
             });
 
             let unscheduledCount = 0;
-            
-            // Render thẻ mồ côi bị Reject
-            scheduledEventsDB.forEach(e => {
-                if (e.status === 'returned') {
-                    if (suggestClassFilter !== 'ALL' && !window.isClassMatch(e.class, suggestClassFilter)) return;
-                    poolTasksList.push({
-                        isRejected: true, rTask: e, subName: e.subject, subId: e.subject, cls: e.class, gv: e.gv, task: e.task, semester: e.semester, remaining: 1
-                    });
-                }
-            });
-
             let subjectGroups = new Map();
             poolTasksList.forEach((item) => {
                 if (!subjectGroups.has(item.subName)) subjectGroups.set(item.subName, []);
@@ -1004,46 +1087,29 @@
                         else orientDisplay = '<div class="badge-orient badge-chung" style="display:block; text-align:center; margin-bottom:5px;">Học chung (NC & UD)</div>';
                     }
 
-                    if (item.isRejected) {
-                        eventDiv.className = `fc-event ${item.cls} rejected-task`;
-                        eventDiv.setAttribute('data-id', item.rTask.id); 
-                        eventDiv.setAttribute('data-original-id', item.rTask.id); 
-                        eventDiv.setAttribute('data-title', item.gv); 
-                        eventDiv.setAttribute('data-subject', item.subName);
-                        eventDiv.setAttribute('data-gv', item.gv);
-                        eventDiv.setAttribute('data-task', item.task);
-                        eventDiv.setAttribute('data-class', item.cls);
-                        
-                        let rOrient = item.rTask.orientation === 'Nghiên cứu' ? 'NC' : (item.rTask.orientation === 'Ứng dụng' ? 'UD' : (item.rTask.orientation === 'Cả hai' || item.rTask.orientation === 'Học chung / Không phân định hướng' ? 'NC,UD' : ''));
-                        eventDiv.setAttribute('data-orientations', rOrient); 
-                        eventDiv.setAttribute('data-semester', item.semester);       
+                    eventDiv.className = `fc-event ${item.cls}`;
+                    
+                    eventDiv.setAttribute('data-id', `${item.subId}_${item.orientCode}_${item.gv}_${item.task}_${item.cls}`); 
+                    eventDiv.setAttribute('data-title', item.gv); 
+                    eventDiv.setAttribute('data-subject', item.subName);
+                    eventDiv.setAttribute('data-gv', item.gv);
+                    eventDiv.setAttribute('data-task', item.task);
+                    eventDiv.setAttribute('data-class', item.cls);
+                    
+                    let orientAttr = normCode === 'NC' ? 'Nghiên cứu' : (normCode === 'UD' ? 'Ứng dụng' : 'Cả hai');
+                    eventDiv.setAttribute('data-orientations', orientAttr); 
+                    eventDiv.setAttribute('data-semester', item.semester);
+                    eventDiv.setAttribute('data-max-rem', item.remaining);        
 
-                        let rBadge = `<span class="reject-badge"><i class="fas fa-exclamation-circle"></i> Bị từ chối (Trả về)</span>`;
-                        eventDiv.innerHTML = `${classTag}<div class="event-gv">${gvDisplay}</div><span class="event-info">[${item.task}]</span>${rBadge}`;
-                    } else {
-                        let orientAttr = normCode === 'NC' ? 'Nghiên cứu' : (normCode === 'UD' ? 'Ứng dụng' : 'Cả hai');
+                    let countBadge = `<div class="count-badge">${item.remaining}</div>`;
 
-                        eventDiv.className = `fc-event ${item.cls}`;
-                        eventDiv.setAttribute('data-id', `${item.subId}_${item.orientCode}_${item.gv}_${item.task}_${item.cls}`); 
-                        eventDiv.setAttribute('data-title', item.gv); 
-                        eventDiv.setAttribute('data-subject', item.subName);
-                        eventDiv.setAttribute('data-gv', item.gv);
-                        eventDiv.setAttribute('data-task', item.task);
-                        eventDiv.setAttribute('data-class', item.cls);
-                        eventDiv.setAttribute('data-orientations', orientAttr); 
-                        eventDiv.setAttribute('data-semester', item.semester);
-                        eventDiv.setAttribute('data-max-rem', item.remaining);       
-
-                        let countBadge = `<div class="count-badge">${item.remaining}</div>`;
-
-                        eventDiv.innerHTML = `
-                            ${countBadge}
-                            ${orientDisplay}
-                            ${classTag} 
-                            <div class="event-gv" title="${item.gv}">${gvDisplay}</div>
-                            <span class="event-info">[${item.task}]</span>
-                        `;
-                    }
+                    eventDiv.innerHTML = `
+                        ${countBadge}
+                        ${orientDisplay}
+                        ${classTag} 
+                        <div class="event-gv">${gvDisplay}</div>
+                        <span class="event-info">[${item.task}]</span>
+                    `;
                     cardsContainer.appendChild(eventDiv);
                 });
 
@@ -1060,7 +1126,7 @@
                 if(poolDiv) poolDiv.appendChild(subjectContainer);
             });
 
-            // 2. RENDER LỊCH CHÍNH
+            // 2. RENDER LỊCH CHÍNH (Sử dụng combinedEvents)
             renderCalendarEvents(combinedEvents);
         };
 
@@ -1157,15 +1223,12 @@
             const majorFilter = document.getElementById('suggestMajorFilter').value;
             const orientFilter = document.getElementById('suggestOrientFilter').value;
             
-            // Lấy các ngày nghỉ (Bỏ qua)
             const skipDaysSelect = document.getElementById('suggestSkipDays');
             const skipDays = Array.from(skipDaysSelect.selectedOptions).map(opt => parseInt(opt.value));
 
-            // Khởi tạo mảng sự kiện tổng hợp (DB cũ + Gợi ý mới) để tính Overlap liên tục
             suggestedEventsArray = [];
             let combinedEvents = [...scheduledEventsDB]; 
             
-            // BƯỚC 1: QUÉT TẠO DANH SÁCH NHIỆM VỤ CẦN XẾP DỰA TRÊN BỘ LỌC
             let rawTaskMap = new Map();
 
             subjectsData.forEach(sub => {
@@ -1183,7 +1246,6 @@
                     if (!clsMatch) return;
                     if (clsFilter !== 'ALL' && !window.isClassMatch(clsMatch, clsFilter)) return;
 
-                    // Lọc Ngành
                     let shortMajor = sub.majorTag;
                     if (sub.majorTag === "Vật lý trị liệu") shortMajor = "VLTL";
                     else if (sub.majorTag === "Hoạt động trị liệu") shortMajor = "HĐTL";
@@ -1208,12 +1270,11 @@
                         
                         asgData.allocations.forEach(a => {
                             const totalAssigned = parseInt(a.assigned) || 0;
-                            let baseSubName = window.getBaseSubjectName(sub.name);
-                            const mapKey = `${baseSubName}_${a.gv}_${a.task}_${clsMatch}`;
+                            const mapKey = `${sub.id}_${a.gv}_${a.task}_${clsMatch}`;
                             
                             if (!rawTaskMap.has(mapKey)) {
                                 rawTaskMap.set(mapKey, {
-                                    subName: sub.name, subId: sub.id, baseSubName: baseSubName, cls: clsMatch, gv: a.gv, task: a.task,
+                                    subName: sub.name, subId: sub.id, cls: clsMatch, gv: a.gv, task: a.task,
                                     totalNC: 0, totalUD: 0, totalGeneral: 0, semester: semester,
                                     allowJoint: asgData.allowJoint !== false
                                 });
@@ -1233,9 +1294,9 @@
             let tasksToSchedule = [];
 
             rawTaskMap.forEach((data, mapKey) => {
-                let scheduledNC = window.getScheduledCount(data.cls, 'NC', data.baseSubName, data.gv, data.task, combinedEvents);
-                let scheduledUD = window.getScheduledCount(data.cls, 'UD', data.baseSubName, data.gv, data.task, combinedEvents);
-                let scheduledGeneral = window.getScheduledCount(data.cls, 'CHUNG', data.baseSubName, data.gv, data.task, combinedEvents);
+                let scheduledNC = window.getScheduledCount(data.cls, 'NC', data.subName, data.gv, data.task, combinedEvents);
+                let scheduledUD = window.getScheduledCount(data.cls, 'UD', data.subName, data.gv, data.task, combinedEvents);
+                let scheduledGeneral = window.getScheduledCount(data.cls, 'CHUNG', data.subName, data.gv, data.task, combinedEvents);
 
                 let remNC = Math.max(0, data.totalNC - scheduledNC);
                 let remUD = Math.max(0, data.totalUD - scheduledUD);
@@ -1269,12 +1330,10 @@
                 return;
             }
 
-            // BƯỚC 2: XẾP LỊCH THEO THUẬT TOÁN GREEDY
             let currentDate = new Date(startDateVal);
             currentDate.setHours(0,0,0,0);
             
             let failedCount = 0;
-
             let loopGuard = 0;
             
             while(tasksToSchedule.length > 0 && loopGuard < 365) {
@@ -1286,7 +1345,6 @@
                     continue;
                 }
 
-                // Xét 2 ca: Sáng (7h) và Chiều (13h)
                 const slots = [
                     { hStart: 7, hEnd: 11 },
                     { hStart: 13, hEnd: 17 }
@@ -1303,14 +1361,12 @@
 
                     let availableRooms = [...window.ROOM_LIST];
 
-                    // Duyệt ngược mảng task để xóa đi những task đã xếp xong
                     for (let i = tasksToSchedule.length - 1; i >= 0; i--) {
                         let t = tasksToSchedule[i];
                         if (!t || t.remaining <= 0) continue;
                         
                         if (availableRooms.length === 0) break; 
 
-                        // Tìm 1 phòng trống
                         let assignedRoom = null;
                         for (let r = 0; r < availableRooms.length; r++) {
                             let overlapCheck = hasOverlap(slotStartStr, slotEndStr, t.gv, t.cls, t.task, availableRooms[r], t.subName, t.orientCode, [], combinedEvents);
@@ -1349,7 +1405,7 @@
 
                         t.remaining -= 1;
 
-                        // Tìm Twin Event (Ghép đôi NC/UD)
+                        // Tìm Twin Event (Chỉ áp dụng nếu là môn bị tách 1. 2. ra làm 2 Sub ID khác nhau)
                         let twinIndex = tasksToSchedule.findIndex((other, idx) => 
                             idx !== i && 
                             other.remaining > 0 &&
@@ -1390,10 +1446,8 @@
                 loopGuard++;
             }
 
-            // Những Task còn kẹt lại (chưa xếp được)
             tasksToSchedule.forEach(t => failedCount += t.remaining);
 
-            // BƯỚC 3: RENDER RA LỊCH VÀ CẬP NHẬT GIAO DIỆN
             processAndRenderEvents();
 
             document.getElementById('statSuggested') ? document.getElementById('statSuggested').innerText = suggestedEventsArray.length : null;
@@ -1403,7 +1457,6 @@
             document.getElementById('suggestActionGroup').classList.remove('hidden');
 
             if (suggestedEventsArray.length > 0) {
-                // Tự động chuyển view lịch đến ngày bắt đầu gợi ý
                 calendar.gotoDate(startDateVal);
                 showToast(`Đã tạo ${suggestedEventsArray.length} gợi ý! Bấm 'Chọn Lưu' để xác nhận.`);
             } else {
@@ -1413,7 +1466,7 @@
 
         window.cancelSuggestion = () => {
             suggestedEventsArray = [];
-            processAndRenderEvents(); // Trở về như cũ (chỉ lấy DB)
+            processAndRenderEvents(); 
             
             if(document.getElementById('statSuggested')) document.getElementById('statSuggested').innerText = '0';
             if(document.getElementById('statFailed')) document.getElementById('statFailed').innerText = '0';
@@ -1430,7 +1483,6 @@
             const tbody = document.getElementById('reviewSuggestTableBody');
             tbody.innerHTML = '';
             
-            // Sắp xếp các đề xuất theo thời gian tăng dần
             suggestedEventsArray.sort((a,b) => new Date(a.start) - new Date(b.start));
 
             suggestedEventsArray.forEach((ev) => {
@@ -1473,7 +1525,6 @@
             }
         };
 
-        // --- HÀM XÁC NHẬN LƯU VÀO DB ---
         window.confirmSaveSuggestedEvents = async () => {
             const checkedBoxes = document.querySelectorAll('.suggest-check:checked');
             if (checkedBoxes.length === 0) {
@@ -1494,7 +1545,7 @@
             try {
                 let promises = eventsToSave.map(evData => {
                     let dataToSave = { ...evData };
-                    delete dataToSave.isPreview; // Gỡ cờ preview trước khi lưu
+                    delete dataToSave.isPreview; 
                     return setDoc(doc(db, "calendar_events", dataToSave.id), dataToSave);
                 });
 
@@ -1502,7 +1553,6 @@
                 
                 showToast(`Đã lưu ${eventsToSave.length} lịch thành công!`, "success");
                 
-                // Loại bỏ những events đã lưu ra khỏi mảng Preview
                 suggestedEventsArray = suggestedEventsArray.filter(ev => !selectedIds.includes(ev.id));
                 
                 if (suggestedEventsArray.length === 0) {
@@ -1517,7 +1567,6 @@
                     btnSaveUI.innerHTML = '<i class="fas fa-save"></i> Ghi vào CSDL';
                 }
 
-                // Tự động tải lại lịch để xem các lịch vừa lưu + các Preview còn sót lại
                 processAndRenderEvents();
 
             } catch(e) {
