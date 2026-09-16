@@ -139,12 +139,6 @@
             <button id="btnSuggest" class="btn-toggle btn-suggest" onclick="startSuggestion()">
                 <i class="fas fa-play"></i> Bắt đầu Gợi ý
             </button>
-            <button id="btnSave" class="btn-toggle btn-save hidden" onclick="openReviewSuggestModal()">
-                <i class="fas fa-list-check"></i> Chọn Lịch để Lưu
-            </button>
-            <button id="btnCancel" class="btn-toggle btn-cancel hidden" onclick="cancelSuggestion()">
-                <i class="fas fa-times"></i> Hủy kết quả
-            </button>
             <button id="btnToggleSidebar" class="btn-toggle" onclick="toggleSidebar()">
                 <i class="fas fa-cogs"></i> Cài đặt
             </button>
@@ -216,6 +210,11 @@
                 Bị nghẽn (Hết phòng/Trùng lịch): <strong id="statFailed" style="color:#ef4444;">0</strong>
             </div>
             
+            <div id="suggestActionGroup" class="hidden" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px;">
+                <button id="btnSaveBulk" style="padding: 8px; border-radius: 4px; border: none; background: #10b981; color: white; font-weight: bold; cursor: pointer; font-size: 0.85rem; transition: 0.2s;" onclick="openReviewSuggestModal()"><i class="fas fa-list-check"></i> Duyệt hàng loạt</button>
+                <button id="btnCancelBulk" style="padding: 8px; border-radius: 4px; border: none; background: #ef4444; color: white; font-weight: bold; cursor: pointer; font-size: 0.85rem; transition: 0.2s;" onclick="cancelSuggestion()"><i class="fas fa-times"></i> Hủy tất cả xem trước</button>
+            </div>
+
             <div style="font-size: 0.8rem; color: #64748b; font-style: italic; line-height: 1.4; margin-bottom: 10px;">
                 <i class="fas fa-info-circle"></i> Hệ thống chỉ xếp vào 2 ca cố định: <b>07:00</b> và <b>13:00</b>. Mỗi buổi kéo dài 4 tiếng.
             </div>
@@ -293,7 +292,6 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Biến lưu trữ danh sách phòng từ json/phonghoc.json
         window.ROOM_LIST = ["Phòng 3", "Phòng 4", "Phòng OT", "Phòng ST", "Hội trường"];
         
         async function loadRoomsConfig() {
@@ -338,7 +336,7 @@
             return `background:${color.bg}; color:${color.text}; border: 1px solid ${color.text}40;`;
         };
 
-        // --- HÀM BÓC TÁCH TÊN MÔN (Bỏ đi số 1. 2. ở đầu) ---
+        // --- HÀM BÓC TÁCH TÊN MÔN GỐC ---
         window.getBaseSubjectName = (name) => {
             if (!name) return "";
             let parts = name.split('.');
@@ -348,7 +346,7 @@
             return name.trim().toLowerCase();
         };
 
-        // --- HÀM CHUẨN HÓA ĐỊNH HƯỚNG ---
+        // --- HÀM CHUẨN HÓA ĐỊNH HƯỚNG BẢO VỆ CHỮ CHUNG ---
         window.normalizeOrient = (orient) => {
             if (!orient) return 'CHUNG';
             let str = String(orient).toUpperCase().trim();
@@ -427,6 +425,55 @@
             }
             setTimeout(() => { if(calendar) calendar.updateSize(); }, 100);
         };
+
+        // --- CÁC HÀM XỬ LÝ LƯU/HỦY NHANH TỪ GIAO DIỆN LỊCH ---
+        window.saveGroupSuggest = async (idsString) => {
+            if (!idsString) return;
+            const ids = idsString.split(',');
+            const eventsToSave = suggestedEventsArray.filter(ev => ids.includes(ev.id));
+            if (eventsToSave.length === 0) return;
+
+            try {
+                let promises = eventsToSave.map(evData => {
+                    let dataToSave = { ...evData };
+                    delete dataToSave.isPreview; 
+                    return setDoc(doc(db, "calendar_events", dataToSave.id), dataToSave);
+                });
+
+                await Promise.all(promises);
+                showToast(`Đã đẩy ${eventsToSave.length} lịch vào TKB chính thức!`, "success");
+                
+                // Xóa khỏi mảng preview
+                suggestedEventsArray = suggestedEventsArray.filter(ev => !ids.includes(ev.id));
+                
+                if (suggestedEventsArray.length === 0) {
+                    document.getElementById('btnSuggest').classList.remove('hidden');
+                    document.getElementById('suggestActionGroup').classList.add('hidden');
+                }
+                if(document.getElementById('statSuggested')) document.getElementById('statSuggested').innerText = suggestedEventsArray.length;
+                
+                // Cập nhật lại màn hình
+                processAndRenderEvents();
+            } catch(e) {
+                showToast("Lỗi khi lưu DB: " + e.message, "danger");
+            }
+        };
+
+        window.removeGroupSuggest = (idsString) => {
+            if (!idsString) return;
+            const ids = idsString.split(',');
+            suggestedEventsArray = suggestedEventsArray.filter(ev => !ids.includes(ev.id));
+            
+            if (suggestedEventsArray.length === 0) {
+                document.getElementById('btnSuggest').classList.remove('hidden');
+                document.getElementById('suggestActionGroup').classList.add('hidden');
+            }
+            if(document.getElementById('statSuggested')) document.getElementById('statSuggested').innerText = suggestedEventsArray.length;
+            
+            processAndRenderEvents();
+            showToast("Đã hủy bỏ gợi ý này.");
+        };
+
 
         // --- KHỞI TẠO DỮ LIỆU ---
         onAuthStateChanged(auth, async (user) => {
@@ -590,9 +637,6 @@
                             let classColorStyle = window.getClassColor(e.class);
                             let classBadge = `<span style="display:inline-block; padding:2px 6px; border-radius:3px; font-size:0.7rem; font-weight:bold; ${classColorStyle}">${e.class}</span> ${majorBadge}`;
 
-                            // Nếu là sự kiện do AI gợi ý thì hiển thị màu khác và tag Preview
-                            let previewNote = e.isPreview ? `<div style="font-size: 0.75rem; color: #8b5cf6; font-weight: bold; margin-top: 5px;"><i class="fas fa-magic"></i> Bản Gợi ý (Chưa lưu)</div>` : '';
-
                             return `
                             <div class="evt-item" style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed rgba(2, 132, 199, 0.2); text-align: left; line-height: 1.4;">
                                 <div style="font-size: 0.85rem; color: var(--primary); margin-bottom: 4px; white-space: normal; word-break: break-word; font-weight: 700;">${e.subject}</div>
@@ -601,7 +645,6 @@
                                 <p style="margin:0 0 5px 0;"><strong>Phòng học:</strong> <span style="background:#fbbf24; color:#78350f; padding:2px 6px; border-radius:4px; font-weight:bold;">${shortRoom}</span></p>
                                 <p style="margin:0 0 5px 0;"><strong>Nhiệm vụ:</strong> ${e.task}</p>
                                 <p style="margin:0 0 5px 0;"><strong>Giảng viên:</strong> <span style="font-weight:bold;">${gvDisplay}</span></p>
-                                ${previewNote}
                             </div>
                             `;
                         }).join('');
@@ -611,12 +654,21 @@
                         let bgColor = hasPreview ? '#f5f3ff' : 'white';
                         let extraClass = hasPreview ? 'preview-event' : '';
 
+                        // Nút hành động nội tuyến
+                        let previewIds = props.events.filter(e => e.isPreview).map(e => e.id).join(',');
+                        let groupPreviewActions = hasPreview ? `
+                            <div style="display:flex; gap:5px;">
+                                <button onclick="event && event.stopPropagation(); window.saveGroupSuggest('${previewIds}')" style="background:#10b981; color:white; border:none; padding:3px 8px; border-radius:4px; font-size:0.7rem; cursor:pointer; font-weight:bold; transition: 0.2s;"><i class="fas fa-check"></i> Lưu</button>
+                                <button onclick="event && event.stopPropagation(); window.removeGroupSuggest('${previewIds}')" style="background:#ef4444; color:white; border:none; padding:3px 8px; border-radius:4px; font-size:0.7rem; cursor:pointer; font-weight:bold; transition: 0.2s;"><i class="fas fa-times"></i> Hủy</button>
+                            </div>
+                        ` : '';
+
                         return {
                             html: `
                             <div class="evt-group-container ${extraClass}" style="background: ${bgColor}; border-left-color: ${borderLeftColor};">
                                 <div class="evt-group-header">
-                                    <span>${timeStr}</span>
-                                    ${hasPreview ? '<span style="color:#8b5cf6; font-size:0.75rem;"><i class="fas fa-star"></i> Mới</span>' : ''}
+                                    <span>${timeStr} ${hasPreview ? '<span style="color:#8b5cf6; font-size:0.75rem; margin-left:5px;"><i class="fas fa-magic"></i> Gợi ý mới</span>' : ''}</span>
+                                    ${groupPreviewActions}
                                 </div>
                                 <div class="evt-items-list">${itemsHtml}</div>
                             </div>
@@ -634,7 +686,7 @@
                    pad(date.getHours()) + ':' + pad(date.getMinutes()) + ':' + pad(date.getSeconds());
         }
 
-        // --- HÀM KIỂM TRA OVERLAP DÙNG CHO CẢ VIỆC GỢI Ý VÀ THẢ LỊCH CHUNG ---
+        // --- HÀM KIỂM TRA OVERLAP CHO AI ---
         function hasOverlap(targetStartStr, targetEndStr, gvStr, targetClass, targetTask, targetRoom, targetSubject, targetOrient, ignoreEventIds, customEventArray = null) {
             let ignoreList = Array.isArray(ignoreEventIds) ? ignoreEventIds : [ignoreEventIds];
             let tStart = new Date(targetStartStr).getTime();
@@ -646,7 +698,7 @@
                 return (s && s.majorTag) ? s.majorTag : "ALL";
             };
             let targetSubjectGroup = getMajorTag(targetSubject);
-            
+
             let allSubEvents = [];
             let sourceDB = customEventArray || scheduledEventsDB;
             
@@ -676,7 +728,6 @@
                     let commonGVs = targetGVs.filter(gv => eGVs.includes(gv) && gv.toLowerCase() !== 'giảng viên đơn vị khác');
                     let hasCommonGV = commonGVs.length > 0;
                     
-                    // Trường hợp gộp NC và UD: Cùng môn (tên gốc), cùng lớp, cùng GV, CÙNG PHÒNG
                     let isGopHe = (isSameSubject && isDifferentSpecificOrient && e.class === targetClass && hasCommonGV && targetRoom === e.room);
 
                     // 1. Trùng phòng
@@ -749,7 +800,7 @@
             return { hasOverlap: false };
         }
 
-        window.getScheduledCount = (cls, targetOrientCode, subName, gv, task, combinedEventsArray) => {
+        window.getScheduledCount = (cls, targetOrientCode, baseSubName, gv, task, combinedEventsArray) => {
             let count = 0;
             let targetNorm = window.normalizeOrient(targetOrientCode);
             let sourceDB = combinedEventsArray || scheduledEventsDB;
@@ -761,7 +812,7 @@
                 let matchOrient = false;
 
                 if (targetNorm === 'CHUNG') {
-                    if (eNorm === 'CHUNG') matchOrient = true; // Chỉ cộng vào General nếu đích thực là Cả hai
+                    if (eNorm === 'CHUNG') matchOrient = true;
                 } else {
                     if (eNorm === 'CHUNG' || eNorm === targetNorm) {
                         matchOrient = true;
@@ -769,7 +820,7 @@
                 }
 
                 let eGVs = e.gv ? e.gv.split(/,|&/).map(s => s.trim()) : [];
-                if (e.class === cls && matchOrient && e.subject === subName && eGVs.includes(gv) && e.task === task) {
+                if (e.class === cls && matchOrient && window.getBaseSubjectName(e.subject) === baseSubName && eGVs.includes(gv) && e.task === task) {
                     count++;
                 }
             });
@@ -834,7 +885,6 @@
                         
                         asgData.allocations.forEach(a => {
                             const totalAssigned = parseInt(a.assigned) || 0;
-                            // Gộp khóa bằng Tên Gốc (Cắt bỏ số thứ tự để gộp NC và UD lại với nhau)
                             let baseSubName = window.getBaseSubjectName(sub.name);
                             const mapKey = `${baseSubName}_${a.gv}_${a.task}_${clsMatch}`;
                             
@@ -860,9 +910,9 @@
             let poolTasksList = [];
 
             rawTaskMap.forEach((data, mapKey) => {
-                let scheduledNC = window.getScheduledCount(data.cls, 'NC', data.subName, data.gv, data.task, combinedEvents);
-                let scheduledUD = window.getScheduledCount(data.cls, 'UD', data.subName, data.gv, data.task, combinedEvents);
-                let scheduledGeneral = window.getScheduledCount(data.cls, 'CHUNG', data.subName, data.gv, data.task, combinedEvents);
+                let scheduledNC = window.getScheduledCount(data.cls, 'NC', data.baseSubName, data.gv, data.task, combinedEvents);
+                let scheduledUD = window.getScheduledCount(data.cls, 'UD', data.baseSubName, data.gv, data.task, combinedEvents);
+                let scheduledGeneral = window.getScheduledCount(data.cls, 'CHUNG', data.baseSubName, data.gv, data.task, combinedEvents);
 
                 let remNC = Math.max(0, data.totalNC - scheduledNC);
                 let remUD = Math.max(0, data.totalUD - scheduledUD);
@@ -881,7 +931,7 @@
                             shared = 0; onlyNC = remNC; onlyUD = remUD;
                         }
 
-                        if (shared > 0) poolTasksList.push({ ...data, orientCode: 'CHUNG', remaining: shared });
+                        if (shared > 0) poolTasksList.push({ ...data, orientCode: 'Cả hai', remaining: shared });
                         if (onlyNC > 0) poolTasksList.push({ ...data, orientCode: 'NC', remaining: onlyNC });
                         if (onlyUD > 0) poolTasksList.push({ ...data, orientCode: 'UD', remaining: onlyUD });
                     } else {
@@ -892,9 +942,8 @@
             });
 
             let unscheduledCount = 0;
-            let subjectGroups = new Map();
             
-            // Xử lý các môn bị từ chối trả về kho
+            // Render thẻ mồ côi bị Reject
             scheduledEventsDB.forEach(e => {
                 if (e.status === 'returned') {
                     if (suggestClassFilter !== 'ALL' && !window.isClassMatch(e.class, suggestClassFilter)) return;
@@ -904,6 +953,7 @@
                 }
             });
 
+            let subjectGroups = new Map();
             poolTasksList.forEach((item) => {
                 if (!subjectGroups.has(item.subName)) subjectGroups.set(item.subName, []);
                 subjectGroups.get(item.subName).push(item);
@@ -1010,7 +1060,7 @@
                 if(poolDiv) poolDiv.appendChild(subjectContainer);
             });
 
-            // 2. RENDER LỊCH CHÍNH (Sử dụng combinedEvents)
+            // 2. RENDER LỊCH CHÍNH
             renderCalendarEvents(combinedEvents);
         };
 
@@ -1058,7 +1108,7 @@
                 
                 let deduplicateKey = `${sTime}_${eTime}_${e.room}_${e.subject}_${e.task}_${e.gv}_${e.orientation}_${e.class}`;
 
-                // Ưu tiên event preview (của AI) hơn là event thường (trường hợp trùng lắp hiển thị)
+                // Ưu tiên event preview (của AI) hơn là event thường
                 if (!deduplicatedEventsMap.has(deduplicateKey) || e.isPreview) {
                     deduplicatedEventsMap.set(deduplicateKey, e);
                 }
@@ -1158,7 +1208,6 @@
                         
                         asgData.allocations.forEach(a => {
                             const totalAssigned = parseInt(a.assigned) || 0;
-                            // Gộp khóa bằng Tên Gốc (Cắt bỏ số thứ tự để gộp NC và UD lại với nhau trong bước tính toán)
                             let baseSubName = window.getBaseSubjectName(sub.name);
                             const mapKey = `${baseSubName}_${a.gv}_${a.task}_${clsMatch}`;
                             
@@ -1184,9 +1233,9 @@
             let tasksToSchedule = [];
 
             rawTaskMap.forEach((data, mapKey) => {
-                let scheduledNC = window.getScheduledCount(data.cls, 'NC', data.subName, data.gv, data.task, combinedEvents);
-                let scheduledUD = window.getScheduledCount(data.cls, 'UD', data.subName, data.gv, data.task, combinedEvents);
-                let scheduledGeneral = window.getScheduledCount(data.cls, 'CHUNG', data.subName, data.gv, data.task, combinedEvents);
+                let scheduledNC = window.getScheduledCount(data.cls, 'NC', data.baseSubName, data.gv, data.task, combinedEvents);
+                let scheduledUD = window.getScheduledCount(data.cls, 'UD', data.baseSubName, data.gv, data.task, combinedEvents);
+                let scheduledGeneral = window.getScheduledCount(data.cls, 'CHUNG', data.baseSubName, data.gv, data.task, combinedEvents);
 
                 let remNC = Math.max(0, data.totalNC - scheduledNC);
                 let remUD = Math.max(0, data.totalUD - scheduledUD);
@@ -1205,7 +1254,7 @@
                             shared = 0; onlyNC = remNC; onlyUD = remUD;
                         }
 
-                        if (shared > 0) tasksToSchedule.push({ ...data, orientCode: 'CHUNG', remaining: shared });
+                        if (shared > 0) tasksToSchedule.push({ ...data, orientCode: 'Cả hai', remaining: shared });
                         if (onlyNC > 0) tasksToSchedule.push({ ...data, orientCode: 'NC', remaining: onlyNC });
                         if (onlyUD > 0) tasksToSchedule.push({ ...data, orientCode: 'UD', remaining: onlyUD });
                     } else {
@@ -1225,6 +1274,7 @@
             currentDate.setHours(0,0,0,0);
             
             let failedCount = 0;
+
             let loopGuard = 0;
             
             while(tasksToSchedule.length > 0 && loopGuard < 365) {
@@ -1251,7 +1301,6 @@
                     let slotStartStr = toLocalISOString(slotStart);
                     let slotEndStr = toLocalISOString(slotEnd);
 
-                    // Mỗi ca có số lượng phòng nhất định
                     let availableRooms = [...window.ROOM_LIST];
 
                     // Duyệt ngược mảng task để xóa đi những task đã xếp xong
@@ -1300,7 +1349,7 @@
 
                         t.remaining -= 1;
 
-                        // Twin Logic (Chỉ áp dụng nếu vẫn lỡ bị tách do khác subId)
+                        // Tìm Twin Event (Ghép đôi NC/UD)
                         let twinIndex = tasksToSchedule.findIndex((other, idx) => 
                             idx !== i && 
                             other.remaining > 0 &&
@@ -1364,7 +1413,7 @@
 
         window.cancelSuggestion = () => {
             suggestedEventsArray = [];
-            processAndRenderEvents(); 
+            processAndRenderEvents(); // Trở về như cũ (chỉ lấy DB)
             
             if(document.getElementById('statSuggested')) document.getElementById('statSuggested').innerText = '0';
             if(document.getElementById('statFailed')) document.getElementById('statFailed').innerText = '0';
