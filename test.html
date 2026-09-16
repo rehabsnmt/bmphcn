@@ -112,7 +112,6 @@
         .btn-danger { background: var(--accent); color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s;}
         .btn-primary { background: var(--primary); color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s;}
         .btn-secondary { background: white; color: var(--text-dark); border: 1px solid var(--border); padding: 8px 15px; border-radius: 4px; cursor: pointer; transition: 0.2s; font-weight: 600; }
-        .btn-info { background: #0ea5e9; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s;}
 
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; font-weight: 600; margin-bottom: 5px; color: var(--text-dark); font-size:0.9rem;}
@@ -310,15 +309,16 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        let ROOM_LIST = ["Phòng 3", "Phòng 4", "Phòng OT", "Phòng ST", "Hội trường"];
-
+        // Khai báo biến toàn cục và gán mặc định
+        window.ROOM_LIST = ["Phòng 3", "Phòng 4", "Phòng OT", "Phòng ST", "Hội trường"];
+        
         async function loadRoomsConfig() {
             try {
                 const res = await fetch('json/phonghoc.json');
                 if (res.ok) {
                     const data = await res.json();
-                    if (Array.isArray(data)) {
-                        ROOM_LIST = data.map(item => typeof item === 'string' ? item : (item.name || item.nameRoom || item.id)).filter(Boolean);
+                    if (Array.isArray(data) && data.length > 0) {
+                        window.ROOM_LIST = data.map(item => typeof item === 'string' ? item : (item.name || item.nameRoom || item.id)).filter(Boolean);
                     }
                 }
             } catch (e) {
@@ -465,7 +465,9 @@
         function initRoomSelect() {
             const select = document.getElementById('roomSelect');
             select.innerHTML = '';
-            ROOM_LIST.forEach(room => { select.innerHTML += `<option value="${room}">${room}</option>`; });
+            if (window.ROOM_LIST && window.ROOM_LIST.length > 0) {
+                window.ROOM_LIST.forEach(room => { select.innerHTML += `<option value="${room}">${room}</option>`; });
+            }
             select.innerHTML += `<option value="OTHER">Khác...</option>`;
         }
 
@@ -779,6 +781,9 @@
                     }
                 }
 
+                // Chờ load cấu hình phòng học xong mới tiến hành
+                await loadRoomsConfig();
+
                 gvShortNameMap = {};
                 
                 try {
@@ -879,7 +884,6 @@
                     }
                 } catch(e) { console.error("Lỗi lấy dữ liệu Profile:", e); }
 
-                await loadRoomsConfig(); // Tải cấu hình phòng
                 initRoomSelect(); 
                 initCalendar();
 
@@ -1042,7 +1046,7 @@
                         let orientLabelText = '';
                         let finalOrientVal = '';
 
-                        let isCN = props.eventClass.toUpperCase().includes('CN');
+                        let isCN = String(props.eventClass || '').toUpperCase().includes('CN');
 
                         if (isCN) {
                             orientGroup.classList.add('hidden');
@@ -1068,8 +1072,14 @@
 
                         pendingDropInfo = info;
                         document.getElementById('repeatWeeks').value = 1; 
-                        document.getElementById('roomSelect').value = window.ROOM_LIST[0] || 'Khác...'; 
-                        document.getElementById('customRoomInput').classList.add('hidden');
+                        document.getElementById('roomSelect').value = (window.ROOM_LIST && window.ROOM_LIST.length > 0) ? window.ROOM_LIST[0] : 'OTHER'; 
+                        
+                        if(document.getElementById('roomSelect').value === 'OTHER') {
+                            document.getElementById('customRoomInput').classList.remove('hidden');
+                        } else {
+                            document.getElementById('customRoomInput').classList.add('hidden');
+                        }
+
                         document.getElementById('roomModal').classList.remove('hidden');
                     } catch (error) {
                         console.error(error);
@@ -1086,8 +1096,11 @@
                         const subEvents = props.events;
                         const groupIds = subEvents.map(ev => ev.id);
 
-                        let newStartStr = toLocalISOString(info.event.start);
-                        let newEndStr = info.event.end ? toLocalISOString(info.event.end) : null;
+                        let originalStart = info.event.start;
+                        let originalEnd = info.event.end ? info.event.end : new Date(originalStart.getTime() + 4 * 3600000);
+
+                        let newStartStr = toLocalISOString(originalStart);
+                        let newEndStr = toLocalISOString(originalEnd);
                         
                         for (let e of subEvents) {
                             const overlapCheck = hasOverlap(newStartStr, newEndStr, e.gv, e.class, e.task, e.room, e.subject, e.orientation, groupIds);
@@ -1122,8 +1135,11 @@
                         const subEvents = props.events;
                         const groupIds = subEvents.map(ev => ev.id);
 
-                        let newStartStr = toLocalISOString(info.event.start);
-                        let newEndStr = info.event.end ? toLocalISOString(info.event.end) : null;
+                        let originalStart = info.event.start;
+                        let originalEnd = info.event.end ? info.event.end : new Date(originalStart.getTime() + 4 * 3600000);
+
+                        let newStartStr = toLocalISOString(originalStart);
+                        let newEndStr = toLocalISOString(originalEnd);
 
                         for (let e of subEvents) {
                             const overlapCheck = hasOverlap(newStartStr, newEndStr, e.gv, e.class, e.task, e.room, e.subject, e.orientation, groupIds);
@@ -1200,7 +1216,7 @@
 
                             let classColorStyle = window.getClassColor(e.class);
                             let classBadge = `<span style="display:inline-block; padding:2px 6px; border-radius:4px; font-size:0.75rem; font-weight:bold; ${classColorStyle}">${e.class}</span> ${majorBadge}`;
-                            
+
                             let importNote = isImported ? `<p style="margin:0; font-size:0.8rem; color:#10b981; font-style:italic; font-weight:bold;">Xếp bởi: Hệ thống</p>` : `<p style="margin:0; font-size:0.8rem; color:#94a3b8; font-style:italic;">Xếp bởi: ${e.scheduledByName || 'Admin'}</p>`;
 
                             html += `
@@ -1250,8 +1266,9 @@
             }
 
             let allNewEvents = [];
-            let originalStart = new Date(info.event.startStr);
-            let originalEnd = info.event.endStr ? new Date(info.event.endStr) : new Date(originalStart.getTime() + 4 * 3600000);
+            // FIX KÉO THẢ: Sử dụng đối tượng start/end nguyên bản của info
+            let originalStart = info.event.start;
+            let originalEnd = info.event.end ? info.event.end : new Date(originalStart.getTime() + 4 * 3600000);
 
             for (let i = 0; i < repeatWeeks; i++) {
                 let currentStart = new Date(originalStart.getTime() + i * 7 * 24 * 3600 * 1000);
@@ -1418,12 +1435,14 @@
                 }
             });
 
+            let unscheduledCount = 0;
+
             scheduledEventsDB.forEach(e => {
                 if (e.status === 'returned') {
                     if (poolClassFilter !== 'ALL' && !window.isClassMatch(e.class, poolClassFilter)) return;
 
                     poolTasksList.push({
-                        isRejected: true, rTask: e, subName: e.subject, subId: e.subject, cls: e.class, gv: e.gv, task: e.task, semester: e.semester
+                        isRejected: true, rTask: e, subName: e.subject, subId: e.subject, cls: e.class, gv: e.gv, task: e.task, semester: e.semester, remaining: 1
                     });
                 }
             });
@@ -1432,6 +1451,7 @@
             poolTasksList.forEach((item) => {
                 if (!subjectGroups.has(item.subName)) subjectGroups.set(item.subName, []);
                 subjectGroups.get(item.subName).push(item);
+                unscheduledCount += item.remaining;
             });
 
             const orderedSubjectNames = Array.from(subjectGroups.keys()).sort((a,b) => a.localeCompare(b, 'vi'));
