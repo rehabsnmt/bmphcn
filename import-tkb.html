@@ -392,6 +392,7 @@
                 let generatedId = `sub_${pData.code}_${configOrientation}_${pData.instructor.replace(/\s/g,'')}_${pData.task}_${configClass}_${Date.now()}_${itemIndex}`;
                 itemIndex++;
 
+                // Sửa đổi ở đây: KHÔNG chèn thêm (Nhóm ...) vào tên phòng học nữa.
                 let eventObj = {
                     allDay: false,
                     class: configClass,
@@ -399,7 +400,7 @@
                     gv: pData.instructor,
                     id: generatedId,
                     orientation: configOrientation,
-                    room: pData.room + (pData.group && pData.group !== 'chưa xác định' ? ` (Nhóm ${pData.group})` : ''),
+                    room: pData.room, // <--- Chỉ lấy đúng giá trị phòng
                     scheduledByEmail: configEmail,
                     scheduledByName: "",
                     semester: configSemester,
