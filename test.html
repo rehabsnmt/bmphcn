@@ -71,23 +71,6 @@
         }
 
         .class-tag { display: inline-block; padding: 2px 5px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; margin-bottom: 4px; margin-right: 4px;}
-        .badge-orient { display: inline-block; padding: 2px 4px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; margin-bottom: 4px; }
-        .badge-ud { background-color: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; }
-        .badge-nc { background-color: #fef08a; color: #b45309; border: 1px solid #fde047; }
-        .badge-chung { background-color: #fef3c7; color: #d97706; border: 1px solid #fde68a; }
-
-        #event-pool { flex: 1; overflow-y: auto; padding-right: 5px; padding-top: 5px; } 
-        #event-pool .fc-event { background: #ffffff; margin: 0 0 6px 0; padding: 6px 8px; color: var(--text-dark); border: 1px solid #cbd5e1; border-radius: 4px; text-align: left; transition: 0.2s; position: relative; }
-
-        .pool-subject-group { margin-bottom: 8px; background: white; border-radius: 6px; border: 1px solid #cbd5e1; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-        .pool-subject-title { font-size: 0.85rem; font-weight: 800; color: var(--text-dark); padding: 10px 8px; line-height: 1.3; transition: background 0.2s; border-radius: 6px; user-select: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center;}
-        .pool-subject-title:hover { background: #f8fafc; }
-        .pool-cards-container { padding: 0 8px 8px 8px; }
-
-        .count-badge { position: absolute; top: -6px; right: -6px; background-color: #ef4444; color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2); border: 2px solid white; z-index: 10; }
-
-        #event-pool .event-gv { font-weight: 700; font-size: 0.85rem; margin-bottom: 2px; color: var(--primary); }
-        #event-pool .event-info { display: block; font-size: 0.75rem; color: var(--text-body); line-height: 1.3; }
 
         /* Khung Lịch */
         #calendar-container { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 15px; box-shadow: var(--shadow-sm); min-width: 0; min-height: 650px; transition: 0.3s; box-sizing: border-box;}
@@ -180,12 +163,13 @@
 
             <div class="setting-group">
                 <label>Học kỳ cần xếp:</label>
-                <select id="suggestSemesterFilter">
-                    <option value="ALL">Tất cả Học kỳ</option>
-                    <option value="Học kỳ 1" selected>Học kỳ 1</option>
+                <select id="suggestSemesterFilter" onchange="processAndRenderEvents()">
+                    <option value="ALL" selected>Tất cả Học kỳ</option>
+                    <option value="Học kỳ 1">Học kỳ 1</option>
                     <option value="Học kỳ 2">Học kỳ 2</option>
                     <option value="Học kỳ 3">Học kỳ 3</option>
                     <option value="Học kỳ 4">Học kỳ 4</option>
+                    <option value="Chưa xác định">Chưa XĐ</option>
                 </select>
             </div>
 
@@ -293,8 +277,8 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Danh sách phòng cứng để thuật toán bốc (Không lấy Khác/OTHER)
-        const ROOM_LIST = ["Phòng 3", "Phòng 4", "Phòng OT", "Phòng ST", "Hội trường"];
+        // Biến lưu trữ danh sách phòng từ json/phonghoc.json
+        window.ROOM_LIST = ["Phòng 3", "Phòng 4", "Phòng OT", "Phòng ST", "Hội trường"];
 
         let calendar;
         let isCalendarAdmin = false;
@@ -307,19 +291,8 @@
         let subjectsData = [];
         let gvShortNameMap = {};
 
-        // Mảng chứa các sự kiện do AI gợi ý (nhưng chưa lưu)
+        // Mảng chứa các sự kiện do AI gợi ý (nhưng chưa lưu lên Firebase)
         let suggestedEventsArray = [];
-
-        window.getMajorBadgeHtml = (subObj) => {
-            let tag = "PT,OT,ST";
-            if (subObj && subObj.majorTag) {
-                if (subObj.majorTag === "Vật lý trị liệu") tag = "PT";
-                else if (subObj.majorTag === "Hoạt động trị liệu") tag = "OT";
-                else if (subObj.majorTag === "Ngôn ngữ trị liệu") tag = "ST";
-                else tag = "PT,OT,ST";
-            }
-            return `<span style="background:#e2e8f0; color:#475569; padding:2px 5px; border-radius:3px; font-size:0.7rem; font-weight:bold; margin-bottom:4px; display:inline-block;">[${tag}]</span>`;
-        };
 
         window.getClassColor = (className) => {
             if (!className) return 'background:#e2e8f0; color:#475569; border: 1px solid #cbd5e1;';
@@ -342,6 +315,17 @@
             if (str === 'UD' || str.includes('ỨNG DỤNG')) return 'UD';
             if (str === 'CẢ HAI' || str.includes('CHUNG') || str.includes('NC,UD') || str.includes('UD,NC')) return 'CHUNG';
             return 'CHUNG';
+        };
+
+        window.getMajorBadgeHtml = (subObj) => {
+            let tag = "PT,OT,ST";
+            if (subObj && subObj.majorTag) {
+                if (subObj.majorTag === "Vật lý trị liệu") tag = "PT";
+                else if (subObj.majorTag === "Hoạt động trị liệu") tag = "OT";
+                else if (subObj.majorTag === "Ngôn ngữ trị liệu") tag = "ST";
+                else tag = "PT,OT,ST";
+            }
+            return `<span style="background:#e2e8f0; color:#475569; padding:2px 5px; border-radius:3px; font-size:0.7rem; font-weight:bold; margin-bottom:4px; display:inline-block;">[${tag}]</span>`;
         };
 
         window.formatGvName = (gvString) => {
@@ -374,6 +358,21 @@
             setTimeout(() => { if(calendar) calendar.updateSize(); }, 100);
         };
 
+        // Lấy danh sách phòng từ json/phonghoc.json
+        async function loadRoomsConfig() {
+            try {
+                const res = await fetch('json/phonghoc.json');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (Array.isArray(data)) {
+                        window.ROOM_LIST = data.map(item => typeof item === 'string' ? item : (item.name || item.nameRoom || item.id)).filter(Boolean);
+                    }
+                }
+            } catch (e) {
+                console.warn("Không tải được json/phonghoc.json, dùng danh sách phòng mặc định.", e);
+            }
+        }
+
         // --- KHỞI TẠO DỮ LIỆU ---
         onAuthStateChanged(auth, async (user) => {
             if (user) {
@@ -390,6 +389,9 @@
                     window.location.href = "thoi-khoa-bieu.html";
                     return;
                 }
+
+                // Tải danh sách phòng
+                await loadRoomsConfig();
 
                 // Thiết lập ngày mặc định là thứ Hai tuần tới
                 let today = new Date();
@@ -601,7 +603,7 @@
                     let eSubjectGroup = getMajorTag(e.subject);
 
                     // 1. Trùng phòng
-                    if (targetRoom && e.room && targetRoom !== 'Khác...' && e.room === targetRoom && e.type !== 'self_declared') {
+                    if (targetRoom && e.room && targetRoom !== 'Khác...' && targetRoom !== 'OTHER' && e.room === targetRoom && e.type !== 'self_declared') {
                         return true;
                     }
 
@@ -731,6 +733,7 @@
             let poolTasksList = [];
 
             rawTaskMap.forEach((data, mapKey) => {
+                // Tính dựa trên combinedEvents để nếu có Gợi ý thì số trong kho sẽ giảm xuống
                 let scheduledNC = window.getScheduledCount(data.cls, 'NC', data.subName, data.gv, data.task, combinedEvents);
                 let scheduledUD = window.getScheduledCount(data.cls, 'UD', data.subName, data.gv, data.task, combinedEvents);
                 let scheduledGeneral = window.getScheduledCount(data.cls, '', data.subName, data.gv, data.task, combinedEvents);
@@ -1036,7 +1039,7 @@
                     let slotEndStr = toLocalISOString(slotEnd);
 
                     // Mỗi ca có số lượng phòng nhất định
-                    let availableRooms = [...ROOM_LIST];
+                    let availableRooms = [...window.ROOM_LIST];
 
                     // Duyệt ngược mảng task để xóa đi những task đã xếp xong
                     for (let i = tasksToSchedule.length - 1; i >= 0; i--) {
@@ -1104,7 +1107,7 @@
                 calendar.gotoDate(startDateVal);
                 showToast(`Đã tạo ${suggestedEventsArray.length} gợi ý! Bấm 'Chọn Lịch để Lưu' để xác nhận.`);
             } else {
-                showToast(`Không có môn nào cần xếp hoặc không thể xếp được!`, "warning");
+                showToast(`Không xếp được thêm sự kiện nào! (Trùng lịch hoặc quá tải)`, "warning");
             }
         };
 
@@ -1205,12 +1208,15 @@
                     document.getElementById('btnSuggest').classList.remove('hidden');
                     document.getElementById('btnSave').classList.add('hidden');
                     document.getElementById('btnCancel').classList.add('hidden');
+                } else {
+                    // Cập nhật lại số liệu thống kê nếu còn dư Preview
+                    document.getElementById('statSuggested').innerText = suggestedEventsArray.length;
                 }
                 
                 btnSaveUI.disabled = false;
                 btnSaveUI.innerHTML = '<i class="fas fa-list-check"></i> Chọn Lịch để Lưu';
 
-                // Tự động tải lại lịch
+                // Tự động tải lại lịch để xem các lịch vừa lưu + các Preview còn sót lại
                 processAndRenderEvents();
 
             } catch(e) {
