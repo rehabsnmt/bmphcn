@@ -87,46 +87,11 @@
             </div>
         </div>
 
-        <section class="quick-links" style="margin-bottom: 3rem;">
-            
-            <div class="smart-card" onclick="window.location.href='thong-bao-ca-nhan.html'">
-                <div class="icon-wrapper" style="color: #ef4444; background-color: #fee2e2;">
-                    <i class="fas fa-bell"></i>
-                    <span id="cardNotifBadge" class="card-notif-badge hidden">0</span>
-                </div>
-                <h3>Thông báo</h3>
+        <section class="quick-links" id="quickLinksContainer" style="margin-bottom: 3rem;">
+            <!-- Dữ liệu được tải động từ json/dashboard.json -->
+            <div style="text-align: center; width: 100%; padding: 2rem; color: var(--text-body);">
+                <i class="fas fa-spinner fa-spin fa-2x"></i><br><br>Đang tải chức năng...
             </div>
-
-            <div class="smart-card" onclick="window.location.href='phan-cong-cong-tac.html'">
-                <div class="icon-wrapper" style="color: #be123c; background-color: #ffe4e6;"><i class="fas fa-sitemap"></i></div>
-                <h3>Phân công công tác</h3>
-            </div>
-
-            <div class="smart-card" onclick="window.location.href='thoi-khoa-bieu.html'">
-                <div class="icon-wrapper" style="color: #f59e0b; background-color: #fef3c7;"><i class="fas fa-table"></i></div>
-                <h3>Thời khóa biểu</h3>
-            </div>
-
-            <div class="smart-card" onclick="window.location.href='lich-cong-tac.html'">
-                <div class="icon-wrapper" style="color: #0ea5e9; background-color: #e0f2fe;"><i class="fas fa-calendar-plus"></i></div>
-                <h3>Lịch bộ môn</h3>
-            </div>
-
-            <div class="smart-card" onclick="window.location.href='lich-ca-nhan.html'">
-                <div class="icon-wrapper" style="color: #10b981; background-color: #dcfce7;"><i class="fas fa-calendar-check"></i></div>
-                <h3>Lịch cá nhân</h3>
-            </div>
-
-            <div class="smart-card" onclick="window.location.href='quan-ly-nguoi-hoc.html'">
-                <div class="icon-wrapper" style="color: #3b82f6; background-color: #eff6ff;"><i class="fas fa-user-graduate"></i></div>
-                <h3>Quản lý người học</h3>
-            </div>
-            
-            <div class="smart-card" onclick="window.location.href='gio-giang.html'">
-                <div class="icon-wrapper" style="color: #8b5cf6; background-color: #ede9fe;"><i class="fas fa-calculator"></i></div>
-                <h3>Giờ giảng</h3>
-            </div>
-
         </section>
     </main>
 
@@ -155,6 +120,49 @@
 
         let currentUserName = '';
         let currentUserUid = '';
+
+        // --- HÀM TẢI CARDS TỪ JSON ---
+        async function loadDashboardCards() {
+            try {
+                const response = await fetch('json/dashboard.json');
+                if (!response.ok) throw new Error("Network response was not ok");
+                const cards = await response.json();
+                
+                const container = document.getElementById('quickLinksContainer');
+                container.innerHTML = '';
+                
+                cards.forEach(card => {
+                    const cardDiv = document.createElement('div');
+                    cardDiv.className = 'smart-card';
+                    cardDiv.onclick = () => window.location.href = card.link;
+                    
+                    // Tạo huy hiệu chấm đỏ dành riêng cho card Thông báo
+                    let badgeHtml = '';
+                    if (card.id === 'thong-bao' || card.link === 'thong-bao-ca-nhan.html') {
+                        badgeHtml = `<span id="cardNotifBadge" class="card-notif-badge hidden">0</span>`;
+                    }
+
+                    // Tương thích với thuộc tính 'color' hoặc 'textColor' từ JSON
+                    const textColor = card.color || card.textColor;
+
+                    cardDiv.innerHTML = `
+                        <div class="icon-wrapper" style="color: ${textColor}; background-color: ${card.bgColor};">
+                            <i class="${card.icon}"></i>
+                            ${badgeHtml}
+                        </div>
+                        <h3>${card.title}</h3>
+                    `;
+                    container.appendChild(cardDiv);
+                });
+            } catch (error) {
+                console.error("Lỗi khi tải json/dashboard.json:", error);
+                document.getElementById('quickLinksContainer').innerHTML = `<div style="width: 100%; text-align: center; color: var(--accent);">Không thể tải danh sách chức năng! Vui lòng kiểm tra lại file JSON.</div>`;
+            }
+        }
+
+        // Kích hoạt hàm load JSON
+        loadDashboardCards();
+
 
         // --- HỆ THỐNG XỬ LÝ UPLOAD ẢNH ĐẠI DIỆN ---
         const avatarContainer = document.getElementById('dashboardAvatarContainer');
@@ -338,9 +346,10 @@
 
         // --- QUÉT THÔNG BÁO VÀ HIỂN THỊ LÊN THẺ THÔNG BÁO ---
         function scanForNotifications() {
-            const cardNotifBadge = document.getElementById('cardNotifBadge');
-            
             onSnapshot(collection(db, "assignments"), (snapshot) => {
+                // Lấy badge trực tiếp bên trong phòng khi JSON đã load xong
+                const cardNotifBadge = document.getElementById('cardNotifBadge');
+                
                 let history = JSON.parse(localStorage.getItem('notif_history_' + currentUserUid)) || {};
                 let currentTasks = [];
                 
@@ -394,11 +403,14 @@
                     }
                 }
 
-                if (unreadCount > 0) {
-                    cardNotifBadge.classList.remove('hidden');
-                    cardNotifBadge.innerText = unreadCount > 99 ? '99+' : unreadCount;
-                } else {
-                    cardNotifBadge.classList.add('hidden');
+                // Nếu huy hiệu đã được render, cập nhật UI
+                if (cardNotifBadge) {
+                    if (unreadCount > 0) {
+                        cardNotifBadge.classList.remove('hidden');
+                        cardNotifBadge.innerText = unreadCount > 99 ? '99+' : unreadCount;
+                    } else {
+                        cardNotifBadge.classList.add('hidden');
+                    }
                 }
             });
         }
