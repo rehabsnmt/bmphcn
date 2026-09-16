@@ -184,7 +184,7 @@
         </div>
     </div>
 
-    <!-- MODAL TỰ KHAI BÁO CÔNG TÁC (Đã điều chỉnh To hơn trên máy tính, Dễ dùng trên điện thoại) -->
+    <!-- MODAL TỰ KHAI BÁO CÔNG TÁC -->
     <div id="declareModal" class="modal-overlay hidden">
         <div class="modal-content" style="max-width: 600px;">
             <div class="modal-header" style="background: #10b981;">
@@ -258,7 +258,7 @@
 
         // Lưu thông tin người đăng nhập để Tự khai báo
         let currentUserEmail = '';
-        let currentUserNameWithPrefix = ''; 
+        let currentUserName = ''; // Không lưu kèm học vị nữa
 
         // Danh sách màu tự động cho Lớp học
         const classColors = [
@@ -318,6 +318,26 @@
             return n.replace(/ThS\.|TS\.|PGS\.|GS\./g, '').trim().toLowerCase();
         };
 
+        // HÀM BÓC TÁCH TÊN GỐC (Bỏ phần số tự động)
+        window.getBaseSubjectName = (name) => {
+            if (!name) return "";
+            let parts = name.split('.');
+            if (parts.length > 1 && !isNaN(parts[0].trim())) {
+                return parts.slice(1).join('.').trim().toLowerCase();
+            }
+            return name.trim().toLowerCase();
+        };
+
+        // HÀM TẠO TÊN MÔN RÚT GỌN CHỮ SỐ CHO GIAO DIỆN
+        window.getCleanSubjectName = (name) => {
+            if (!name) return "";
+            let parts = name.split('.');
+            if (parts.length > 1 && !isNaN(parts[0].trim())) {
+                return parts.slice(1).join('.').trim();
+            }
+            return name.trim();
+        };
+
         function getMajorFromSubject(subjectName) {
             if (!subjectName) return 'Chung';
             let normSubj = subjectName.toLowerCase().trim();
@@ -352,13 +372,12 @@
 
                 currentUserEmail = user.email;
 
-                // Lấy thông tin user để lưu cùng Khai báo
+                // Lấy thông tin user để lưu cùng Khai báo (Bỏ học vị)
                 try {
                     const userDoc = await getDoc(doc(db, "users", user.uid));
                     if (userDoc.exists()) {
                         const data = userDoc.data();
-                        let prefix = data.degree === 'ThS' ? 'ThS. ' : (data.degree === 'TS' ? 'TS. ' : '');
-                        currentUserNameWithPrefix = `${prefix}${data.fullName}`;
+                        currentUserName = data.fullName; // Chỉ lấy tên thật, bỏ prefix
                     }
                 } catch(e) {
                     console.error("Lỗi lấy thông tin Profile:", e);
@@ -384,7 +403,7 @@
                     }
                 });
 
-                // Tải GV
+                // Tải GV (Đã bỏ học vị)
                 const userSnap = await getDocs(collection(db, "users"));
                 let coHuuBase = new Set();
                 let coHuuNormalized = new Set();
@@ -392,8 +411,7 @@
                 userSnap.forEach(doc => {
                     let u = doc.data();
                     if (u.fullName) {
-                        let prefix = u.degree === 'ThS' ? 'ThS. ' : (u.degree === 'TS' ? 'TS. ' : '');
-                        let fName = `${prefix}${u.fullName}`;
+                        let fName = u.fullName; // Bỏ ghép nối tiền tố
                         coHuuBase.add(fName);
                         coHuuNormalized.add(normalizeName(fName));
                     }
@@ -581,14 +599,14 @@
                     if (matrix[gv][dStr] && matrix[gv][dStr].length > 0) {
                         matrix[gv][dStr].sort((a,b) => new Date(a.start).getTime() - new Date(b.start).getTime());
 
-                        // --- THUẬT TOÁN GỘP (MERGE) SỰ KIỆN ---
+                        // --- THUẬT TOÁN GỘP (MERGE) SỰ KIỆN GIỐNG TKB CHÍNH ---
                         let mergedEvents = [];
                         matrix[gv][dStr].forEach(ev => {
                             let existing = mergedEvents.find(e => 
                                 e.start === ev.start && 
                                 e.end === ev.end && 
                                 e.class === ev.class && 
-                                e.subject === ev.subject && 
+                                window.getBaseSubjectName(e.subject) === window.getBaseSubjectName(ev.subject) && 
                                 e.room === ev.room && 
                                 e.task === ev.task &&
                                 e.type === ev.type // Đảm bảo khai báo không gộp chung với lịch học
@@ -640,7 +658,12 @@
                             let majorHtml = ev.type === 'self_declared' ? '' : `<div class="evt-major ${majorClass}">${majorText}</div>`;
 
                             let extraClass = ev.type === 'self_declared' ? 'self-declared' : borderClass;
-                            let titleText = ev.type === 'self_declared' ? `<div style="font-size:0.8rem; font-weight:bold; color:#6d28d9; margin-bottom:2px; line-height:1.2;">${ev.task}</div>` : '';
+                            
+                            // Lấy tên môn hiển thị (rút gọn số nếu là sự kiện học thuật)
+                            let displaySubject = ev.type === 'self_declared' ? ev.subject : window.getCleanSubjectName(ev.subject);
+                            
+                            // Đổi màu title nếu tự khai báo
+                            let titleText = ev.type === 'self_declared' ? `<div style="font-size:0.8rem; font-weight:bold; color:#6d28d9; margin-bottom:2px; line-height:1.2;">${ev.task}</div>` : `<div style="font-size:0.8rem; font-weight:bold; color:var(--text-dark); margin-bottom:2px; line-height:1.2;">${displaySubject}</div>`;
 
                             cellContent += `
                                 <div class="event-card compact ${extraClass}" onclick="showEventDetail('${ev.id}')">
@@ -706,7 +729,7 @@
             const evData = {
                 title: task, // Sử dụng Tên công việc làm Tiêu đề
                 subject: "Công tác khác", // Gắn nhãn cứng để quy hoạch màu sắc
-                gv: currentUserNameWithPrefix, // Lấy chính xác tên GV đã đăng nhập có Học vị
+                gv: currentUserName, // Lấy chính xác tên GV đã đăng nhập (Bỏ học vị)
                 start: startStr,
                 end: endStr,
                 task: task,
@@ -715,7 +738,7 @@
                 orientation: "Chung",
                 note: note, // Thêm trường ghi chú
                 scheduledByEmail: currentUserEmail,
-                scheduledByName: currentUserNameWithPrefix,
+                scheduledByName: currentUserName,
                 status: 'scheduled',
                 type: 'self_declared' // Cờ nhận diện lịch Tự khai báo
             };
@@ -769,10 +792,11 @@
 
             // Kiểm tra xem có phải là sự kiện tự khai báo không
             let isSelfDeclared = ev.type === 'self_declared';
+            let displaySubject = isSelfDeclared ? ev.task : window.getCleanSubjectName(ev.subject);
 
             let html = `
                 <div style="font-size: 1.2rem; color: ${isSelfDeclared ? '#8b5cf6' : 'var(--primary)'}; font-weight: bold; margin-bottom: 15px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 10px;">
-                    ${isSelfDeclared ? '<i class="fas fa-user-edit"></i> ' + ev.task : ev.subject || 'Chưa có tên môn'}
+                    ${isSelfDeclared ? '<i class="fas fa-user-edit"></i> ' + displaySubject : displaySubject || 'Chưa có tên môn'}
                 </div>
             `;
 
