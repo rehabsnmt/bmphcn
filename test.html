@@ -3,68 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Quản trị Dữ liệu (Database Admin) - Bộ môn PHCN</title>
-    
+    <meta name="description" content="Gợi ý Thời khóa biểu - Bộ môn Phục hồi chức năng.">
+    <title>Gợi ý Xếp Thời khóa biểu</title>
+
     <link rel="icon" href="images/logo_Bộ môn.png" type="image/png">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Handsontable CSS & JS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
-    
-    <!-- SheetJS (Hỗ trợ Nhập/Xuất Excel .xlsx) -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-    
+
+    <!-- FullCalendar CSS & JS -->
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/vi.js'></script>
+
     <style>
-        /* Mở rộng main để khung Excel chiếm toàn màn hình */
-        main { max-width: 98%; padding: 1.5rem 1%; margin: 0 auto; display: flex; flex-direction: column; height: calc(100vh - 70px); box-sizing: border-box;}
+        /* APP LAYOUT */
+        html, body { min-height: 100vh; margin: 0; padding: 0; display: flex; flex-direction: column; background: var(--bg-page); overflow-x: hidden; }
+
+        #header-placeholder { flex-shrink: 0; transition: 0.3s; z-index: 1001; position: relative;}
+        body.header-hidden #header-placeholder { display: none !important; }
+        #footer-placeholder { display: none; }
+
+        /* Thanh công cụ gọn nhẹ trên cùng */
+        .top-toolbar { position: sticky; top: 75px; z-index: 990; display: flex; justify-content: space-between; align-items: center; padding: 10px 2%; background: var(--surface); border-bottom: 1px solid var(--border); margin-bottom: 15px; box-shadow: var(--shadow-sm); transition: top 0.3s; flex-wrap: wrap; gap: 10px;}
+        .top-toolbar h2 { margin: 0; font-size: clamp(1.1rem, 3vw, 1.4rem); color: var(--primary); display: flex; align-items: center; gap: 8px; font-weight: 800; text-transform: uppercase; white-space: nowrap; }
+
+        body.header-hidden .top-toolbar { top: 0; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+
+        .controls-wrapper { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
         
-        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid var(--border); }
-        .page-header h2 { font-size: 1.5rem; color: var(--accent); margin: 0; font-weight: 800; text-transform: uppercase; display: flex; align-items: center; gap: 10px;}
+        .btn-toggle { background: white; color: var(--primary); border: 1px solid var(--primary); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.2s; font-size: 0.9rem; white-space: nowrap; }
+        .btn-toggle:hover:not(:disabled) { background: var(--primary-light); }
+        .btn-toggle:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        .btn-suggest { background: #8b5cf6; color: white; border: 1px solid #8b5cf6; }
+        .btn-suggest:hover:not(:disabled) { background: #7c3aed; border-color: #7c3aed; box-shadow: 0 4px 10px rgba(139, 92, 246, 0.3); }
+
+        .btn-save { background: #10b981; color: white; border: 1px solid #10b981; }
+        .btn-save:hover:not(:disabled) { background: #059669; border-color: #059669; }
+
+        .btn-cancel { background: #ef4444; color: white; border: 1px solid #ef4444; }
+        .btn-cancel:hover:not(:disabled) { background: #dc2626; border-color: #dc2626; }
+
+        /* Khu vực Lịch & Kho */
+        main { flex: 1; max-width: 100%; width: 100%; padding: 0 1% 30px 1%; display: flex; gap: 15px; box-sizing: border-box; align-items: flex-start; overflow-x: hidden; }
+
+        /* Khung bên trái (Cài đặt Gợi ý) */
+        #suggestion-settings { position: sticky; top: 80px; width: 320px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 15px; box-shadow: var(--shadow-sm); flex-shrink: 0; display: flex; flex-direction: column; max-height: calc(100vh - 100px); overflow-y: auto; transition: 0.3s; }
+        #suggestion-settings h4 { margin: 0 0 15px 0; color: #8b5cf6; border-bottom: 2px dashed #ede9fe; padding-bottom: 10px; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;}
+        
+        .setting-group { margin-bottom: 15px; }
+        .setting-group label { display: block; font-size: 0.85rem; font-weight: 700; color: var(--text-dark); margin-bottom: 5px; }
+        .setting-group select, .setting-group input[type="date"] { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; outline: none; box-sizing: border-box; font-family: inherit; font-size: 0.95rem; }
+        .setting-group select:focus, .setting-group input:focus { border-color: #8b5cf6; box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2); }
+        
+        /* Stats Box */
+        .stats-box { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; margin-top: auto; margin-bottom: 15px; font-size: 0.85rem; line-height: 1.6; }
+        .stats-box strong { color: var(--primary); }
+
+        /* Thẻ sự kiện xem trước (Preview) */
+        .preview-event { animation: pulse-border 2s infinite; border-width: 2px !important; }
+        @keyframes pulse-border {
+            0% { border-color: #38bdf8; box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.4); }
+            70% { border-color: #0284c7; box-shadow: 0 0 0 6px rgba(56, 189, 248, 0); }
+            100% { border-color: #38bdf8; box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
+        }
+
+        .class-tag { display: inline-block; padding: 2px 5px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; margin-bottom: 4px; margin-right: 4px;}
+
+        /* Khung Lịch */
+        #calendar-container { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 15px; box-shadow: var(--shadow-sm); min-width: 0; min-height: 650px; transition: 0.3s; box-sizing: border-box;}
+        #calendar { min-height: 600px; height: 100%; width: 100%; }
+
+        .fc-toolbar-title { font-size: clamp(1.1rem, 2.5vw, 1.3rem) !important; color: var(--primary); font-weight: bold; text-transform: capitalize; }
+        .fc-button-primary { background-color: var(--primary) !important; border-color: var(--primary) !important; text-transform: capitalize; font-weight: 600 !important; padding: 6px 15px !important; font-size: 0.95rem !important;}
+        
+        .fc-event-main { padding: 0 !important; }
+        .evt-group-container {
+            background: white; border: 1px solid #cbd5e1;
+            border-radius: 4px; padding: 6px; box-sizing: border-box;
+            height: 100%; display: flex; flex-direction: column;
+            overflow: hidden; border-left: 4px solid var(--primary);
+            color: var(--text-dark); box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            cursor: pointer;
+        }
+        .evt-group-header { font-size: 0.8rem; font-weight: 700; color: #64748b; margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; }
+        .evt-items-list { flex: 1; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; gap: 8px; }
         
         .hidden { display: none !important; }
 
-        /* Toolbar công cụ */
-        .toolbar { display: flex; justify-content: space-between; align-items: center; background: var(--surface); padding: 10px 15px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 15px; box-shadow: var(--shadow-sm); flex-wrap: wrap; gap: 10px; }
-        
-        .toolbar-left { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-        .toolbar-right { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; border-left: 2px dashed #cbd5e1; padding-left: 15px;}
-
-        .form-select { padding: 8px 12px; border-radius: 6px; border: 1px solid var(--primary); font-size: 0.95rem; outline: none; background: #f0f9ff; color: var(--primary); font-weight: 600; cursor: pointer; min-width: 250px;}
-        .form-select:focus { box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2); }
-
-        .btn { padding: 8px 15px; border-radius: 6px; font-weight: bold; font-size: 0.9rem; cursor: pointer; transition: 0.2s; border: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px);}
-        .btn-success { background: #10b981; color: white; }
-        .btn-success:hover { background: #059669; transform: translateY(-1px);}
-        .btn-danger { background: var(--accent); color: white; }
-        .btn-danger:hover { background: #dc2626; transform: translateY(-1px);}
-        .btn-outline { background: white; color: #475569; border: 1px solid #cbd5e1; }
-        .btn-outline:hover { background: #f1f5f9; color: var(--text-dark); }
-        .btn-excel { background: #15803d; color: white; }
-        .btn-excel:hover { background: #166534; transform: translateY(-1px);}
-        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none;}
-
-        /* Khung Excel */
-        .excel-wrapper { flex: 1; width: 100%; background: white; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; position: relative; box-shadow: var(--shadow-sm); z-index: 1;}
-        #hot-container { width: 100%; height: 100%; overflow: hidden; }
-
-        /* Tùy chỉnh Handsontable */
-        .handsontable th { font-weight: bold; background-color: #f1f5f9; color: var(--text-dark); text-transform: uppercase; font-size: 0.85rem;}
-        .htDimmed { background-color: #f8fafc !important; color: #94a3b8 !important; font-family: monospace; font-size: 0.85rem;}
-
-        /* Toast */
-        .toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;}
-        .toast { min-width: 250px; background-color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: 0.4s; font-weight: 600; border-left: 5px solid #22c55e; opacity: 0; pointer-events: auto; }
+        .toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .toast { min-width: 250px; background-color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: 0.4s; font-weight: 600; border-left: 5px solid #22c55e; opacity: 0; pointer-events: auto; }
         .toast.show { transform: translateX(0); opacity: 1; }
         .toast.danger { border-left-color: #ef4444; }
         .toast.warning { border-left-color: #f59e0b; }
 
         @media (max-width: 768px) {
-            .toolbar { flex-direction: column; align-items: flex-start; }
-            .toolbar-right { border-left: none; padding-left: 0; border-top: 2px dashed #cbd5e1; padding-top: 10px; width: 100%;}
+            main { flex-direction: column; padding: 0 5px 20px 5px; width: 100vw; overflow-x: hidden; }
+            #suggestion-settings { position: relative; width: 100%; top: 0; max-height: none; margin-bottom: 15px; }
+            .top-toolbar { flex-direction: column; align-items: stretch; padding: 10px; top: 0; } 
+            .controls-wrapper { width: 100%; justify-content: space-between; margin-top: 10px;}
+            
+            #calendar-container { padding: 5px; border: none; border-radius: 0; box-shadow: none; border-top: 1px solid var(--border); width: 100vw; margin-left: -5px;}
+            .fc-toolbar { flex-direction: column; gap: 8px; margin-bottom: 10px !important;}
+            .fc-toolbar-chunk:nth-child(1) { order: 2; width: 100%; display: flex; justify-content: space-between; } 
+            .fc-toolbar-chunk:nth-child(2) { order: 1; width: 100%; text-align: center;} 
+            .fc-toolbar-chunk:nth-child(3) { order: 3; width: 100%; display: flex; justify-content: center;} 
+            .fc-button-primary { padding: 4px 8px !important; font-size: 0.85rem !important; }
         }
     </style>
 </head>
@@ -74,54 +118,86 @@
     <div id="toastContainer" class="toast-container"></div>
 
     <div id="loadingScreen" style="text-align: center; padding: 5rem 0; color: var(--primary); font-weight: 600; font-size: 1.2rem;">
-        <i class="fas fa-spinner fa-spin fa-2x"></i><br><br>Đang xác thực quyền Super Admin...
+        <i class="fas fa-robot fa-spin fa-2x"></i><br><br>Đang khởi động AI xếp lịch...
+    </div>
+
+    <!-- THANH CÔNG CỤ CHÍNH -->
+    <div class="top-toolbar hidden" id="mainToolbar">
+        <div>
+            <h2><i class="fas fa-magic"></i> THUẬT TOÁN GỢI Ý XẾP LỊCH</h2>
+        </div>
+        <div class="controls-wrapper">
+            <button id="btnSuggest" class="btn-toggle btn-suggest" onclick="startSuggestion()">
+                <i class="fas fa-play"></i> Bắt đầu Gợi ý
+            </button>
+            <button id="btnSave" class="btn-toggle btn-save hidden" onclick="saveSuggestedEvents()">
+                <i class="fas fa-save"></i> Lưu Kết quả
+            </button>
+            <button id="btnCancel" class="btn-toggle btn-cancel hidden" onclick="cancelSuggestion()">
+                <i class="fas fa-times"></i> Hủy kết quả
+            </button>
+            <button id="btnToggleSidebar" class="btn-toggle" onclick="toggleSidebar()">
+                <i class="fas fa-cogs"></i> Cài đặt
+            </button>
+        </div>
     </div>
 
     <main id="mainContent" class="hidden">
-        <div class="page-header">
-            <h2><i class="fas fa-database"></i> Quản Trị CSDL Nâng Cao</h2>
-            <div style="font-size: 0.9rem; color: #64748b;">
-                <i class="fas fa-info-circle"></i> Click tiêu đề để <b>Bôi đen Cột</b>. Dùng Menu (▼) để <b>Lọc/Sắp xếp</b>. Kéo thả góc ô để copy nhanh.
+        <!-- KHUNG BÊN TRÁI: CÀI ĐẶT THUẬT TOÁN -->
+        <div id="suggestion-settings">
+            <h4><i class="fas fa-sliders-h"></i> Cài đặt Thuật toán</h4>
+            
+            <div class="setting-group">
+                <label>Bắt đầu xếp lịch từ ngày:</label>
+                <input type="date" id="suggestStartDate">
             </div>
-        </div>
 
-        <div class="toolbar">
-            <div class="toolbar-left">
-                <select id="colSelect" class="form-select" onchange="clearTable()">
-                    <option value="subjects">Danh mục Môn học (subjects)</option>
-                    <option value="learners">Danh sách Người học (learners)</option>
-                    <option value="theses">Đề tài Luận văn (theses)</option>
-                    <option value="calendar_events">Lịch giảng dạy (calendar_events)</option>
-                    <option value="clinical_schedules">Lịch đi bệnh viện (clinical_schedules)</option>
-                    <option value="assignments">Phân công (assignments)</option>
-                    <option value="announcements">Thông báo (announcements)</option>
-                    <option value="users">Tài khoản (users)</option>
-                    <option value="visiting_lecturers">GV Thỉnh giảng (visiting_lecturers)</option>
+            <div class="setting-group">
+                <label>Học kỳ cần xếp:</label>
+                <select id="suggestSemesterFilter">
+                    <option value="ALL">Tất cả Học kỳ</option>
+                    <option value="Học kỳ 1" selected>Học kỳ 1</option>
+                    <option value="Học kỳ 2">Học kỳ 2</option>
+                    <option value="Học kỳ 3">Học kỳ 3</option>
+                    <option value="Học kỳ 4">Học kỳ 4</option>
                 </select>
-                <button class="btn btn-primary" onclick="loadData()"><i class="fas fa-sync"></i> Tải dữ liệu</button>
-                <button class="btn btn-success" onclick="saveData()"><i class="fas fa-save"></i> Lưu Thay Đổi</button>
-                
-                <!-- Nút xuất/nhập Excel riêng cho từng bảng -->
-                <button class="btn btn-excel" onclick="exportTableToExcel()"><i class="fas fa-file-excel"></i> Xuất Excel</button>
-                <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" hidden onchange="importTableFromExcel(event)">
-                <button class="btn btn-excel" onclick="document.getElementById('excelFileInput').click()"><i class="fas fa-file-upload"></i> Nhập Excel</button>
+            </div>
+
+            <div class="setting-group">
+                <label>Lớp học ưu tiên:</label>
+                <select id="suggestClassFilter">
+                    <option value="ALL">Xếp cho tất cả Lớp</option>
+                </select>
+            </div>
+
+            <div class="setting-group">
+                <label>Bỏ qua thứ (Ngày nghỉ):</label>
+                <select id="suggestSkipDays" multiple style="height: 100px; padding: 5px;">
+                    <option value="0" selected>Chủ nhật</option>
+                    <option value="6" selected>Thứ Bảy</option>
+                    <option value="1">Thứ Hai</option>
+                    <option value="2">Thứ Ba</option>
+                    <option value="3">Thứ Tư</option>
+                    <option value="4">Thứ Năm</option>
+                    <option value="5">Thứ Sáu</option>
+                </select>
+                <div style="font-size:0.75rem; color:#64748b; margin-top:5px;">Giữ Ctrl/Cmd để chọn nhiều ngày.</div>
+            </div>
+
+            <div class="stats-box">
+                Sự kiện trong Kho chờ xếp: <strong id="statUnscheduled">0</strong><br>
+                Sự kiện đã được Gợi ý: <strong id="statSuggested" style="color:#8b5cf6;">0</strong><br>
+                Bị nghẽn (Hết phòng/Trùng lịch): <strong id="statFailed" style="color:#ef4444;">0</strong>
             </div>
             
-            <div class="toolbar-right">
-                <span style="font-size: 0.85rem; color: #94a3b8; font-weight: bold;">Hệ thống:</span>
-                <button class="btn btn-outline" onclick="exportDataToJSON()"><i class="fas fa-file-export"></i> Xuất JSON</button>
-                <input type="file" id="jsonFileInput" accept=".json" hidden onchange="importDataFromJSON(event)">
-                <button class="btn btn-danger" onclick="document.getElementById('jsonFileInput').click()"><i class="fas fa-file-import"></i> Khôi phục JSON</button>
+            <div style="font-size: 0.8rem; color: #64748b; font-style: italic; line-height: 1.4;">
+                <i class="fas fa-info-circle"></i> Hệ thống chỉ xếp vào 2 ca cố định: <b>07:00</b> và <b>13:00</b>. Mỗi buổi kéo dài 4 tiếng.
             </div>
         </div>
 
-        <div class="excel-wrapper">
-            <div id="hot-container">
-                <div style="text-align: center; padding-top: 100px; color: #94a3b8;">
-                    <i class="fas fa-table" style="font-size: 3rem; margin-bottom: 10px; opacity: 0.5;"></i><br>
-                    Chọn bảng và bấm "Tải dữ liệu" để bắt đầu làm việc.
-                </div>
-            </div>
+        <!-- KHUNG LỊCH CHÍNH -->
+        <div id="calendar-container">
+            <div id="calendar"></div>
         </div>
     </main>
 
@@ -132,24 +208,72 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
-        import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, setDoc, doc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY", authDomain: "bmphcn-aa9c6.firebaseapp.com", projectId: "bmphcn-aa9c6", storageBucket: "bmphcn-aa9c6.firebasestorage.app", messagingSenderId: "749494392719", appId: "1:749494392719:web:f220c751ff541620045dfa" };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        const ALL_COLLECTIONS = [
-            'calendar_events', 'assignments', 'subjects', 'learners', 
-            'theses', 'announcements', 'users', 'visiting_lecturers', 'clinical_schedules'
-        ];
+        // Danh sách phòng cứng để thuật toán bốc (Không lấy Khác/OTHER)
+        const ROOM_LIST = ["Phòng 3", "Phòng 4", "Phòng OT", "Phòng ST", "Hội trường"];
 
-        let hotInstance = null;
-        let currentCollection = '';
-        let headers = [];
-        let originalIds = [];
+        let calendar;
+        let isCalendarAdmin = false;
+        let currentUserEmail = '';
+        let currentUserName = '';
 
-        window.showToast = (message, type = 'success') => {
+        let managedClasses = [];
+        let assignmentsData = {};
+        let scheduledEventsDB = []; 
+        let subjectsData = [];
+        let gvShortNameMap = {};
+
+        // Mảng chứa các sự kiện do AI gợi ý (nhưng chưa lưu)
+        let suggestedEventsArray = [];
+
+        window.getMajorBadgeHtml = (subObj) => {
+            let tag = "PT,OT,ST";
+            if (subObj && subObj.majorTag) {
+                if (subObj.majorTag === "Vật lý trị liệu") tag = "PT";
+                else if (subObj.majorTag === "Hoạt động trị liệu") tag = "OT";
+                else if (subObj.majorTag === "Ngôn ngữ trị liệu") tag = "ST";
+                else tag = "PT,OT,ST";
+            }
+            return `<span style="background:#e2e8f0; color:#475569; padding:2px 5px; border-radius:3px; font-size:0.7rem; font-weight:bold; margin-bottom:4px; display:inline-block;">[${tag}]</span>`;
+        };
+
+        window.getClassColor = (className) => {
+            if (!className) return 'background:#e2e8f0; color:#475569; border: 1px solid #cbd5e1;';
+            const palettes = [
+                { bg: '#bae6fd', text: '#0369a1' }, { bg: '#fef08a', text: '#b45309' }, { bg: '#bbf7d0', text: '#166534' },
+                { bg: '#e9d5ff', text: '#6b21a8' }, { bg: '#fbcfe8', text: '#9d174d' }, { bg: '#fed7aa', text: '#c2410c' },
+                { bg: '#99f6e4', text: '#0f766e' }, { bg: '#fecaca', text: '#b91c1c' }, { bg: '#d9f99d', text: '#065f46' },
+                { bg: '#bfdbfe', text: '#1d4ed8' } 
+            ];
+            let hash = 0;
+            for (let i = 0; i < className.length; i++) { hash = className.charCodeAt(i) + ((hash << 5) - hash); }
+            const color = palettes[Math.abs(hash) % palettes.length];
+            return `background:${color.bg}; color:${color.text}; border: 1px solid ${color.text}40;`;
+        };
+
+        window.normalizeOrient = (orient) => {
+            if (!orient) return 'CHUNG';
+            let str = String(orient).toUpperCase().trim();
+            if (str === 'NC' || str.includes('NGHIÊN CỨU')) return 'NC';
+            if (str === 'UD' || str.includes('ỨNG DỤNG')) return 'UD';
+            if (str === 'CẢ HAI' || str.includes('CHUNG') || str.includes('NC,UD') || str.includes('UD,NC')) return 'CHUNG';
+            return 'CHUNG';
+        };
+
+        window.formatGvName = (gvString) => {
+            if (!gvString) return '';
+            let gvs = gvString.split(/,|&/).map(s => s.trim());
+            let shortGvs = gvs.map(gv => gvShortNameMap[gv] ? gvShortNameMap[gv] : gv);
+            return shortGvs.join(', ');
+        };
+
+        function showToast(message, type = 'success') {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
@@ -158,488 +282,547 @@
             container.appendChild(toast);
             setTimeout(() => toast.classList.add('show'), 10);
             setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
+        }
+
+        window.toggleSidebar = () => {
+            const panel = document.getElementById('suggestion-settings');
+            if (panel.classList.contains('hidden')) {
+                panel.style.display = 'flex';
+                panel.classList.remove('hidden');
+            } else {
+                panel.style.display = 'none';
+                panel.classList.add('hidden');
+            }
+            setTimeout(() => { if(calendar) calendar.updateSize(); }, 100);
         };
 
-        onAuthStateChanged(auth, (user) => {
+        // --- KHỞI TẠO DỮ LIỆU ---
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
-                if (user.email.toLowerCase() === 'hoangtran1483@gmail.com') {
+                currentUserEmail = user.email.toLowerCase();
+                const adminEmails = ['lethanhvan@ump.edu.vn', 'phanthenguyenpt@ump.edu.vn', 'thduypt@ump.edu.vn', 'hoangtran1483@gmail.com', 'minhngpt@ump.edu.vn'];
+                
+                if (adminEmails.includes(currentUserEmail)) {
+                    isCalendarAdmin = true;
                     document.getElementById('loadingScreen').classList.add('hidden');
+                    document.getElementById('mainToolbar').classList.remove('hidden');
                     document.getElementById('mainContent').classList.remove('hidden');
                 } else {
-                    alert("Chỉ Super Admin mới có quyền truy cập khu vực này!");
-                    window.location.href = "dashboard.html";
+                    alert("Chỉ Admin mới có quyền sử dụng tính năng Gợi ý Lịch!");
+                    window.location.href = "thoi-khoa-bieu.html";
+                    return;
                 }
+
+                // Thiết lập ngày mặc định là thứ Hai tuần tới
+                let today = new Date();
+                let nextMonday = new Date(today);
+                nextMonday.setDate(today.getDate() + ((1 + 7 - today.getDay()) % 7 || 7));
+                document.getElementById('suggestStartDate').value = nextMonday.toISOString().split('T')[0];
+
+                try {
+                    const snapSubjects = await getDocs(collection(db, "subjects"));
+                    let tempClasses = new Set();
+                    subjectsData = [];
+                    snapSubjects.forEach(doc => {
+                        const d = doc.data();
+                        d.id = d.id || doc.id;
+                        let grp = d.group || '';
+                        let match = grp.match(/\(([^)]+)\)/);
+                        if (grp.includes("TỰ CHỌN") && match) d.majorTag = match[1].trim();
+                        else if (grp.includes("Vật lý trị liệu")) d.majorTag = "Vật lý trị liệu";
+                        else if (grp.includes("Hoạt động trị liệu")) d.majorTag = "Hoạt động trị liệu";
+                        else if (grp.includes("Ngôn ngữ trị liệu")) d.majorTag = "Ngôn ngữ trị liệu";
+                        else d.majorTag = "ALL";
+
+                        if (d.class) {
+                            if (Array.isArray(d.class)) d.classArray = d.class.map(c => c.trim());
+                            else if (typeof d.class === 'string') d.classArray = d.class.split(',').map(c => c.trim());
+                            else d.classArray = [String(d.class).trim()];
+                        } else d.classArray = ['Chưa rõ'];
+
+                        d.classArray.forEach(c => { if(c !== 'Chưa rõ') tempClasses.add(c); });
+                        subjectsData.push(d);
+                    });
+
+                    managedClasses = Array.from(tempClasses).sort((a,b) => b.localeCompare(a));
+                    const classSelect = document.getElementById('suggestClassFilter');
+                    classSelect.innerHTML = '<option value="ALL">Xếp cho tất cả Lớp</option>';
+                    managedClasses.forEach(c => { classSelect.innerHTML += `<option value="${c}">${c}</option>`; });
+
+                } catch(e) { console.error("Lỗi lấy dữ liệu Subjects:", e); }
+
+                try {
+                    const snapUser = await getDocs(collection(db, "users"));
+                    snapUser.forEach(doc => {
+                        const d = doc.data();
+                        if(d.fullName) {
+                            let pref = d.degree === 'ThS' ? 'ThS. ' : (d.degree === 'TS' ? 'TS. ' : '');
+                            gvShortNameMap[`${pref}${d.fullName}`] = d.fullName;
+                            gvShortNameMap[d.fullName] = d.fullName;
+                            if (d.email === currentUserEmail) currentUserName = d.fullName;
+                        }
+                    });
+                } catch(e) {}
+
+                try {
+                    const snapVisiting = await getDocs(collection(db, "visiting_lecturers"));
+                    snapVisiting.forEach(doc => {
+                        const d = doc.data();
+                        if (d.name) gvShortNameMap[d.name] = d.name; 
+                    });
+                } catch(e) {}
+
+                initCalendar();
+
+                onSnapshot(collection(db, "assignments"), (snapshot) => {
+                    assignmentsData = {};
+                    snapshot.forEach(doc => { assignmentsData[doc.id] = doc.data(); });
+                    renderCalendarEvents();
+                });
+
+                onSnapshot(collection(db, "calendar_events"), (snapshot) => {
+                    scheduledEventsDB = [];
+                    snapshot.forEach(doc => { scheduledEventsDB.push(doc.data()); });
+                    renderCalendarEvents();
+                });
+
             } else {
                 window.location.href = "login.html";
             }
         });
 
-        // ----------------------------------------------------
-        // HÀM SO SÁNH OBJECT ĐỂ PHÁT HIỆN SỰ THAY ĐỔI DỮ LIỆU
-        // ----------------------------------------------------
-        const isObjectEqual = (obj1, obj2) => {
-            const clean1 = {};
-            const clean2 = {};
-            // Lọc bỏ các thuộc tính null, undefined hoặc rỗng để so sánh chính xác
-            for (let k in obj1) { if (obj1[k] !== null && obj1[k] !== '' && obj1[k] !== undefined) clean1[k] = obj1[k]; }
-            for (let k in obj2) { if (obj2[k] !== null && obj2[k] !== '' && obj2[k] !== undefined) clean2[k] = obj2[k]; }
-            
-            let keys1 = Object.keys(clean1);
-            let keys2 = Object.keys(clean2);
-            if (keys1.length !== keys2.length) return false;
-            for (let key of keys1) {
-                if (JSON.stringify(clean1[key]) !== JSON.stringify(clean2[key])) return false;
-            }
-            return true;
-        };
+        // --- CẤU HÌNH LỊCH ---
+        function initCalendar() {
+            const calendarEl = document.getElementById('calendar');
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                locale: 'vi',
+                height: '100%', 
+                initialView: window.innerWidth <= 768 ? 'listWeek' : 'timeGridWeek', 
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'timeGridWeek,timeGridDay,listWeek'
+                },
+                slotMinTime: '06:00:00',
+                slotMaxTime: '18:00:00',
+                allDaySlot: false, 
+                slotLabelFormat: { hour: 'numeric', minute: '2-digit', omitZeroMinute: false, meridiem: false, hour12: false },
+                eventTimeFormat: { hour: 'numeric', minute: '2-digit', meridiem: false, hour12: false },
+                editable: false,       
+                droppable: false, 
+                events: [],
 
-        // ----------------------------------------------------
-        // 1. TẢI DỮ LIỆU LÊN BẢNG HANDSONTABLE
-        // ----------------------------------------------------
-        window.clearTable = () => {
-            if(hotInstance) {
-                hotInstance.destroy();
-                hotInstance = null;
-            }
-            document.getElementById('hot-container').innerHTML = `
-                <div style="text-align: center; padding-top: 100px; color: #94a3b8;">
-                    <i class="fas fa-table" style="font-size: 3rem; margin-bottom: 10px; opacity: 0.5;"></i><br>
-                    Chọn bảng và bấm "Tải dữ liệu" để bắt đầu làm việc.
-                </div>`;
-        };
+                eventContent: function(arg) {
+                    const props = arg.event.extendedProps;
+                    
+                    if (props.type === 'grouped_normal') {
+                        let sTime = arg.event.start ? arg.event.start.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit', hour12: false}) : '';
+                        let eTime = arg.event.end ? arg.event.end.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit', hour12: false}) : '';
+                        const timeStr = `${sTime}–${eTime}`;
 
-        window.loadData = async () => {
-            const col = document.getElementById('colSelect').value;
-            currentCollection = col;
-            const container = document.getElementById('hot-container');
+                        let itemsHtml = props.events.map(e => {
+                            let gvDisplay = window.formatGvName(e.gv);
+                            let shortRoom = e.room || 'Chưa XĐ';
+
+                            let isCN = e.class.toUpperCase().includes('CN');
+                            let eNorm = window.normalizeOrient(e.orientation);
+                            let orientHtml = '';
+                            if (!isCN) {
+                                let orientText = eNorm === 'NC' ? 'Hệ Nghiên cứu (NC)' : (eNorm === 'UD' ? 'Hệ Ứng dụng (UD)' : 'Học chung / Không phân ĐH');
+                                orientHtml = `<p style="margin:0 0 5px 0; color:var(--text-dark);"><strong>Phạm vi:</strong> <span style="font-weight:bold; color:${eNorm==='NC'?'#b45309':(eNorm==='UD'?'#0369a1':'#d97706')};">${orientText}</span></p>`;
+                            }
+
+                            let subObj = subjectsData.find(s => s.name === e.subject);
+                            let majorBadge = window.getMajorBadgeHtml(subObj);
+
+                            let classColorStyle = window.getClassColor(e.class);
+                            let classBadge = `<span style="display:inline-block; padding:2px 6px; border-radius:4px; font-size:0.75rem; font-weight:bold; ${classColorStyle}">${e.class}</span> ${majorBadge}`;
+
+                            // Nếu là sự kiện do AI gợi ý thì hiển thị màu khác và tag Preview
+                            let previewNote = e.isPreview ? `<div style="font-size: 0.75rem; color: #8b5cf6; font-weight: bold; margin-top: 5px;"><i class="fas fa-magic"></i> Bản Xem Trước</div>` : '';
+
+                            return `
+                            <div class="evt-item" style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed rgba(2, 132, 199, 0.2); text-align: left; line-height: 1.4;">
+                                <div style="font-size: 0.85rem; color: var(--primary); margin-bottom: 4px; white-space: normal; word-break: break-word; font-weight: 700;">${e.subject}</div>
+                                <p style="margin:0 0 5px 0;"><strong>Khóa/Lớp:</strong> ${classBadge}</p>
+                                ${orientHtml}
+                                <p style="margin:0 0 5px 0;"><strong>Phòng học:</strong> <span style="background:#fbbf24; color:#78350f; padding:2px 6px; border-radius:4px; font-weight:bold;">${shortRoom}</span></p>
+                                <p style="margin:0 0 5px 0;"><strong>Nhiệm vụ:</strong> ${e.task}</p>
+                                <p style="margin:0 0 5px 0;"><strong>Giảng viên:</strong> <span style="font-weight:bold;">${gvDisplay}</span></p>
+                                ${previewNote}
+                            </div>
+                            `;
+                        }).join('');
+
+                        let hasPreview = props.events.some(e => e.isPreview);
+                        let borderLeftColor = hasPreview ? '#8b5cf6' : 'var(--primary)';
+                        let bgColor = hasPreview ? '#f5f3ff' : 'white';
+                        let extraClass = hasPreview ? 'preview-event' : '';
+
+                        return {
+                            html: `
+                            <div class="evt-group-container ${extraClass}" style="background: ${bgColor}; border-left-color: ${borderLeftColor};">
+                                <div class="evt-group-header">
+                                    <span>${timeStr}</span>
+                                    ${hasPreview ? '<span style="color:#8b5cf6; font-size:0.7rem;"><i class="fas fa-star"></i> Mới</span>' : ''}
+                                </div>
+                                <div class="evt-items-list">${itemsHtml}</div>
+                            </div>
+                            `
+                        };
+                    }
+                }
+            });
+            calendar.render();
+        }
+
+        function toLocalISOString(date) {
+            const pad = (n) => (n < 10 ? '0' + n : n);
+            return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate()) + 'T' +
+                   pad(date.getHours()) + ':' + pad(date.getMinutes()) + ':' + pad(date.getSeconds());
+        }
+
+        // --- HÀM KIỂM TRA OVERLAP TRUYỀN THỐNG ---
+        function hasOverlap(targetStartStr, targetEndStr, gvStr, targetClass, targetTask, targetRoom, targetSubject, targetOrient, allCheckingEvents) {
+            let tStart = new Date(targetStartStr).getTime();
+            let tEnd = targetEndStr ? new Date(targetEndStr).getTime() : tStart + 4 * 3600000;
+            let targetOrientNorm = window.normalizeOrient(targetOrient);
             
-            container.innerHTML = '<div style="text-align:center; padding: 50px;"><i class="fas fa-spinner fa-spin fa-2x"></i></div>';
-            
-            try {
-                const snap = await getDocs(collection(db, col));
-                let rawDocs = [];
-                let keySet = new Set();
-                window.originalDataMap = new Map(); // LƯU TRỮ DỮ LIỆU GỐC ĐỂ SO SÁNH
+            let getMajorTag = (subName) => {
+                let s = subjectsData.find(x => x.name === subName);
+                return (s && s.majorTag) ? s.majorTag : "ALL";
+            };
+            let targetSubjectGroup = getMajorTag(targetSubject);
+            const blockingTasks = ['Lý thuyết', 'Thực hành', 'Thực tế', 'Coi thi'];
+
+            for (let e of allCheckingEvents) {
+                if (e.status === 'returned' || !e.start) continue;
+
+                let eStart = new Date(e.start).getTime();
+                let eEnd = e.end ? new Date(e.end).getTime() : eStart + 4 * 3600000;
+
+                if (tStart < eEnd && tEnd > eStart) {
+                    let eOrientNorm = window.normalizeOrient(e.orientation);
+                    let eSubjectGroup = getMajorTag(e.subject);
+
+                    // 1. Trùng phòng
+                    if (targetRoom && e.room && targetRoom !== 'Khác...' && e.room === targetRoom && e.type !== 'self_declared') {
+                        return true;
+                    }
+
+                    // 2. Trùng lớp
+                    if (e.class === targetClass && blockingTasks.includes(targetTask) && blockingTasks.includes(e.task) && e.type !== 'self_declared') {
+                        let isSameSubject = (e.subject === targetSubject);
+                        let isDifferentSpecificOrient = (eOrientNorm !== 'CHUNG' && targetOrientNorm !== 'CHUNG' && eOrientNorm !== targetOrientNorm);
+                        let isDifferentMajor = (eSubjectGroup !== "ALL" && targetSubjectGroup !== "ALL" && eSubjectGroup !== targetSubjectGroup);
+                        
+                        if (!isSameSubject && !isDifferentSpecificOrient && !isDifferentMajor) {
+                            return true;
+                        }
+                    }
+                    
+                    // 3. Trùng giảng viên
+                    let targetGVs = gvStr ? gvStr.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
+                    let eGVs = e.gv ? e.gv.split(/,|&/).map(s => s.trim()).filter(s => s) : [];
+                    let commonGVs = targetGVs.filter(gv => eGVs.includes(gv) && gv.toLowerCase() !== 'giảng viên đơn vị khác');
+                    
+                    if (commonGVs.length > 0) {
+                        if (e.type === 'self_declared') return true;
+                        if (blockingTasks.includes(targetTask) && blockingTasks.includes(e.task)) return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        window.getScheduledCount = (cls, targetOrientCode, subName, gv, task, combinedEventsArray) => {
+            let count = 0;
+            let targetNorm = window.normalizeOrient(targetOrientCode);
+
+            combinedEventsArray.forEach(e => {
+                if (e.status === 'returned' || e.type === 'self_declared') return;
                 
-                snap.forEach(d => {
-                    let data = d.data();
-                    rawDocs.push({ _docId: d.id, ...data });
-                    window.originalDataMap.set(d.id, data); // Lưu object thô
-                    Object.keys(data).forEach(k => keySet.add(k));
-                });
+                let eNorm = window.normalizeOrient(e.orientation);
+                let matchOrient = false;
 
-                headers = ["_docId", ...Array.from(keySet).sort()];
-                originalIds = rawDocs.map(d => d._docId);
+                if (targetNorm === 'CHUNG') matchOrient = true;
+                else if (eNorm === 'CHUNG' || eNorm === targetNorm) matchOrient = true;
 
-                let dataMatrix = rawDocs.map(doc => {
-                    return headers.map(h => {
-                        let val = doc[h];
-                        if (val === undefined || val === null) return '';
-                        if (typeof val === 'object') return JSON.stringify(val);
-                        return val; 
+                let eGVs = e.gv ? e.gv.split(/,|&/).map(s => s.trim()) : [];
+                if (e.class === cls && matchOrient && e.subject === subName && eGVs.includes(gv) && e.task === task) {
+                    count++;
+                }
+            });
+            return count;
+        };
+
+        // --- THUẬT TOÁN GỢI Ý TỰ ĐỘNG ---
+        window.startSuggestion = () => {
+            const startDateVal = document.getElementById('suggestStartDate').value;
+            if(!startDateVal) {
+                showToast("Vui lòng chọn ngày bắt đầu!", "warning"); return;
+            }
+
+            // Lấy các setting
+            const semFilter = document.getElementById('suggestSemesterFilter').value;
+            const clsFilter = document.getElementById('suggestClassFilter').value;
+            
+            // Lấy các ngày nghỉ (Bỏ qua)
+            const skipDaysSelect = document.getElementById('suggestSkipDays');
+            const skipDays = Array.from(skipDaysSelect.selectedOptions).map(opt => parseInt(opt.value));
+
+            // Khởi tạo mảng sự kiện tổng hợp (DB cũ + Gợi ý mới) để tính Overlap liên tục
+            suggestedEventsArray = [];
+            let combinedEvents = [...scheduledEventsDB]; 
+            
+            // BƯỚC 1: QUÉT TẠO DANH SÁCH NHIỆM VỤ CẦN XẾP
+            let tasksToSchedule = [];
+
+            subjectsData.forEach(sub => {
+                const asgObj = assignmentsData[sub.id];
+                if (!asgObj) return;
+
+                Object.keys(asgObj).forEach(dbKey => {
+                    let clsMatch = null;
+                    managedClasses.forEach(c => { 
+                        if (dbKey.includes(c)) {
+                            if (!clsMatch || c.length > clsMatch.length) clsMatch = c;
+                        }
                     });
-                });
+                    
+                    if (!clsMatch) return;
+                    if (clsFilter !== 'ALL' && !window.isClassMatch(clsMatch, clsFilter)) return;
 
-                if (dataMatrix.length === 0) {
-                    dataMatrix = [ headers.map(h => '') ];
-                }
+                    let dbOrientCode = '';
+                    if (dbKey.includes('_NC')) dbOrientCode = 'NC';
+                    else if (dbKey.includes('_UD')) dbOrientCode = 'UD';
 
-                container.innerHTML = '';
-                
-                hotInstance = new Handsontable(container, {
-                    data: dataMatrix,
-                    colHeaders: headers,
-                    rowHeaders: true, 
-                    manualColumnResize: true,
-                    manualRowResize: true,
-                    manualColumnMove: true, 
-                    manualRowMove: true, // Thêm dời hàng
-                    undo: true,
-                    width: '100%',
-                    height: '100%',
-                    licenseKey: 'non-commercial-and-evaluation',
-                    
-                    filters: true,
-                    
-                    // --- ĐIỀU CHỈNH GIAO DIỆN GIỐNG EXCEL NHẤT ---
-                    fillHandle: true, // Kéo góc phải dưới để copy hàng loạt
-                    outsideClickDeselects: false, // Bấm ra ngoài không bị mất bôi đen
-                    
-                    // --- SỬA LỖI TỰ ĐỘNG SORT BẰNG CÁCH CHUẨN HÓA LOGIC COMPARE ---
-                    columnSorting: {
-                        indicator: true,
-                        headerAction: false, // TẮT TỰ ĐỘNG SORT KHI BẤM VÀO TÊN CỘT
-                        compareFunctionFactory: function(sortOrder, columnMeta) {
-                            return function(value, nextValue) {
-                                if (value === nextValue) return 0;
-                                if (value === '' || value === null || value === undefined) return 1; 
-                                if (nextValue === '' || nextValue === null || nextValue === undefined) return -1;
-                                
-                                // Ép kiểu thử sang số nếu nó là chuỗi chứa toàn số
-                                let isNum1 = !isNaN(value) && !isNaN(parseFloat(value));
-                                let isNum2 = !isNaN(nextValue) && !isNaN(parseFloat(nextValue));
+                    const asgData = asgObj[dbKey];
+                    if (asgData && asgData.allocations && asgData.status !== 'proposed') {
+                        const semester = asgData.semester || 'Chưa xác định';
+                        if (semFilter !== 'ALL' && semester !== semFilter) return; 
 
-                                // Nếu cả 2 đều là số nguyên hoặc số thực thì tiến hành so sánh Numeric chuẩn
-                                if (isNum1 && isNum2) {
-                                    let num1 = parseFloat(value);
-                                    let num2 = parseFloat(nextValue);
-                                    if (num1 < num2) return sortOrder === 'asc' ? -1 : 1;
-                                    if (num1 > num2) return sortOrder === 'asc' ? 1 : -1;
-                                    return 0;
-                                }
-                                
-                                // Nếu là chuỗi, dùng localeCompare với tham số numeric: true để xếp "A2" trước "A11"
-                                let str1 = String(value);
-                                let str2 = String(nextValue);
-                                let result = str1.localeCompare(str2, undefined, {numeric: true, sensitivity: 'base'});
-                                return sortOrder === 'asc' ? result : -result;
-                            };
-                        }
-                    },
-                    
-                    // --- ĐIỀU CHỈNH MENU DROPDOWN CHO SORT/LỌC ---
-                    dropdownMenu: [
-                        'filter_by_condition',
-                        'filter_operators',
-                        'filter_by_condition2',
-                        'filter_by_value',
-                        'filter_action_bar',
-                        '---------',
-                        {
-                            name: '<b><i class="fas fa-sort-amount-down-alt" style="color:var(--primary); margin-right:5px;"></i> Sắp xếp (Nhỏ → Lớn / A → Z)</b>',
-                            key: 'sort_asc',
-                            callback: function(key, selection) {
-                                let col = selection[0].start.col;
-                                this.getPlugin('columnSorting').sort({ column: col, sortOrder: 'asc' });
+                        asgData.allocations.forEach(a => {
+                            const totalAssigned = parseInt(a.assigned) || 0;
+                            // Tính toán lại số lượng còn thiếu dựa trên DB hiện tại
+                            let scheduledCount = window.getScheduledCount(clsMatch, dbOrientCode, sub.name, a.gv, a.task, combinedEvents);
+                            let remaining = Math.max(0, totalAssigned - scheduledCount);
+
+                            if (remaining > 0) {
+                                tasksToSchedule.push({
+                                    subId: sub.id, subName: sub.name, cls: clsMatch,
+                                    gv: a.gv, task: a.task, orientCode: dbOrientCode, 
+                                    semester: semester, remaining: remaining
+                                });
                             }
-                        },
-                        {
-                            name: '<b><i class="fas fa-sort-amount-up" style="color:var(--primary); margin-right:5px;"></i> Sắp xếp (Lớn → Nhỏ / Z → A)</b>',
-                            key: 'sort_desc',
-                            callback: function(key, selection) {
-                                let col = selection[0].start.col;
-                                this.getPlugin('columnSorting').sort({ column: col, sortOrder: 'desc' });
-                            }
-                        },
-                        {
-                            name: '<b><i class="fas fa-ban" style="color:#ef4444; margin-right:5px;"></i> Bỏ sắp xếp</b>',
-                            key: 'clear_sort',
-                            callback: function(key, selection) {
-                                this.getPlugin('columnSorting').clearSort();
-                            }
-                        }
-                    ],
-
-                    contextMenu: {
-                        items: {
-                            "row_above": { name: '<i class="fas fa-arrow-up" style="margin-right:5px; color:#64748b"></i> Chèn hàng lên trên' },
-                            "row_below": { name: '<i class="fas fa-arrow-down" style="margin-right:5px; color:#64748b"></i> Chèn hàng xuống dưới' },
-                            "col_left": { name: '<i class="fas fa-arrow-left" style="margin-right:5px; color:#64748b"></i> Chèn cột sang trái' },
-                            "col_right": { name: '<i class="fas fa-arrow-right" style="margin-right:5px; color:#64748b"></i> Chèn cột sang phải' },
-                            "hsep1": "---------",
-                            "remove_row": { name: '<i class="fas fa-trash" style="color:#ef4444; margin-right:5px;"></i> <b>Xóa hàng</b>' },
-                            "remove_col": { name: '<i class="fas fa-times" style="color:#ef4444; margin-right:5px;"></i> <b>Xóa cột</b>' },
-                            "hsep2": "---------",
-                            "rename_col": {
-                                name: '<i class="fas fa-edit" style="color:#f59e0b; margin-right:5px;"></i> <b>Đổi Tên Cột (Key)</b>',
-                                callback: function(key, selection) {
-                                    let physicalCol = this.toPhysicalColumn(selection[0].start.col);
-                                    if (headers[physicalCol] === '_docId') {
-                                        alert("Không thể đổi tên cột khóa chính (_docId)!");
-                                        return;
-                                    }
-                                    let currentName = headers[physicalCol];
-                                    let newName = prompt("Nhập tên trường dữ liệu (field key) mới:", currentName);
-                                    if (newName && newName.trim() !== '') {
-                                        headers[physicalCol] = newName.trim();
-                                        hotInstance.updateSettings({ colHeaders: headers });
-                                        showToast(`Đã đổi tên cột thành [${newName}]`);
-                                    }
-                                }
-                            },
-                            "hsep3": "---------",
-                            "undo": { name: '<i class="fas fa-undo" style="margin-right:5px;"></i> Hoàn tác (Undo)' },
-                            "redo": { name: '<i class="fas fa-redo" style="margin-right:5px;"></i> Làm lại (Redo)' }
-                        }
-                    },
-                    cells: function(row, col) {
-                        let cellProperties = {};
-                        let physicalCol = this.instance.toPhysicalColumn(col);
-                        if (headers[physicalCol] === '_docId') {
-                            cellProperties.readOnly = true;
-                            cellProperties.className = 'htDimmed';
-                        }
-                        return cellProperties;
-                    },
-                    afterCreateCol: function(index, amount) {
-                        for(let i = 0; i < amount; i++) {
-                            headers.splice(index + i, 0, 'new_field_' + Date.now() + i);
-                        }
-                        this.updateSettings({ colHeaders: headers });
-                    },
-                    afterRemoveCol: function(index, amount) {
-                        headers.splice(index, amount);
-                        this.updateSettings({ colHeaders: headers });
+                        });
                     }
                 });
+            });
+
+            // BƯỚC 2: XẾP LỊCH THEO THUẬT TOÁN GREEDY
+            let currentDate = new Date(startDateVal);
+            currentDate.setHours(0,0,0,0);
+            
+            let failedCount = 0;
+
+            // Xếp cho đến khi hết Task hoặc duyệt quá xa (giới hạn 365 ngày để tránh lặp vô hạn)
+            let loopGuard = 0;
+            
+            while(tasksToSchedule.length > 0 && loopGuard < 365) {
+                let dayOfWeek = currentDate.getDay(); // 0: Sun, 1: Mon...
                 
-                showToast(`Tải thành công ${rawDocs.length} bản ghi.`);
-            } catch(e) {
-                showToast("Lỗi tải bảng: " + e.message, 'danger');
+                if (skipDays.includes(dayOfWeek)) {
+                    currentDate.setDate(currentDate.getDate() + 1);
+                    loopGuard++;
+                    continue;
+                }
+
+                // Xét 2 ca: Sáng (7h) và Chiều (13h)
+                const slots = [
+                    { hStart: 7, hEnd: 11 },
+                    { hStart: 13, hEnd: 17 }
+                ];
+
+                for (let slot of slots) {
+                    let slotStart = new Date(currentDate);
+                    slotStart.setHours(slot.hStart, 0, 0, 0);
+                    let slotEnd = new Date(currentDate);
+                    slotEnd.setHours(slot.hEnd, 0, 0, 0);
+                    
+                    let slotStartStr = toLocalISOString(slotStart);
+                    let slotEndStr = toLocalISOString(slotEnd);
+
+                    // Mỗi ca có số lượng phòng nhất định
+                    let availableRooms = [...ROOM_LIST];
+
+                    // Duyệt ngược mảng task để xóa đi những task đã xếp xong
+                    for (let i = tasksToSchedule.length - 1; i >= 0; i--) {
+                        let t = tasksToSchedule[i];
+                        
+                        if (availableRooms.length === 0) break; // Hết phòng ca này -> Nhường các môn khác sang ca/ngày sau
+
+                        // Kiểm tra nếu lớp hoặc GV này đã bị xếp vào ca này rồi thì bỏ qua
+                        if (hasOverlap(slotStartStr, slotEndStr, t.gv, t.cls, t.task, availableRooms[0], t.subName, t.orientCode, combinedEvents)) {
+                            continue; // Bị trùng -> Bỏ qua môn này ở ca này
+                        }
+
+                        // Lấy 1 phòng trống
+                        let assignedRoom = availableRooms.shift();
+
+                        // Tạo Event Gợi ý
+                        let newEvent = {
+                            id: `suggest_${Date.now()}_${Math.random().toString(36).substr(2,9)}`,
+                            title: t.gv,
+                            start: slotStartStr,
+                            end: slotEndStr,
+                            allDay: false,
+                            class: t.cls,
+                            subject: t.subName,
+                            gv: t.gv,
+                            task: t.task,
+                            room: assignedRoom,
+                            orientation: window.normalizeOrient(t.orientCode) === 'NC' ? 'Nghiên cứu' : (window.normalizeOrient(t.orientCode) === 'UD' ? 'Ứng dụng' : 'Cả hai'),
+                            semester: t.semester,
+                            scheduledByEmail: currentUserEmail,
+                            scheduledByName: currentUserName,
+                            status: 'scheduled',
+                            isPreview: true // Flag báo đây là bản xem trước
+                        };
+
+                        suggestedEventsArray.push(newEvent);
+                        combinedEvents.push(newEvent);
+
+                        t.remaining -= 1;
+                        if (t.remaining <= 0) {
+                            tasksToSchedule.splice(i, 1); // Xóa khỏi danh sách chờ
+                        }
+                    }
+                }
+                
+                currentDate.setDate(currentDate.getDate() + 1);
+                loopGuard++;
+            }
+
+            // Những Task còn kẹt lại (chưa xếp được)
+            tasksToSchedule.forEach(t => failedCount += t.remaining);
+
+            // BƯỚC 3: RENDER RA LỊCH
+            renderCalendarEvents(combinedEvents);
+
+            // Cập nhật UI
+            document.getElementById('statUnscheduled').innerText = tasksToSchedule.length > 0 ? 'Còn tồn đọng' : '0';
+            document.getElementById('statSuggested').innerText = suggestedEventsArray.length;
+            document.getElementById('statFailed').innerText = failedCount;
+
+            document.getElementById('btnSuggest').classList.add('hidden');
+            document.getElementById('btnSave').classList.remove('hidden');
+            document.getElementById('btnCancel').classList.remove('hidden');
+
+            if (suggestedEventsArray.length > 0) {
+                // Tự động chuyển view lịch đến ngày bắt đầu gợi ý
+                calendar.gotoDate(startDateVal);
+                showToast(`Đã tạo ${suggestedEventsArray.length} gợi ý! Bấm 'Lưu kết quả' để xác nhận.`);
+            } else {
+                showToast(`Không có môn nào cần xếp hoặc không thể xếp được!`, "warning");
             }
         };
 
-        // ----------------------------------------------------
-        // 2. THUẬT TOÁN AN TOÀN ĐỂ LƯU THAY ĐỔI
-        // ----------------------------------------------------
-        window.saveData = async () => {
-            if(!hotInstance) {
-                showToast("Chưa có bảng nào được tải!", "danger");
-                return;
-            }
-
-            const data = hotInstance.getData();
-            let currentIds = [];
-            let toAdd = [];
-            let toUpdate = [];
-
-            let docIdIndex = headers.indexOf('_docId');
-
-            // Cảnh báo nếu nhập Excel làm mất cột Khóa chính
-            if (docIdIndex === -1 && originalIds.length > 0) {
-                if (!confirm("BẢO MẬT: Bảng hiện tại đang bị thiếu cột khóa chính (_docId). Nếu lưu, hệ thống sẽ XÓA TOÀN BỘ dữ liệu cũ và coi tất cả các dòng hiện tại là dữ liệu được THÊM MỚI. Bạn có chắc chắn muốn GHI ĐÈ không?")) {
-                    return;
-                }
-            }
-
-            for (let r = 0; r < data.length; r++) {
-                let row = data[r];
-                let isEmpty = row.every(cell => cell === null || cell === '');
-                if (isEmpty) continue;
-
-                let docId = docIdIndex !== -1 ? row[docIdIndex] : null;
-                let docData = {};
-
-                for (let c = 0; c < headers.length; c++) {
-                    if (headers[c] === '_docId') continue;
-
-                    let key = headers[c];
-                    let val = row[c];
-                    
-                    // Chỉ lọc và lưu các trường có giá trị thực tế
-                    if (val !== null && val !== '') {
-                        if (val === 'true') val = true;
-                        else if (val === 'false') val = false;
-                        else if (!isNaN(val) && val !== '') val = Number(val);
-                        else {
-                            try {
-                                let parsed = JSON.parse(val);
-                                if (typeof parsed === 'object') val = parsed;
-                            } catch(e) {}
-                        }
-                        docData[key] = val;
-                    }
-                }
-
-                if (docId) {
-                    currentIds.push(docId);
-                    let origData = window.originalDataMap.get(docId);
-                    
-                    // Chỉ thêm vào list toUpdate nếu thực sự có sự thay đổi
-                    if (!isObjectEqual(origData, docData)) {
-                        toUpdate.push({id: docId, data: docData});
-                    }
-                } else {
-                    toAdd.push({data: docData});
-                }
-            }
-
-            // Mọi ID cũ mà không còn xuất hiện trong Data hiện tại thì xem như bị xóa
-            let toDelete = originalIds.filter(id => !currentIds.includes(id));
-
-            if (toAdd.length === 0 && toUpdate.length === 0 && toDelete.length === 0) {
-                showToast("Không có thao tác nào được thay đổi so với dữ liệu gốc!", "warning");
-                return;
-            }
-
-            // HIỂN THỊ TÓM TẮT THAO TÁC RÕ RÀNG
-            let confirmMsg = `TỔNG HỢP THAY ĐỔI BẢNG [${currentCollection.toUpperCase()}]:\n`;
-            confirmMsg += `------------------------------------\n`;
-            if (toAdd.length > 0) confirmMsg += `+ THÊM MỚI: ${toAdd.length} dòng\n`;
-            if (toUpdate.length > 0) confirmMsg += `~ CẬP NHẬT: ${toUpdate.length} dòng\n`;
-            if (toDelete.length > 0) confirmMsg += `- XÓA BỎ: ${toDelete.length} dòng\n`;
-            confirmMsg += `------------------------------------\n`;
-
-            if (toDelete.length > 0) {
-                let userInput = prompt(confirmMsg + `\nCẢNH BÁO BẢO MẬT: Có ${toDelete.length} dòng dữ liệu sắp bị xóa vĩnh viễn khỏi Database.\nĐể đảm bảo an toàn, vui lòng gõ chữ "XOA" (không dấu) vào đây để xác nhận tiếp tục:`);
-                if (userInput !== "XOA") {
-                    showToast("Đã hủy thao tác lưu do xác nhận bảo mật không đúng.", "danger");
-                    return;
-                }
-            } else {
-                if (!confirm(confirmMsg + "\nCác thao tác này không thể hoàn tác. Bạn có chắc chắn muốn lưu lên Firebase?")) {
-                    return;
-                }
-            }
-
-            // Đẩy dữ liệu lên Firebase
-            let promises = [];
+        window.cancelSuggestion = () => {
+            suggestedEventsArray = [];
+            renderCalendarEvents(); // Trở về như cũ (chỉ lấy DB)
             
+            document.getElementById('statUnscheduled').innerText = '0';
+            document.getElementById('statSuggested').innerText = '0';
+            document.getElementById('statFailed').innerText = '0';
+
+            document.getElementById('btnSuggest').classList.remove('hidden');
+            document.getElementById('btnSave').classList.add('hidden');
+            document.getElementById('btnCancel').classList.add('hidden');
+
+            showToast("Đã hủy bản xem trước.");
+        };
+
+        window.saveSuggestedEvents = async () => {
+            if (suggestedEventsArray.length === 0) return;
+
+            document.getElementById('btnSave').disabled = true;
+            document.getElementById('btnSave').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang lưu...';
+
             try {
-                toUpdate.forEach(item => promises.push(setDoc(doc(db, currentCollection, item.id), item.data)));
-                toAdd.forEach(item => {
-                    let newDocRef = doc(collection(db, currentCollection));
-                    promises.push(setDoc(newDocRef, item.data));
+                let promises = suggestedEventsArray.map(evData => {
+                    let dataToSave = { ...evData };
+                    delete dataToSave.isPreview; // Bỏ cờ Preview trước khi đưa lên DB
+                    return setDoc(doc(db, "calendar_events", dataToSave.id), dataToSave);
                 });
-                toDelete.forEach(id => promises.push(deleteDoc(doc(db, currentCollection, id))));
 
                 await Promise.all(promises);
-                showToast(`Lưu thành công! Đã thêm ${toAdd.length}, Sửa ${toUpdate.length}, Xóa ${toDelete.length} dòng.`, "success");
                 
-                loadData(); // Tải lại bảng để reset originalIds và originalDataMap
+                showToast(`Đã lưu ${suggestedEventsArray.length} lịch thành công!`, "success");
+                suggestedEventsArray = []; // Clear
+                
+                document.getElementById('btnSuggest').classList.remove('hidden');
+                document.getElementById('btnSave').classList.add('hidden');
+                document.getElementById('btnCancel').classList.add('hidden');
+                document.getElementById('btnSave').disabled = false;
+                document.getElementById('btnSave').innerHTML = '<i class="fas fa-save"></i> Lưu Kết quả';
+
             } catch(e) {
-                showToast("Lỗi trong quá trình lưu dữ liệu: " + e.message, "danger");
+                showToast("Lỗi khi lưu DB: " + e.message, "danger");
+                document.getElementById('btnSave').disabled = false;
             }
         };
 
-        // ----------------------------------------------------
-        // 3. TÍNH NĂNG XUẤT / NHẬP EXCEL (DÙNG SHEETJS)
-        // ----------------------------------------------------
-        window.exportTableToExcel = () => {
-            if(!hotInstance || !currentCollection) { 
-                showToast("Vui lòng tải dữ liệu bảng trước khi xuất!", "danger"); 
-                return; 
-            }
+        // --- RENDER DỮ LIỆU ---
+        function renderCalendarEvents(customArray = null) {
+            if (!calendar) return;
+
+            calendar.removeAllEvents();
             
-            // Lấy dữ liệu với thứ tự cột trực quan hiện tại (kể cả đã bị kéo dời)
-            let visualHeaders = [];
-            let colCount = hotInstance.countCols();
-            for (let i = 0; i < colCount; i++) {
-                visualHeaders.push(headers[hotInstance.toPhysicalColumn(i)]);
-            }
+            let dataToRender = customArray ? customArray : scheduledEventsDB;
+            let scheduledEventsNormal = dataToRender.filter(e => e.status !== 'returned' && e.start);
 
-            let dataToExport = [visualHeaders];
-            let rawData = hotInstance.getData();
-
-            for (let r = 0; r < rawData.length; r++) {
-                let rowData = [];
-                for (let c = 0; c < colCount; c++) {
-                    rowData.push(rawData[r][hotInstance.toPhysicalColumn(c)]);
-                }
-                dataToExport.push(rowData);
-            }
-
-            let ws = XLSX.utils.aoa_to_sheet(dataToExport);
-            let wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, currentCollection);
-            
-            let dateStr = new Date().toLocaleDateString('vi-VN').replace(/\//g, '');
-            XLSX.writeFile(wb, `${currentCollection}_${dateStr}.xlsx`);
-            showToast("Xuất Excel thành công!");
-        };
-
-        window.importTableFromExcel = (event) => {
-            if(!currentCollection || !hotInstance) { 
-                showToast("Vui lòng tải hoặc chọn 1 bảng trước khi nhập Excel!", "warning"); 
-                return; 
-            }
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, {type: 'array'});
-                const firstSheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[firstSheetName];
+            let deduplicatedEventsMap = new Map();
+            scheduledEventsNormal.forEach(e => {
+                let sTime = new Date(e.start).getTime();
+                let eTime = e.end ? new Date(e.end).getTime() : sTime + 4 * 3600 * 1000;
                 
-                const json = XLSX.utils.sheet_to_json(worksheet, {header: 1, defval: ""}); 
+                let deduplicateKey = `${sTime}_${eTime}_${e.room}_${e.subject}_${e.task}_${e.gv}_${e.orientation}_${e.class}`;
 
-                if (json.length === 0) { 
-                    showToast("File Excel trống!", "danger"); 
-                    return; 
+                if (!deduplicatedEventsMap.has(deduplicateKey)) {
+                    deduplicatedEventsMap.set(deduplicateKey, e);
                 }
+            });
+            let deduplicatedEvents = Array.from(deduplicatedEventsMap.values());
 
-                headers = json[0]; // Cập nhật lại headers dựa theo file Excel
-                let excelData = json.slice(1);
-                
-                hotInstance.updateSettings({
-                    colHeaders: headers,
-                    data: excelData
+            let groupedEvents = {};
+            deduplicatedEvents.forEach(e => {
+                let sTime = new Date(e.start).getTime();
+                let eTime = e.end ? new Date(e.end).getTime() : sTime + 4 * 3600 * 1000;
+                let key = `${sTime}_${eTime}`;
+
+                if (!groupedEvents[key]) {
+                    groupedEvents[key] = { start: e.start, end: e.end, allDay: e.allDay, events: [] };
+                }
+                groupedEvents[key].events.push(e);
+            });
+
+            let currentClassEvents = [];
+            for (let key in groupedEvents) {
+                let group = groupedEvents[key];
+                currentClassEvents.push({
+                    id: 'group_' + key,
+                    start: group.start,
+                    end: group.end,
+                    allDay: group.allDay,
+                    backgroundColor: 'transparent',
+                    borderColor: 'transparent',
+                    textColor: '#0f172a',
+                    extendedProps: { type: 'grouped_normal', events: group.events }
                 });
-                
-                showToast("Đã tải dữ liệu từ Excel lên! Nhấn 'Lưu Thay Đổi' để ghi vào DB.");
-                event.target.value = ''; // Reset input
-            };
-            reader.readAsArrayBuffer(file);
-        };
-
-        // ----------------------------------------------------
-        // 4. XUẤT / NHẬP JSON (BACKUP TOÀN HỆ THỐNG)
-        // ----------------------------------------------------
-        window.exportDataToJSON = async () => {
-            try {
-                let exportData = {};
-                for (const colName of ALL_COLLECTIONS) {
-                    exportData[colName] = {};
-                    const snap = await getDocs(collection(db, colName));
-                    snap.forEach(docSnap => {
-                        exportData[colName][docSnap.id] = docSnap.data();
-                    });
-                }
-
-                const jsonString = JSON.stringify(exportData, null, 2);
-                const blob = new Blob([jsonString], { type: "application/json" });
-                const url = URL.createObjectURL(blob);
-                
-                const link = document.createElement("a");
-                link.href = url;
-                let dateStr = new Date().toLocaleDateString('vi-VN').replace(/\//g, '-');
-                link.download = `Full_DB_Backup_${dateStr}.json`;
-                
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-
-                showToast("Đã tải xuống toàn bộ CSDL!");
-            } catch (error) {
-                showToast("Lỗi xuất dữ liệu: " + error.message, "danger");
             }
-        };
-
-        window.importDataFromJSON = (event) => {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            if (!confirm(`CẢNH BÁO TỐI CAO: Khôi phục từ file [${file.name}] sẽ GHI ĐÈ toàn bộ các bảng trong CSDL. Bạn có chắc không?`)) {
-                event.target.value = ''; 
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                try {
-                    const data = JSON.parse(e.target.result);
-                    let promises = [];
-                    
-                    for (const [colName, docsObj] of Object.entries(data)) {
-                        for (const [docId, docData] of Object.entries(docsObj)) {
-                            promises.push(setDoc(doc(db, colName, docId), docData));
-                        }
-                    }
-
-                    await Promise.all(promises);
-                    showToast(`Khôi phục dữ liệu toàn hệ thống thành công!`);
-                    event.target.value = ''; 
-                    
-                    if(currentCollection) loadData(); 
-
-                } catch (err) {
-                    showToast("Lỗi nhập dữ liệu: JSON sai định dạng.", "danger");
-                }
-            };
-            reader.readAsText(file);
-        };
+            calendar.addEventSource(currentClassEvents);
+        }
 
     </script>
 </body>
