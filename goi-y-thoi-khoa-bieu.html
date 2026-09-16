@@ -338,7 +338,7 @@
             return `background:${color.bg}; color:${color.text}; border: 1px solid ${color.text}40;`;
         };
 
-        // --- HÀM BÓC TÁCH TÊN MÔN (Bỏ đi số 1. 2. ở đầu để xác định môn chung) ---
+        // --- HÀM BÓC TÁCH TÊN MÔN (Bỏ đi số 1. 2. ở đầu) ---
         window.getBaseSubjectName = (name) => {
             if (!name) return "";
             let parts = name.split('.');
@@ -591,7 +591,7 @@
                             let classBadge = `<span style="display:inline-block; padding:2px 6px; border-radius:3px; font-size:0.7rem; font-weight:bold; ${classColorStyle}">${e.class}</span> ${majorBadge}`;
 
                             // Nếu là sự kiện do AI gợi ý thì hiển thị màu khác và tag Preview
-                            let previewNote = e.isPreview ? `<div style="font-size: 0.75rem; color: #8b5cf6; font-weight: bold; margin-top: 5px;"><i class="fas fa-magic"></i> Bản Xem Trước</div>` : '';
+                            let previewNote = e.isPreview ? `<div style="font-size: 0.75rem; color: #8b5cf6; font-weight: bold; margin-top: 5px;"><i class="fas fa-magic"></i> Bản Gợi ý (Chưa lưu)</div>` : '';
 
                             return `
                             <div class="evt-item" style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed rgba(2, 132, 199, 0.2); text-align: left; line-height: 1.4;">
@@ -634,7 +634,7 @@
                    pad(date.getHours()) + ':' + pad(date.getMinutes()) + ':' + pad(date.getSeconds());
         }
 
-        // --- HÀM KIỂM TRA OVERLAP TRUYỀN THỐNG ---
+        // --- HÀM KIỂM TRA OVERLAP DÙNG CHO CẢ VIỆC GỢI Ý VÀ THẢ LỊCH CHUNG ---
         function hasOverlap(targetStartStr, targetEndStr, gvStr, targetClass, targetTask, targetRoom, targetSubject, targetOrient, ignoreEventIds, customEventArray = null) {
             let ignoreList = Array.isArray(ignoreEventIds) ? ignoreEventIds : [ignoreEventIds];
             let tStart = new Date(targetStartStr).getTime();
@@ -646,7 +646,7 @@
                 return (s && s.majorTag) ? s.majorTag : "ALL";
             };
             let targetSubjectGroup = getMajorTag(targetSubject);
-
+            
             let allSubEvents = [];
             let sourceDB = customEventArray || scheduledEventsDB;
             
@@ -676,7 +676,7 @@
                     let commonGVs = targetGVs.filter(gv => eGVs.includes(gv) && gv.toLowerCase() !== 'giảng viên đơn vị khác');
                     let hasCommonGV = commonGVs.length > 0;
                     
-                    // Trường hợp đặc biệt gộp NC và UD: Cùng môn (tên gốc), cùng lớp, cùng GV, CÙNG PHÒNG
+                    // Trường hợp gộp NC và UD: Cùng môn (tên gốc), cùng lớp, cùng GV, CÙNG PHÒNG
                     let isGopHe = (isSameSubject && isDifferentSpecificOrient && e.class === targetClass && hasCommonGV && targetRoom === e.room);
 
                     // 1. Trùng phòng
@@ -749,7 +749,7 @@
             return { hasOverlap: false };
         }
 
-        window.getScheduledCount = (cls, targetOrientCode, baseSubName, gv, task, combinedEventsArray) => {
+        window.getScheduledCount = (cls, targetOrientCode, subName, gv, task, combinedEventsArray) => {
             let count = 0;
             let targetNorm = window.normalizeOrient(targetOrientCode);
             let sourceDB = combinedEventsArray || scheduledEventsDB;
@@ -761,7 +761,7 @@
                 let matchOrient = false;
 
                 if (targetNorm === 'CHUNG') {
-                    if (eNorm === 'CHUNG') matchOrient = true;
+                    if (eNorm === 'CHUNG') matchOrient = true; // Chỉ cộng vào General nếu đích thực là Cả hai
                 } else {
                     if (eNorm === 'CHUNG' || eNorm === targetNorm) {
                         matchOrient = true;
@@ -769,7 +769,7 @@
                 }
 
                 let eGVs = e.gv ? e.gv.split(/,|&/).map(s => s.trim()) : [];
-                if (e.class === cls && matchOrient && window.getBaseSubjectName(e.subject) === baseSubName && eGVs.includes(gv) && e.task === task) {
+                if (e.class === cls && matchOrient && e.subject === subName && eGVs.includes(gv) && e.task === task) {
                     count++;
                 }
             });
@@ -834,7 +834,7 @@
                         
                         asgData.allocations.forEach(a => {
                             const totalAssigned = parseInt(a.assigned) || 0;
-                            
+                            // Gộp khóa bằng Tên Gốc (Cắt bỏ số thứ tự để gộp NC và UD lại với nhau)
                             let baseSubName = window.getBaseSubjectName(sub.name);
                             const mapKey = `${baseSubName}_${a.gv}_${a.task}_${clsMatch}`;
                             
@@ -860,9 +860,9 @@
             let poolTasksList = [];
 
             rawTaskMap.forEach((data, mapKey) => {
-                let scheduledNC = window.getScheduledCount(data.cls, 'NC', data.baseSubName, data.gv, data.task, combinedEvents);
-                let scheduledUD = window.getScheduledCount(data.cls, 'UD', data.baseSubName, data.gv, data.task, combinedEvents);
-                let scheduledGeneral = window.getScheduledCount(data.cls, 'CHUNG', data.baseSubName, data.gv, data.task, combinedEvents);
+                let scheduledNC = window.getScheduledCount(data.cls, 'NC', data.subName, data.gv, data.task, combinedEvents);
+                let scheduledUD = window.getScheduledCount(data.cls, 'UD', data.subName, data.gv, data.task, combinedEvents);
+                let scheduledGeneral = window.getScheduledCount(data.cls, 'CHUNG', data.subName, data.gv, data.task, combinedEvents);
 
                 let remNC = Math.max(0, data.totalNC - scheduledNC);
                 let remUD = Math.max(0, data.totalUD - scheduledUD);
@@ -881,7 +881,7 @@
                             shared = 0; onlyNC = remNC; onlyUD = remUD;
                         }
 
-                        if (shared > 0) poolTasksList.push({ ...data, orientCode: 'Cả hai', remaining: shared });
+                        if (shared > 0) poolTasksList.push({ ...data, orientCode: 'CHUNG', remaining: shared });
                         if (onlyNC > 0) poolTasksList.push({ ...data, orientCode: 'NC', remaining: onlyNC });
                         if (onlyUD > 0) poolTasksList.push({ ...data, orientCode: 'UD', remaining: onlyUD });
                     } else {
@@ -893,6 +893,17 @@
 
             let unscheduledCount = 0;
             let subjectGroups = new Map();
+            
+            // Xử lý các môn bị từ chối trả về kho
+            scheduledEventsDB.forEach(e => {
+                if (e.status === 'returned') {
+                    if (suggestClassFilter !== 'ALL' && !window.isClassMatch(e.class, suggestClassFilter)) return;
+                    poolTasksList.push({
+                        isRejected: true, rTask: e, subName: e.subject, subId: e.subject, cls: e.class, gv: e.gv, task: e.task, semester: e.semester, remaining: 1
+                    });
+                }
+            });
+
             poolTasksList.forEach((item) => {
                 if (!subjectGroups.has(item.subName)) subjectGroups.set(item.subName, []);
                 subjectGroups.get(item.subName).push(item);
@@ -943,29 +954,46 @@
                         else orientDisplay = '<div class="badge-orient badge-chung" style="display:block; text-align:center; margin-bottom:5px;">Học chung (NC & UD)</div>';
                     }
 
-                    eventDiv.className = `fc-event ${item.cls}`;
-                    
-                    eventDiv.setAttribute('data-id', `${item.subId}_${item.orientCode}_${item.gv}_${item.task}_${item.cls}`); 
-                    eventDiv.setAttribute('data-title', item.gv); 
-                    eventDiv.setAttribute('data-subject', item.subName);
-                    eventDiv.setAttribute('data-gv', item.gv);
-                    eventDiv.setAttribute('data-task', item.task);
-                    eventDiv.setAttribute('data-class', item.cls);
-                    
-                    let orientAttr = normCode === 'NC' ? 'Nghiên cứu' : (normCode === 'UD' ? 'Ứng dụng' : 'Cả hai');
-                    eventDiv.setAttribute('data-orientations', orientAttr); 
-                    eventDiv.setAttribute('data-semester', item.semester);
-                    eventDiv.setAttribute('data-max-rem', item.remaining);        
+                    if (item.isRejected) {
+                        eventDiv.className = `fc-event ${item.cls} rejected-task`;
+                        eventDiv.setAttribute('data-id', item.rTask.id); 
+                        eventDiv.setAttribute('data-original-id', item.rTask.id); 
+                        eventDiv.setAttribute('data-title', item.gv); 
+                        eventDiv.setAttribute('data-subject', item.subName);
+                        eventDiv.setAttribute('data-gv', item.gv);
+                        eventDiv.setAttribute('data-task', item.task);
+                        eventDiv.setAttribute('data-class', item.cls);
+                        
+                        let rOrient = item.rTask.orientation === 'Nghiên cứu' ? 'NC' : (item.rTask.orientation === 'Ứng dụng' ? 'UD' : (item.rTask.orientation === 'Cả hai' || item.rTask.orientation === 'Học chung / Không phân định hướng' ? 'NC,UD' : ''));
+                        eventDiv.setAttribute('data-orientations', rOrient); 
+                        eventDiv.setAttribute('data-semester', item.semester);       
 
-                    let countBadge = `<div class="count-badge">${item.remaining}</div>`;
+                        let rBadge = `<span class="reject-badge"><i class="fas fa-exclamation-circle"></i> Bị từ chối (Trả về)</span>`;
+                        eventDiv.innerHTML = `${classTag}<div class="event-gv">${gvDisplay}</div><span class="event-info">[${item.task}]</span>${rBadge}`;
+                    } else {
+                        let orientAttr = normCode === 'NC' ? 'Nghiên cứu' : (normCode === 'UD' ? 'Ứng dụng' : 'Cả hai');
 
-                    eventDiv.innerHTML = `
-                        ${countBadge}
-                        ${orientDisplay}
-                        ${classTag} 
-                        <div class="event-gv">${gvDisplay}</div>
-                        <span class="event-info">[${item.task}]</span>
-                    `;
+                        eventDiv.className = `fc-event ${item.cls}`;
+                        eventDiv.setAttribute('data-id', `${item.subId}_${item.orientCode}_${item.gv}_${item.task}_${item.cls}`); 
+                        eventDiv.setAttribute('data-title', item.gv); 
+                        eventDiv.setAttribute('data-subject', item.subName);
+                        eventDiv.setAttribute('data-gv', item.gv);
+                        eventDiv.setAttribute('data-task', item.task);
+                        eventDiv.setAttribute('data-class', item.cls);
+                        eventDiv.setAttribute('data-orientations', orientAttr); 
+                        eventDiv.setAttribute('data-semester', item.semester);
+                        eventDiv.setAttribute('data-max-rem', item.remaining);       
+
+                        let countBadge = `<div class="count-badge">${item.remaining}</div>`;
+
+                        eventDiv.innerHTML = `
+                            ${countBadge}
+                            ${orientDisplay}
+                            ${classTag} 
+                            <div class="event-gv" title="${item.gv}">${gvDisplay}</div>
+                            <span class="event-info">[${item.task}]</span>
+                        `;
+                    }
                     cardsContainer.appendChild(eventDiv);
                 });
 
@@ -1088,7 +1116,7 @@
             let combinedEvents = [...scheduledEventsDB]; 
             
             // BƯỚC 1: QUÉT TẠO DANH SÁCH NHIỆM VỤ CẦN XẾP DỰA TRÊN BỘ LỌC
-            let tasksToSchedule = [];
+            let rawTaskMap = new Map();
 
             subjectsData.forEach(sub => {
                 const asgObj = assignmentsData[sub.id];
@@ -1130,21 +1158,61 @@
                         
                         asgData.allocations.forEach(a => {
                             const totalAssigned = parseInt(a.assigned) || 0;
+                            // Gộp khóa bằng Tên Gốc (Cắt bỏ số thứ tự để gộp NC và UD lại với nhau trong bước tính toán)
                             let baseSubName = window.getBaseSubjectName(sub.name);
-                            // Tính toán lại số lượng còn thiếu dựa trên DB hiện tại
-                            let scheduledCount = window.getScheduledCount(clsMatch, dbOrientCode, baseSubName, a.gv, a.task, combinedEvents);
-                            let remaining = Math.max(0, totalAssigned - scheduledCount);
-
-                            if (remaining > 0) {
-                                tasksToSchedule.push({
-                                    subId: sub.id, subName: sub.name, cls: clsMatch,
-                                    gv: a.gv, task: a.task, orientCode: dbOrientCode, 
-                                    semester: semester, remaining: remaining
+                            const mapKey = `${baseSubName}_${a.gv}_${a.task}_${clsMatch}`;
+                            
+                            if (!rawTaskMap.has(mapKey)) {
+                                rawTaskMap.set(mapKey, {
+                                    subName: sub.name, subId: sub.id, baseSubName: baseSubName, cls: clsMatch, gv: a.gv, task: a.task,
+                                    totalNC: 0, totalUD: 0, totalGeneral: 0, semester: semester,
+                                    allowJoint: asgData.allowJoint !== false
                                 });
                             }
+                            
+                            let taskData = rawTaskMap.get(mapKey);
+                            if (actualOrient === 'NC') taskData.totalNC += totalAssigned;
+                            else if (actualOrient === 'UD') taskData.totalUD += totalAssigned;
+                            else taskData.totalGeneral += totalAssigned;
+                            
+                            if (asgData.allowJoint === false) taskData.allowJoint = false;
                         });
                     }
                 });
+            });
+
+            let tasksToSchedule = [];
+
+            rawTaskMap.forEach((data, mapKey) => {
+                let scheduledNC = window.getScheduledCount(data.cls, 'NC', data.subName, data.gv, data.task, combinedEvents);
+                let scheduledUD = window.getScheduledCount(data.cls, 'UD', data.subName, data.gv, data.task, combinedEvents);
+                let scheduledGeneral = window.getScheduledCount(data.cls, 'CHUNG', data.subName, data.gv, data.task, combinedEvents);
+
+                let remNC = Math.max(0, data.totalNC - scheduledNC);
+                let remUD = Math.max(0, data.totalUD - scheduledUD);
+                let remGeneral = Math.max(0, data.totalGeneral - scheduledGeneral);
+
+                if (data.totalGeneral > 0 && remGeneral > 0) {
+                    tasksToSchedule.push({ ...data, orientCode: 'CHUNG', remaining: remGeneral });
+                } 
+                if (data.totalNC > 0 || data.totalUD > 0) {
+                    if (data.allowJoint) {
+                        let shared = Math.min(remNC, remUD);
+                        let onlyNC = remNC - shared;
+                        let onlyUD = remUD - shared;
+
+                        if (data.totalNC !== data.totalUD) {
+                            shared = 0; onlyNC = remNC; onlyUD = remUD;
+                        }
+
+                        if (shared > 0) tasksToSchedule.push({ ...data, orientCode: 'CHUNG', remaining: shared });
+                        if (onlyNC > 0) tasksToSchedule.push({ ...data, orientCode: 'NC', remaining: onlyNC });
+                        if (onlyUD > 0) tasksToSchedule.push({ ...data, orientCode: 'UD', remaining: onlyUD });
+                    } else {
+                        if (remNC > 0) tasksToSchedule.push({ ...data, orientCode: 'NC', remaining: remNC });
+                        if (remUD > 0) tasksToSchedule.push({ ...data, orientCode: 'UD', remaining: remUD });
+                    }
+                }
             });
 
             if (tasksToSchedule.length === 0) {
@@ -1157,11 +1225,10 @@
             currentDate.setHours(0,0,0,0);
             
             let failedCount = 0;
-
             let loopGuard = 0;
             
             while(tasksToSchedule.length > 0 && loopGuard < 365) {
-                let dayOfWeek = currentDate.getDay(); // 0: Sun, 1: Mon...
+                let dayOfWeek = currentDate.getDay(); 
                 
                 if (skipDays.includes(dayOfWeek)) {
                     currentDate.setDate(currentDate.getDate() + 1);
@@ -1192,9 +1259,9 @@
                         let t = tasksToSchedule[i];
                         if (!t || t.remaining <= 0) continue;
                         
-                        if (availableRooms.length === 0) break; // Hết phòng ca này -> Nhường các môn khác sang ca/ngày sau
+                        if (availableRooms.length === 0) break; 
 
-                        // Kiểm tra xem thẻ gốc này có ghép được phòng nào không
+                        // Tìm 1 phòng trống
                         let assignedRoom = null;
                         for (let r = 0; r < availableRooms.length; r++) {
                             let overlapCheck = hasOverlap(slotStartStr, slotEndStr, t.gv, t.cls, t.task, availableRooms[r], t.subName, t.orientCode, [], combinedEvents);
@@ -1209,7 +1276,6 @@
                             continue; 
                         }
 
-                        // Tạo Event Gợi ý
                         let newEvent = {
                             id: `suggest_${Date.now()}_${Math.random().toString(36).substr(2,9)}`,
                             title: t.gv,
@@ -1226,7 +1292,7 @@
                             scheduledByEmail: currentUserEmail,
                             scheduledByName: currentUserName,
                             status: 'scheduled',
-                            isPreview: true // Flag báo đây là bản xem trước
+                            isPreview: true 
                         };
 
                         suggestedEventsArray.push(newEvent);
@@ -1234,7 +1300,7 @@
 
                         t.remaining -= 1;
 
-                        // Tìm thẻ "Twin" (Người anh em khác định hướng) để gộp chung vào 1 phòng, 1 khung giờ
+                        // Twin Logic (Chỉ áp dụng nếu vẫn lỡ bị tách do khác subId)
                         let twinIndex = tasksToSchedule.findIndex((other, idx) => 
                             idx !== i && 
                             other.remaining > 0 &&
@@ -1259,15 +1325,14 @@
                             combinedEvents.push(twinEvent);
                             twin.remaining -= 1;
                             
-                            // Nếu twin hết số tiết, xóa khỏi danh sách chờ
                             if (twin.remaining <= 0) {
                                 tasksToSchedule.splice(twinIndex, 1);
-                                if (twinIndex < i) i--; // Điều chỉnh lại con trỏ mảng do phần tử trước đó bị xóa
+                                if (twinIndex < i) i--; 
                             }
                         }
 
                         if (t.remaining <= 0) {
-                            tasksToSchedule.splice(i, 1); // Xóa khỏi danh sách chờ
+                            tasksToSchedule.splice(i, 1);
                         }
                     }
                 }
@@ -1299,7 +1364,7 @@
 
         window.cancelSuggestion = () => {
             suggestedEventsArray = [];
-            processAndRenderEvents(); // Trở về như cũ (chỉ lấy DB)
+            processAndRenderEvents(); 
             
             if(document.getElementById('statSuggested')) document.getElementById('statSuggested').innerText = '0';
             if(document.getElementById('statFailed')) document.getElementById('statFailed').innerText = '0';
