@@ -293,6 +293,7 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // Biến lưu trữ danh sách phòng từ json/phonghoc.json
         window.ROOM_LIST = ["Phòng 3", "Phòng 4", "Phòng OT", "Phòng ST", "Hội trường"];
         
         async function loadRoomsConfig() {
@@ -337,13 +338,25 @@
             return `background:${color.bg}; color:${color.text}; border: 1px solid ${color.text}40;`;
         };
 
+        // --- HÀM BÓC TÁCH TÊN MÔN (Bỏ đi số 1. 2. ở đầu để xác định môn chung) ---
+        window.getBaseSubjectName = (name) => {
+            if (!name) return "";
+            let parts = name.split('.');
+            if (parts.length > 1 && !isNaN(parts[0].trim())) {
+                return parts.slice(1).join('.').trim().toLowerCase();
+            }
+            return name.trim().toLowerCase();
+        };
+
         // --- HÀM CHUẨN HÓA ĐỊNH HƯỚNG ---
         window.normalizeOrient = (orient) => {
             if (!orient) return 'CHUNG';
             let str = String(orient).toUpperCase().trim();
             
+            // Ưu tiên các cụm từ thể hiện sự gộp chung trước
             if (str.includes('CẢ HAI') || str.includes('CHUNG') || str.includes('KHÔNG PHÂN')) return 'CHUNG';
             if (str === 'NC,UD' || str === 'UD,NC' || (str.includes('NC') && str.includes('UD'))) return 'CHUNG';
+            
             if (str === 'NC' || (str.includes('NGHIÊN CỨU') && !str.includes('ỨNG DỤNG'))) return 'NC';
             if (str === 'UD' || (str.includes('ỨNG DỤNG') && !str.includes('NGHIÊN CỨU'))) return 'UD';
 
@@ -387,18 +400,6 @@
             setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
         }
 
-        window.toggleSidebar = () => {
-            const panel = document.getElementById('suggestion-settings');
-            if (panel.classList.contains('hidden')) {
-                panel.style.display = 'flex';
-                panel.classList.remove('hidden');
-            } else {
-                panel.style.display = 'none';
-                panel.classList.add('hidden');
-            }
-            setTimeout(() => { if(calendar) calendar.updateSize(); }, 100);
-        };
-
         function showConflictModal(conflictDetails) {
             const modalBody = document.getElementById('conflictModalBody');
             modalBody.innerHTML = `
@@ -414,6 +415,18 @@
             `;
             document.getElementById('conflictModal').classList.remove('hidden');
         }
+
+        window.toggleSidebar = () => {
+            const panel = document.getElementById('suggestion-settings');
+            if (panel.classList.contains('hidden')) {
+                panel.style.display = 'flex';
+                panel.classList.remove('hidden');
+            } else {
+                panel.style.display = 'none';
+                panel.classList.add('hidden');
+            }
+            setTimeout(() => { if(calendar) calendar.updateSize(); }, 100);
+        };
 
         // --- KHỞI TẠO DỮ LIỆU ---
         onAuthStateChanged(auth, async (user) => {
@@ -553,7 +566,7 @@
 
                 eventContent: function(arg) {
                     const props = arg.event.extendedProps;
-
+                    
                     if (props.type === 'grouped_normal') {
                         let sTime = arg.event.start ? arg.event.start.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit', hour12: false}) : '';
                         let eTime = arg.event.end ? arg.event.end.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit', hour12: false}) : '';
@@ -578,7 +591,7 @@
                             let classBadge = `<span style="display:inline-block; padding:2px 6px; border-radius:3px; font-size:0.7rem; font-weight:bold; ${classColorStyle}">${e.class}</span> ${majorBadge}`;
 
                             // Nếu là sự kiện do AI gợi ý thì hiển thị màu khác và tag Preview
-                            let previewNote = e.isPreview ? `<div style="font-size: 0.75rem; color: #8b5cf6; font-weight: bold; margin-top: 5px;"><i class="fas fa-magic"></i> Bản Gợi ý (Chưa lưu)</div>` : '';
+                            let previewNote = e.isPreview ? `<div style="font-size: 0.75rem; color: #8b5cf6; font-weight: bold; margin-top: 5px;"><i class="fas fa-magic"></i> Bản Xem Trước</div>` : '';
 
                             return `
                             <div class="evt-item" style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed rgba(2, 132, 199, 0.2); text-align: left; line-height: 1.4;">
@@ -634,16 +647,6 @@
             };
             let targetSubjectGroup = getMajorTag(targetSubject);
 
-            // Bóc tách tên môn (bỏ phần số đằng trước) để cho phép gộp các môn cùng tên
-            let getBaseSubjectName = (name) => {
-                if (!name) return "";
-                let parts = name.split('.');
-                if (parts.length > 1 && !isNaN(parts[0].trim())) {
-                    return parts.slice(1).join('.').trim().toLowerCase();
-                }
-                return name.trim().toLowerCase();
-            };
-            
             let allSubEvents = [];
             let sourceDB = customEventArray || scheduledEventsDB;
             
@@ -664,7 +667,7 @@
                     let eSubjectGroup = getMajorTag(e.subject);
                     let timeRangeStr = `${new Date(e.start).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12: false})} - ${new Date(e.end || e.startMs + 4 * 3600000).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12: false})} (${new Date(e.start).toLocaleDateString('vi-VN')})`;
 
-                    let isSameSubject = (getBaseSubjectName(e.subject) === getBaseSubjectName(targetSubject));
+                    let isSameSubject = (window.getBaseSubjectName(e.subject) === window.getBaseSubjectName(targetSubject));
                     let isDifferentSpecificOrient = (eOrientNorm !== 'CHUNG' && targetOrientNorm !== 'CHUNG' && eOrientNorm !== targetOrientNorm);
                     let isDifferentMajor = (eSubjectGroup !== "ALL" && targetSubjectGroup !== "ALL" && eSubjectGroup !== targetSubjectGroup);
 
@@ -673,9 +676,10 @@
                     let commonGVs = targetGVs.filter(gv => eGVs.includes(gv) && gv.toLowerCase() !== 'giảng viên đơn vị khác');
                     let hasCommonGV = commonGVs.length > 0;
                     
-                    // Trường hợp đặc biệt gộp NC và UD: Cùng môn, cùng lớp, cùng GV, CÙNG PHÒNG
+                    // Trường hợp đặc biệt gộp NC và UD: Cùng môn (tên gốc), cùng lớp, cùng GV, CÙNG PHÒNG
                     let isGopHe = (isSameSubject && isDifferentSpecificOrient && e.class === targetClass && hasCommonGV && targetRoom === e.room);
 
+                    // 1. Trùng phòng
                     if (targetRoom && e.room && targetRoom !== 'Khác...' && targetRoom !== 'OTHER' && e.room === targetRoom && e.type !== 'self_declared') {
                         if (!isGopHe) {
                             return { 
@@ -689,6 +693,7 @@
                         }
                     }
 
+                    // 2. Trùng lớp
                     if (e.class === targetClass && blockingTasks.includes(targetTask) && blockingTasks.includes(e.task) && e.type !== 'self_declared') {
                         if (isSameSubject && isDifferentSpecificOrient) {
                             if (targetRoom && e.room && targetRoom !== e.room && targetRoom !== 'Khác...' && targetRoom !== 'OTHER') {
@@ -713,6 +718,7 @@
                         }
                     }
                     
+                    // 3. Trùng giảng viên
                     if (hasCommonGV) {
                         if (e.type === 'self_declared') {
                             return { 
@@ -743,7 +749,7 @@
             return { hasOverlap: false };
         }
 
-        window.getScheduledCount = (cls, targetOrientCode, subName, gv, task, combinedEventsArray) => {
+        window.getScheduledCount = (cls, targetOrientCode, baseSubName, gv, task, combinedEventsArray) => {
             let count = 0;
             let targetNorm = window.normalizeOrient(targetOrientCode);
             let sourceDB = combinedEventsArray || scheduledEventsDB;
@@ -763,7 +769,7 @@
                 }
 
                 let eGVs = e.gv ? e.gv.split(/,|&/).map(s => s.trim()) : [];
-                if (e.class === cls && matchOrient && e.subject === subName && eGVs.includes(gv) && e.task === task) {
+                if (e.class === cls && matchOrient && window.getBaseSubjectName(e.subject) === baseSubName && eGVs.includes(gv) && e.task === task) {
                     count++;
                 }
             });
@@ -828,11 +834,13 @@
                         
                         asgData.allocations.forEach(a => {
                             const totalAssigned = parseInt(a.assigned) || 0;
-                            const mapKey = `${sub.id}_${a.gv}_${a.task}_${clsMatch}`;
+                            
+                            let baseSubName = window.getBaseSubjectName(sub.name);
+                            const mapKey = `${baseSubName}_${a.gv}_${a.task}_${clsMatch}`;
                             
                             if (!rawTaskMap.has(mapKey)) {
                                 rawTaskMap.set(mapKey, {
-                                    subName: sub.name, subId: sub.id, cls: clsMatch, gv: a.gv, task: a.task,
+                                    subName: sub.name, subId: sub.id, baseSubName: baseSubName, cls: clsMatch, gv: a.gv, task: a.task,
                                     totalNC: 0, totalUD: 0, totalGeneral: 0, semester: semester,
                                     allowJoint: asgData.allowJoint !== false
                                 });
@@ -852,9 +860,9 @@
             let poolTasksList = [];
 
             rawTaskMap.forEach((data, mapKey) => {
-                let scheduledNC = window.getScheduledCount(data.cls, 'NC', data.subName, data.gv, data.task, combinedEvents);
-                let scheduledUD = window.getScheduledCount(data.cls, 'UD', data.subName, data.gv, data.task, combinedEvents);
-                let scheduledGeneral = window.getScheduledCount(data.cls, 'CHUNG', data.subName, data.gv, data.task, combinedEvents);
+                let scheduledNC = window.getScheduledCount(data.cls, 'NC', data.baseSubName, data.gv, data.task, combinedEvents);
+                let scheduledUD = window.getScheduledCount(data.cls, 'UD', data.baseSubName, data.gv, data.task, combinedEvents);
+                let scheduledGeneral = window.getScheduledCount(data.cls, 'CHUNG', data.baseSubName, data.gv, data.task, combinedEvents);
 
                 let remNC = Math.max(0, data.totalNC - scheduledNC);
                 let remUD = Math.max(0, data.totalUD - scheduledUD);
@@ -906,6 +914,10 @@
 
                 let subjectHeader = document.createElement('div');
                 subjectHeader.className = 'pool-subject-title';
+                subjectHeader.style.cursor = 'pointer';
+                subjectHeader.style.display = 'flex';
+                subjectHeader.style.justifyContent = 'space-between';
+                subjectHeader.style.alignItems = 'center';
                 subjectHeader.innerHTML = `<span><i class="fas fa-book"></i> ${subName}</span> <i class="fas fa-chevron-down toggle-icon" style="color: #64748b;"></i>`;
                 subjectContainer.appendChild(subjectHeader);
 
@@ -1118,8 +1130,9 @@
                         
                         asgData.allocations.forEach(a => {
                             const totalAssigned = parseInt(a.assigned) || 0;
+                            let baseSubName = window.getBaseSubjectName(sub.name);
                             // Tính toán lại số lượng còn thiếu dựa trên DB hiện tại
-                            let scheduledCount = window.getScheduledCount(clsMatch, dbOrientCode, sub.name, a.gv, a.task, combinedEvents);
+                            let scheduledCount = window.getScheduledCount(clsMatch, dbOrientCode, baseSubName, a.gv, a.task, combinedEvents);
                             let remaining = Math.max(0, totalAssigned - scheduledCount);
 
                             if (remaining > 0) {
@@ -1145,19 +1158,10 @@
             
             let failedCount = 0;
 
-            let getBaseSubjectName = (name) => {
-                if (!name) return "";
-                let parts = name.split('.');
-                if (parts.length > 1 && !isNaN(parts[0].trim())) {
-                    return parts.slice(1).join('.').trim().toLowerCase();
-                }
-                return name.trim().toLowerCase();
-            };
-
             let loopGuard = 0;
             
             while(tasksToSchedule.length > 0 && loopGuard < 365) {
-                let dayOfWeek = currentDate.getDay(); 
+                let dayOfWeek = currentDate.getDay(); // 0: Sun, 1: Mon...
                 
                 if (skipDays.includes(dayOfWeek)) {
                     currentDate.setDate(currentDate.getDate() + 1);
@@ -1180,6 +1184,7 @@
                     let slotStartStr = toLocalISOString(slotStart);
                     let slotEndStr = toLocalISOString(slotEnd);
 
+                    // Mỗi ca có số lượng phòng nhất định
                     let availableRooms = [...window.ROOM_LIST];
 
                     // Duyệt ngược mảng task để xóa đi những task đã xếp xong
@@ -1187,14 +1192,24 @@
                         let t = tasksToSchedule[i];
                         if (!t || t.remaining <= 0) continue;
                         
-                        if (availableRooms.length === 0) break; 
+                        if (availableRooms.length === 0) break; // Hết phòng ca này -> Nhường các môn khác sang ca/ngày sau
 
-                        if (hasOverlap(slotStartStr, slotEndStr, t.gv, t.cls, t.task, availableRooms[0], t.subName, t.orientCode, [], combinedEvents).hasOverlap) {
+                        // Kiểm tra xem thẻ gốc này có ghép được phòng nào không
+                        let assignedRoom = null;
+                        for (let r = 0; r < availableRooms.length; r++) {
+                            let overlapCheck = hasOverlap(slotStartStr, slotEndStr, t.gv, t.cls, t.task, availableRooms[r], t.subName, t.orientCode, [], combinedEvents);
+                            if (!overlapCheck.hasOverlap) {
+                                assignedRoom = availableRooms[r];
+                                availableRooms.splice(r, 1);
+                                break;
+                            }
+                        }
+
+                        if (!assignedRoom) {
                             continue; 
                         }
 
-                        let assignedRoom = availableRooms.shift();
-
+                        // Tạo Event Gợi ý
                         let newEvent = {
                             id: `suggest_${Date.now()}_${Math.random().toString(36).substr(2,9)}`,
                             title: t.gv,
@@ -1211,7 +1226,7 @@
                             scheduledByEmail: currentUserEmail,
                             scheduledByName: currentUserName,
                             status: 'scheduled',
-                            isPreview: true 
+                            isPreview: true // Flag báo đây là bản xem trước
                         };
 
                         suggestedEventsArray.push(newEvent);
@@ -1219,14 +1234,14 @@
 
                         t.remaining -= 1;
 
-                        // Tìm Twin Event (Ghép đôi NC/UD)
+                        // Tìm thẻ "Twin" (Người anh em khác định hướng) để gộp chung vào 1 phòng, 1 khung giờ
                         let twinIndex = tasksToSchedule.findIndex((other, idx) => 
                             idx !== i && 
                             other.remaining > 0 &&
                             other.cls === t.cls &&
                             other.gv === t.gv &&
                             other.task === t.task &&
-                            getBaseSubjectName(other.subName) === getBaseSubjectName(t.subName) &&
+                            window.getBaseSubjectName(other.subName) === window.getBaseSubjectName(t.subName) &&
                             ((t.orientCode === 'NC' && other.orientCode === 'UD') || (t.orientCode === 'UD' && other.orientCode === 'NC'))
                         );
 
@@ -1244,14 +1259,15 @@
                             combinedEvents.push(twinEvent);
                             twin.remaining -= 1;
                             
+                            // Nếu twin hết số tiết, xóa khỏi danh sách chờ
                             if (twin.remaining <= 0) {
                                 tasksToSchedule.splice(twinIndex, 1);
-                                if (twinIndex < i) i--; 
+                                if (twinIndex < i) i--; // Điều chỉnh lại con trỏ mảng do phần tử trước đó bị xóa
                             }
                         }
 
                         if (t.remaining <= 0) {
-                            tasksToSchedule.splice(i, 1);
+                            tasksToSchedule.splice(i, 1); // Xóa khỏi danh sách chờ
                         }
                     }
                 }
@@ -1266,16 +1282,16 @@
             // BƯỚC 3: RENDER RA LỊCH VÀ CẬP NHẬT GIAO DIỆN
             processAndRenderEvents();
 
-            document.getElementById('statSuggested').innerText = suggestedEventsArray.length;
-            document.getElementById('statFailed').innerText = failedCount;
+            document.getElementById('statSuggested') ? document.getElementById('statSuggested').innerText = suggestedEventsArray.length : null;
+            document.getElementById('statFailed') ? document.getElementById('statFailed').innerText = failedCount : null;
 
             document.getElementById('btnSuggest').classList.add('hidden');
-            document.getElementById('btnSave').classList.remove('hidden');
-            document.getElementById('btnCancel').classList.remove('hidden');
+            document.getElementById('suggestActionGroup').classList.remove('hidden');
 
             if (suggestedEventsArray.length > 0) {
+                // Tự động chuyển view lịch đến ngày bắt đầu gợi ý
                 calendar.gotoDate(startDateVal);
-                showToast(`Đã tạo ${suggestedEventsArray.length} gợi ý! Bấm 'Chọn Lịch để Lưu' để xác nhận.`);
+                showToast(`Đã tạo ${suggestedEventsArray.length} gợi ý! Bấm 'Chọn Lưu' để xác nhận.`);
             } else {
                 showToast(`Không xếp được thêm sự kiện nào! (Trùng lịch hoặc quá tải)`, "warning");
             }
@@ -1283,14 +1299,13 @@
 
         window.cancelSuggestion = () => {
             suggestedEventsArray = [];
-            processAndRenderEvents(); 
+            processAndRenderEvents(); // Trở về như cũ (chỉ lấy DB)
             
-            document.getElementById('statSuggested').innerText = '0';
-            document.getElementById('statFailed').innerText = '0';
+            if(document.getElementById('statSuggested')) document.getElementById('statSuggested').innerText = '0';
+            if(document.getElementById('statFailed')) document.getElementById('statFailed').innerText = '0';
 
             document.getElementById('btnSuggest').classList.remove('hidden');
-            document.getElementById('btnSave').classList.add('hidden');
-            document.getElementById('btnCancel').classList.add('hidden');
+            document.getElementById('suggestActionGroup').classList.add('hidden');
 
             showToast("Đã hủy bản xem trước.");
         };
