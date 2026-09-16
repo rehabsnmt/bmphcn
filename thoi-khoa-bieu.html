@@ -54,7 +54,7 @@
         #event-pool .fc-event { background: #ffffff; cursor: move; margin: 0 0 6px 0; padding: 6px 8px; color: var(--text-dark); border: 1px solid #cbd5e1; border-radius: 4px; text-align: left; transition: 0.2s; position: relative; }
 
         .pool-subject-group { margin-bottom: 8px; background: white; border-radius: 6px; border: 1px solid #cbd5e1; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-        .pool-subject-title { font-size: 0.85rem; font-weight: 800; color: var(--text-dark); padding: 10px 8px; line-height: 1.3; transition: background 0.2s; border-radius: 6px; user-select: none; }
+        .pool-subject-title { font-size: 0.85rem; font-weight: 800; color: var(--text-dark); padding: 10px 8px; line-height: 1.3; transition: background 0.2s; border-radius: 6px; user-select: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center;}
         .pool-subject-title:hover { background: #f8fafc; }
         .pool-cards-container { padding: 0 8px 8px 8px; }
 
@@ -103,7 +103,7 @@
         .toast.danger { border-left-color: #ef4444; }
 
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 2000; padding: 10px; }
-        .modal-content { background: white; width: 95%; max-width: 450px; border-radius: 8px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); overflow: hidden; display: flex; flex-direction: column; }
+        .modal-content { background: white; width: 95%; max-width: 500px; border-radius: 8px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); overflow: hidden; display: flex; flex-direction: column; }
         .modal-header { padding: 15px 20px; background: var(--primary); color: white; display: flex; justify-content: space-between; align-items: center; }
         .modal-header h3 { margin: 0; font-size: 1.1rem; }
         .modal-body { padding: 20px; line-height: 1.8; text-align: left; max-height: 70vh; overflow-y: auto;}
@@ -112,7 +112,6 @@
         .btn-danger { background: var(--accent); color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s;}
         .btn-primary { background: var(--primary); color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s;}
         .btn-secondary { background: white; color: var(--text-dark); border: 1px solid var(--border); padding: 8px 15px; border-radius: 4px; cursor: pointer; transition: 0.2s; font-weight: 600; }
-        .btn-info { background: #0ea5e9; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s;}
 
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; font-weight: 600; margin-bottom: 5px; color: var(--text-dark); font-size:0.9rem;}
@@ -138,11 +137,6 @@
             .fc-toolbar-chunk:nth-child(3) { order: 3; width: 100%; display: flex; justify-content: center;} 
             
             .fc-button-primary { padding: 4px 8px !important; font-size: 0.85rem !important; }
-            
-            .fc-list-day-cushion { background-color: var(--primary-light) !important; padding: 8px 10px !important; }
-            .fc-list-event-time { font-weight: bold; color: var(--primary); width: 85px !important;}
-            .fc-list-event-title { padding: 8px !important; }
-            .fc-list-event-dot { display: none; }
             
             .evt-group-container { border: none; border-left: 3px solid var(--primary); padding: 5px; border-radius: 0; box-shadow: none;}
             .evt-group-header { display: none; } 
@@ -372,6 +366,26 @@
             return `background:${color.bg}; color:${color.text}; border: 1px solid ${color.text}40;`;
         };
 
+        // --- HÀM BÓC TÁCH TÊN MÔN (Bỏ đi số 1. 2. ở đầu để xác định môn chung) ---
+        window.getBaseSubjectName = (name) => {
+            if (!name) return "";
+            let parts = name.split('.');
+            if (parts.length > 1 && !isNaN(parts[0].trim())) {
+                return parts.slice(1).join('.').trim().toLowerCase();
+            }
+            return name.trim().toLowerCase();
+        };
+
+        // --- HÀM TẠO TÊN MÔN RÚT GỌN CHỮ SỐ CHO GIAO DIỆN ---
+        window.getCleanSubjectName = (name) => {
+            if (!name) return "";
+            let parts = name.split('.');
+            if (parts.length > 1 && !isNaN(parts[0].trim())) {
+                return parts.slice(1).join('.').trim();
+            }
+            return name.trim();
+        };
+
         window.normalizeOrient = (orient) => {
             if (!orient) return 'CHUNG';
             let str = String(orient).toUpperCase().trim();
@@ -522,16 +536,6 @@
             };
             let targetSubjectGroup = getMajorTag(targetSubject);
 
-            // Bóc tách tên môn (bỏ phần số đằng trước) để cho phép gộp các môn cùng tên
-            let getBaseSubjectName = (name) => {
-                if (!name) return "";
-                let parts = name.split('.');
-                if (parts.length > 1 && !isNaN(parts[0].trim())) {
-                    return parts.slice(1).join('.').trim().toLowerCase();
-                }
-                return name.trim().toLowerCase();
-            };
-            
             let allSubEvents = [];
             let sourceDB = customEventArray || scheduledEventsDB;
             
@@ -552,7 +556,7 @@
                     let eSubjectGroup = getMajorTag(e.subject);
                     let timeRangeStr = `${new Date(e.start).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12: false})} - ${new Date(e.end || e.startMs + 4 * 3600000).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12: false})} (${new Date(e.start).toLocaleDateString('vi-VN')})`;
 
-                    let isSameSubject = (getBaseSubjectName(e.subject) === getBaseSubjectName(targetSubject));
+                    let isSameSubject = (window.getBaseSubjectName(e.subject) === window.getBaseSubjectName(targetSubject));
                     let isDifferentSpecificOrient = (eOrientNorm !== 'CHUNG' && targetOrientNorm !== 'CHUNG' && eOrientNorm !== targetOrientNorm);
                     let isDifferentMajor = (eSubjectGroup !== "ALL" && targetSubjectGroup !== "ALL" && eSubjectGroup !== targetSubjectGroup);
 
@@ -561,7 +565,7 @@
                     let commonGVs = targetGVs.filter(gv => eGVs.includes(gv) && gv.toLowerCase() !== 'giảng viên đơn vị khác');
                     let hasCommonGV = commonGVs.length > 0;
                     
-                    // Trường hợp đặc biệt gộp NC và UD: Cùng môn (tên gốc), cùng lớp, cùng GV, CÙNG PHÒNG
+                    // Trường hợp gộp NC và UD: Cùng môn (tên gốc), cùng lớp, cùng GV, CÙNG PHÒNG
                     let isGopHe = (isSameSubject && isDifferentSpecificOrient && e.class === targetClass && hasCommonGV && targetRoom === e.room);
 
                     // 1. Trùng phòng
@@ -571,7 +575,7 @@
                                 hasOverlap: true, 
                                 reason: `Phòng "${targetRoom}" đã được sử dụng.`,
                                 conflictClass: e.class,
-                                conflictSubject: e.subject,
+                                conflictSubject: window.getCleanSubjectName(e.subject),
                                 conflictGV: e.gv || 'Chưa rõ',
                                 timeRange: timeRangeStr
                             };
@@ -584,9 +588,9 @@
                             if (targetRoom && e.room && targetRoom !== e.room && targetRoom !== 'Khác...' && targetRoom !== 'OTHER') {
                                 return { 
                                     hasOverlap: true, 
-                                    reason: `Gộp môn ${targetSubject} (NC và UD) nhưng khác phòng học. Phải xếp cùng một phòng.`,
+                                    reason: `Gộp môn ${window.getCleanSubjectName(targetSubject)} (NC và UD) nhưng khác phòng học. Phải xếp cùng một phòng.`,
                                     conflictClass: e.class,
-                                    conflictSubject: e.subject,
+                                    conflictSubject: window.getCleanSubjectName(e.subject),
                                     conflictGV: e.gv || 'Chưa rõ',
                                     timeRange: timeRangeStr
                                 };
@@ -596,7 +600,7 @@
                                 hasOverlap: true, 
                                 reason: `Lớp ${targetClass} đã có lịch học/thi khác vào khung giờ này.`,
                                 conflictClass: e.class,
-                                conflictSubject: e.subject,
+                                conflictSubject: window.getCleanSubjectName(e.subject),
                                 conflictGV: e.gv || 'Chưa rõ',
                                 timeRange: timeRangeStr
                             };
@@ -622,7 +626,7 @@
                                     hasOverlap: true, 
                                     reason: `Giảng viên ${commonGVs.join(', ')} đã bận dạy/coi thi ở lớp khác.`,
                                     conflictClass: e.class,
-                                    conflictSubject: e.subject,
+                                    conflictSubject: window.getCleanSubjectName(e.subject),
                                     conflictGV: e.gv || 'Chưa rõ',
                                     timeRange: timeRangeStr
                                 };
@@ -677,7 +681,7 @@
                                 start: evStart,
                                 end: subEv.end ? new Date(subEv.end) : new Date(evStart.getTime() + 4 * 3600000),
                                 class: subEv.class || '',
-                                subject: subEv.subject || '',
+                                subject: window.getCleanSubjectName(subEv.subject) || '',
                                 gv: subEv.gv || '', 
                                 task: subEv.task || '',
                                 room: subEv.room || 'Chưa XĐ',
@@ -964,7 +968,7 @@
                     right: 'timeGridWeek,timeGridDay,listWeek'
                 },
                 slotMinTime: '07:00:00',
-                slotMaxTime: '21:00:00',
+                slotMaxTime: '22:00:00', /* Đã điều chỉnh hiển thị tới 22h */
                 allDaySlot: false, 
                 slotLabelFormat: { hour: 'numeric', minute: '2-digit', omitZeroMinute: false, meridiem: false, hour12: false },
                 eventTimeFormat: { hour: 'numeric', minute: '2-digit', meridiem: false, hour12: false },
@@ -1012,45 +1016,51 @@
                                 `;
                             }
 
+                            // Đã thêm: Cắt số khỏi tên môn
+                            let displaySubject = window.getCleanSubjectName(e.subject);
+
                             let isCN = e.class.toUpperCase().includes('CN');
                             let eNorm = window.normalizeOrient(e.orientation);
                             let orientHtml = '';
                             if (!isCN) {
-                                let orientText = eNorm === 'NC' ? 'Hệ Nghiên cứu (NC)' : (eNorm === 'UD' ? 'Hệ Ứng dụng (UD)' : 'Học chung / Không phân ĐH');
-                                orientHtml = `<p style="margin:0 0 5px 0; color:var(--text-dark);"><strong>Phạm vi:</strong> <span style="font-weight:bold; color:${eNorm==='NC'?'#b45309':(eNorm==='UD'?'#0369a1':'#d97706')};">${orientText}</span></p>`;
+                                let orientText = eNorm === 'NC' ? 'Hệ Nghiên cứu (NC)' : (eNorm === 'UD' ? 'Hệ Ứng dụng (UD)' : 'Học chung (NC & UD)');
+                                orientHtml = `<div style="margin-bottom: 4px; font-size: 0.8rem;"><strong>Định hướng:</strong> <span style="font-weight:bold; color:${eNorm==='NC'?'#b45309':(eNorm==='UD'?'#0369a1':'#d97706')};">${orientText}</span></div>`;
                             }
 
                             let subObj = subjectsData.find(s => s.name === e.subject);
                             let majorBadge = window.getMajorBadgeHtml(subObj);
 
                             let classColorStyle = window.getClassColor(e.class);
-                            let classBadge = `<span style="display:inline-block; padding:2px 6px; border-radius:4px; font-size:0.75rem; font-weight:bold; ${classColorStyle}">${e.class}</span> ${majorBadge}`;
+                            let classBadge = `<span style="display:inline-block; padding:2px 6px; border-radius:4px; font-size:0.75rem; font-weight:bold; ${classColorStyle}">${e.class}</span>`;
                             
-                            let importNote = isImported ? `<p style="margin:0; font-size:0.8rem; color:#10b981; font-style:italic; font-weight:bold;">Xếp bởi: Hệ thống</p>` : `<p style="margin:0; font-size:0.8rem; color:#94a3b8; font-style:italic;">Xếp bởi: ${e.scheduledByName || 'Admin'}</p>`;
+                            let importNote = isImported ? `<div style="margin-top: 4px; font-size:0.8rem; color:#10b981; font-style:italic; font-weight:bold;">Xếp bởi: Hệ thống</div>` : `<div style="margin-top: 4px; font-size:0.8rem; color:#94a3b8; font-style:italic;">Xếp bởi: ${e.scheduledByName || 'Admin'}</div>`;
 
                             return `
                             <div class="evt-item" style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed rgba(2, 132, 199, 0.2); text-align: left; line-height: 1.4;">
-                                <div style="font-size: 0.85rem; color: var(--primary); margin-bottom: 4px; white-space: normal; word-break: break-word; font-weight: 700;">${e.subject}</div>
-                                <p style="margin:0 0 5px 0;"><strong>Khóa/Lớp:</strong> ${classBadge}</p>
+                                <div style="font-size: 0.9rem; color: var(--primary); margin-bottom: 6px; white-space: normal; word-break: break-word; font-weight: 800;">${displaySubject}</div>
+                                <div style="margin-bottom: 4px; font-size: 0.8rem;"><strong>Khóa/Lớp:</strong> ${classBadge}</div>
+                                <div style="margin-bottom: 4px; font-size: 0.8rem;"><strong>Chuyên ngành:</strong> ${majorBadge}</div>
                                 ${orientHtml}
-                                <p style="margin:0 0 5px 0;"><strong>Phòng học:</strong> <span style="background:#fbbf24; color:#78350f; padding:2px 6px; border-radius:4px; font-weight:bold;">${shortRoom}</span></p>
-                                <p style="margin:0 0 5px 0;"><strong>Nhiệm vụ:</strong> ${e.task}</p>
-                                <p style="margin:0 0 5px 0;"><strong>Giảng viên:</strong> <span style="font-weight:bold;">${gvDisplay}</span></p>
+                                <div style="margin-bottom: 4px; font-size: 0.8rem;"><strong>Phòng học:</strong> <span style="background:#fef3c7; color:#b45309; border: 1px solid #fde68a; padding:2px 6px; border-radius:4px; font-weight:bold;">${shortRoom}</span></div>
+                                <div style="margin-bottom: 4px; font-size: 0.8rem;"><strong>Nhiệm vụ:</strong> ${e.task}</div>
+                                <div style="margin-bottom: 4px; font-size: 0.8rem;"><strong>Giảng viên:</strong> <span style="font-weight:bold;">${gvDisplay}</span></div>
                                 ${importNote}
                             </div>
                             `;
                         }).join('');
 
-                        let isMyEvent = props.events.some(e => e.gv && currentUserName && e.gv.includes(currentUserName));
-                        let hasSelfDeclared = props.events.some(e => e.type === 'self_declared');
-                        
-                        let borderLeftColor = hasSelfDeclared ? '#8b5cf6' : (isMyEvent ? '#ea580c' : 'var(--primary)');
-                        let bgColor = hasSelfDeclared ? '#f5f3ff' : (isMyEvent ? '#fff7ed' : 'white');
+                        let hasPreview = props.events.some(e => e.isPreview);
+                        let borderLeftColor = hasPreview ? '#8b5cf6' : 'var(--primary)';
+                        let bgColor = hasPreview ? '#f5f3ff' : 'white';
+                        let extraClass = hasPreview ? 'preview-event' : '';
 
                         return {
                             html: `
-                            <div class="evt-group-container" style="background: ${bgColor}; border-left-color: ${borderLeftColor};">
-                                <div class="evt-group-header"><span>${timeStr}</span></div>
+                            <div class="evt-group-container ${extraClass}" style="background: ${bgColor}; border-left-color: ${borderLeftColor};">
+                                <div class="evt-group-header">
+                                    <span>${timeStr}</span>
+                                    ${hasPreview ? '<span style="color:#8b5cf6; font-size:0.75rem;"><i class="fas fa-star"></i> Mới</span>' : ''}
+                                </div>
                                 <div class="evt-items-list">${itemsHtml}</div>
                             </div>
                             `
@@ -1227,31 +1237,35 @@
                                 return; 
                             }
 
+                            // Đã thêm: Cắt số khỏi tên môn
+                            let displaySubject = window.getCleanSubjectName(e.subject);
+
                             let isCN = e.class.toUpperCase().includes('CN');
                             let eNorm = window.normalizeOrient(e.orientation);
                             let orientHtml = '';
                             if (!isCN) {
-                                let orientText = eNorm === 'NC' ? 'Hệ Nghiên cứu (NC)' : (eNorm === 'UD' ? 'Hệ Ứng dụng (UD)' : 'Học chung / Không phân ĐH');
-                                orientHtml = `<p style="margin:0 0 5px 0; color:var(--text-dark);"><strong>Phạm vi:</strong> <span style="font-weight:bold; color:${eNorm==='NC'?'#b45309':(eNorm==='UD'?'#0369a1':'#d97706')};">${orientText}</span></p>`;
+                                let orientText = eNorm === 'NC' ? 'Hệ Nghiên cứu (NC)' : (eNorm === 'UD' ? 'Hệ Ứng dụng (UD)' : 'Học chung (NC & UD)');
+                                orientHtml = `<p style="margin:0 0 5px 0; font-size: 0.9rem;"><strong>Định hướng:</strong> <span style="font-weight:bold; color:${eNorm==='NC'?'#b45309':(eNorm==='UD'?'#0369a1':'#d97706')};">${orientText}</span></p>`;
                             }
 
                             let subObj = subjectsData.find(s => s.name === e.subject);
                             let majorBadge = window.getMajorBadgeHtml(subObj);
 
                             let classColorStyle = window.getClassColor(e.class);
-                            let classBadge = `<span style="display:inline-block; padding:2px 6px; border-radius:4px; font-size:0.75rem; font-weight:bold; ${classColorStyle}">${e.class}</span> ${majorBadge}`;
+                            let classBadge = `<span style="display:inline-block; padding:2px 6px; border-radius:4px; font-size:0.75rem; font-weight:bold; ${classColorStyle}">${e.class}</span>`;
                             
                             let importNote = isImported ? `<p style="margin:0; font-size:0.8rem; color:#10b981; font-style:italic; font-weight:bold;">Xếp bởi: Hệ thống</p>` : `<p style="margin:0; font-size:0.8rem; color:#94a3b8; font-style:italic;">Xếp bởi: ${e.scheduledByName || 'Admin'}</p>`;
 
                             html += `
                             <div style="background:#fff; border:1px solid #cbd5e1; border-radius:6px; padding:12px; margin-bottom:12px; position:relative; text-align: left; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
                                 <div style="position:absolute; right:12px; top:12px;">${delBtn}</div>
-                                <p style="margin:0 0 5px 0; font-size:1.05rem; color:var(--primary); font-weight:bold; padding-right:60px;">${e.subject}</p>
-                                <p style="margin:0 0 5px 0;"><strong>Khóa/Lớp:</strong> ${classBadge}</p>
+                                <p style="margin:0 0 5px 0; font-size:1.05rem; color:var(--primary); font-weight:bold; padding-right:60px;">${displaySubject}</p>
+                                <p style="margin:0 0 5px 0; font-size: 0.9rem;"><strong>Khóa/Lớp:</strong> ${classBadge}</p>
+                                <p style="margin:0 0 5px 0; font-size: 0.9rem;"><strong>Chuyên ngành:</strong> ${majorBadge}</p>
                                 ${orientHtml}
-                                <p style="margin:0 0 5px 0;"><strong>Phòng học:</strong> <span style="background:#fbbf24; color:#78350f; padding:2px 6px; border-radius:4px; font-weight:bold;">${e.room || 'Chưa XĐ'}</span></p>
-                                <p style="margin:0 0 5px 0;"><strong>Nhiệm vụ:</strong> ${e.task}</p>
-                                <p style="margin:0 0 5px 0;"><strong>Giảng viên:</strong> <span style="font-weight:bold;">${e.gv}</span></p>
+                                <p style="margin:0 0 5px 0; font-size: 0.9rem;"><strong>Phòng học:</strong> <span style="background:#fbbf24; color:#78350f; border: 1px solid #fde68a; padding:2px 6px; border-radius:4px; font-weight:bold;">${e.room || 'Chưa XĐ'}</span></p>
+                                <p style="margin:0 0 5px 0; font-size: 0.9rem;"><strong>Nhiệm vụ:</strong> ${e.task}</p>
+                                <p style="margin:0 0 5px 0; font-size: 0.9rem;"><strong>Giảng viên:</strong> <span style="font-weight:bold;">${e.gv}</span></p>
                                 ${importNote}
                             </div>
                             `;
@@ -1406,11 +1420,12 @@
                         
                         asgData.allocations.forEach(a => {
                             const totalAssigned = parseInt(a.assigned) || 0;
-                            const mapKey = `${sub.id}_${a.gv}_${a.task}_${clsMatch}`;
+                            let baseSubName = window.getBaseSubjectName(sub.name);
+                            const mapKey = `${baseSubName}_${a.gv}_${a.task}_${clsMatch}`;
                             
                             if (!rawTaskMap.has(mapKey)) {
                                 rawTaskMap.set(mapKey, {
-                                    subName: sub.name, subId: sub.id, cls: clsMatch, gv: a.gv, task: a.task,
+                                    subName: sub.name, subId: sub.id, baseSubName: baseSubName, cls: clsMatch, gv: a.gv, task: a.task,
                                     totalNC: 0, totalUD: 0, totalGeneral: 0, semester: semester,
                                     allowJoint: asgData.allowJoint !== false
                                 });
@@ -1430,9 +1445,9 @@
             let poolTasksList = [];
 
             rawTaskMap.forEach((data, mapKey) => {
-                let scheduledNC = window.getScheduledCount(data.cls, 'NC', data.subName, data.gv, data.task, combinedEvents);
-                let scheduledUD = window.getScheduledCount(data.cls, 'UD', data.subName, data.gv, data.task, combinedEvents);
-                let scheduledGeneral = window.getScheduledCount(data.cls, 'CHUNG', data.subName, data.gv, data.task, combinedEvents);
+                let scheduledNC = window.getScheduledCount(data.cls, 'NC', data.baseSubName, data.gv, data.task, combinedEvents);
+                let scheduledUD = window.getScheduledCount(data.cls, 'UD', data.baseSubName, data.gv, data.task, combinedEvents);
+                let scheduledGeneral = window.getScheduledCount(data.cls, 'CHUNG', data.baseSubName, data.gv, data.task, combinedEvents);
 
                 let remNC = Math.max(0, data.totalNC - scheduledNC);
                 let remUD = Math.max(0, data.totalUD - scheduledUD);
@@ -1475,8 +1490,9 @@
 
             let subjectGroups = new Map();
             poolTasksList.forEach((item) => {
-                if (!subjectGroups.has(item.subName)) subjectGroups.set(item.subName, []);
-                subjectGroups.get(item.subName).push(item);
+                let dSubName = window.getCleanSubjectName(item.subName);
+                if (!subjectGroups.has(dSubName)) subjectGroups.set(dSubName, []);
+                subjectGroups.get(dSubName).push(item);
                 unscheduledCount += item.remaining;
             });
 
@@ -1486,7 +1502,7 @@
                 if(poolDiv) poolDiv.innerHTML = '<div style="padding: 15px; text-align: center; color: #64748b; font-style: italic;">Không có môn học nào đang chờ xếp.</div>';
             }
 
-            orderedSubjectNames.forEach((subName, gIdx) => {
+            orderedSubjectNames.forEach((dSubName, gIdx) => {
                 let subjectContainer = document.createElement('div');
                 subjectContainer.className = 'pool-subject-group';
 
@@ -1496,29 +1512,29 @@
                 subjectHeader.style.display = 'flex';
                 subjectHeader.style.justifyContent = 'space-between';
                 subjectHeader.style.alignItems = 'center';
-                subjectHeader.innerHTML = `<span><i class="fas fa-book"></i> ${subName}</span> <i class="fas fa-chevron-down toggle-icon" style="color: #64748b;"></i>`;
+                subjectHeader.innerHTML = `<span><i class="fas fa-book"></i> ${dSubName}</span> <i class="fas fa-chevron-down toggle-icon" style="color: #64748b;"></i>`;
                 subjectContainer.appendChild(subjectHeader);
 
                 let cardsContainer = document.createElement('div');
                 cardsContainer.className = 'pool-cards-container'; 
 
-                const tasks = subjectGroups.get(subName);
+                const tasks = subjectGroups.get(dSubName);
                 
                 tasks.forEach(item => {
                     let eventDiv = document.createElement('div');
                     let classColorStyle = window.getClassColor(item.cls);
                     let subObj = subjectsData.find(s => s.name === item.subName);
                     let majorBadge = window.getMajorBadgeHtml(subObj);
-                    let classTag = `<span class="class-tag" style="${classColorStyle}">${item.cls}</span> ${majorBadge}`;
+                    let classTag = `<span class="class-tag" style="${classColorStyle}">${item.cls}</span>`;
                     let gvDisplay = window.formatGvName(item.gv);
 
                     let normCode = window.normalizeOrient(item.orientCode);
                     let isCN = item.cls.toUpperCase().includes('CN');
                     let orientDisplay = '';
                     if (!isCN) {
-                        if (normCode === 'NC') orientDisplay = '<div class="badge-orient badge-nc" style="display:block; text-align:center; margin-bottom:5px;">Hệ Nghiên cứu (NC)</div>';
-                        else if (normCode === 'UD') orientDisplay = '<div class="badge-orient badge-ud" style="display:block; text-align:center; margin-bottom:5px;">Hệ Ứng dụng (UD)</div>';
-                        else orientDisplay = '<div class="badge-orient badge-chung" style="display:block; text-align:center; margin-bottom:5px;">Học chung (NC & UD)</div>';
+                        if (normCode === 'NC') orientDisplay = '<div class="badge-orient badge-nc" style="display:inline-block; text-align:center; margin-bottom:5px;">Hệ Nghiên cứu (NC)</div>';
+                        else if (normCode === 'UD') orientDisplay = '<div class="badge-orient badge-ud" style="display:inline-block; text-align:center; margin-bottom:5px;">Hệ Ứng dụng (UD)</div>';
+                        else orientDisplay = '<div class="badge-orient badge-chung" style="display:inline-block; text-align:center; margin-bottom:5px;">Học chung (NC & UD)</div>';
                     }
 
                     if (item.isRejected) {
@@ -1536,7 +1552,7 @@
                         eventDiv.setAttribute('data-semester', item.semester);       
 
                         let rBadge = `<span class="reject-badge"><i class="fas fa-exclamation-circle"></i> Bị từ chối (Trả về)</span>`;
-                        eventDiv.innerHTML = `${classTag}<div class="event-gv">${gvDisplay}</div><span class="event-info">[${item.task}]</span>${rBadge}`;
+                        eventDiv.innerHTML = `${classTag} ${majorBadge}<div class="event-gv">${gvDisplay}</div><span class="event-info">[${item.task}]</span>${rBadge}`;
                     } else {
                         let orientAttr = normCode === 'NC' ? 'Nghiên cứu' : (normCode === 'UD' ? 'Ứng dụng' : 'Cả hai');
 
@@ -1556,7 +1572,7 @@
                         eventDiv.innerHTML = `
                             ${countBadge}
                             ${orientDisplay}
-                            ${classTag} 
+                            <br>${classTag} ${majorBadge}
                             <div class="event-gv" title="${item.gv}">${gvDisplay}</div>
                             <span class="event-info">[${item.task}]</span>
                         `;
@@ -1569,9 +1585,11 @@
                     cardsContainer.classList.toggle('hidden');
                     let icon = subjectHeader.querySelector('.toggle-icon');
                     if (cardsContainer.classList.contains('hidden')) {
-                        icon.classList.remove('fa-chevron-up'); icon.classList.add('fa-chevron-down');
+                        icon.classList.remove('fa-chevron-up');
+                        icon.classList.add('fa-chevron-down');
                     } else {
-                        icon.classList.remove('fa-chevron-down'); icon.classList.add('fa-chevron-up');
+                        icon.classList.remove('fa-chevron-down');
+                        icon.classList.add('fa-chevron-up');
                     }
                 };
                 if(poolDiv) poolDiv.appendChild(subjectContainer);
