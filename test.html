@@ -92,9 +92,17 @@
             color: var(--text-dark); box-shadow: 0 1px 3px rgba(0,0,0,0.05);
             cursor: pointer;
         }
-        .evt-group-header { font-size: 0.8rem; font-weight: 700; color: #64748b; margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: flex-start; }
+        .evt-group-header { font-size: 0.8rem; font-weight: 700; color: #64748b; margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; }
         .evt-items-list { flex: 1; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; gap: 8px; }
         
+        /* Hiệu ứng Xem trước của Gợi ý */
+        .preview-event { animation: pulse-border 1.5s infinite; border-width: 2px !important; }
+        @keyframes pulse-border {
+            0% { border-color: #8b5cf6; box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.4); }
+            70% { border-color: #7c3aed; box-shadow: 0 0 0 6px rgba(139, 92, 246, 0); }
+            100% { border-color: #8b5cf6; box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); }
+        }
+
         .hidden { display: none !important; }
 
         .toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
@@ -236,7 +244,14 @@
                     </select>
                 </div>
                 
-                <button onclick="startSuggestion()" style="width: 100%; padding: 6px; border-radius: 4px; border: none; background: #8b5cf6; color: white; font-weight: bold; cursor: pointer; font-size: 0.8rem; transition: 0.2s;"><i class="fas fa-play"></i> Xếp lịch cho các môn đang lọc</button>
+                <button id="btnSuggest" onclick="startSuggestion()" style="width: 100%; padding: 6px; border-radius: 4px; border: none; background: #8b5cf6; color: white; font-weight: bold; cursor: pointer; font-size: 0.8rem; transition: 0.2s;"><i class="fas fa-play"></i> Xếp lịch cho các môn đang lọc</button>
+                
+                <!-- NÚT LƯU & HỦY ẨN MẶC ĐỊNH -->
+                <div id="suggestActionGroup" class="hidden" style="display: flex; gap: 5px; margin-top: 5px;">
+                    <button id="btnSave" style="flex: 1; padding: 6px; border-radius: 4px; border: none; background: #10b981; color: white; font-weight: bold; cursor: pointer; font-size: 0.8rem; transition: 0.2s;" onclick="openReviewSuggestModal()"><i class="fas fa-list-check"></i> Chọn Lưu</button>
+                    <button style="flex: 1; padding: 6px; border-radius: 4px; border: none; background: #ef4444; color: white; font-weight: bold; cursor: pointer; font-size: 0.8rem; transition: 0.2s;" onclick="cancelSuggestion()"><i class="fas fa-times"></i> Hủy</button>
+                </div>
+
                 <div style="font-size: 0.7rem; color: #64748b; font-style: italic; margin-top: 5px; text-align: center;">Hệ thống sẽ lấy các Tùy chọn lọc ngay bên trên để phân bổ.</div>
             </div>
 
@@ -325,16 +340,16 @@
 
     <!-- MODAL DUYỆT VÀ CHỌN CÁC GỢI Ý ĐỂ LƯU -->
     <div id="reviewSuggestModal" class="modal-overlay hidden" style="z-index: 4000;">
-        <div class="modal-content" style="max-width: 800px;">
+        <div class="modal-content" style="max-width: 800px; max-height: 90vh;">
             <div class="modal-header" style="background: #8b5cf6;">
                 <h3>Xác nhận Lưu Gợi ý Xếp Lịch</h3>
                 <span style="cursor: pointer; font-weight: bold; font-size:1.2rem; color:white;" onclick="document.getElementById('reviewSuggestModal').classList.add('hidden')">X</span>
             </div>
-            <div class="modal-body">
+            <div class="modal-body" style="overflow-y: hidden;">
                 <p style="margin-top:0; font-size:0.95rem; color:var(--text-body);">Đã tạo ra các gợi ý dưới đây. Vui lòng chọn các buổi học bạn muốn nhập vào Thời khóa biểu chính thức:</p>
-                <div style="max-height: 400px; overflow-y: auto; border: 1px solid var(--border); border-radius: 6px;">
+                <div style="max-height: 350px; overflow-y: auto; border: 1px solid var(--border); border-radius: 6px;">
                     <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
-                        <thead>
+                        <thead style="position: sticky; top: 0; z-index: 5;">
                             <tr>
                                 <th style="padding: 10px; background:var(--bg-page); border-bottom: 2px solid #cbd5e1; width: 40px; text-align: center;"><input type="checkbox" id="checkAllSuggest" checked onchange="toggleAllSuggest(this)"></th>
                                 <th style="padding: 10px; background:var(--bg-page); border-bottom: 2px solid #cbd5e1;">Thời gian</th>
@@ -369,6 +384,7 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // Biến lưu trữ danh sách phòng từ json/phonghoc.json
         window.ROOM_LIST = ["Phòng 3", "Phòng 4", "Phòng OT", "Phòng ST", "Hội trường"];
         
         async function loadRoomsConfig() {
@@ -398,6 +414,9 @@
         let subjectsData = [];
         let gvShortNameMap = {};
         let pendingDropInfo = null;
+
+        // Mảng chứa các sự kiện do AI gợi ý (nhưng chưa lưu lên Firebase)
+        let suggestedEventsArray = [];
 
         window.getGroupTagFromSubject = (subjectName) => {
             if (!subjectName) return "ALL";
@@ -886,7 +905,6 @@
                     
                     const calClassSelect = document.getElementById('calendarClassFilter');
                     const poolClassSelect = document.getElementById('poolClassFilter');
-                    const suggestClassSelect = document.getElementById('suggestClassFilter');
 
                     let classHtml = '<option value="ALL">Tất cả Lớp</option>';
                     managedClasses.forEach(c => { classHtml += `<option value="${c}">${c}</option>`; });
@@ -896,11 +914,9 @@
                         poolClassSelect.innerHTML = classHtml;
                         if(managedClasses.length > 0) poolClassSelect.value = managedClasses[0]; 
                     }
-                    if (suggestClassSelect) suggestClassSelect.innerHTML = classHtml;
 
                     const poolMajorSelect = document.getElementById('poolMajorFilter');
                     const calendarMajorSelect = document.getElementById('calendarMajorFilter');
-                    const suggestMajorFilter = document.getElementById('suggestMajorFilter');
 
                     let majorHtml = '<option value="ALL">Tất cả Ngành</option>';
                     Array.from(tempMajors).sort().forEach(m => {
@@ -912,7 +928,6 @@
                     });
                     if(poolMajorSelect) poolMajorSelect.innerHTML = majorHtml;
                     if(calendarMajorSelect) calendarMajorSelect.innerHTML = majorHtml;
-                    if(suggestMajorFilter) suggestMajorFilter.innerHTML = majorHtml;
 
                 } catch(e) { console.error("Lỗi lấy dữ liệu Subjects:", e); }
 
@@ -1385,7 +1400,7 @@
             document.getElementById('roomModal').classList.add('hidden');
         };
 
-        // --- HÀM KIỂM TRA QUÁ TẢI (TRUYỀN THỐNG MỚI CHỈNH) ---
+        // --- HÀM TẢI MÔN CẦN XẾP VÀ XỬ LÝ (TÍCH HỢP BỘ LỌC) ---
         window.processAndRenderEvents = () => {
             if (!calendar) return;
 
@@ -1395,10 +1410,10 @@
             const poolDiv = document.getElementById('event-pool');
             if(poolDiv) poolDiv.innerHTML = '';
             
-            const calendarClassFilter = document.getElementById('suggestClassFilter').value;
-            const calendarOrientFilter = document.getElementById('suggestOrientFilter').value;
-            const calendarMajorFilter = document.getElementById('suggestMajorFilter').value;
-            const poolSemesterFilter = document.getElementById('suggestSemesterFilter').value; 
+            const poolClassFilter = document.getElementById('poolClassFilter') ? document.getElementById('poolClassFilter').value : 'ALL';
+            const poolOrientFilter = document.getElementById('poolOrientFilter') ? document.getElementById('poolOrientFilter').value : 'ALL';
+            const poolMajorFilter = document.getElementById('poolMajorFilter') ? document.getElementById('poolMajorFilter').value : 'ALL';
+            const poolSemesterFilter = document.getElementById('poolSemesterFilter') ? document.getElementById('poolSemesterFilter').value : 'ALL';
 
             let rawTaskMap = new Map();
 
@@ -1415,20 +1430,20 @@
                     });
                     
                     if (!clsMatch) return;
-                    if (calendarClassFilter !== 'ALL' && !window.isClassMatch(clsMatch, calendarClassFilter)) return;
+                    if (poolClassFilter !== 'ALL' && !window.isClassMatch(clsMatch, poolClassFilter)) return;
 
                     let shortMajor = sub.majorTag;
                     if (sub.majorTag === "Vật lý trị liệu") shortMajor = "VLTL";
                     else if (sub.majorTag === "Hoạt động trị liệu") shortMajor = "HĐTL";
                     else if (sub.majorTag === "Ngôn ngữ trị liệu") shortMajor = "NNTL";
                     
-                    if (calendarMajorFilter !== 'ALL' && shortMajor !== 'ALL' && shortMajor !== calendarMajorFilter) return;
+                    if (poolMajorFilter !== 'ALL' && shortMajor !== 'ALL' && shortMajor !== poolMajorFilter) return;
 
                     let dbOrientCode = '';
                     if (dbKey.includes('_NC')) dbOrientCode = 'NC';
                     else if (dbKey.includes('_UD')) dbOrientCode = 'UD';
 
-                    if (calendarOrientFilter !== 'ALL' && dbOrientCode !== '' && dbOrientCode !== calendarOrientFilter) return;
+                    if (poolOrientFilter !== 'ALL' && dbOrientCode !== '' && dbOrientCode !== poolOrientFilter) return;
 
                     const asgData = asgObj[dbKey];
                     if (asgData && asgData.allocations && asgData.status !== 'proposed') {
@@ -1501,12 +1516,13 @@
                 unscheduledCount += item.remaining;
             });
 
-            document.getElementById('statUnscheduled').innerText = unscheduledCount;
+            let statUnscheduledEl = document.getElementById('statUnscheduled');
+            if (statUnscheduledEl) statUnscheduledEl.innerText = unscheduledCount;
 
             const orderedSubjectNames = Array.from(subjectGroups.keys()).sort((a,b) => a.localeCompare(b, 'vi'));
             
             if (orderedSubjectNames.length === 0) {
-                poolDiv.innerHTML = '<div style="padding: 15px; text-align: center; color: #64748b; font-style: italic;">Không có môn học nào đang chờ xếp.</div>';
+                if(poolDiv) poolDiv.innerHTML = '<div style="padding: 15px; text-align: center; color: #64748b; font-style: italic;">Không có môn học nào đang chờ xếp.</div>';
             }
 
             orderedSubjectNames.forEach((subName, gIdx) => {
@@ -1541,6 +1557,19 @@
                     }
 
                     eventDiv.className = `fc-event ${item.cls}`;
+                    
+                    eventDiv.setAttribute('data-id', `${item.subId}_${item.orientCode}_${item.gv}_${item.task}_${item.cls}`); 
+                    eventDiv.setAttribute('data-title', item.gv); 
+                    eventDiv.setAttribute('data-subject', item.subName);
+                    eventDiv.setAttribute('data-gv', item.gv);
+                    eventDiv.setAttribute('data-task', item.task);
+                    eventDiv.setAttribute('data-class', item.cls);
+                    
+                    let orientAttr = normCode === 'NC' ? 'Nghiên cứu' : (normCode === 'UD' ? 'Ứng dụng' : 'Cả hai');
+                    eventDiv.setAttribute('data-orientations', orientAttr); 
+                    eventDiv.setAttribute('data-semester', item.semester);
+                    eventDiv.setAttribute('data-max-rem', item.remaining);        
+
                     let countBadge = `<div class="count-badge">${item.remaining}</div>`;
 
                     eventDiv.innerHTML = `
@@ -1563,7 +1592,7 @@
                         icon.classList.remove('fa-chevron-down'); icon.classList.add('fa-chevron-up');
                     }
                 };
-                poolDiv.appendChild(subjectContainer);
+                if(poolDiv) poolDiv.appendChild(subjectContainer);
             });
 
             // 2. RENDER LỊCH CHÍNH (Sử dụng combinedEvents)
@@ -1578,21 +1607,21 @@
             let dataToRender = customArray ? customArray : scheduledEventsDB;
             let scheduledEventsNormal = dataToRender.filter(e => e.status !== 'returned' && e.start);
 
-            const clsFilter = document.getElementById('suggestClassFilter').value;
-            const orientFilter = document.getElementById('suggestOrientFilter').value;
-            const majorFilter = document.getElementById('suggestMajorFilter').value;
+            const calClassFilter = document.getElementById('calendarClassFilter') ? document.getElementById('calendarClassFilter').value : 'ALL';
+            const calOrientFilter = document.getElementById('calendarOrientFilter') ? document.getElementById('calendarOrientFilter').value : 'ALL';
+            const calMajorFilter = document.getElementById('calendarMajorFilter') ? document.getElementById('calendarMajorFilter').value : 'ALL';
 
-            if (clsFilter !== 'ALL') {
-                scheduledEventsNormal = scheduledEventsNormal.filter(e => window.isClassMatch(e.class, clsFilter));
+            if (calClassFilter !== 'ALL') {
+                scheduledEventsNormal = scheduledEventsNormal.filter(e => window.isClassMatch(e.class, calClassFilter));
             }
-            if (orientFilter !== 'ALL') {
-                let filterNorm = window.normalizeOrient(orientFilter);
+            if (calOrientFilter !== 'ALL') {
+                let filterNorm = window.normalizeOrient(calOrientFilter);
                 scheduledEventsNormal = scheduledEventsNormal.filter(e => {
                     let eNorm = window.normalizeOrient(e.orientation);
                     return eNorm === 'CHUNG' || eNorm === filterNorm;
                 });
             }
-            if (majorFilter !== 'ALL') {
+            if (calMajorFilter !== 'ALL') {
                 scheduledEventsNormal = scheduledEventsNormal.filter(e => {
                     let subObj = subjectsData.find(s => s.name === e.subject);
                     if (subObj) {
@@ -1601,7 +1630,7 @@
                         if (major === "Vật lý trị liệu") shortMajor = "VLTL";
                         else if (major === "Hoạt động trị liệu") shortMajor = "HĐTL";
                         else if (major === "Ngôn ngữ trị liệu") shortMajor = "NNTL";
-                        return shortMajor === majorFilter || shortMajor === 'ALL'; 
+                        return shortMajor === calMajorFilter || shortMajor === 'ALL'; 
                     }
                     return true;
                 });
@@ -1614,7 +1643,7 @@
                 
                 let deduplicateKey = `${sTime}_${eTime}_${e.room}_${e.subject}_${e.task}_${e.gv}_${e.orientation}_${e.class}`;
 
-                // Ưu tiên event preview (của AI) hơn là event thường
+                // Ưu tiên event preview (của AI) hơn là event thường (trường hợp trùng lắp hiển thị)
                 if (!deduplicatedEventsMap.has(deduplicateKey) || e.isPreview) {
                     deduplicatedEventsMap.set(deduplicateKey, e);
                 }
@@ -1657,11 +1686,13 @@
                 showToast("Vui lòng chọn ngày bắt đầu!", "warning"); return;
             }
 
-            const semFilter = document.getElementById('suggestSemesterFilter').value;
-            const clsFilter = document.getElementById('suggestClassFilter').value;
-            const majorFilter = document.getElementById('suggestMajorFilter').value;
-            const orientFilter = document.getElementById('suggestOrientFilter').value;
+            // Lấy các setting từ Pool (Chỉ lấy các môn đang hiển thị trong Kho chờ xếp)
+            const semFilter = document.getElementById('poolSemesterFilter') ? document.getElementById('poolSemesterFilter').value : 'ALL';
+            const clsFilter = document.getElementById('poolClassFilter') ? document.getElementById('poolClassFilter').value : 'ALL';
+            const majorFilter = document.getElementById('poolMajorFilter') ? document.getElementById('poolMajorFilter').value : 'ALL';
+            const orientFilter = document.getElementById('poolOrientFilter') ? document.getElementById('poolOrientFilter').value : 'ALL';
             
+            // Lấy các ngày nghỉ (Bỏ qua)
             const skipDaysSelect = document.getElementById('suggestSkipDays');
             const skipDays = Array.from(skipDaysSelect.selectedOptions).map(opt => parseInt(opt.value));
 
@@ -1754,7 +1785,7 @@
                         let t = tasksToSchedule[i];
                         if (availableRooms.length === 0) break;
 
-                        if (hasOverlap(slotStartStr, slotEndStr, t.gv, t.cls, t.task, availableRooms[0], t.subName, t.orientCode, [], combinedEvents)) {
+                        if (hasOverlap(slotStartStr, slotEndStr, t.gv, t.cls, t.task, availableRooms[0], t.subName, t.orientCode, [], combinedEvents).hasOverlap) {
                             continue; 
                         }
 
@@ -1766,7 +1797,7 @@
                             class: t.cls, subject: t.subName, gv: t.gv, task: t.task, room: assignedRoom,
                             orientation: window.normalizeOrient(t.orientCode) === 'NC' ? 'Nghiên cứu' : (window.normalizeOrient(t.orientCode) === 'UD' ? 'Ứng dụng' : 'Cả hai'),
                             semester: t.semester, scheduledByEmail: currentUserEmail, scheduledByName: currentUserName, status: 'scheduled',
-                            isPreview: true
+                            isPreview: true 
                         };
 
                         suggestedEventsArray.push(newEvent);
@@ -1786,16 +1817,15 @@
 
             processAndRenderEvents();
 
-            document.getElementById('statSuggested').innerText = suggestedEventsArray.length;
-            document.getElementById('statFailed').innerText = failedCount;
+            document.getElementById('statSuggested') ? document.getElementById('statSuggested').innerText = suggestedEventsArray.length : null;
+            document.getElementById('statFailed') ? document.getElementById('statFailed').innerText = failedCount : null;
 
             document.getElementById('btnSuggest').classList.add('hidden');
-            document.getElementById('btnSave').classList.remove('hidden');
-            document.getElementById('btnCancel').classList.remove('hidden');
+            document.getElementById('suggestActionGroup').classList.remove('hidden');
 
             if (suggestedEventsArray.length > 0) {
                 calendar.gotoDate(startDateVal);
-                showToast(`Đã tạo ${suggestedEventsArray.length} gợi ý! Bấm 'Chọn Lịch để Lưu' để xác nhận.`);
+                showToast(`Đã tạo ${suggestedEventsArray.length} gợi ý! Bấm 'Chọn Lưu' để xác nhận.`);
             } else {
                 showToast(`Không xếp được thêm sự kiện nào! (Trùng lịch hoặc quá tải)`, "warning");
             }
@@ -1805,12 +1835,11 @@
             suggestedEventsArray = [];
             processAndRenderEvents(); 
             
-            document.getElementById('statSuggested').innerText = '0';
-            document.getElementById('statFailed').innerText = '0';
+            if(document.getElementById('statSuggested')) document.getElementById('statSuggested').innerText = '0';
+            if(document.getElementById('statFailed')) document.getElementById('statFailed').innerText = '0';
 
             document.getElementById('btnSuggest').classList.remove('hidden');
-            document.getElementById('btnSave').classList.add('hidden');
-            document.getElementById('btnCancel').classList.add('hidden');
+            document.getElementById('suggestActionGroup').classList.add('hidden');
 
             showToast("Đã hủy bản xem trước.");
         };
@@ -1873,9 +1902,11 @@
             const eventsToSave = suggestedEventsArray.filter(ev => selectedIds.includes(ev.id));
 
             document.getElementById('reviewSuggestModal').classList.add('hidden');
-            const btnSaveUI = document.getElementById('btnSave');
-            btnSaveUI.disabled = true;
-            btnSaveUI.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang lưu...';
+            const btnSaveUI = document.getElementById('btnConfirmSaveSuggest');
+            if(btnSaveUI) {
+                btnSaveUI.disabled = true;
+                btnSaveUI.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang lưu...';
+            }
 
             try {
                 let promises = eventsToSave.map(evData => {
@@ -1892,21 +1923,24 @@
                 
                 if (suggestedEventsArray.length === 0) {
                     document.getElementById('btnSuggest').classList.remove('hidden');
-                    document.getElementById('btnSave').classList.add('hidden');
-                    document.getElementById('btnCancel').classList.add('hidden');
+                    document.getElementById('suggestActionGroup').classList.add('hidden');
                 } else {
-                    document.getElementById('statSuggested').innerText = suggestedEventsArray.length;
+                    if(document.getElementById('statSuggested')) document.getElementById('statSuggested').innerText = suggestedEventsArray.length;
                 }
                 
-                btnSaveUI.disabled = false;
-                btnSaveUI.innerHTML = '<i class="fas fa-list-check"></i> Chọn Lịch để Lưu';
+                if(btnSaveUI) {
+                    btnSaveUI.disabled = false;
+                    btnSaveUI.innerHTML = '<i class="fas fa-save"></i> Ghi vào CSDL';
+                }
 
                 processAndRenderEvents();
 
             } catch(e) {
                 showToast("Lỗi khi lưu DB: " + e.message, "danger");
-                btnSaveUI.disabled = false;
-                btnSaveUI.innerHTML = '<i class="fas fa-list-check"></i> Chọn Lịch để Lưu';
+                if(btnSaveUI) {
+                    btnSaveUI.disabled = false;
+                    btnSaveUI.innerHTML = '<i class="fas fa-save"></i> Ghi vào CSDL';
+                }
             }
         };
 
