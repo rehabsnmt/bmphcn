@@ -47,7 +47,7 @@
         .task-card.self-declared .task-time { color: #8b5cf6; }
         
         .task-time { font-size: 0.95rem; font-weight: 700; color: #0ea5e9; margin-bottom: 8px; }
-        .task-subject { font-size: 1.15rem; font-weight: 700; color: var(--text-dark); margin-bottom: 5px; line-height: 1.4; }
+        .task-subject { font-size: 1.15rem; font-weight: 800; color: var(--text-dark); margin-bottom: 5px; line-height: 1.4; }
         .task-role { font-size: 0.9rem; color: var(--text-body); margin-bottom: 10px; font-weight: 500; }
         .task-room { font-size: 0.9rem; color: #b45309; margin-bottom: 15px; font-weight: bold; }
         .task-class { background: var(--bg-page); border: 1px solid var(--border); padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; color: var(--text-body); display: inline-block; width: fit-content; margin-bottom: auto; }
@@ -84,6 +84,7 @@
 
         @media (max-width: 768px) {
             #declareModal .modal-content { max-width: 100%; width: 95vw; border-radius: 12px; margin: 10px; }
+            #declareForm .form-control { padding: 12px; font-size: 16px; } /* 16px chống zoom input iOS */
         }
     </style>
 </head>
@@ -100,12 +101,12 @@
             <button class="btn-declare" onclick="openDeclareModal()">Tự khai báo công tác</button>
         </div>
 
-        <div id="loadingScreen"><i class="fas fa-spinner fa-spin fa-2x"></i><br>Đang tải dữ liệu phân công...</div>
+        <div id="loadingScreen"><i class="fas fa-spinner fa-spin fa-2x"></i><br><br>Đang tải dữ liệu phân công...</div>
 
         <div id="contentWrapper" class="hidden">
             <!-- Khu vực Nhiệm vụ Hôm nay -->
             <div class="task-section">
-                <h3 style="color: #f59e0b; border-left-color: #f59e0b;">Lịch dạy Hôm nay</h3>
+                <h3 style="color: #f59e0b; border-left-color: #f59e0b;">Lịch công tác Hôm nay</h3>
                 <div id="todayGrid" class="task-grid">
                     <!-- Dữ liệu JS -->
                 </div>
@@ -113,7 +114,7 @@
 
             <!-- Khu vực Nhiệm vụ Sắp tới -->
             <div class="task-section">
-                <h3 style="color: #0ea5e9; border-left-color: #0ea5e9;">Lịch dạy Sắp tới</h3>
+                <h3 style="color: #0ea5e9; border-left-color: #0ea5e9;">Lịch công tác Sắp tới</h3>
                 <div id="upcomingGrid" class="task-grid">
                     <!-- Dữ liệu JS -->
                 </div>
@@ -138,7 +139,7 @@
             </div>
             <div class="modal-body" style="text-align: center;">
                 <p style="font-size: 0.9rem; color: var(--text-body); margin-top: 0;">Nhiệm vụ:</p>
-                <p id="rejectTaskTitlePreview" style="font-weight: 700; color: var(--text-dark); margin-bottom: 20px; font-size: 1.1rem; line-height: 1.4;"></p>
+                <p id="rejectTaskTitlePreview" style="font-weight: 800; color: var(--text-dark); margin-bottom: 20px; font-size: 1.1rem; line-height: 1.4;"></p>
                 
                 <p style="font-size: 0.85rem; color: #ef4444; margin-bottom: 10px;">Để xác nhận xóa, vui lòng nhập mã bảo mật dưới đây:</p>
                 <div id="randomRejectCodeDisplay" style="background: #fef2f2; padding: 10px; border-radius: 6px; font-size: 1.5rem; font-weight: bold; color: #ef4444; letter-spacing: 5px; margin-bottom: 15px;">0000</div>
@@ -163,10 +164,12 @@
             </div>
             <div class="modal-body">
                 <form id="declareForm" onsubmit="submitDeclaration(event)">
+                    
                     <div style="margin-bottom: 15px;">
                         <label style="display:block; margin-bottom:5px; font-weight:bold; color:var(--text-dark);">Ngày *</label>
                         <input type="date" id="decDate" class="form-control" required style="cursor: text;">
                     </div>
+
                     <div style="display:flex; gap:15px; margin-bottom: 15px;">
                         <div style="flex:1;">
                             <label style="display:block; margin-bottom:5px; font-weight:bold; color:var(--text-dark);">Bắt đầu *</label>
@@ -177,18 +180,22 @@
                             <input type="time" id="decEndTime" class="form-control" required lang="en-GB" style="cursor: text;">
                         </div>
                     </div>
+
                     <div style="margin-bottom: 15px;">
                         <label style="display:block; margin-bottom:5px; font-weight:bold; color:var(--text-dark);">Nội dung công việc *</label>
                         <input type="text" id="decTask" class="form-control" required>
                     </div>
+
                     <div style="margin-bottom: 15px;">
                         <label style="display:block; margin-bottom:5px; font-weight:bold; color:var(--text-dark);">Địa điểm</label>
                         <input type="text" id="decRoom" class="form-control">
                     </div>
+
                     <div style="margin-bottom: 20px;">
                         <label style="display:block; margin-bottom:5px; font-weight:bold; color:var(--text-dark);">Ghi chú thêm</label>
                         <textarea id="decNote" class="form-control"></textarea>
                     </div>
+
                     <button type="submit" style="width:100%; padding:12px; background:#10b981; color:white; border:none; border-radius:6px; font-weight:bold; font-size:1.05rem; cursor:pointer; transition:0.2s;">
                         Lưu thông tin khai báo
                     </button>
@@ -197,7 +204,6 @@
         </div>
     </div>
 
-    <!-- GỌI FOOTER CHUNG -->
     <div id="footer-placeholder"></div>
 
     <script src="js/layout.js"></script>
@@ -205,28 +211,47 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, collection, onSnapshot, deleteDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, getDocs, doc, getDoc, addDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyDVT4akTw65Uj6KHymwWtQ9xyHVyfTlXIY", authDomain: "bmphcn-aa9c6.firebaseapp.com", projectId: "bmphcn-aa9c6", storageBucket: "bmphcn-aa9c6.firebasestorage.app", messagingSenderId: "749494392719", appId: "1:749494392719:web:f220c751ff541620045dfa" };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        let currentUserName = '';
-        let currentUserEmail = '';
         let myEvents = [];
 
-        function showToast(message, type = 'success') {
+        // Thông tin người dùng
+        let currentUserEmail = '';
+        let currentUserName = ''; // Lưu tên thật không kèm học vị
+
+        // Hàm bỏ học vị để so sánh cho chính xác tuyệt đối
+        const normalizeName = (n) => {
+            if(!n) return '';
+            return n.replace(/ThS\.|TS\.|PGS\.|GS\./gi, '').trim().toLowerCase();
+        };
+
+        // Hàm cắt số thứ tự của tên môn (ví dụ: "1. Phục hồi" -> "Phục hồi")
+        window.getCleanSubjectName = (name) => {
+            if (!name) return "";
+            let parts = name.split('.');
+            if (parts.length > 1 && !isNaN(parts[0].trim())) {
+                return parts.slice(1).join('.').trim();
+            }
+            return name.trim();
+        };
+
+        window.showToast = (message, type = 'success') => {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
-            toast.innerHTML = `<i class="fas ${type === 'danger' ? 'fa-times-circle' : 'fa-check-circle'}"></i><span>${message}</span>`;
+            let icon = type === 'danger' ? 'fa-exclamation-triangle' : 'fa-check-circle';
+            toast.innerHTML = `<i class="fas ${icon}" style="font-size: 1.2rem; color: ${type==='danger'?'#ef4444':'#22c55e'};"></i> <span>${message}</span>`;
             container.appendChild(toast);
             setTimeout(() => toast.classList.add('show'), 10);
             setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
-        }
+        };
 
-        // ĐỊNH DẠNG HIỂN THỊ THỜI GIAN (ÉP CHUẨN 24H)
+        // ĐỊNH DẠNG HIỂN THỊ THỜI GIAN
         function formatTaskTime(startStr, endStr) {
             if (!startStr) return { isToday: false, isPast: false, timeText: 'Chưa xác định' };
             
@@ -238,8 +263,13 @@
             const eTime = endDate.toLocaleTimeString('vi-VN', timeOpts);
             const dString = startDate.toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
             
+            let today = new Date();
+            today.setHours(0,0,0,0);
+            let checkDate = new Date(startDate);
+            checkDate.setHours(0,0,0,0);
+
             return {
-                isToday: new Date().toDateString() === startDate.toDateString(),
+                isToday: today.getTime() === checkDate.getTime(),
                 isPast: endDate < new Date(),
                 timeText: `${sTime} - ${eTime} | ${dString}`,
                 rawDate: startDate
@@ -249,15 +279,22 @@
         // BẮT ĐẦU QUY TRÌNH KIỂM TRA ĐĂNG NHẬP
         onAuthStateChanged(auth, async (user) => {
             if (user) {
+                // KIỂM TRA QUYỀN TRUY CẬP: CHẶN HỌC VIÊN
+                if (user.email.toLowerCase() === 'ths.phcn26@ump.edu.vn') {
+                    alert("Tài khoản học viên không có quyền truy cập trang này!");
+                    window.location.href = "thoi-khoa-bieu.html";
+                    return; 
+                }
+
                 currentUserEmail = user.email;
+
                 try {
                     const userDoc = await getDoc(doc(db, "users", user.uid));
                     if (userDoc.exists()) {
                         const data = userDoc.data();
-                        let prefix = data.degree === 'ThS' ? 'ThS. ' : (data.degree === 'TS' ? 'TS. ' : '');
-                        currentUserName = `${prefix}${data.fullName}`;
+                        // Chỉ lấy tên thật, bỏ hoàn toàn Prefix học vị để so khớp cho chuẩn
+                        currentUserName = data.fullName; 
                         
-                        // Bắt đầu Lắng nghe Database Lịch công tác
                         listenToMySchedules();
                     } else {
                         window.location.href = "login.html"; 
@@ -274,13 +311,18 @@
         function listenToMySchedules() {
             onSnapshot(collection(db, "calendar_events"), (snapshot) => {
                 myEvents = [];
+                let myNormName = normalizeName(currentUserName);
+
                 snapshot.forEach(doc => { 
                     const data = doc.data();
                     data.id = doc.id; 
                     
-                    // Lọc các sự kiện có chứa tên mình và chưa bị trả về
-                    if (data.gv && currentUserName && data.gv.includes(currentUserName) && data.status !== 'returned') {
-                        myEvents.push(data);
+                    if (data.status !== 'returned' && data.gv && myNormName) {
+                        // Tách tên các GV trong sự kiện và đối chiếu
+                        let gvNames = data.gv.split(/,|&/).map(s => normalizeName(s));
+                        if (gvNames.includes(myNormName)) {
+                            myEvents.push(data);
+                        }
                     }
                 });
                 renderTasks();
@@ -304,7 +346,6 @@
             let upcomingCount = 0;
             let completedCount = 0;
 
-            // Sắp xếp sự kiện tăng dần theo thời gian
             myEvents.sort((a, b) => new Date(a.start) - new Date(b.start));
 
             myEvents.forEach(evt => {
@@ -312,44 +353,49 @@
                 const isSelfDeclared = evt.type === 'self_declared';
                 
                 let category = '';
-                if (timeInfo.isToday) {
-                    category = 'today';
-                } else if (timeInfo.isPast) {
-                    category = 'completed';
-                } else {
-                    category = 'upcoming';
-                }
+                if (timeInfo.isToday) category = 'today';
+                else if (timeInfo.isPast) category = 'completed';
+                else category = 'upcoming';
 
                 let badgeHtml = '';
                 let actionHtml = '';
                 let extraClass = isSelfDeclared ? 'self-declared' : '';
 
                 if (category === 'completed') {
-                    badgeHtml = `<div class="badge-completed">Nhiệm vụ đã hoàn thành</div>`;
+                    badgeHtml = `<div class="badge-completed"><i class="fas fa-check-circle"></i> Đã hoàn thành</div>`;
                 }
 
-                // Nếu là nhiệm vụ Tương lai hoặc Hôm nay thì có nút Từ chối/Xóa
                 if (category !== 'completed') {
+                    let btnText = isSelfDeclared ? 'Xóa khai báo này' : 'Từ chối nhiệm vụ';
                     actionHtml = `
                         <div class="task-actions">
                             <button class="btn-reject" onclick="openRejectModal('${evt.id}', '${encodeURIComponent(isSelfDeclared ? evt.task : evt.subject)}')">
-                                Hủy / Xóa lịch này
+                                <i class="fas fa-times"></i> ${btnText}
                             </button>
                         </div>
                     `;
                 }
 
-                let clsName = evt.class === 'THS2025' ? 'THS2025' : (evt.class === 'THS2026' ? 'THS2026' : evt.class);
-                let subjectTitle = isSelfDeclared ? `Lịch Bận: ${evt.task}` : evt.subject;
+                let clsName = evt.class || 'Chưa XĐ';
+                let subjectTitle = isSelfDeclared ? `<i class="fas fa-user-edit"></i> Lịch Bận: ${evt.task}` : window.getCleanSubjectName(evt.subject);
                 let taskText = isSelfDeclared && evt.note ? `Ghi chú: ${evt.note}` : `Nhiệm vụ: ${evt.task || 'Giảng dạy'}`;
+                
+                // Hiển thị định hướng và ngành (giống TKB)
+                let orientTag = '';
+                if (!isSelfDeclared && evt.orientation) {
+                    orientTag = `<span style="font-size: 0.8rem; font-weight: bold; color: #b45309; border: 1px solid #fde047; background: #fef08a; padding: 2px 6px; border-radius: 4px; margin-left: 5px;">${evt.orientation}</span>`;
+                }
 
                 const cardHtml = `
                     <div class="task-card ${category} ${extraClass}">
-                        <div class="task-time">${timeInfo.timeText}</div>
+                        <div class="task-time"><i class="far fa-clock"></i> ${timeInfo.timeText}</div>
                         <div class="task-subject">${subjectTitle}</div>
                         <div class="task-role">${taskText}</div>
-                        <div class="task-room">Địa điểm: ${evt.room || 'Chưa xác định'}</div>
-                        ${!isSelfDeclared ? `<div class="task-class">Lớp: ${clsName}</div>` : ''}
+                        <div class="task-room"><i class="fas fa-map-marker-alt"></i> Địa điểm: ${evt.room || 'Chưa xác định'}</div>
+                        <div style="display:flex; align-items:center; flex-wrap:wrap; gap:5px; margin-bottom:auto;">
+                            ${!isSelfDeclared ? `<div class="task-class"><i class="fas fa-users"></i> ${clsName}</div>` : ''}
+                            ${orientTag}
+                        </div>
                         ${badgeHtml}
                         ${actionHtml}
                     </div>
@@ -362,13 +408,11 @@
                     upcomingGrid.innerHTML += cardHtml;
                     upcomingCount++;
                 } else {
-                    // Chèn lên đầu danh sách Đã hoàn thành (nhiệm vụ gần nhất hiện ở trên cùng)
                     completedGrid.insertAdjacentHTML('afterbegin', cardHtml);
                     completedCount++;
                 }
             });
 
-            // Hiển thị trạng thái rỗng
             if (todayCount === 0) {
                 todayGrid.innerHTML = `<div class="empty-state" style="grid-column: 1/-1;">Hôm nay bạn không có lịch công tác nào.</div>`;
             }
@@ -395,6 +439,7 @@
             document.getElementById('randomRejectCodeDisplay').innerText = rejectSecurityCode;
             document.getElementById('inputRejectCodeConfirm').value = '';
             document.getElementById('btnExecuteFinalReject').disabled = true;
+            document.getElementById('btnExecuteFinalReject').style.opacity = "0.5";
             document.getElementById('rejectConfirmModal').classList.remove('hidden');
         };
 
@@ -417,7 +462,8 @@
         document.getElementById('btnExecuteFinalReject').addEventListener('click', async () => {
             if (!targetRejectId) return;
             try {
-                // Xóa thẻ khỏi bảng (hoàn trả về kho / hoặc xóa thẻ tự khai báo)
+                // Xóa thẻ khỏi bảng (hoặc cập nhật status thành returned nếu cần logic Admin)
+                // Ở đây dùng deleteDoc thẳng để giống chức năng Xóa của Tự Khai báo / Từ chối
                 await deleteDoc(doc(db, "calendar_events", targetRejectId));
                 showToast("Đã hủy nhiệm vụ thành công!");
                 closeRejectModal();
@@ -429,12 +475,11 @@
 
 
         // ========================================================
-        // TÍNH NĂNG TỰ KHAI BÁO CÔNG TÁC (TƯƠNG TỰ TRANG ADMIN)
+        // TÍNH NĂNG TỰ KHAI BÁO CÔNG TÁC
         // ========================================================
         window.openDeclareModal = () => {
             document.getElementById('declareForm').reset();
             
-            // Format ngày hôm nay
             let d = new Date();
             let month = '' + (d.getMonth() + 1), day = '' + d.getDate(), year = d.getFullYear();
             if (month.length < 2) month = '0' + month;
@@ -473,14 +518,14 @@
             const evData = {
                 title: task,
                 subject: "Công tác khác", 
-                gv: currentUserName, 
+                gv: currentUserName, // Khai báo bằng tên thật (đã bỏ học vị)
                 start: startStr,
                 end: endStr,
                 task: task,
                 room: room || 'Không xác định',
                 class: "Khai báo",
                 orientation: "Chung",
-                note: note,
+                note: note, 
                 scheduledByEmail: currentUserEmail,
                 scheduledByName: currentUserName,
                 status: 'scheduled',
