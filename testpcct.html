@@ -545,25 +545,58 @@
             }
         };
 
+        // Hàm tự động "dọn dẹp" và "vá lỗi" JSON khi bị copy/paste thiếu ngoặc
+        async function fetchAndParseJSON(url) {
+            try {
+                const res = await fetch(url);
+                if (!res.ok) return null;
+                let text = await res.text();
+                
+                // 1. Dọn dẹp khoảng trắng rác (non-breaking space) do copy từ chat/web
+                text = text.replace(/\xA0/g, ' ').trim();
+                
+                // 2. Tự động bù dấu ngoặc nhọn mở { nếu bị thiếu ở đầu file
+                if (!text.startsWith('{') && !text.startsWith('[')) {
+                    if (text.startsWith('"') || text.startsWith("'")) {
+                        text = "{" + text;
+                    }
+                }
+                
+                // 3. Tự động xóa dấu phẩy dư và bù dấu ngoặc nhọn đóng } ở cuối file
+                if (!text.endsWith('}') && !text.endsWith(']')) {
+                    text = text.replace(/,\s*$/, ''); // Cắt dấu phẩy cuối
+                    text = text + "}";
+                }
+                
+                return JSON.parse(text);
+            } catch (error) {
+                console.error(`Lỗi cú pháp tại file ${url}:`, error);
+                return null;
+            }
+        }
+
         async function fetchExternalData() {
             try {
-                // Fetch from JSON instead of DB
-                const [resThs, resCn] = await Promise.all([
-                    fetch('json/chuong-trinh-thac-si.json').catch(() => null),
-                    fetch('json/chuong-trinh-cu-nhan.json').catch(() => null)
+                // Tải và TỰ ĐỘNG SỬA LỖI cả 2 file JSON cùng lúc
+                const [thsData, cnData] = await Promise.all([
+                    fetchAndParseJSON('json/chuong-trinh-thac-si.json'),
+                    fetchAndParseJSON('json/chuong-trinh-cu-nhan.json')
                 ]);
 
                 let rawSubjects = [];
-                if (resThs && resThs.ok) {
-                    const thsData = await resThs.json();
+                
+                // Chuyển đổi dữ liệu Thạc sĩ
+                if (thsData) {
                     if (Array.isArray(thsData)) rawSubjects = rawSubjects.concat(thsData);
+                    else rawSubjects = rawSubjects.concat(Object.values(thsData));
                 } else {
                     console.warn("Không tải được chuong-trinh-thac-si.json");
                 }
 
-                if (resCn && resCn.ok) {
-                    const cnData = await resCn.json();
+                // Chuyển đổi dữ liệu Cử nhân
+                if (cnData) {
                     if (Array.isArray(cnData)) rawSubjects = rawSubjects.concat(cnData);
+                    else rawSubjects = rawSubjects.concat(Object.values(cnData));
                 } else {
                     console.warn("Không tải được chuong-trinh-cu-nhan.json");
                 }
@@ -1805,3 +1838,4 @@
     </script>
 </body>
 </html>
+bảng tiến độ trong modal chi tiết môn học không nhảy số, nếu đã xếp nhưng không hoàn thành sẽ hiển thị báo đỏ (trường hợp chưa hoàn thành và đã hoàn thành), bỏ quy đổi số buổi 1 tc=30,  trường hợp đề tài/luận văn vẫn k lấy được danh sách học viên từ database</thead>
