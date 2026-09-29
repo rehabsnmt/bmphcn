@@ -55,7 +55,7 @@
         .btn-outline { background-color: white; color: var(--primary); border: 1px solid var(--primary); padding: 0.5rem 1rem; border-radius: var(--radius-pill); font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 0.9rem;}
         .btn-outline:hover { background-color: var(--primary-light); }
 
-        /* Bảng hiển thị MỚI (Cố định khung, chống kéo ngang, Font nhỏ lại) */
+        /* Bảng hiển thị MỚI */
         .table-container { 
             width: 100%;
             border-radius: var(--radius-md); 
@@ -66,11 +66,11 @@
         table { 
             width: 100%; 
             border-collapse: collapse; 
-            font-size: 0.85rem; /* Giảm cỡ chữ toàn bảng */
+            font-size: 0.85rem; 
             table-layout: fixed; 
         }
         th, td { 
-            padding: 10px 12px; /* Giảm padding để xem được nhiều hàng hơn */
+            padding: 10px 12px; 
             text-align: left; 
             border-bottom: 1px solid var(--border); 
             vertical-align: top;
@@ -107,16 +107,28 @@
         .btn-ellipsis { background: transparent; border: none; font-size: 1.1rem; color: var(--text-muted); padding: 4px 8px; border-radius: 4px; }
         .btn-ellipsis:hover { color: var(--primary); background: var(--bg-page); }
 
-        /* Tương tác tên GVHD (Màu xám nhạt đồng bộ) */
+        /* Tương tác tên GVHD */
         .advisor-link { color: var(--text-body); font-weight: 500; cursor: pointer; text-decoration: none; display: inline-block; transition: 0.2s; }
         .advisor-link:hover { color: var(--primary); text-decoration: underline; }
         
-        /* Màu sắc chuyên ngành (Có ô chữ nhật nền nhạt & khoảng trống padding) */
+        /* Nhãn dán Lớp & Chuyên ngành */
+        .class-badge {
+            background-color: #f1f5f9;
+            color: #64748b;
+            border: 1px solid #e2e8f0;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            display: inline-block;
+        }
+
         .major-badge {
             display: inline-block;
             padding: 2px 8px;
             border-radius: 4px;
             font-weight: 600;
+            font-size: 0.8rem;
         }
         .major-vltl { color: #0284c7 !important; background-color: #e0f2fe; border: 1px solid #bae6fd; }
         .major-hdtl { color: #ea580c !important; background-color: #ffedd5; border: 1px solid #fed7aa; }
@@ -134,7 +146,7 @@
             padding: 0;
             display: block; 
             margin-bottom: 6px;
-            font-size: 1rem; /* Giảm cỡ chữ để gọn hơn */
+            font-size: 1rem;
             width: 100%;
             white-space: normal !important; 
             word-wrap: break-word; 
@@ -258,6 +270,7 @@
                     </div>
                 </div>
 
+                <!-- GVHD 1 và 2 được gom vào 1 hàng (cùng 1 bên) -->
                 <div class="form-group" style="grid-column: span 2;">
                     <div style="display: flex; gap: 15px; flex-wrap: wrap;">
                         <div style="flex: 1; min-width: 200px;">
@@ -600,14 +613,6 @@
             filterClass.value = tabClasses.includes(currClass) ? currClass : 'Tất cả';
         }
 
-        function updateDynamicFilters() {
-            const currClass = filterClass.value;
-            const tabClasses = [...new Set(allTheses.map(t => String(t['lop'] || '').trim()).filter(c => c.startsWith(currentTab)))].sort();
-            filterClass.innerHTML = '<option value="Tất cả">Tất cả lớp</option>';
-            tabClasses.forEach(c => filterClass.innerHTML += `<option value="${c}">${c}</option>`);
-            filterClass.value = tabClasses.includes(currClass) ? currClass : 'Tất cả';
-        }
-
         function renderTable() {
             const searchText = document.getElementById('searchInput').value.toLowerCase();
             const filterCls = filterClass.value; 
@@ -712,10 +717,10 @@
                 else if(majorStr.includes('Hoạt động')) majorClass += 'major-hdtl';
                 else if(majorStr.includes('Ngôn ngữ')) majorClass += 'major-nntl';
 
-                // BỐ CỤC: Tên đề tài -> Lớp - Chuyên ngành - Tác giả
+                // BỐ CỤC: Tên đề tài -> Lớp (Nhãn Xám) - Chuyên ngành - Tác giả
                 tableBody.innerHTML += `
                     <tr data-thesis-id="${t['ten-de-tai'].replace(/"/g, '&quot;')}">
-                        <td align="center" style="color:#94a3b8; font-weight:bold; font-size: 1rem; vertical-align: top; padding-top: 15px;">${actualIndex}</td>
+                        <td align="center" style="color:#94a3b8; font-weight:bold; font-size: 1.1rem; vertical-align: top; padding-top: 15px;">${actualIndex}</td>
                         <td style="padding: 12px 12px; width: 100%; position: relative;">
                             ${actionHtml}
                             
@@ -724,17 +729,16 @@
                                     ${t['ten-de-tai']}
                                 </div>
                                 
-                                <div class="metadata-line">
-                                    <span style="font-weight: 600; color: var(--text-dark);">${t['lop']||'—'}</span>
-                                    <span class="meta-dot"> • </span>
+                                <div class="metadata-line" style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
+                                    <span class="class-badge">${t['lop']||'—'}</span>
                                     <span class="${majorClass}">${majorStr}</span>
-                                    <span class="meta-dot author-dot"> • </span>
+                                    <span class="meta-dot author-dot" style="margin: 0 2px;">•</span>
                                     <div class="author-block">
                                         ${t['tac-gia']}
                                     </div>
                                 </div>
                                 
-                                <div class="metadata-line" style="margin-bottom: 0;">
+                                <div class="metadata-line" style="margin-bottom: 0; margin-top: 6px;">
                                     ${gvhdDisplay}
                                 </div>
                             </div>
@@ -825,17 +829,18 @@
                 data.forEach(log => {
                     let actionText = '';
                     let actionColor = '';
+                    let actionRaw = (log['hanh-dong'] || '').toLowerCase();
                     
-                    if (log['hanh-dong'] === 'INSERT') { actionText = 'THÊM MỚI'; actionColor = '#16a34a'; }
-                    else if (log['hanh-dong'] === 'UPDATE') { actionText = 'CẬP NHẬT'; actionColor = '#d97706'; }
-                    else if (log['hanh-dong'] === 'DELETE') { actionText = 'XÓA'; actionColor = '#dc2626'; }
-                    else { actionText = log['hanh-dong']; actionColor = '#2563eb'; }
+                    if (actionRaw === 'thêm' || actionRaw === 'insert') { actionText = 'THÊM'; actionColor = '#16a34a'; }
+                    else if (actionRaw === 'sửa' || actionRaw === 'update') { actionText = 'SỬA'; actionColor = '#d97706'; }
+                    else if (actionRaw === 'xóa' || actionRaw === 'delete') { actionText = 'XÓA'; actionColor = '#dc2626'; }
+                    else { actionText = (log['hanh-dong'] || '').toUpperCase(); actionColor = '#2563eb'; }
 
                     const timeStr = new Date(log['thuc-hien-luc']).toLocaleString('vi-VN');
                     const userStr = log['ma-giang-vien'] || log['thuc-hien-boi'] || 'Hệ thống';
                     
                     let detailsHtml = '';
-                    if (log['hanh-dong'] === 'UPDATE' && log['du-lieu-cu'] && log['du-lieu-moi']) {
+                    if ((actionRaw === 'sửa' || actionRaw === 'update') && log['du-lieu-cu'] && log['du-lieu-moi']) {
                         const oldD = log['du-lieu-cu'];
                         const newD = log['du-lieu-moi'];
                         let changes = [];
@@ -848,10 +853,12 @@
                         if (oldD['gvhd2'] !== newD['gvhd2']) changes.push(`- <b>GVHD 2:</b> ${oldD['gvhd2'] || 'Trống'} ➔ <span style="color:#d97706">${newD['gvhd2'] || 'Trống'}</span>`);
                         
                         detailsHtml = changes.length > 0 ? changes.join('<br>') : 'Không có thay đổi dữ liệu thực tế';
-                    } else if (log['hanh-dong'] === 'INSERT' && log['du-lieu-moi']) {
+                    } else if ((actionRaw === 'thêm' || actionRaw === 'insert') && log['du-lieu-moi']) {
                          detailsHtml = `<b>Tên đề tài:</b> ${log['du-lieu-moi']['ten-de-tai'] || log['ten-de-tai']}`;
-                    } else if (log['hanh-dong'] === 'DELETE' && log['du-lieu-cu']) {
+                    } else if ((actionRaw === 'xóa' || actionRaw === 'delete') && log['du-lieu-cu']) {
                          detailsHtml = `<b>Tên đề tài:</b> ${log['du-lieu-cu']['ten-de-tai'] || log['ten-de-tai']}`;
+                    } else if (log['ten-de-tai']) {
+                        detailsHtml = `<b>Tên đề tài:</b> ${log['ten-de-tai']}`;
                     }
 
                     historyBody.innerHTML += `<tr>
