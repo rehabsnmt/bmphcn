@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Trang chủ - Bộ môn Phục hồi chức năng, Đại học Y Dược TP.HCM">
+
+    <!-- Content Security Policy: Đã cấp quyền tải Font chữ từ Google -->
+    <meta http-equiv="Content-Security-Policy" content="
+            default-src 'self';
+            connect-src 'self' https://*.supabase.co;
+            img-src 'self' data: https://*.supabase.co;
+            style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://fonts.googleapis.com;
+            script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net;
+            font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com;
+        ">
+
+    <title>Trang chủ - Bộ môn Phục hồi chức năng</title>
+
+    <link rel="icon" href="images/logo_Bộ môn.png" type="image/png">
+    <link rel="apple-touch-icon" href="images/logo_Bộ môn.png">
+
+    <!-- CSS dùng chung -->
+    <link rel="stylesheet" href="css/style.css">
+    
+    <!-- Font Awesome cho Icon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* CSS ẩn/hiện dấu phẩy và ngắt dòng trên giao diện điện thoại */
+        .mobile-break { display: none; }
+        .desktop-comma { display: inline; }
+        
+        /* CSS cho Ảnh Banner Trang Chủ */
+        .banner-image-wrapper {
+            text-align: center;
+            margin: 1.5rem auto 2.5rem auto;
+            max-width: 1100px;
+            padding: 0 20px;
+        }
+        .banner-image-wrapper img {
+            width: 100%;
+            max-width: 100%;
+            aspect-ratio: 21 / 9; /* Ép tỷ lệ ảnh 21:9 */
+            object-fit: cover; /* Cắt cúp vừa khung không bị méo */
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            display: block;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-break { display: block; }
+            .desktop-comma { display: none; }
+            .banner-image-wrapper { margin: 1rem auto 2rem auto; padding: 0 16px; }
+            .banner-image-wrapper img { border-radius: 12px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1); }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- HEADER (Được bơm vào từ layout.js) -->
+    <div id="header-placeholder"></div>
+
+    <!-- MAIN CONTENT -->
+    <main>
+        <!-- Lời chào / Banner đơn giản -->
+        <div class="section-title" style="margin-top: 1rem;">
+            <h1>Bộ môn Phục hồi chức năng</h1>
+            <div class="section-divider"></div>
+            <p>Trường Điều dưỡng - Kỹ thuật Y học<span class="desktop-comma">, </span><br class="mobile-break">Đại học Y Dược Thành phố Hồ Chí Minh</p>
+        </div>
+
+        <!-- ẢNH BANNER TRANG CHỦ TỶ LỆ 21:9 -->
+        <div class="banner-image-wrapper">
+            <img src="images/index.jpg" alt="Tập thể Bộ môn Phục hồi chức năng">
+        </div>
+
+        <!-- KHU VỰC HIỂN THỊ CÁC THẺ CARD (Lấy từ JSON) -->
+        <section class="container">
+            <div id="homeCardsContainer" class="quick-links">
+                <!-- Vùng hiển thị trạng thái đang tải -->
+                <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: var(--text-muted);">
+                    <i class="fas fa-spinner fa-spin fa-2x" style="margin-bottom: 1rem;"></i>
+                    <p>Đang tải dữ liệu...</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER (Được bơm vào từ layout.js) -->
+    <div id="footer-placeholder"></div>
+
+    <!-- TẢI GIAO DIỆN CHUNG & AUTH SUPABASE -->
+    <script src="js/layout.js"></script>
+
+    <!-- SCRIPT TẢI DỮ LIỆU TỪ JSON CHO TRANG CHỦ -->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const container = document.getElementById("homeCardsContainer");
+
+            // Hàm xử lý chuỗi chống mã độc XSS
+            function escapeHtml(value) {
+                if (value == null) return "";
+                return String(value)
+                    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+            }
+
+            // Lấy dữ liệu từ file JSON
+            fetch("json/index.json")
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Lỗi HTTP: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Xóa trạng thái "Đang tải"
+                    container.innerHTML = "";
+
+                    if (!data || data.length === 0) {
+                        container.innerHTML = `<div style="grid-column: 1 / -1; text-align: center;">Chưa có nội dung.</div>`;
+                        return;
+                    }
+
+                    // Render từng thẻ (card)
+                    data.forEach(item => {
+                        const linkUrl = escapeHtml(item.link || "#");
+                        const iconClass = escapeHtml(item.icon || "fas fa-link");
+                        const title = escapeHtml(item.title || "Tiêu đề");
+                        const desc = escapeHtml(item.description || "");
+
+                        // Tạo HTML cho thẻ
+                        const cardHtml = `
+                            <a href="${linkUrl}" class="quick-card">
+                                <div class="icon-wrapper">
+                                    <i class="${iconClass}"></i>
+                                </div>
+                                <h3>${title}</h3>
+                                <p>${desc}</p>
+                            </a>
+                        `;
+                        
+                        container.insertAdjacentHTML('beforeend', cardHtml);
+                    });
+                })
+                .catch(error => {
+                    console.error("Lỗi khi tải json/index.json:", error);
+                    container.innerHTML = `
+                        <div style="grid-column: 1 / -1; text-align: center; color: var(--accent);">
+                            <i class="fas fa-exclamation-triangle fa-2x" style="margin-bottom: 1rem;"></i>
+                            <p>Không thể tải dữ liệu trang chủ.<br><small>${error.message}</small></p>
+                        </div>
+                    `;
+                });
+        });
+    </script>
+</body>
+</html>

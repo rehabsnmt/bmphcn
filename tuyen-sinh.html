@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thông tin Tuyển sinh - Bộ môn Phục hồi chức năng</title>
+    
+    <link rel="icon" href="images/logo_Bộ môn.png" type="image/png">
+    <link rel="apple-touch-icon" href="images/logo_Bộ môn.png">
+    
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <meta http-equiv="Content-Security-Policy" content="
+            default-src 'self';
+            connect-src 'self' https://*.supabase.co;
+            img-src 'self' data: https://*.supabase.co;
+            style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com;
+            script-src 'self' 'unsafe-inline';
+            font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com;
+        ">
+
+    <style>
+        .app-container { max-width: 1100px; margin: 0 auto; padding: 16px 16px 24px 16px; background: transparent; }
+
+        /* Reset cục bộ cho container */
+        #app-container, #app-container * { border-style: solid; border-width: 0; box-sizing: border-box; }
+        #app-container *:not(i) { font-family: inherit; }
+        #app-container ul { list-style: none; padding: 0; margin: 0; }
+        #app-container button { background: transparent; cursor: pointer; outline: none; }
+        #app-container table { border-collapse: collapse; text-indent: initial; border-spacing: 2px; }
+        #app-container h2, #app-container h3 { margin: 0; }
+
+        /* Nút bấm hệ thống */
+        .btn-custom {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            border: 1px solid var(--border); background: white; color: var(--text-dark);
+            border-radius: 8px; padding: 10px 16px; font-weight: 600; cursor: pointer;
+            font-size: 0.9rem; transition: 0.2s; text-decoration: none;
+        }
+        .btn-custom:hover { background: var(--bg-page); }
+        .btn-custom-primary { border-color: var(--primary); background: var(--primary); color: white; }
+        .btn-custom-primary:hover { background: var(--primary-hover); color: white;}
+
+        /* Card hiển thị chung */
+        .plan-overview-card { background: white; border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin-bottom: 30px; box-shadow: 0 4px 16px rgba(0,0,0,0.04); }
+        .plan-title-large { font-size: 22px; font-weight: 700; color: var(--text-dark); margin: 0; }
+        .plan-description { margin: 0; color: var(--text-muted); font-size: 15px; line-height: 1.6; }
+        .status-section-title { font-size: 1.15rem; font-weight: 700; margin: 10px 0 15px 0; padding-bottom: 8px; display: flex; align-items: center; gap: 8px; color: var(--text-dark); border-bottom: 2px solid var(--border-light); }
+
+        .status-badge {
+            display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+            border-radius: 999px; padding: 5px 12px; font-size: 13px; font-weight: 600; white-space: nowrap;
+        }
+        .badge-gray { background: var(--bg-page); color: var(--text-body); border: 1px solid var(--border); }
+        .badge-blue { background: #e0f2fe; color: #0284c7; }
+
+        /* Chuyên ngành Tab Buttons */
+        .major-tabs-container { display: flex; gap: 8px; margin-bottom: 24px; overflow-x: auto; scrollbar-width: none; }
+        .major-tabs-container::-webkit-scrollbar { display: none; }
+        .tab-btn { flex: 1; padding: 14px 10px; font-size: 14px; white-space: nowrap; text-align: center; border: 2px solid var(--border-light); background: white; color: var(--text-muted); border-radius: 12px; cursor: pointer; font-weight: 600; transition: all 0.2s; }
+        .tab-btn:hover { border-color: var(--border); color: var(--text-dark); background: var(--bg-page); }
+
+        /* Component List/Card */
+        .task-list { display: grid; gap: 14px; }
+        .task-card { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 0; text-align: left; transition: border-color 0.2s; overflow: hidden; }
+        .task-top { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; cursor: pointer; transition: background 0.2s; }
+        .task-top:hover { background: var(--bg-page); }
+        .task-title { font-weight: 700; margin: 0; color: var(--text-dark); font-size: 16px; }
+
+        /* Bảng Khung chương trình */
+        .curriculum-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; margin-top: 10px; }
+        .curriculum-table th { padding: 12px 10px; font-weight: 600; color: var(--text-muted); border-bottom: 2px solid var(--border-light); white-space: nowrap; }
+        .curriculum-table td { padding: 12px 10px; border-bottom: 1px solid var(--border-light); color: var(--text-dark); }
+        .curriculum-table tr:last-child td { border-bottom: none; }
+        .curriculum-table tr:hover td { background: var(--bg-page); }
+
+        @media (max-width: 768px) {
+            .tab-btn { font-size: 13px; padding: 12px 8px; }
+            .top-left-panel { border-right: none !important; border-bottom: 1px solid var(--border-light); padding-bottom: 24px !important; }
+        }
+    </style>
+</head>
+<body style="display: flex; flex-direction: column; min-height: 100vh; background-color: #f8fafc; overflow-x: hidden;">
+    
+    <!-- HEADER -->
+    <div id="header-placeholder"></div>
+
+    <main style="flex: 1; padding-top: 1rem; width: 100%;">
+        <!-- Khu vực render nội dung -->
+        <div id="app-container" class="app-container"></div>
+    </main>
+
+    <!-- FOOTER -->
+    <div id="footer-placeholder"></div>
+
+    <script src="js/layout.js"></script>
+
+    <!-- SCRIPT CHÍNH (VANILLA JS) -->
+    <script>
+        const curriculumDatabase = {
+            y1_s1: [
+              { id: 1, name: "Tiếng Anh chuyên ngành", theory: 1, practice: 1 },
+              { id: 2, name: "Triết học Mác Lênin", theory: 2, practice: 1 },
+              { id: 3, name: "Tin học ứng dụng", theory: 0, practice: 2 },
+              { id: 4, name: "Vật lý - Lý sinh", theory: 1, practice: 1 },
+              { id: 5, name: "Sinh học và di truyền", theory: 2, practice: 0 },
+              { id: 6, name: "Giải phẫu - Sinh lý", theory: 2, practice: 0 },
+              { id: 7, name: "Thực hành Giải phẫu - Sinh lý", theory: 0, practice: 2 },
+              { id: 8, name: "Hóa sinh", theory: 1, practice: 1 },
+            ],
+            y1_s2: [
+              { id: 9, name: "Kinh tế chính trị", theory: 1, practice: 1 },
+              { id: 10, name: "Chủ nghĩa xã hội khoa học", theory: 1, practice: 1 },
+              { id: 11, name: "Pháp luật đại cương", theory: 1, practice: 0 },
+              { id: 12, name: "Giới thiệu Vật lý trị liệu", theory: 1, practice: 0, tags: ['VLTL'] },
+              { id: 13, name: "Giới thiệu về Hoạt động trị liệu", theory: 1, practice: 0, tags: ['HĐTL'] },
+              { id: 14, name: "Giới thiệu về Ngôn ngữ trị liệu", theory: 1, practice: 0, tags: ['NNTL'] },
+              { id: 15, name: "Giải phẫu chức năng", theory: 1, practice: 1, tags: ['VLTL', 'HĐTL'] },
+              { id: 16, name: "Giải phẫu chức năng vùng đầu mặt cổ", theory: 1, practice: 1, tags: ['NNTL'] },
+              { id: 17, name: "Dược lý - Dược lâm sàng", theory: 2, practice: 0 },
+              { id: 18, name: "Xác suất - Thống kê y học", theory: 2, practice: 0 },
+              { id: 19, name: "Bệnh học Nội khoa- Ngoại khoa", theory: 1, practice: 1 },
+              { id: 20, name: "Đạo đức nghề nghiệp - Tâm lý y học", theory: 1, practice: 1 },
+            ],
+            y2_s3: [
+              { id: 21, name: "Tư tưởng Hồ Chí Minh", theory: 2, practice: 0 },
+              { id: 22, name: "Dịch tễ học", theory: 1, practice: 1 },
+              { id: 23, name: "Điều dưỡng cơ bản - Cấp cứu ban đầu", theory: 1, practice: 1 },
+              { id: 24, name: "Lượng giá chức năng", theory: 1, practice: 1, tags: ['VLTL', 'HĐTL'] },
+              { id: 25, name: "Sự phát triển ngôn ngữ & giao tiếp nhận thức ở trẻ nhỏ", theory: 1, practice: 1, tags: ['NNTL'] },
+              { id: 26, name: "Khoa học vận động", theory: 1, practice: 1, tags: ['VLTL', 'HĐTL'] },
+              { id: 27, name: "Việt ngữ học", theory: 1, practice: 1, tags: ['NNTL'] },
+              { id: 28, name: "Khoa học thần kinh", theory: 1, practice: 1 },
+              { id: 29, name: "Quá trình phát triển con người", theory: 1, practice: 1, tags: ['VLTL', 'HĐTL'] },
+              { id: 30, name: "Quá trình phát triển và sử dụng giao tiếp suốt đời", theory: 1, practice: 1, tags: ['NNTL'] },
+              { id: 31, name: "Dinh dưỡng và An toàn thực phẩm - Dinh dưỡng tiết chế", theory: 1, practice: 1 },
+            ],
+            y2_s4: [
+              { id: 32, name: "Lịch sử Đảng Cộng Sản Việt Nam", theory: 2, practice: 0 },
+              { id: 33, name: "Sức khỏe môi trường và sức khỏe nghề nghiệp", theory: 1, practice: 1 },
+              { id: 34, name: "Nghiên cứu khoa học - Thực hành dựa trên chứng cứ", theory: 1, practice: 1 },
+              { id: 35, name: "Vận động trị liệu", theory: 1, practice: 3, tags: ['VLTL'] },
+              { id: 36, name: "Phương thức trị liệu", theory: 1, practice: 2, tags: ['VLTL'] },
+              { id: 37, name: "Chẩn đoán hình ảnh", theory: 1, practice: 1, tags: ['VLTL'] },
+              { id: 38, name: "Kỹ năng giáo dục đào tạo trong Vật lý trị liệu", theory: 1, practice: 0, tags: ['VLTL'] },
+              { id: 39, name: "Nguyên lý và kỹ năng cơ bản Hoạt động trị liệu I", theory: 2, practice: 2, tags: ['HĐTL'] },
+              { id: 40, name: "Nguyên lý và kỹ năng cơ bản Hoạt động trị liệu II", theory: 2, practice: 1, tags: ['HĐTL'] },
+              { id: 41, name: "Can thiệp Hoạt động trị liệu I", theory: 1, practice: 2, tags: ['HĐTL'] },
+              { id: 42, name: "Rối loạn ngôn ngữ và giao tiếp - nhận thức có nguồn gốc thần kinh", theory: 2, practice: 2, tags: ['NNTL'] },
+              { id: 43, name: "Rối loạn âm lời nói", theory: 1, practice: 2, tags: ['NNTL'] },
+              { id: 44, name: "Khuyết tật giao tiếp suốt đời và giao tiếp tăng cường - thay thế", theory: 1, practice: 2, tags: ['NNTL'] },
+            ],
+            y3_s5: [
+              { id: 45, name: "Thực tập lâm sàng Kỹ năng lượng giá", theory: 0, practice: 4 },
+              { id: 46, name: "Vật lý trị liệu Cơ xương cơ bản", theory: 1, practice: 2, tags: ['VLTL'] },
+              { id: 47, name: "Vật lý trị liệu Thần kinh - cơ cơ bản", theory: 1, practice: 2, tags: ['VLTL'] },
+              { id: 48, name: "Vật lý trị liệu Tim mạch - Hô hấp cơ bản", theory: 1, practice: 2, tags: ['VLTL'] },
+              { id: 49, name: "Vật lý trị liệu Nhi khoa", theory: 1, practice: 2, tags: ['VLTL'] },
+              { id: 50, name: "Bệnh học Chỉnh hình - Nhi - Tâm thần", theory: 2, practice: 1, tags: ['HĐTL'] },
+              { id: 51, name: "Can thiệp Hoạt động trị liệu II", theory: 2, practice: 2, tags: ['HĐTL'] },
+              { id: 52, name: "Hoạt động trị liệu Nhi khoa", theory: 1, practice: 2, tags: ['HĐTL'] },
+              { id: 53, name: "Tâm lý lâm sàng - Xã hội học", theory: 1, practice: 1, tags: ['HĐTL'] },
+              { id: 54, name: "Giới thiệu các kỹ năng lâm sàng trong Ngôn ngữ trị liệu", theory: 1, practice: 1, tags: ['NNTL'] },
+              { id: 55, name: "Giọng và rối loạn giọng", theory: 1, practice: 1, tags: ['NNTL'] },
+              { id: 56, name: "Rối loạn nuốt", theory: 2, practice: 2, tags: ['NNTL'] },
+              { id: 57, name: "Rối loạn vận động tạo lời nói", theory: 1, practice: 1, tags: ['NNTL'] },
+              { id: 58, name: "Các rối loạn vùng đầu và cổ", theory: 1, practice: 1, tags: ['NNTL'] },
+            ],
+            y3_s6: [
+              { id: 59, name: "Giáo dục liên ngành 1", theory: 0, practice: 1 },
+              { id: 60, name: "Thực tập lâm sàng Kỹ năng can thiệp", theory: 0, practice: 4 },
+              { id: 61, name: "Phục hồi chức năng dựa vào cộng đồng", theory: 1, practice: 1 },
+              { id: 62, name: "Vật lý trị liệu bệnh lý không lây", theory: 1, practice: 1, tags: ['VLTL'] },
+              { id: 63, name: "Vật lý trị liệu Thể thao", theory: 1, practice: 1, tags: ['VLTL'] },
+              { id: 64, name: "Vật lý trị liệu cho Bệnh lý phức tạp, truyền nhiễm", theory: 1, practice: 1, tags: ['VLTL'] },
+              { id: 65, name: "Vật lý trị liệu Cơ xương nâng cao", theory: 1, practice: 2, tags: ['VLTL'] },
+              { id: 66, name: "Hoạt động trị liệu trong bệnh Thần kinh", theory: 2, practice: 1, tags: ['HĐTL'] },
+              { id: 67, name: "Hoạt động trị liệu Ngoại khoa và Chỉnh hình", theory: 1, practice: 2, tags: ['HĐTL'] },
+              { id: 68, name: "Hoạt động trị liệu trong Sức khỏe tâm thần", theory: 1, practice: 2, tags: ['HĐTL'] },
+              { id: 69, name: "Thính học và Phục hồi chức năng thính giác", theory: 1, practice: 2, tags: ['NNTL'] },
+              { id: 70, name: "Rối loạn ngôn ngữ và đọc viết ở trẻ em tuổi đi học", theory: 1, practice: 2, tags: ['NNTL'] },
+              { id: 71, name: "Nói lắp", theory: 1, practice: 1, tags: ['NNTL'] },
+              { id: 72, name: "Cho trẻ ăn ở trẻ em", theory: 1, practice: 1, tags: ['NNTL'] },
+            ],
+            y4_s7: [
+              { id: 73, name: "Thực tập lâm sàng các bệnh lý thường gặp", theory: 0, practice: 4 },
+              { id: 74, name: "Thực tập lâm sàng các bệnh lý phức tạp", theory: 0, practice: 4 },
+              { id: 75, name: "Thực hành y học chứng cứ trong Phục hồi chức năng", theory: 1, practice: 2 },
+              { id: 76, name: "Vật lý trị liệu Thần kinh - cơ nâng cao", theory: 1, practice: 1, tags: ['VLTL'] },
+              { id: 77, name: "Vật lý trị liệu cho các nhóm người bệnh đặc thù", theory: 1, practice: 1, tags: ['VLTL'] },
+              { id: 78, name: "Hoạt động trị liệu trong Lão khoa và Nội khoa", theory: 2, practice: 2, tags: ['HĐTL'] },
+              { id: 79, name: "Quản lý ca bệnh phức tạp", theory: 1, practice: 1, tags: ['NNTL'] },
+              { id: 80, name: "Thực hành chuyên nghiệp và tiêu chuẩn đạo đức", theory: 1, practice: 1, tags: ['NNTL'] },
+            ],
+            y4_s8: [
+              { id: 81, name: "Giáo dục liên ngành 2", theory: 0, practice: 1 },
+              { id: 82, name: "Khóa luận tốt nghiệp/Học phần thay thế", theory: 3, practice: 4 },
+              { id: 83, name: "Thực tập lâm sàng đa bối cảnh", theory: 0, practice: 3 },
+              { id: 84, name: "Thực tế tốt nghiệp", theory: 0, practice: 4 },
+              { id: 85, name: "Tổ chức và quản lý Khoa VLTL/PHCN; Kỹ năng giao tiếp chuyên ngành VLTL/PHCN", theory: 1, practice: 1, tags: ['VLTL'] },
+              { id: 86, name: "Thực hành nghề Hoạt động trị liệu", theory: 1, practice: 1, tags: ['HĐTL'] },
+              { id: 87, name: "Lãnh đạo và học tập suốt đời", theory: 1, practice: 1, tags: ['NNTL'] },
+            ]
+        };
+
+        const majors = {
+            VLTL: {
+              name: "Vật lý trị liệu",
+              color: "blue",
+              description: "Vật lý trị liệu là ngành thuộc lĩnh vực khoa học sức khỏe, tập trung vào việc phát triển, duy trì và phục hồi tối đa khả năng vận động và chức năng của con người trong suốt vòng đời. Vật lý trị liệu phục vụ cá nhân và cộng đồng, đặc biệt trong những trường hợp vận động và chức năng bị ảnh hưởng bởi tuổi tác, chấn thương, đau, bệnh lý, rối loạn, tình trạng sức khỏe hoặc các yếu tố môi trường.",
+              jobs: [
+                "Làm việc tại các bệnh viện, trung tâm phục hồi chức năng, viện dưỡng lão.",
+                "Tự phát triển và vận hành các cơ sở kỹ thuật phục hồi chức năng tư nhân.",
+                "Làm cán bộ của các dự án liên quan phục hồi chức năng ở các tổ chức phi chính phủ.",
+                "Trung tâm thể dục thể thao, cơ sở kinh doanh thiết bị vật lý trị liệu."
+              ]
+            },
+            HĐTL: {
+              name: "Hoạt động trị liệu",
+              color: "orange",
+              description: "Hoạt động trị liệu là ngành hỗ trợ người bệnh/khách hàng phát triển, phục hồi hoặc duy trì khả năng thực hiện và tham gia vào các hoạt động hằng ngày có ý nghĩa thông qua đánh giá, can thiệp, huấn luyện kỹ năng, điều chỉnh hoạt động và thích nghi môi trường, nhằm nâng cao tính độc lập và cải thiện chất lượng cuộc sống.",
+              jobs: [
+                "Làm việc tại các bệnh viện, trung tâm phục hồi chức năng, viện dưỡng lão.",
+                "Tự phát triển và vận hành các cơ sở kỹ thuật phục hồi chức năng tư nhân.",
+                "Làm cán bộ của các dự án liên quan phục hồi chức năng ở các tổ chức phi chính phủ.",
+                "Trung tâm giáo dục hòa nhập, nhà máy xí nghiệp (chăm sóc sức khỏe lao động).",
+                "Trường học từ mẫu giáo đến trung học phổ thông.",
+                "Công ty sản xuất trang thiết bị công thái học hoặc dụng cụ thích nghi/trợ giúp."
+              ]
+            },
+            NNTL: {
+              name: "Ngôn ngữ trị liệu",
+              color: "emerald",
+              description: "Ngôn ngữ trị liệu là ngành làm việc với trẻ em và người lớn nhằm sàng lọc, nhận diện, can thiệp, tư vấn, huấn luyện kỹ năng quản lý các vấn đề về ngôn ngữ, lời nói, giao tiếp và nuốt.",
+              jobs: [
+                "Làm việc tại các bệnh viện, trung tâm phục hồi chức năng, viện dưỡng lão.",
+                "Tự phát triển và vận hành các cơ sở kỹ thuật phục hồi chức năng tư nhân.",
+                "Làm cán bộ của các dự án liên quan phục hồi chức năng ở các tổ chức phi chính phủ.",
+                "Trung tâm giáo dục hòa nhập.",
+                "Trường học từ mẫu giáo đến trung học phổ thông.",
+                "Công ty sản xuất trang thiết bị trợ thính hoặc công nghệ trợ giúp giao tiếp hoặc nuốt."
+              ]
+            }
+        };
+
+        const semesters = [
+            { id: 1, title: "Năm 1 - Học kì I", key: 'y1_s1' },
+            { id: 2, title: "Năm 1 - Học kì II", key: 'y1_s2' },
+            { id: 3, title: "Năm 2 - Học kì III", key: 'y2_s3' },
+            { id: 4, title: "Năm 2 - Học kì IV", key: 'y2_s4' },
+            { id: 5, title: "Năm 3 - Học kì V", key: 'y3_s5' },
+            { id: 6, title: "Năm 3 - Học kì VI", key: 'y3_s6' },
+            { id: 7, title: "Năm 4 - Học kì VII", key: 'y4_s7' },
+            { id: 8, title: "Năm 4 - Học kì VIII", key: 'y4_s8' },
+        ];
+
+        // Mã màu cho từng chuyên ngành
+        const majorThemes = {
+            VLTL: { pri: '#0284c7', light: '#e0f2fe' }, // Xanh dương
+            HĐTL: { pri: '#ea580c', light: '#ffedd5' }, // Cam
+            NNTL: { pri: '#10b981', light: '#d1fae5' }  // Xanh lá
+        };
+
+        // Biến trạng thái
+        let activeMajor = 'VLTL';
+        let expandedSemester = null;
+
+        window.changeMajor = function(majorKey) {
+            activeMajor = majorKey;
+            expandedSemester = null;
+            renderApp();
+        };
+
+        window.toggleSemester = function(semId) {
+            expandedSemester = expandedSemester === semId ? null : semId;
+            renderApp();
+        };
+
+        // Hàm vẽ toàn bộ giao diện
+        function renderApp() {
+            const container = document.getElementById('app-container');
+            const theme = majorThemes[activeMajor];
+
+            // 1. Tab Chọn Chuyên Ngành
+            const majorButtonsHtml = Object.keys(majors).map(key => {
+                const isActive = activeMajor === key;
+                const t = majorThemes[key];
+                
+                const activeStyle = isActive 
+                    ? `border-color: ${t.pri}; background-color: ${t.light}; color: ${t.pri}; box-shadow: 0 4px 12px ${t.pri}33; transform: scale(1.02); z-index: 1;` 
+                    : `border-color: var(--border-light); background-color: white; color: var(--text-muted);`;
+                
+                return `
+                    <button onclick="changeMajor('${key}')" class="tab-btn" style="${activeStyle}">
+                        ${majors[key].name}
+                    </button>
+                `;
+            }).join('');
+
+            // 2. Danh sách việc làm
+            const jobsHtml = majors[activeMajor].jobs.map(job => `
+                <li style="display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; color: var(--text-dark); font-size: 14.5px; line-height: 1.5;">
+                    <i class="fas fa-check-circle" style="color: ${theme.pri}; margin-top: 4px; font-size: 14px;"></i>
+                    <span>${job}</span>
+                </li>
+            `).join('');
+
+            // 3. Khung chương trình
+            const semestersHtml = semesters.map(sem => {
+                const subjects = curriculumDatabase[sem.key]?.filter(sub => !sub.tags || sub.tags.includes(activeMajor)) || [];
+                const isOpen = expandedSemester === sem.id;
+                const totalCredits = subjects.reduce((a, c) => a + c.theory + c.practice, 0);
+                
+                let tableHtml = '';
+                if (isOpen) {
+                    const rowsHtml = subjects.map((sub, idx) => `
+                        <tr>
+                            <td style="width: 50px;">${idx + 1}</td>
+                            <td style="font-weight: 500; min-width: 200px;">${sub.name}</td>
+                            <td style="text-align: center; white-space: nowrap;">
+                                <span style="font-weight: 700;">${sub.theory + sub.practice}</span>
+                                <span style="color: var(--text-muted); font-size: 12px; margin-left: 4px;">(${sub.theory}+${sub.practice})</span>
+                            </td>
+                        </tr>
+                    `).join('');
+
+                    tableHtml = `
+                        <div style="padding: 0 20px 20px;">
+                            <div style="overflow-x: auto;">
+                                <table class="curriculum-table">
+                                    <thead>
+                                        <tr>
+                                            <th>STT</th>
+                                            <th>Tên học phần</th>
+                                            <th style="text-align: center;">Tín chỉ (LT+TH)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${rowsHtml}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div style="margin-top: 15px; padding: 12px 16px; background-color: ${theme.light}; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
+                                <span style="color: var(--text-dark);"><i class="fas fa-info-circle" style="color: ${theme.pri}; margin-right: 5px;"></i> Tổng: <b>${totalCredits}</b> tín chỉ</span>
+                                <span style="color: var(--text-muted); font-style: italic;">*Khung chương trình 2025</span>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                return `
+                    <div class="task-card" style="${isOpen ? `border: 2px solid ${theme.pri}; box-shadow: 0 4px 12px${theme.pri}1A;` : ''}">
+                        <div class="task-top" onclick="toggleSemester(${sem.id})">
+                            <div style="display: flex; gap: 15px; align-items: center;">
+                                <div class="status-badge" style="width: 34px; height: 34px; padding: 0; border-radius: 50%; font-size: 14px; background-color: ${isOpen ? theme.pri : 'var(--bg-page)'}; color: ${isOpen ? 'white' : 'var(--text-body)'}; border: 1px solid ${isOpen ? 'transparent' : 'var(--border)'};">${sem.id}</div>
+                                <div class="task-title" style="color: ${isOpen ? theme.pri : 'var(--text-dark)'};">${sem.title}</div>
+                            </div>
+                            <i class="fas fa-chevron-right" style="color: ${isOpen ? theme.pri : 'var(--text-muted)'}; transition: transform 0.2s; transform: ${isOpen ? 'rotate(90deg)' : 'rotate(0)'};"></i>
+                        </div>
+                        ${tableHtml}
+                    </div>
+                `;
+            }).join('');
+
+            // Gắn HTML
+            container.innerHTML = `
+                <!-- THÔNG TIN CHUNG (Dashboard Style gọn gàng, khoa học) -->
+                <div class="plan-overview-card" style="padding: 0; overflow: hidden; display: flex; flex-direction: column; margin-bottom: 30px;">
+                    <div style="display: flex; flex-wrap: wrap; background: white;">
+                        
+                        <!-- Cột Trái: Tên ngành -->
+                        <div class="top-left-panel" style="flex: 1.2; min-width: 320px; padding: 32px 20px; display: flex; flex-direction: column; justify-content: center; align-items: center; border-right: 1px solid var(--border-light); background: linear-gradient(to bottom right, #f8fafc, #f1f5f9); overflow: hidden;">
+                            <div style="width: 70px; height: 70px; background: var(--primary); color: white; border-radius: 18px; display: flex; justify-content: center; align-items: center; font-size: 32px; box-shadow: 0 8px 16px rgba(2, 132, 199, 0.25); margin-bottom: 18px;">
+                                <i class="fas fa-graduation-cap"></i>
+                            </div>
+                            <div style="font-size: 13px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px;">Ngành đào tạo</div>
+                            <div style="font-size: clamp(14px, 2.2vw, 20px); font-weight: 800; color: var(--primary); text-align: center; line-height: 1.3; margin-bottom: 14px; white-space: nowrap;">KỸ THUẬT PHỤC HỒI CHỨC NĂNG</div>
+                            <div style="background: var(--bg-page); color: var(--text-body); border: 1px solid var(--border); border-radius: 999px; padding: 6px 14px; font-size: 14px; font-weight: 700; white-space: nowrap;">Mã ngành: 7720603</div>
+                        </div>
+                        
+                        <!-- Cột Phải: Các thẻ thông số -->
+                        <div style="flex: 2; min-width: 320px; padding: 24px; display: flex; flex-direction: column; gap: 16px; justify-content: center; overflow: hidden;">
+                            
+                            <!-- Hàng 1: Chỉ tiêu & Học phí -->
+                            <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                                <div style="flex: 1; min-width: 160px; background: var(--bg-page); border: 1px solid var(--border-light); padding: 18px; border-radius: 14px;">
+                                    <div style="font-size: 13px; color: var(--text-muted); font-weight: 600; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;"><i class="fas fa-users" style="color: var(--primary);"></i> Chỉ tiêu tuyển sinh</div>
+                                    <div style="font-size: 24px; font-weight: 800; color: var(--text-dark);">100 <span style="font-size: 14px; font-weight: 500; color: var(--text-muted);">sinh viên</span></div>
+                                </div>
+                                <div style="flex: 1; min-width: 180px; background: var(--bg-page); border: 1px solid var(--border-light); padding: 18px; border-radius: 14px;">
+                                    <div style="font-size: 13px; color: var(--text-muted); font-weight: 600; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;"><i class="fas fa-coins" style="color: var(--primary);"></i> Học phí dự kiến</div>
+                                    <div style="font-size: 22px; font-weight: 700; color: var(--text-dark);">48.000.000 <span style="font-size: 14px; font-weight: 500; color: var(--text-muted);">đ/năm</span></div>
+                                </div>
+                            </div>
+
+                            <!-- Hàng 2: Tổ hợp môn -->
+                            <div style="background: var(--bg-page); border: 1px solid var(--border-light); padding: 18px; border-radius: 14px;">
+                                <div style="font-size: 13px; color: var(--text-muted); font-weight: 600; margin-bottom: 14px; display: flex; align-items: center; gap: 6px;"><i class="fas fa-layer-group" style="color: var(--primary);"></i> Tổ hợp xét tuyển</div>
+                                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                                    <div style="display: flex; align-items: center; gap: 10px; background: white; padding: 8px 14px; border-radius: 10px; border: 1px solid var(--border-light); flex: 1; min-width: 160px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                                        <span style="font-weight: 800; color: var(--primary); font-size: 16px;">A00</span>
+                                        <span style="color: var(--text-dark); font-size: 13px; font-weight: 500;">Toán, Lý, Hóa</span>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 10px; background: white; padding: 8px 14px; border-radius: 10px; border: 1px solid var(--border-light); flex: 1; min-width: 160px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                                        <span style="font-weight: 800; color: var(--primary); font-size: 16px;">B00</span>
+                                        <span style="color: var(--text-dark); font-size: 13px; font-weight: 500;">Toán, Hóa, Sinh</span>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 10px; background: white; padding: 8px 14px; border-radius: 10px; border: 1px solid var(--border-light); flex: 1; min-width: 160px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                                        <span style="font-weight: 800; color: var(--primary); font-size: 16px;">D07</span>
+                                        <span style="color: var(--text-dark); font-size: 13px; font-weight: 500;">Toán, Hóa, Anh</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Dải ngang dưới cùng chứa Nút Công văn -->
+                    <div style="padding: 16px 24px; background: #f8fafc; border-top: 1px solid var(--border-light); display: flex; justify-content: center;">
+                        <a href="https://ump.edu.vn/uploads/ckeditor/files/Truong/DaoTaoDaiHoc/TuyenSinh/2026/1608_06042026_Thongtintuyensinh2026.pdf" 
+                           target="_blank" 
+                           class="btn-custom btn-custom-primary" style="padding: 10px 24px; border-radius: 99px;">
+                          <i class="fas fa-external-link-alt"></i> Xem chi tiết công văn
+                        </a>
+                    </div>
+                </div>
+
+                <!-- CHỌN CHUYÊN NGÀNH -->
+                <div>
+                  <div style="text-align: center; color: var(--text-muted); font-size: 13px; font-style: italic; margin-bottom: 15px;">* Sinh viên được chọn 1 trong 3 chuyên ngành để đào tạo chuyên sâu</div>
+                  <div class="major-tabs-container">
+                    ${majorButtonsHtml}
+                  </div>
+                </div>
+
+                <!-- THÔNG TIN CHUYÊN NGÀNH THEO MÀU -->
+                <div class="plan-overview-card" style="border: 2px solid ${theme.pri}; background-color: ${theme.light}; transition: all 0.3s ease;">
+                  <h2 class="plan-title-large" style="margin-bottom: 12px; color: ${theme.pri};">${majors[activeMajor].name}</h2>
+                  <p class="plan-description" style="margin-bottom: 20px; color: var(--text-dark);">"${majors[activeMajor].description}"</p>
+                  <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                    <span class="status-badge badge-gray" style="background: white; border: none; box-shadow: 0 2px 4px rgba(0,0,0,0.05); color: ${theme.pri};"><i class="far fa-clock"></i> <span style="color: var(--text-dark);">4 năm (8 học kỳ)</span></span>
+                    <span class="status-badge badge-gray" style="background: white; border: none; box-shadow: 0 2px 4px rgba(0,0,0,0.05); color: ${theme.pri};"><i class="fas fa-bullseye"></i> <span style="color: var(--text-dark);">130 tín chỉ</span></span>
+                  </div>
+                </div>
+
+                <!-- CƠ HỘI VIỆC LÀM THEO MÀU -->
+                <div class="plan-overview-card">
+                  <h3 class="status-section-title" style="margin-top: 0; border-bottom: 1px dashed var(--border-light); padding-bottom: 15px;">
+                      <div style="background-color: ${theme.light}; color: ${theme.pri}; padding: 8px 12px; border-radius: 8px;"><i class="fas fa-briefcase"></i></div> 
+                      Cơ hội việc làm
+                  </h3>
+                  <ul style="margin: 0; padding: 0;">
+                    ${jobsHtml}
+                  </ul>
+                </div>
+
+                <!-- KHUNG CHƯƠNG TRÌNH THEO MÀU -->
+                <div style="margin-bottom: 40px;">
+                  <h3 class="status-section-title" style="border: none;">
+                    <i class="fas fa-book-open" style="color: ${theme.pri};"></i> Khung Chương Trình Đào Tạo
+                  </h3>
+                  <div class="task-list">
+                      ${semestersHtml}
+                  </div>
+                </div>
+
+                <!-- NÚT FANPAGE -->
+                <a href="https://www.facebook.com/BomonPhuchoichucnang" target="_blank" class="btn-custom btn-custom-primary shadow-lg" style="position: fixed; bottom: 24px; right: 24px; z-index: 100; border-radius: 999px; padding: 12px 24px; box-shadow: 0 10px 25px rgba(2, 132, 199, 0.4);">
+                  <i class="fab fa-facebook" style="font-size: 20px;"></i>
+                  <span style="font-weight: 600; margin-left: 4px;">Theo dõi Fanpage</span>
+                </a>
+            `;
+        }
+
+        // Khởi chạy khi load xong
+        document.addEventListener("DOMContentLoaded", () => {
+            renderApp();
+        });
+
+    </script>
+</body>
+</html>

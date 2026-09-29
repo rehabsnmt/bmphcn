@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Đội ngũ giảng viên và quá trình hình thành, phát triển Bộ môn Phục hồi chức năng.">
+
+    <!-- Cho phép chạy script inline để load dữ liệu Supabase VÀ CẤP QUYỀN GOOGLE FONTS -->
+    <meta http-equiv="Content-Security-Policy" content="
+            default-src 'self';
+            connect-src 'self' https://*.supabase.co;
+            img-src 'self' data: https://*.supabase.co;
+            style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://fonts.googleapis.com;
+            script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net;
+            font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com;
+        ">
+
+    <title>Giới thiệu - Bộ môn Phục hồi chức năng</title>
+
+    <link rel="icon" href="images/logo_Bộ môn.png" type="image/png">
+    
+    <!-- Dùng chung file CSS với Trang chủ -->
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+
+    <!-- 1. HEADER (File layout.js sẽ tự động bơm Header chuẩn vào đây) -->
+    <div id="header-placeholder"></div>
+
+    <!-- 2. TOAST THÔNG BÁO -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- 3. NỘI DUNG CHÍNH (Bắt buộc bọc trong thẻ <main> để Footer bị đẩy xuống đáy) -->
+    <main>
+        <div class="intro-container">
+
+            <!-- Phân đoạn: Lịch sử hình thành -->
+            <section class="intro-section">
+                <div class="section-title">
+                    <h1>Quá trình hình thành <span class="title-break">và Công tác đào tạo</span></h1>
+                    <div class="section-divider"></div>
+                </div>
+
+                <div class="history-wrapper">
+                    <div class="history-content">
+                        <p>Bộ môn được thành lập năm <span class="highlight">1972</span>, tiền thân là <b>Trường Cán sự Vật lý trị liệu</b> - trường đào tạo vật lý trị liệu đầu tiên tại Việt Nam, đặt nền móng cho quá trình đào tạo nhân lực vật lý trị liệu trong nước. Năm <span class="highlight">1975</span>, đơn vị được hợp nhất thành <b>Ngành Vật lý trị liệu</b> thuộc Trường Kỹ thuật Y tế Trung ương 3; đến năm <span class="highlight">1998</span>, trở thành <b>Bộ môn Vật lý trị liệu</b> thuộc Khoa Điều dưỡng - Kỹ thuật Y học, Đại học Y Dược Thành phố Hồ Chí Minh.</p>                                        
+                        <p>Trải qua hơn 50 năm hình thành và phát triển, Bộ môn từng bước mở rộng quy mô đào tạo từ hệ Trung cấp đến Đại học và Sau đại học. Hiện nay, Bộ môn Phục hồi chức năng thuộc Trường Điều dưỡng - Kỹ thuật Y học, Đại học Y Dược Thành phố Hồ Chí Minh triển khai đào tạo hệ Đại học chính quy và Sau đại học bậc <b>Thạc sĩ ngành Kỹ thuật Phục hồi chức năng</b>, với các chuyên ngành <span class="highlight">Vật lý trị liệu</span>, <span class="highlight">Hoạt động trị liệu</span> và <span class="highlight">Ngôn ngữ trị liệu</span>, góp phần đào tạo nguồn nhân lực chất lượng cao đáp ứng nhu cầu chăm sóc sức khỏe cộng đồng.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Phân đoạn: Lưới Giảng Viên 3x3 -->
+            <section class="intro-section faculty-section">
+                <div class="section-title">
+                    <h2>Đội ngũ giảng viên</h2>
+                    <div class="section-divider"></div>
+                </div>
+
+                <!-- Lưới hiển thị 3 cột -->
+                <div id="facultyGrid" class="faculty-grid">
+                    <div class="faculty-loading">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <span>Đang tải danh sách giảng viên...</span>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- 4. FOOTER (File layout.js sẽ tự động bơm Footer chuẩn vào đây) -->
+    <div id="footer-placeholder"></div>
+
+    <!-- =================================================
+         5. TẢI CẤU TRÚC LAYOUT VÀ KẾT NỐI SUPABASE
+    ================================================== -->
+    <script src="js/layout.js"></script>
+
+    <!-- =================================================
+         6. SCRIPT XỬ LÝ LOAD GIẢNG VIÊN TỪ SUPABASE
+    ================================================== -->
+    <script>
+        window.showToast = function (message) {
+            const container = document.getElementById("toastContainer");
+            if (!container) return;
+            const toast = document.createElement("div");
+            toast.className = "toast";
+            toast.innerHTML = `<i class="fas fa-info-circle"></i><span>${message}</span>`;
+            container.appendChild(toast);
+            requestAnimationFrame(() => toast.classList.add("show"));
+            setTimeout(() => {
+                toast.classList.remove("show");
+                setTimeout(() => toast.remove(), 400);
+            }, 3000);
+        };
+
+        const facultyGrid = document.getElementById("facultyGrid");
+        let facultyList = [];
+
+        function escapeHtml(value) {
+            if (value == null) return "";
+            return String(value)
+                .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        function getDegreeDisplay(data) {
+            const hocHam = String(data["hoc-ham"] || "").trim();
+            const hocVi = String(data["hoc-vi"] || "").trim();
+            if (hocHam && hocVi) return `${hocHam}, ${hocVi}`;
+            return hocHam || hocVi || "Đang cập nhật";
+        }
+
+        function getMajorClass(major) {
+            const text = String(major || "").toLowerCase();
+            if (text.includes("vật lý")) return "major-vltl";
+            if (text.includes("hoạt động") || text.includes("hđtl")) return "major-hdtl";
+            if (text.includes("ngôn ngữ") || text.includes("nntl")) return "major-nntl";
+            return "major-default";
+        }
+
+        function getPositionClass(position) {
+            const value = String(position || "").trim();
+            if (value === "Trưởng Bộ môn") return "pos-head";
+            if (value === "Giáo vụ") return "pos-admin";
+            return "";
+        }
+
+        function renderFaculty() {
+            if (!facultyGrid) return;
+            facultyGrid.innerHTML = "";
+
+            if (!facultyList.length) {
+                facultyGrid.innerHTML = `<div class="faculty-loading">Chưa có dữ liệu giảng viên cơ hữu.</div>`;
+                return;
+            }
+
+            facultyList.forEach((data) => {
+                const card = document.createElement("article");
+                card.className = "faculty-card";
+
+                // Hình ảnh Avatar xử lý fallback luân phiên các URL
+                const avatar = document.createElement("div");
+                avatar.className = "faculty-avatar";
+                
+                if (data.tryUrls && data.tryUrls.length > 0) {
+                    const img = document.createElement("img");
+                    img.alt = `Ảnh ${escapeHtml(data.name)}`;
+                    img.loading = "lazy";
+                    
+                    let currentUrlIndex = 0;
+                    img.src = data.tryUrls[currentUrlIndex];
+                    
+                    // Cơ chế tự động dò tìm đuôi ảnh (.jpg -> .png -> .jpeg -> ...)
+                    img.onerror = function() {
+                        currentUrlIndex++;
+                        if (currentUrlIndex < data.tryUrls.length) {
+                            this.src = data.tryUrls[currentUrlIndex];
+                        } else {
+                            this.outerHTML = '<i class="fas fa-user"></i>'; // Hết url thử -> hiển thị icon mặc định
+                        }
+                    };
+                    avatar.appendChild(img);
+                } else {
+                    avatar.innerHTML = `<i class="fas fa-user"></i>`;
+                }
+                card.appendChild(avatar);
+
+                // Học vị
+                const degree = document.createElement("div");
+                degree.className = "faculty-degree";
+                degree.textContent = data.degree;
+                card.appendChild(degree);
+
+                // Tên
+                const name = document.createElement("h3");
+                name.className = "faculty-name";
+                name.textContent = data.name;
+                card.appendChild(name);
+
+                // Chức vụ
+                const position = document.createElement("div");
+                position.className = `faculty-position ${getPositionClass(data.position)}`;
+                position.textContent = data.position;
+                card.appendChild(position);
+
+                // Chuyên ngành
+                const major = document.createElement("div");
+                major.className = `faculty-major ${getMajorClass(data.major)}`;
+                major.textContent = data.major;
+                card.appendChild(major);
+
+                // Email
+                const emailContainer = document.createElement("div");
+                emailContainer.className = "faculty-email";
+                emailContainer.innerHTML = `<i class="fas fa-envelope"></i> `;
+                if (data.email) {
+                    const emailLink = document.createElement("a");
+                    emailLink.href = `mailto:${data.email}`;
+                    emailLink.textContent = data.email;
+                    emailContainer.appendChild(emailLink);
+                } else {
+                    emailContainer.innerHTML += `<span class="faculty-email-empty">Đang cập nhật</span>`;
+                }
+                card.appendChild(emailContainer);
+
+                // Xử lý Click chuyển hướng
+                card.addEventListener("click", (e) => {
+                    if (e.target.closest("a")) return;
+                    if (data.uid) {
+                        window.location.href = `thong-tin-giang-vien.html?id=${encodeURIComponent(data.uid)}`;
+                    } else {
+                        window.showToast("Giảng viên này chưa thiết lập hồ sơ chi tiết.");
+                    }
+                });
+
+                facultyGrid.appendChild(card);
+            });
+        }
+
+        async function loadFacultyData() {
+            try {
+                if (!window.supabaseClient) throw new Error("Chưa kết nối Supabase");
+
+                const { data, error } = await window.supabaseClient
+                    .from("giang-vien")
+                    .select("*")
+                    .order("stt", { ascending: true });
+
+                if (error) throw error;
+
+                const storageApi = window.supabaseClient.storage.from('anh-ho-so');
+
+                // Lọc chỉ lấy giảng viên Cơ hữu (Không phân biệt hoa thường)
+                const coHuuData = (data || []).filter(lecturer => {
+                    const phanLoai = String(lecturer["phan-loai"] || "").trim().toLowerCase();
+                    return phanLoai === "cơ hữu";
+                });
+
+                facultyList = coHuuData.map((lecturer) => {
+                    const maGv = String(lecturer["ma-giang-vien"] || "").trim();
+                    const fileNameInDb = String(lecturer["anh"] || "").trim();
+                    
+                    let urlsToTry = [];
+                    
+                    // 1. Nếu Database có lưu sẵn tên file cụ thể (vd: "GV01.png")
+                    if (fileNameInDb) {
+                        urlsToTry.push(storageApi.getPublicUrl(fileNameInDb).data.publicUrl);
+                    }
+                    
+                    // 2. Tự động lấy các định dạng mở rộng phổ biến theo mã giảng viên
+                    if (maGv) {
+                        urlsToTry.push(storageApi.getPublicUrl(`${maGv}.jpg`).data.publicUrl);
+                        urlsToTry.push(storageApi.getPublicUrl(`${maGv}.png`).data.publicUrl);
+                        urlsToTry.push(storageApi.getPublicUrl(`${maGv}.jpeg`).data.publicUrl);
+                        urlsToTry.push(storageApi.getPublicUrl(`${maGv}.JPG`).data.publicUrl);
+                        urlsToTry.push(storageApi.getPublicUrl(`${maGv}.PNG`).data.publicUrl);
+                        urlsToTry.push(storageApi.getPublicUrl(`${maGv}`).data.publicUrl); // File không đuôi
+                    }
+
+                    return {
+                        uid: maGv,
+                        degree: getDegreeDisplay(lecturer),
+                        name: lecturer["ho-ten"] || "Đang cập nhật",
+                        position: lecturer["chuc-vu"] || "Giảng viên",
+                        major: lecturer["chuyen-nganh"] || "Đang cập nhật",
+                        email: lecturer["email"] || "",
+                        tryUrls: urlsToTry
+                    };
+                });
+
+                renderFaculty();
+            } catch (error) {
+                console.error("Lỗi:", error);
+                facultyGrid.innerHTML = `
+                    <div class="faculty-error">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <strong>Lỗi kết nối cơ sở dữ liệu</strong>
+                        <small>${escapeHtml(error.message)}</small>
+                    </div>`;
+            }
+        }
+
+        // Chờ layout.js tải xong Supabase Client rồi mới chạy dữ liệu
+        function startFacultyPage() {
+            let attempts = 0;
+            const timer = setInterval(() => {
+                attempts++;
+                if (window.supabaseClient) {
+                    clearInterval(timer);
+                    loadFacultyData();
+                } else if (attempts >= 50) {
+                    clearInterval(timer);
+                    facultyGrid.innerHTML = `<div class="faculty-error">Mạng chậm, không thể tải danh sách giảng viên.</div>`;
+                }
+            }, 100);
+        }
+
+        startFacultyPage();
+    </script>
+</body>
+</html>
