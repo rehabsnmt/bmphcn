@@ -168,7 +168,29 @@
         .toast { min-width: 250px; background-color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15); display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: 0.4s; font-weight: 600; border-left: 5px solid #22c55e; opacity: 0; pointer-events: auto; }
         .toast.show { transform: translateX(0); opacity: 1; }
         .toast.danger { border-left-color: #ef4444; }
-        #loadingScreen { text-align: center; padding: 5rem 0; color: var(--primary); font-weight: 600; font-size: 1.2rem; }
+        
+        /* Hiệu ứng Logo đang tải */
+        #loadingScreen { 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 50vh; 
+            color: var(--accent); 
+            font-weight: 600; 
+            font-size: 1.2rem;
+            text-align: center;
+        }
+        .loading-logo { 
+            width: 100px; 
+            height: auto; 
+            animation: pulseLogo 1.5s infinite ease-in-out; 
+            display: block;
+        }
+        @keyframes pulseLogo {
+            0% { transform: scale(0.95); opacity: 0.6; filter: drop-shadow(0 0 10px rgba(2, 132, 199, 0.1)); }
+            50% { transform: scale(1.05); opacity: 1; filter: drop-shadow(0 0 20px rgba(2, 132, 199, 0.5)); }
+            100% { transform: scale(0.95); opacity: 0.6; filter: drop-shadow(0 0 10px rgba(2, 132, 199, 0.1)); }
+        }
 
         /* =========================================================
            RESPONSIVE (ĐIỆN THOẠI & TABLET)
@@ -206,8 +228,9 @@
     <div id="toastContainer" class="toast-container"></div>
 
     <main>
+        <!-- Khung Logo Loading -->
         <div id="loadingScreen">
-            <i class="fas fa-spinner fa-spin fa-2x"></i><br><br>Đang tải thông tin...
+            <img src="images/logo_Bộ môn.png" alt="Loading..." class="loading-logo">
         </div>
 
         <div id="cvWrapper" class="cv-wrapper hidden">
