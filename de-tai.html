@@ -110,7 +110,7 @@
         .advisor-link { color: var(--text-body); font-weight: 500; cursor: pointer; text-decoration: none; display: inline-block; transition: 0.2s; }
         .advisor-link:hover { color: var(--primary); text-decoration: underline; }
         
-        /* Nhãn dán Lớp & Chuyên ngành */
+        /* Nhãn dán Lớp, Chuyên ngành & Tác giả */
         .class-badge {
             background-color: #f1f5f9;
             color: #64748b;
@@ -132,6 +132,19 @@
         .major-vltl { color: #0284c7 !important; background-color: #e0f2fe; border: 1px solid #bae6fd; }
         .major-hdtl { color: #ea580c !important; background-color: #ffedd5; border: 1px solid #fed7aa; }
         .major-nntl { color: #16a34a !important; background-color: #dcfce7; border: 1px solid #bbf7d0; }
+
+        .author-badge {
+            background-color: #f3e8ff;
+            color: #7e22ce;
+            border: 1px solid #e9d5ff;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
 
         /* Tên đề tài format tự động ngắt dòng */
         .thesis-title-link { 
@@ -169,7 +182,7 @@
             line-height: 1.5;
         }
         .meta-dot { color: var(--border); font-size: 0.75rem;}
-        .author-block { display: inline-block; color: var(--text-body); font-weight: 500; }
+        .author-block { display: inline-block; }
 
         /* =========================================
            CSS THÔNG BÁO TOAST
@@ -205,7 +218,7 @@
             .author-block { display: block; width: 100%; margin-top: 2px; }
             .thesis-title-link { font-size: 0.95rem; margin-bottom: 4px;}
             .metadata-line { font-size: 0.8rem; margin-bottom: 4px; gap: 4px; }
-            .major-badge { padding: 1px 6px; font-size: 0.75rem; }
+            .major-badge, .class-badge, .author-badge { padding: 1px 6px; font-size: 0.75rem; }
         }
     </style>
 </head>
@@ -230,7 +243,7 @@
 
         <div class="header-buttons">
             <button id="btnOpenAdd" class="btn-success hidden"><i class="fas fa-plus"></i> Thêm đề tài</button>
-          <button id="btnOpenHistory" class="btn-primary hidden" onclick="openHistoryModal()"><i class="fas fa-history" style="margin-right: 6px;"></i> Lịch sử</button>
+            <button id="btnOpenHistory" class="btn-primary hidden" onclick="openHistoryModal()"><i class="fas fa-history" style="margin-right: 6px;"></i> Lịch sử</button>
         </div>
 
         <!-- Popup Thêm/Sửa đề tài -->
@@ -269,6 +282,7 @@
                     </div>
                 </div>
 
+                <!-- GVHD 1 và 2 được gom vào 1 hàng (cùng 1 bên) -->
                 <div class="form-group" style="grid-column: span 2;">
                     <div style="display: flex; gap: 15px; flex-wrap: wrap;">
                         <div style="flex: 1; min-width: 200px;">
@@ -704,7 +718,6 @@
                     </div>`;
                 }
 
-                // Cập nhật khoảng cách padding-right linh hoạt nếu có nút menu thao tác
                 const padRight = isAdmin ? '40px' : '0px';
 
                 // Xử lý html GVHD riêng biệt cho 2 dòng
@@ -742,7 +755,7 @@
                                     <span class="class-badge">${t['lop']||'—'}</span>
                                     <span class="${majorClass}">${majorStr}</span>
                                     <div class="author-block">
-                                        ${t['tac-gia']}
+                                        <span class="author-badge"><i class="fas fa-user"></i> ${t['tac-gia']}</span>
                                     </div>
                                 </div>
                                 
