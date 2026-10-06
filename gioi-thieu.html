@@ -107,11 +107,31 @@
                 .replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
 
+        // Đã cập nhật hàm tự nhận diện từ viết tắt
         function getDegreeDisplay(data) {
             const hocHam = String(data["hoc-ham"] || "").trim();
             const hocVi = String(data["hoc-vi"] || "").trim();
-            if (hocHam && hocVi) return `${hocHam}, ${hocVi}`;
-            return hocHam || hocVi || "Đang cập nhật";
+            
+            // Hàm phụ để dịch từ viết tắt sang dạng đầy đủ
+            function translateDegree(text) {
+                if (!text) return "";
+                // Dùng Regex để tìm và thay thế chính xác toàn bộ từ (case-insensitive)
+                return text
+                    .replace(/\bGS\.?\b/gi, "Giáo sư")
+                    .replace(/\bPGS\.?\b/gi, "Phó Giáo sư")
+                    .replace(/\bTS\.?\b/gi, "Tiến sĩ")
+                    .replace(/\bThS\.?\b/gi, "Thạc sĩ")
+                    .replace(/\bBS\.?CKII\b/gi, "Bác sĩ CKII")
+                    .replace(/\bBS\.?CKI\b/gi, "Bác sĩ CKI")
+                    .replace(/\bBS\.?\b/gi, "Bác sĩ")
+                    .replace(/\bCN\.?\b/gi, "Cử nhân");
+            }
+
+            const fullHocHam = translateDegree(hocHam);
+            const fullHocVi = translateDegree(hocVi);
+
+            if (fullHocHam && fullHocVi) return `${fullHocHam}, ${fullHocVi}`;
+            return fullHocHam || fullHocVi || "Đang cập nhật";
         }
 
         function getMajorClass(major) {
