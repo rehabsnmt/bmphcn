@@ -17,7 +17,7 @@
         ========================================= */
         main { max-width: 1200px; padding: 2rem 3%; margin: 0 auto; }
 
-        .header-buttons { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 20px; }
+        .header-buttons { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-bottom: 20px; }
         
         .section-box { background: var(--surface); padding: 20px; border-radius: var(--radius-md); margin-bottom: 20px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
         .hidden { display: none !important; }
@@ -42,8 +42,24 @@
 
         /* Nút phụ đặc thù */
         button { cursor: pointer; transition: var(--transition); font-family: inherit; }
-        .btn-primary { background-color: var(--primary); color: white; padding: 0.5rem 1rem; border-radius: var(--radius-pill); border: none; font-weight: 500; font-size: 0.9rem;}
-        .btn-primary:hover { background-color: var(--primary-hover); }
+        
+        /* Cập nhật căn chỉnh đồng bộ cho nút Thêm và Lịch sử */
+        .btn-primary { 
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            background-color: var(--primary); color: white; padding: 0.6rem 1.2rem; 
+            border-radius: var(--radius-pill); border: 1px solid var(--primary); 
+            font-weight: 600; font-size: 0.9rem;
+        }
+        .btn-primary:hover { background-color: var(--primary-hover); border-color: var(--primary-hover); }
+        
+        .btn-outline { 
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            background-color: white; color: var(--primary); padding: 0.6rem 1.2rem; 
+            border-radius: var(--radius-pill); border: 1px solid var(--primary); 
+            font-weight: 600; font-size: 0.9rem;
+        }
+        .btn-outline:hover { background-color: var(--primary-light); }
+
         .btn-danger { background-color: var(--accent); color: white; padding: 0.5rem 1rem; border-radius: var(--radius-pill); border: none; font-weight: 500; font-size: 0.9rem;}
         .btn-danger:hover { background-color: #be123c; box-shadow: 0 4px 12px rgba(225, 29, 72, 0.2); }
         .btn-success { background-color: #16a34a; color: white; padding: 0.5rem 1rem; border-radius: var(--radius-pill); border: none; font-weight: 500; font-size: 0.9rem;}
@@ -52,8 +68,6 @@
         button:disabled { opacity: 0.6; cursor: not-allowed; }
         .btn-page { background-color: var(--surface); color: var(--text-dark); border: 1px solid var(--border); padding: 5px 15px; border-radius: 6px; font-weight: 600; font-size: 0.85rem;}
         .btn-page:hover:not(:disabled) { background-color: var(--primary-light); color: var(--primary); border-color: var(--primary); }
-        .btn-outline { background-color: white; color: var(--primary); border: 1px solid var(--primary); padding: 0.5rem 1rem; border-radius: var(--radius-pill); font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 0.9rem;}
-        .btn-outline:hover { background-color: var(--primary-light); }
 
         /* Bảng hiển thị MỚI */
         .table-container { 
@@ -133,10 +147,11 @@
         .major-hdtl { color: #ea580c !important; background-color: #ffedd5; border: 1px solid #fed7aa; }
         .major-nntl { color: #16a34a !important; background-color: #dcfce7; border: 1px solid #bbf7d0; }
 
+        /* Nền trắng, viền và chữ tự động đổi màu theo JS */
         .author-badge {
-            background-color: #f3e8ff;
-            color: #7e22ce;
-            border: 1px solid #e9d5ff;
+            background-color: #ffffff;
+            border-style: solid;
+            border-width: 1px;
             padding: 2px 8px;
             border-radius: 4px;
             font-weight: 600;
@@ -209,7 +224,6 @@
             .toast-container { bottom: 10px; right: 10px; left: 10px; }
             .toast { min-width: unset; width: 100%; box-sizing: border-box; }
 
-            /* Điều chỉnh lại padding cho gọn */
             table { font-size: 0.8rem; }
             th, td { padding: 10px 8px; }
             th:first-child, td:first-child { width: 40px !important; padding: 10px 4px; }
@@ -230,8 +244,9 @@
     <!-- Khung chứa thông báo nổi -->
     <div id="toastContainer" class="toast-container"></div>
 
-    <!-- Danh sách gợi ý giảng viên -->
+    <!-- Danh sách gợi ý giảng viên và tác giả -->
     <datalist id="advisorList"></datalist>
+    <datalist id="authorList"></datalist>
 
     <main style="flex: 1; padding-top: 2rem;">
         
@@ -242,8 +257,9 @@
         </div>
 
         <div class="header-buttons">
-            <button id="btnOpenAdd" class="btn-success hidden"><i class="fas fa-plus"></i> Thêm đề tài</button>
-            <button id="btnOpenHistory" class="btn-primary hidden" onclick="openHistoryModal()"><i class="fas fa-history" style="margin-right: 6px;"></i> Lịch sử</button>
+            <!-- 2 Nút chức năng chính -->
+            <button id="btnOpenAdd" class="btn-primary hidden"><i class="fas fa-plus"></i> Thêm đề tài</button>
+            <button id="btnOpenHistory" class="btn-outline hidden" onclick="openHistoryModal()"><i class="fas fa-history"></i> Lịch sử</button>
         </div>
 
         <!-- Popup Thêm/Sửa đề tài -->
@@ -264,7 +280,7 @@
                 </div>
                 <div class="form-group">
                     <label>Tác giả *</label>
-                    <input type="text" id="addAuthor" placeholder="Họ và tên tác giả">
+                    <input type="text" id="addAuthor" list="authorList" placeholder="Họ và tên tác giả" autocomplete="off">
                 </div>
                 <div class="form-group">
                     <label>Chuyên ngành</label>
@@ -282,7 +298,6 @@
                     </div>
                 </div>
 
-                <!-- GVHD 1 và 2 được gom vào 1 hàng (cùng 1 bên) -->
                 <div class="form-group" style="grid-column: span 2;">
                     <div style="display: flex; gap: 15px; flex-wrap: wrap;">
                         <div style="flex: 1; min-width: 200px;">
@@ -429,6 +444,17 @@
 
     <!-- JS TÍCH HỢP SUPABASE -->
     <script>
+        // HÀM CHỐNG XSS VÀ LỖI HIỂN THỊ
+        function escapeHtml(value) {
+            if (value == null) return "";
+            return String(value)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
         // Xử lý Textarea tự co giãn chiều cao
         const addTitleInput = document.getElementById('addTitle');
         function autoResizeTextarea() {
@@ -460,6 +486,7 @@
         const filterClass = document.getElementById('filterClass'); 
         const sortSelect = document.getElementById('sortSelect'); 
         const advisorDatalist = document.getElementById('advisorList');
+        const authorDatalist = document.getElementById('authorList'); 
 
         function showToast(message, type = 'success') {
             const container = document.getElementById('toastContainer');
@@ -506,24 +533,39 @@
         document.getElementById('addLevel').addEventListener('change', (e) => populateYears(e.target.value));
         populateYears('CN');
 
-        // Hàm cập nhật danh sách gợi ý GVHD động (Chỉ GV có học hàm/học vị)
+        // Hàm cập nhật danh sách gợi ý GVHD động 
         function updateAdvisorDatalist() {
             const uniqueAdvisors = new Set();
-            const validTitleRegex = /(TS|ThS|PGS|GS|BS)\./i;
             
             Object.keys(usersMap).forEach(name => {
-                if (validTitleRegex.test(name)) uniqueAdvisors.add(name.trim());
+                uniqueAdvisors.add(name.trim());
             });
 
             allTheses.forEach(t => {
-                if (t['gvhd1'] && validTitleRegex.test(t['gvhd1'])) uniqueAdvisors.add(t['gvhd1'].trim());
-                if (t['gvhd2'] && validTitleRegex.test(t['gvhd2'])) uniqueAdvisors.add(t['gvhd2'].trim());
+                if (t['gvhd1']) uniqueAdvisors.add(t['gvhd1'].trim());
+                if (t['gvhd2']) uniqueAdvisors.add(t['gvhd2'].trim());
             });
 
             advisorDatalist.innerHTML = '';
             Array.from(uniqueAdvisors).sort().forEach(name => {
                 advisorDatalist.innerHTML += `<option value="${name}">`;
             });
+        }
+
+        // Hàm cập nhật danh sách gợi ý TÁC GIẢ động (gom trùng)
+        function updateAuthorDatalist() {
+            const uniqueAuthors = new Set();
+            
+            allTheses.forEach(t => {
+                if (t['tac-gia']) uniqueAuthors.add(t['tac-gia'].trim());
+            });
+
+            if(authorDatalist) {
+                authorDatalist.innerHTML = '';
+                Array.from(uniqueAuthors).sort().forEach(name => {
+                    authorDatalist.innerHTML += `<option value="${escapeHtml(name)}">`;
+                });
+            }
         }
 
         // KHỞI TẠO ỨNG DỤNG BẰNG SUPABASE
@@ -605,6 +647,7 @@
 
         function updateDatalistAndFilters() {
             updateAdvisorDatalist();
+            updateAuthorDatalist(); 
             updateDynamicFilters();
         }
 
@@ -720,24 +763,28 @@
 
                 const padRight = isAdmin ? '40px' : '0px';
 
-                // Xử lý html GVHD riêng biệt cho 2 dòng
-                const gv1 = t['gvhd1'] ? t['gvhd1'].trim() : '';
-                const adv1Html = gv1 ? (usersMap[gv1] ? `<span class="advisor-link" onclick="openAdvisorModal('${encodeURIComponent(gv1).replace(/'/g, "%27")}')">${gv1}</span>` : `<span style="font-weight:500; color:var(--text-body);">${gv1}</span>`) : '—';
+                const rawGv1 = t['gvhd1'] ? t['gvhd1'].trim() : '';
+                const adv1Html = rawGv1 ? (usersMap[rawGv1] ? `<span class="advisor-link" onclick="openAdvisorModal('${encodeURIComponent(rawGv1).replace(/'/g, "%27")}')">${escapeHtml(rawGv1)}</span>` : `<span style="font-weight:500; color:var(--text-body);">${escapeHtml(rawGv1)}</span>`) : '—';
 
-                const gv2 = t['gvhd2'] ? t['gvhd2'].trim() : '';
-                const adv2Html = gv2 ? (usersMap[gv2] ? `<span class="advisor-link" onclick="openAdvisorModal('${encodeURIComponent(gv2).replace(/'/g, "%27")}')">${gv2}</span>` : `<span style="font-weight:500; color:var(--text-body);">${gv2}</span>`) : '';
+                const rawGv2 = t['gvhd2'] ? t['gvhd2'].trim() : '';
+                const adv2Html = rawGv2 ? (usersMap[rawGv2] ? `<span class="advisor-link" onclick="openAdvisorModal('${encodeURIComponent(rawGv2).replace(/'/g, "%27")}')">${escapeHtml(rawGv2)}</span>` : `<span style="font-weight:500; color:var(--text-body);">${escapeHtml(rawGv2)}</span>`) : '';
 
                 let gvhdDisplay = `<div style="margin-bottom: 2px;">GVHD 1: ${adv1Html}</div>`;
-                if (gv2) {
+                if (rawGv2) {
                     gvhdDisplay += `<div>GVHD 2: ${adv2Html}</div>`;
                 }
 
                 // Chuyên ngành màu sắc
                 let majorStr = t['chuyen-nganh'] || '—';
                 let majorClass = 'major-badge ';
-                if(majorStr.includes('Vật lý')) majorClass += 'major-vltl';
-                else if(majorStr.includes('Hoạt động')) majorClass += 'major-hdtl';
-                else if(majorStr.includes('Ngôn ngữ')) majorClass += 'major-nntl';
+                let authorColor = 'var(--primary)';
+                let authorBorder = '#7dd3fc';
+
+                let textLower = majorStr.toLowerCase();
+                if(textLower.includes('vật lý')) { majorClass += 'major-vltl'; authorColor = '#0284c7'; authorBorder = '#7dd3fc'; }
+                else if(textLower.includes('hoạt động')) { majorClass += 'major-hdtl'; authorColor = '#ea580c'; authorBorder = '#fdba74'; }
+                else if(textLower.includes('ngôn ngữ')) { majorClass += 'major-nntl'; authorColor = '#15803d'; authorBorder = '#86efac'; }
+                else { majorClass += 'major-default'; authorColor = '#475569'; authorBorder = '#cbd5e1'; }
 
                 // BỐ CỤC: Tên đề tài -> Lớp (Nhãn Xám) - Chuyên ngành - Tác giả
                 tableBody.innerHTML += `
@@ -755,7 +802,7 @@
                                     <span class="class-badge">${t['lop']||'—'}</span>
                                     <span class="${majorClass}">${majorStr}</span>
                                     <div class="author-block">
-                                        <span class="author-badge">${t['tac-gia']}</span>
+                                        <span class="author-badge" style="color: ${authorColor}; border-color: ${authorBorder};">${escapeHtml(t['tac-gia'])}</span>
                                     </div>
                                 </div>
                                 
@@ -1055,3 +1102,5 @@
     </script>
 </body>
 </html>
+
+http://googleusercontent.com/action_card_content/e456d8f3-f886-4d05-a4b4-1c739a7aa787
