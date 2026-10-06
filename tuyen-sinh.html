@@ -11,12 +11,13 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- ĐÃ FIX LỖI CSP: Bổ sung https://cdn.jsdelivr.net vào script-src để layout.js có quyền tải thư viện Supabase -->
     <meta http-equiv="Content-Security-Policy" content="
             default-src 'self';
             connect-src 'self' https://*.supabase.co;
             img-src 'self' data: https://*.supabase.co;
-            style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com;
-            script-src 'self' 'unsafe-inline';
+            style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://fonts.googleapis.com;
+            script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net;
             font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com;
         ">
 
@@ -86,7 +87,7 @@
     <!-- HEADER -->
     <div id="header-placeholder"></div>
 
-    <main style="flex: 1; padding-top: 1rem; width: 100%;">
+    <main style="opacity: 0; transition: opacity 0.3s ease; flex: 1; padding-top: 1rem; width: 100%;">
         <!-- Khu vực render nội dung -->
         <div id="app-container" class="app-container"></div>
     </main>
@@ -306,9 +307,10 @@
                 </li>
             `).join('');
 
-            // 3. Khung chương trình
+            // 3. Khung chương trình (Sử dụng fallback an toàn thay thế Optional Chaining ?.)
             const semestersHtml = semesters.map(sem => {
-                const subjects = curriculumDatabase[sem.key]?.filter(sub => !sub.tags || sub.tags.includes(activeMajor)) || [];
+                const baseSubjects = curriculumDatabase[sem.key] || [];
+                const subjects = baseSubjects.filter(sub => !sub.tags || sub.tags.includes(activeMajor));
                 const isOpen = expandedSemester === sem.id;
                 const totalCredits = subjects.reduce((a, c) => a + c.theory + c.practice, 0);
                 
@@ -472,9 +474,36 @@
             `;
         }
 
-        // Khởi chạy khi load xong
+        // Khởi chạy an toàn
         document.addEventListener("DOMContentLoaded", () => {
-            renderApp();
+            const mainEl = document.querySelector('main');
+            
+            const showPage = () => {
+                if (mainEl) mainEl.style.opacity = '1';
+            };
+
+            // Vẽ nội dung ngay lập tức
+            try {
+                renderApp();
+            } catch (e) {
+                console.error("Lỗi vẽ giao diện tĩnh:", e);
+            }
+
+            // Chờ Supabase để cập nhật Auth Header (Tối đa 5 giây)
+            let attempts = 0;
+            const timer = setInterval(() => {
+                attempts++;
+                if (window.supabaseClient) {
+                    clearInterval(timer);
+                    showPage();
+                } else if (attempts >= 50) {
+                    clearInterval(timer);
+                    showPage(); // Nếu lỗi mạng, vẫn hiện trang cho khách đọc
+                }
+            }, 100);
+
+            // Cứu cánh: Luôn hiện trang sau 3 giây dù có chuyện gì xảy ra
+            setTimeout(showPage, 3000);
         });
 
     </script>
