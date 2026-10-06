@@ -372,9 +372,27 @@
                 const wrapper = document.getElementById('cvWrapper');
                 wrapper.classList.remove('hidden');
 
+                // Hàm dịch chức danh tự động
+                function translateDegree(text) {
+                    if (!text) return "";
+                    return text
+                        .replace(/\bGS\.?\b/gi, "Giáo sư")
+                        .replace(/\bPGS\.?\b/gi, "Phó Giáo sư")
+                        .replace(/\bTS\.?\b/gi, "Tiến sĩ")
+                        .replace(/\bThS\.?\b/gi, "Thạc sĩ")
+                        .replace(/\bBS\.?CKII\b/gi, "Bác sĩ CKII")
+                        .replace(/\bBS\.?CKI\b/gi, "Bác sĩ CKI")
+                        .replace(/\bBS\.?\b/gi, "Bác sĩ")
+                        .replace(/\bCN\.?\b/gi, "Cử nhân");
+                }
+
                 const hocHam = String(data['hoc-ham'] || '').trim();
                 const hocVi = String(data['hoc-vi'] || '').trim();
-                let degreeDisplay = hocHam && hocVi ? `${hocHam}, ${hocVi}` : (hocHam || hocVi || 'Giảng viên');
+                
+                const fullHocHam = translateDegree(hocHam);
+                const fullHocVi = translateDegree(hocVi);
+
+                let degreeDisplay = fullHocHam && fullHocVi ? `${fullHocHam}, ${fullHocVi}` : (fullHocHam || fullHocVi || 'Giảng viên');
 
                 // Học vị & Tên
                 document.getElementById('displayDegree').innerText = degreeDisplay;
