@@ -621,7 +621,7 @@
 
                     const [resClass, resInst, resAcc] = await Promise.all([
                         supabase.from('lop-hoc').select('ma-lop, ten-lop, chuong-trinh, "ma-lop-goc"'),
-                        supabase.from('giang-vien').select('ma-giang-vien, ho-ten').order('ho-ten', { ascending: true }),
+                        supabase.from('giang-vien').select('ma-giang-vien, ho-ten, "hoc-ham", "hoc-vi"').order('ho-ten', { ascending: true }),
                         supabase.from('tai-khoan-he-thong').select('id, ma-giang-vien, "duoc-phan-cong", "duoc-de-xuat"')
                     ]);
 
@@ -638,7 +638,20 @@
                     instructorSelect.innerHTML = `<option value="">-- Chọn Giảng viên --</option>`;
                     instructorsList.forEach(inst => {
                         const option = document.createElement("option"); option.value = inst["ma-giang-vien"]; 
-                        option.textContent = `${inst["ho-ten"]}`; 
+                        
+                        let nameDisplay = inst["ho-ten"];
+                        const hocHam = (inst["hoc-ham"] || "").trim();
+                        const hocVi = (inst["hoc-vi"] || "").trim();
+                        
+                        let title = [];
+                        if (hocHam) title.push(hocHam);
+                        if (hocVi) title.push(hocVi);
+                        
+                        if (title.length > 0) {
+                            nameDisplay = `${title.join(".")}. ${nameDisplay}`;
+                        }
+                        
+                        option.textContent = nameDisplay; 
                         instructorSelect.appendChild(option);
                     });
 
@@ -656,7 +669,22 @@
             }
 
             function getInstructorName(maGv) {
-                const gv = instructorsList.find(i => i["ma-giang-vien"] === maGv); return gv ? gv["ho-ten"] : maGv;
+                const gv = instructorsList.find(i => i["ma-giang-vien"] === maGv);
+                if (gv) {
+                    let nameDisplay = gv["ho-ten"];
+                    const hocHam = (gv["hoc-ham"] || "").trim();
+                    const hocVi = (gv["hoc-vi"] || "").trim();
+                    
+                    let title = [];
+                    if (hocHam) title.push(hocHam);
+                    if (hocVi) title.push(hocVi);
+                    
+                    if (title.length > 0) {
+                        nameDisplay = `${title.join(".")}. ${nameDisplay}`;
+                    }
+                    return nameDisplay;
+                }
+                return maGv;
             }
 
             classSelect.addEventListener("change", () => { specSelect.value = ""; summaryCard.style.display = "none"; loadClassData(false); });
