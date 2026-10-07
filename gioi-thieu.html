@@ -23,6 +23,36 @@
     <link rel="stylesheet" href="css/style.css">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Nút Xem thông tin bổ sung cho thẻ Giảng viên */
+        .faculty-action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 15px;
+            width: 100%;
+            padding: 10px;
+            background-color: var(--bg-page);
+            color: var(--primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+        .faculty-action-btn:hover {
+            background-color: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.2);
+        }
+        /* Loại bỏ cursor pointer cũ của toàn thẻ */
+        .faculty-card { cursor: default; }
+        .faculty-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+    </style>
 </head>
 
 <body>
@@ -107,15 +137,13 @@
                 .replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
 
-        // Đã cập nhật hàm tự nhận diện từ viết tắt
+        // Tự động nhận diện từ viết tắt
         function getDegreeDisplay(data) {
             const hocHam = String(data["hoc-ham"] || "").trim();
             const hocVi = String(data["hoc-vi"] || "").trim();
             
-            // Hàm phụ để dịch từ viết tắt sang dạng đầy đủ
             function translateDegree(text) {
                 if (!text) return "";
-                // Dùng Regex để tìm và thay thế chính xác toàn bộ từ (case-insensitive)
                 return text
                     .replace(/\bGS\.?\b/gi, "Giáo sư")
                     .replace(/\bPGS\.?\b/gi, "Phó Giáo sư")
@@ -227,15 +255,18 @@
                 }
                 card.appendChild(emailContainer);
 
-                // Xử lý Click chuyển hướng
-                card.addEventListener("click", (e) => {
-                    if (e.target.closest("a")) return;
+                // Nút "Xem thông tin giảng viên"
+                const actionBtn = document.createElement("button");
+                actionBtn.className = "faculty-action-btn";
+                actionBtn.innerHTML = `Xem thông tin`;
+                actionBtn.addEventListener("click", () => {
                     if (data.uid) {
                         window.location.href = `thong-tin-giang-vien.html?id=${encodeURIComponent(data.uid)}`;
                     } else {
                         window.showToast("Giảng viên này chưa thiết lập hồ sơ chi tiết.");
                     }
                 });
+                card.appendChild(actionBtn);
 
                 facultyGrid.appendChild(card);
             });
@@ -254,7 +285,7 @@
 
                 const storageApi = window.supabaseClient.storage.from('anh-ho-so');
 
-                // Lọc chỉ lấy giảng viên Cơ hữu (Không phân biệt hoa thường)
+                // Lọc chỉ lấy giảng viên Cơ hữu
                 const coHuuData = (data || []).filter(lecturer => {
                     const phanLoai = String(lecturer["phan-loai"] || "").trim().toLowerCase();
                     return phanLoai === "cơ hữu";
