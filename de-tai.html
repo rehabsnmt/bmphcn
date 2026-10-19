@@ -224,6 +224,7 @@
             .toast-container { bottom: 10px; right: 10px; left: 10px; }
             .toast { min-width: unset; width: 100%; box-sizing: border-box; }
 
+            /* Điều chỉnh lại padding cho gọn */
             table { font-size: 0.8rem; }
             th, td { padding: 10px 8px; }
             th:first-child, td:first-child { width: 40px !important; padding: 10px 4px; }
@@ -280,6 +281,7 @@
                 </div>
                 <div class="form-group">
                     <label>Tác giả *</label>
+                    <!-- Đã thêm list gợi ý tác giả vào input -->
                     <input type="text" id="addAuthor" list="authorList" placeholder="Họ và tên tác giả" autocomplete="off">
                 </div>
                 <div class="form-group">
@@ -298,6 +300,7 @@
                     </div>
                 </div>
 
+                <!-- GVHD 1 và 2 được gom vào 1 hàng (cùng 1 bên) -->
                 <div class="form-group" style="grid-column: span 2;">
                     <div style="display: flex; gap: 15px; flex-wrap: wrap;">
                         <div style="flex: 1; min-width: 200px;">
@@ -325,7 +328,7 @@
 
         <!-- Bộ lọc -->
         <div class="section-box" style="padding: 15px; margin-bottom: 15px;">
-            <div class="form-grid" style="grid-template-columns: 2fr 1fr 1fr 1fr;">
+            <div class="form-grid" style="grid-template-columns: 2fr 1fr 1.2fr 1fr 1fr;">
                 <div class="form-group">
                     <label>Tìm kiếm</label>
                     <input type="text" id="searchInput" placeholder="Tìm theo tác giả, đề tài, GV...">
@@ -337,6 +340,15 @@
                         <option value="title_desc">Tên đề tài (Z → A)</option>
                         <option value="author_asc">Tác giả (A → Z)</option>
                         <option value="author_desc">Tác giả (Z → A)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Chuyên ngành</label>
+                    <select id="filterMajor">
+                        <option value="Tất cả">Tất cả chuyên ngành</option>
+                        <option value="Vật lý trị liệu">Vật lý trị liệu</option>
+                        <option value="Hoạt động trị liệu">Hoạt động trị liệu</option>
+                        <option value="Ngôn ngữ trị liệu">Ngôn ngữ trị liệu</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -485,6 +497,7 @@
         const filterLevel = document.getElementById('filterLevel');
         const filterClass = document.getElementById('filterClass'); 
         const sortSelect = document.getElementById('sortSelect'); 
+        const filterMajor = document.getElementById('filterMajor');
         const advisorDatalist = document.getElementById('advisorList');
         const authorDatalist = document.getElementById('authorList'); 
 
@@ -566,6 +579,11 @@
                     authorDatalist.innerHTML += `<option value="${escapeHtml(name)}">`;
                 });
             }
+        }
+
+        // Hàm dịch chức danh (Đã vô hiệu hóa theo yêu cầu, trả về nguyên bản)
+        function translateDegree(text) {
+            return text || "";
         }
 
         // KHỞI TẠO ỨNG DỤNG BẰNG SUPABASE
@@ -670,13 +688,20 @@
             const levelVal = filterLevel.value;
             const filterCls = filterClass.value; 
             const sortType = sortSelect.value; 
+            const majorVal = filterMajor.value;
 
             let filtered = allTheses.filter(t => {
                 const classStr = String(t['lop'] || '').trim();
+                const majorStr = String(t['chuyen-nganh'] || '').trim();
                 
                 let matchLevel = true;
                 if(levelVal !== 'Tất cả') {
                     matchLevel = classStr.startsWith(levelVal);
+                }
+
+                let matchMajor = true;
+                if (majorVal !== 'Tất cả') {
+                    matchMajor = majorStr.includes(majorVal) || majorStr === majorVal;
                 }
 
                 const combinedAdvisor = [t['gvhd1'], t['gvhd2']].filter(Boolean).join(' / ');
@@ -684,7 +709,7 @@
                               || String(t['tac-gia']||'').toLowerCase().includes(searchText) 
                               || combinedAdvisor.toLowerCase().includes(searchText);
                               
-                return txtMatch && matchLevel && (filterCls === 'Tất cả' || classStr === filterCls);
+                return txtMatch && matchLevel && matchMajor && (filterCls === 'Tất cả' || classStr === filterCls);
             });
 
             filtered.sort((a, b) => {
@@ -697,7 +722,10 @@
 
             document.getElementById('totalCountText').innerText = allTheses.filter(t => {
                 const classStr = String(t['lop'] || '').trim();
-                return levelVal === 'Tất cả' ? true : classStr.startsWith(levelVal);
+                const rowMajor = String(t['chuyen-nganh'] || '').trim();
+                const levelMatch = levelVal === 'Tất cả' ? true : classStr.startsWith(levelVal);
+                const majorMatch = majorVal === 'Tất cả' ? true : rowMajor.includes(majorVal) || rowMajor === majorVal;
+                return levelMatch && majorMatch;
             }).length;
             
             document.getElementById('filteredCountText').innerText = filtered.length;
@@ -763,6 +791,7 @@
 
                 const padRight = isAdmin ? '40px' : '0px';
 
+                // Xử lý html GVHD riêng biệt cho 2 dòng và KHÔNG dịch viết tắt
                 const rawGv1 = t['gvhd1'] ? t['gvhd1'].trim() : '';
                 const adv1Html = rawGv1 ? (usersMap[rawGv1] ? `<span class="advisor-link" onclick="openAdvisorModal('${encodeURIComponent(rawGv1).replace(/'/g, "%27")}')">${escapeHtml(rawGv1)}</span>` : `<span style="font-weight:500; color:var(--text-body);">${escapeHtml(rawGv1)}</span>`) : '—';
 
@@ -830,6 +859,7 @@
         filterLevel.addEventListener('change', () => { filterClass.value = 'Tất cả'; currentPage = 1; updateDynamicFilters(); renderTable(); });
         filterClass.addEventListener('change', () => { currentPage = 1; renderTable(); });
         sortSelect.addEventListener('change', () => { currentPage = 1; renderTable(); });
+        filterMajor.addEventListener('change', () => { currentPage = 1; renderTable(); });
 
         window.changePage = (step) => {
             currentPage += step;
@@ -858,7 +888,7 @@
             avatarImg.onerror = function() { this.src = 'images/logo_Bộ môn.png'; };
 
             document.getElementById('modalName').innerText = n;
-            document.getElementById('modalDegree').innerText = userData.degree || 'Giảng viên';
+            document.getElementById('modalDegree').innerText = translateDegree(userData.degree) || 'Giảng viên';
             
             document.getElementById('advisorModal').classList.remove('hidden');
         };
