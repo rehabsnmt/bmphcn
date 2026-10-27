@@ -55,12 +55,16 @@
         .progress-percent { flex: 0 0 auto; font-size: 0.75rem; font-weight: bold; color: var(--text-muted); }
 
         .assignment-list-inline { list-style: none; padding: 0; margin: 0; font-size: 0.85rem; text-align: left; width: 100%; min-width: 0; }
-        .assignment-list-inline li { position: relative; z-index: 1; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px dashed var(--border-light); width: 100%; min-width: 0; }
+        .assignment-list-inline li { position: relative; z-index: 1; display: block; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px dashed var(--border-light); width: 100%; min-width: 0; }
         .assignment-list-inline li:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        
+        /* Bố cục 2 hàng: Hàng trên (Tag + Duyệt), Hàng dưới (Tên GV + ...) */
+        .assign-top-row { display: flex; justify-content: space-between; align-items: center; gap: 6px; width: 100%; margin-bottom: 4px; }
+        .assign-main-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 6px; width: 100%; }
         .assignment-info-wrap { flex: 1 1 auto; min-width: 0; padding-right: 4px; line-height: 1.4; }
         
         /* Dropdown Action Menu cho từng thẻ Phân công */
-        .assign-action-menu { position: relative; z-index: 10; display: inline-block; }
+        .assign-action-menu { position: relative; z-index: 10; display: inline-block; flex-shrink: 0; }
         .assign-btn-ellipsis { background: transparent; border: 1px solid var(--border); font-size: 0.95rem; color: var(--text-muted); padding: 4px 8px; border-radius: 6px; cursor: pointer; transition: 0.2s; }
         .assign-btn-ellipsis:hover { color: var(--primary); background: var(--primary-light); border-color: var(--primary); }
         .assign-dropdown {
@@ -83,7 +87,7 @@
         .assign-dropdown button.text-warning:hover { color: #d97706; background: #fffbeb; }
         
         /* Nút hành động trực tiếp (Duyệt) */
-        .btn-action-assign { background: none; cursor: pointer; padding: 4px 10px; border-radius: 6px; transition: all 0.2s ease; font-size: 0.8rem; display: inline-flex; align-items: center; justify-content: center; gap: 5px; box-sizing: border-box; font-weight: 600; white-space: nowrap; height: 26px; }
+        .btn-action-assign { background: none; cursor: pointer; padding: 4px 10px; border-radius: 6px; transition: all 0.2s ease; font-size: 0.8rem; display: inline-flex; align-items: center; justify-content: center; gap: 5px; box-sizing: border-box; font-weight: 600; white-space: nowrap; height: 26px; flex-shrink: 0; }
         .btn-action-assign.approve { color: #16a34a; background: #dcfce7; border: 1px solid #86efac; }
         .btn-action-assign.approve:hover { background: #bbf7d0; border-color: #4ade80; box-shadow: 0 2px 6px rgba(22, 163, 74, 0.2); }
         .btn-action-assign.approve-delete { color: #dc2626; background: #fee2e2; border: 1px solid #fca5a5; }
@@ -123,7 +127,7 @@
         .module-title { color: var(--text-dark); font-size: 0.85rem; text-align: left; display: block; font-weight: bold; line-height: 1.3; }
         .module-sub { font-size: 0.75rem; display: block; text-align: left; margin-top: 4px; }
         .progress-text { font-size: 0.75rem; margin-bottom: 4px; text-align: left; line-height: 1.3; }
-        .instructor-name { font-size: 0.85rem; color: var(--text-dark); display: block; line-height: 1.3; font-weight: bold; margin-top: 4px; }
+        .instructor-name { font-size: 0.85rem; color: var(--text-dark); display: block; line-height: 1.3; font-weight: bold; margin-top: 0; }
         .assign-meta { font-size: 0.8rem; display: block; margin-top: 4px; text-align: left; }
         .assign-note { font-size: 0.75rem; color: #d97706; margin-top: 2px; text-align: left; }
         .btn-table-action { width: 100%; min-height: 34px; border-radius: 6px; font-size: 0.82rem; padding: 4px 6px; }
@@ -195,15 +199,17 @@
             .progress-percent { font-size: 0.6rem; }
 
             .assignment-list-inline { font-size: 0.68rem; }
-            .assignment-list-inline li { gap: 4px; margin-bottom: 6px; padding-bottom: 6px; }
+            .assignment-list-inline li { margin-bottom: 6px; padding-bottom: 6px; }
+            .assign-top-row { gap: 4px; margin-bottom: 3px; }
+            .assign-main-row { gap: 4px; }
             .badge { font-size: 0.58rem; padding: 1px 4px; }
-            .instructor-name { font-size: 0.7rem; margin-top: 2px; line-height: 1.25; }
+            .instructor-name { font-size: 0.7rem; line-height: 1.25; }
             .assign-meta { font-size: 0.64rem !important; margin-top: 2px !important; line-height: 1.25; }
             .assign-note { font-size: 0.62rem !important; }
 
-            .btn-action-assign { padding: 2px 5px; font-size: 0.62rem; height: 22px; gap: 2px; border-radius: 4px; }
-            .assign-btn-ellipsis { padding: 2px 5px; font-size: 0.75rem; border-radius: 4px; }
-            .assign-dropdown { min-width: 105px; top: 24px; }
+            .btn-action-assign { padding: 2px 5px; font-size: 0.62rem; height: 20px; gap: 2px; border-radius: 4px; }
+            .assign-btn-ellipsis { padding: 1px 5px; font-size: 0.72rem; border-radius: 4px; }
+            .assign-dropdown { min-width: 105px; top: 22px; }
             .assign-dropdown button { padding: 7px 10px; font-size: 0.72rem; gap: 5px; }
 
             .btn-table-action { min-height: 28px !important; font-size: 0.68rem !important; padding: 2px 4px !important; border-radius: 4px !important; }
@@ -854,7 +860,6 @@
                                 else if (trangThai === "Chờ xóa") badgeHtml = `<span class="badge pending-delete">Chờ xóa</span>`;
                                 else badgeHtml = `<span class="badge pending">Chờ duyệt</span>`;
 
-                                let actionButtons = "";
                                 let mainActions = "";
                                 let dropdownActions = "";
                                 const hasPending = isOfficial && moduleAssignments.some(other => !other.isOfficial && String(other._proposalId) === String(assignId));
@@ -872,14 +877,14 @@
                                 } else {
                                     if (trangThai === "Chờ xóa") {
                                         if (canApprove) {
-                                            mainActions += `<button class="btn-action-assign approve-delete" onclick="approveAssignment('${safeAssignId}')" style="margin-right: 4px;"><i class="fas fa-check-double"></i> Duyệt Xóa</button>`;
+                                            mainActions += `<button class="btn-action-assign approve-delete" onclick="approveAssignment('${safeAssignId}')"><i class="fas fa-check-double"></i> Duyệt Xóa</button>`;
                                         }
                                         if (canPropose) {
                                             dropdownActions += `<button class="text-warning" onclick="cancelDeleteProposal('${safeAssignId}')"><i class="fas fa-undo" style="width: 16px;"></i> Hủy Y/C Xóa</button>`;
                                         }
                                     } else { 
                                         if (canApprove) {
-                                            mainActions += `<button class="btn-action-assign approve" onclick="approveAssignment('${safeAssignId}')" style="margin-right: 4px;"><i class="fas fa-check"></i> Duyệt</button>`;
+                                            mainActions += `<button class="btn-action-assign approve" onclick="approveAssignment('${safeAssignId}')"><i class="fas fa-check"></i> Duyệt</button>`;
                                         }
                                         if (canPropose) {
                                             dropdownActions += `<button onclick="editAssignment('${safeAssignId}', false)"><i class="fas fa-pen" style="width: 16px;"></i> Sửa</button>`;
@@ -888,35 +893,32 @@
                                     }
                                 }
 
+                                let dropdownMenuHtml = "";
                                 if (dropdownActions) {
-                                    actionButtons = `
-                                    <div style="display: flex; align-items: center; justify-content: flex-end; flex-wrap: nowrap;">
-                                        ${mainActions}
-                                        <div class="assign-action-menu" style="position: relative; margin-left: 2px;">
-                                            <button class="assign-btn-ellipsis" onclick="toggleAssignDropdown('${safeAssignId}', event)"><i class="fas fa-ellipsis-v"></i></button>
-                                            <div id="dropdown-${safeAssignId}" class="assign-dropdown">
-                                                ${dropdownActions}
-                                            </div>
+                                    dropdownMenuHtml = `
+                                    <div class="assign-action-menu">
+                                        <button class="assign-btn-ellipsis" onclick="toggleAssignDropdown('${safeAssignId}', event)" aria-label="Thao tác"><i class="fas fa-ellipsis-v"></i></button>
+                                        <div id="dropdown-${safeAssignId}" class="assign-dropdown">
+                                            ${dropdownActions}
                                         </div>
                                     </div>`;
-                                } else {
-                                    actionButtons = `<div style="display: flex; align-items: center; justify-content: flex-end; flex-wrap: nowrap;">${mainActions}</div>`;
                                 }
 
                                 assignListHtml += `
                                     <li>
-                                        <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; gap: 6px;">
-                                            <div class="assignment-info-wrap" style="text-align:left; flex: 1; min-width: 0;">
-                                                <div style="margin-bottom: 3px;">${badgeHtml}</div>
+                                        <div class="assign-top-row">
+                                            ${badgeHtml}
+                                            ${mainActions}
+                                        </div>
+                                        <div class="assign-main-row">
+                                            <div class="assignment-info-wrap">
                                                 <strong class="instructor-name word-wrap-safe">${escapeHtml(getInstructorName(a["ma-giang-vien"]))}</strong> 
                                                 <span class="text-muted assign-meta word-wrap-safe">
                                                     LT:${aLT} | TH:${aTH} | <span style="color:var(--accent); font-weight:600;">${targetText}</span>
                                                 </span>
                                                 ${noteHtml}
                                             </div>
-                                            <div style="flex-shrink: 0; display: flex; align-items: flex-start; justify-content: flex-end;">
-                                                ${actionButtons}
-                                            </div>
+                                            ${dropdownMenuHtml}
                                         </div>
                                     </li>`;
                             });
