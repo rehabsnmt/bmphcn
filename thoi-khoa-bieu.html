@@ -46,7 +46,10 @@
         /* CỘT PHẢI: KHUNG LỊCH (TIME GRID) */
         .calendar-column { flex: 1; min-width: 0; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem; box-shadow: var(--shadow-sm); transition: all 0.3s; }
         .week-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 10px; }
-        .week-controls button { padding: 6px 12px; font-size: 0.85rem; font-weight: 600; }
+        .week-controls button { 
+            padding: 6px 14px; font-size: 0.85rem; font-weight: 600; 
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px; 
+        }
         .week-controls input[type="date"], .week-controls select { padding: 4px 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.9rem; }
         
         .calendar-table { width: 100%; border-collapse: collapse; table-layout: fixed; min-width: 900px; }
@@ -160,7 +163,7 @@
             main { padding: 5px !important; }
             .calendar-column { padding: 5px; border: none; box-shadow: none; border-radius: 0; overflow-x: auto;}
             .week-controls { gap: 5px; }
-            .week-controls button { padding: 5px 8px; font-size: 0.75rem; }
+            .week-controls button { padding: 5px 10px; font-size: 0.75rem; gap: 6px; }
             
             .desktop-only { display: none !important; }
             th.mobile-only, td.mobile-only { display: table-cell !important; }
@@ -266,10 +269,14 @@
                 <!-- CỘT PHẢI: KHUNG LỊCH (TIME GRID) -->
                 <div class="calendar-column">
                     <div class="week-controls">
-                        <!-- Nút Ẩn Kho đặt bên trái nút Tuần trước -->
+                        <!-- Nút Đóng/Mở Kho đặt bên trái nút Trước -->
                         <div style="display: flex; gap: 8px; align-items: center;">
-                            <button id="btnTogglePool" class="btn-primary" style="background-color: var(--text-muted);"><i class="fas fa-columns"></i> Kho</button>
-                            <button class="btn-primary" id="btnPrevWeek"><i class="fas fa-chevron-left"></i> Tuần trước</button>
+                            <button id="btnTogglePool" class="btn-primary" style="background-color: var(--text-muted);">
+                                <i class="fas fa-columns"></i> <span id="togglePoolText">Đóng kho</span>
+                            </button>
+                            <button class="btn-primary" id="btnPrevWeek">
+                                <i class="fas fa-chevron-left"></i> <span>Trước</span>
+                            </button>
                         </div>
                         
                         <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap; justify-content: center;">
@@ -285,7 +292,9 @@
                             </div>
                         </div>
 
-                        <button class="btn-primary" id="btnNextWeek">Tuần sau <i class="fas fa-chevron-right"></i></button>
+                        <button class="btn-primary" id="btnNextWeek">
+                            <span>Sau</span> <i class="fas fa-chevron-right"></i>
+                        </button>
                     </div>
 
                     <table class="calendar-table">
@@ -485,6 +494,7 @@
             const filterModule = document.getElementById("filterModule");
             const poolColumn = document.getElementById("poolColumn");
             const btnTogglePool = document.getElementById("btnTogglePool");
+            const togglePoolText = document.getElementById("togglePoolText");
             const unassignedPool = document.getElementById("unassignedPool");
             const poolCount = document.getElementById("poolCount");
             
@@ -501,8 +511,15 @@
             const mobileCardDetailModal = document.getElementById("mobileCardDetailModal");
             const btnCloseMobileCardModal = document.getElementById("btnCloseMobileCardModal");
 
+            function syncTogglePoolButtonLabel() {
+                if (!togglePoolText) return;
+                const isHidden = poolColumn.classList.contains("hidden");
+                togglePoolText.textContent = isHidden ? "Mở kho" : "Đóng kho";
+            }
+
             btnTogglePool.addEventListener("click", () => {
                 poolColumn.classList.toggle("hidden");
+                syncTogglePoolButtonLabel();
             });
 
             btnCloseMobileCardModal.addEventListener('click', () => {
@@ -729,7 +746,7 @@
             });
 
             /* =================================================
-               2. TẢI DỮ LIỆU CƠ BẢN & PHÂN QUYỀN
+               2. TẢI DỮ LIỆU CƠ BẢN & PHÂN QUYỀN (HV XEM / CÒN LẠI XẾP)
             ================================================= */
             async function loadInitialData() {
                 try {
@@ -754,17 +771,22 @@
                     hospitalsList = resHosp.data || [];
                     accountList = resAcc.data || [];
 
-                    // XỬ LÝ PHÂN QUYỀN
+                    // XỬ LÝ PHÂN QUYỀN:
+                    // Nếu là Học viên (hv) hoặc chưa đăng nhập -> Giao diện Xem (hiển thị tất cả các lớp)
+                    // Các đối tượng khác đã đăng nhập -> Giao diện Xếp
                     isAdmin = false;
                     if (currentUserId) {
                         const myAcc = accountList.find(a => String(a.id) === String(currentUserId));
-                        if (myAcc) {
-                            if (['superadmin', 'head', 'admin'].includes(myAcc.role)) {
-                                isAdmin = true;
-                            }
+                        const roleStr = String(myAcc?.role || "").toLowerCase().trim();
+                        const studentRoles = ["hv", "hoc-vien", "hocvien", "student", "sinh-vien", "sinhvien"];
+                        const isStudent = studentRoles.includes(roleStr) || (myAcc && Boolean(myAcc["ma-hoc-vien"]) && !myAcc["ma-giang-vien"]);
+                        
+                        if (!isStudent) {
+                            isAdmin = true;
                         }
                     }
 
+                    // Luôn nạp đầy đủ tất cả các lớp cho cả Học viên và người xếp lịch
                     classesList = rawClasses;
                     if (!isAdmin) {
                         pageTitle.textContent = "Xem Thời khóa biểu";
@@ -773,6 +795,10 @@
                         btnTogglePool.style.display = "none";
                     } else {
                         pageTitle.textContent = "Xếp Thời khóa biểu";
+                        topControlsSection.style.display = "flex";
+                        poolColumn.classList.remove("hidden");
+                        btnTogglePool.style.display = "inline-flex";
+                        syncTogglePoolButtonLabel();
                     }
 
                     classSelect.innerHTML = `<option value="">-- Chọn Lớp học --</option>`;
@@ -856,6 +882,23 @@
                     if (isAdmin) {
                         await syncAllDatabaseSchedules();
                         if (!isSilent) populateModuleFilter();
+                    } else {
+                        // Đánh số thứ tự buổi cho giao diện Xem của học viên
+                        allAssignmentsData.forEach(a => {
+                            ['LT', 'TH'].forEach(type => {
+                                const schs = allSchedulesData.filter(s => String(s['id-phan-cong']) === String(a.id) && s['loai-buoi'] === type);
+                                schs.sort((s1, s2) => {
+                                    if (s1.ngay && !s2.ngay) return -1;
+                                    if (!s1.ngay && s2.ngay) return 1;
+                                    if (s1.ngay && s2.ngay) return new Date(s1.ngay + 'T' + s1['gio-bat-dau']) - new Date(s2.ngay + 'T' + s2['gio-bat-dau']);
+                                    return 0;
+                                });
+                                schs.forEach((sch, idx) => {
+                                    sch._sessionIndex = idx + 1;
+                                    sch._totalSessions = schs.length;
+                                });
+                            });
+                        });
                     }
                     
                     if (isAdmin) renderPool();
@@ -934,7 +977,6 @@
 
             gridClassFilter.addEventListener("change", renderGrid);
 
-            // CẬP NHẬT: Bộ lọc học phần hiển thị phụ thuộc vào bộ lọc học kỳ
             function populateModuleFilter() {
                 const currentMod = filterModule.value;
                 filterModule.innerHTML = '<option value="">-- Tất cả học phần --</option>';
@@ -1071,7 +1113,6 @@
                 setupDragEventsForCards(); 
             }
 
-            // CẬP NHẬT: Dùng dấu | để phân tách Lớp | Đối tượng | Giảng viên, bỏ icon
             function createCardHtml(cardId, schId, type, tenHp, tenLop, tenGv, targetText, ghiChu, schData = null, sessionIndex = 1, totalSessions = 1, maLop = null) {
                 const colorObj = getColorForClass(maLop);
                 const bgStyle = `background-color: ${colorObj.bg}; border-left-color: ${colorObj.border};`;
