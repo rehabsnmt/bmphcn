@@ -1,0 +1,2159 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="description" content="Công cụ tính và quy đổi giờ chuẩn giảng dạy theo Bảng 6 - Quyết định 1347/QĐ-ĐHYD - Bộ môn Phục hồi chức năng.">
+
+    <!-- Content Security Policy đồng bộ hệ thống -->
+    <meta http-equiv="Content-Security-Policy" content="
+            default-src 'self';
+            connect-src 'self' https://*.supabase.co;
+            img-src 'self' data: https://*.supabase.co;
+            style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://fonts.googleapis.com;
+            script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net;
+            font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com;
+        ">
+
+    <title>Tính giờ giảng - Bộ môn Phục hồi chức năng</title>
+
+    <link rel="icon" href="images/logo_Bộ môn.png" type="image/png">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* =========================================
+           1. RESET & BỐ CỤC TỐI GIẢN
+        ========================================= */
+        html, body { width: 100%; max-width: 100%; margin: 0; padding: 0; overflow-x: hidden; }
+        *, *::before, *::after { box-sizing: border-box !important; }
+
+        main { max-width: 1320px !important; padding: 1.5rem 2% 3rem !important; margin: 0 auto; width: 100%; }
+        .hidden { display: none !important; }
+
+        .access-box {
+            max-width: 520px; margin: 3rem auto; background: var(--surface);
+            border: 1px solid var(--border); border-radius: var(--radius-md);
+            padding: 2rem 1.5rem; text-align: center; box-shadow: var(--shadow-sm);
+        }
+        .access-box h2 { font-size: 1.25rem; color: var(--text-dark); margin: 0 0 0.5rem 0; }
+        .access-box p { color: var(--text-body); font-size: 0.9rem; margin-bottom: 1.25rem; line-height: 1.5; }
+
+        /* =========================================
+           2. BỐ CỤC 2 CỘT CÂN ĐỐI
+        ========================================= */
+        .calc-layout {
+            display: grid;
+            grid-template-columns: 460px 1fr;
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        .section-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            box-shadow: var(--shadow-sm);
+            min-width: 0;
+        }
+
+        .card-header-bar {
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 10px; flex-wrap: wrap;
+            margin: 0 0 1rem 0; padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .card-header-title {
+            font-size: 1.05rem; font-weight: 700; color: var(--text-dark); margin: 0;
+        }
+
+        /* =========================================
+           3. FORM NHẬP LIỆU & KHÓA CHÉO BUỔI/TIẾT
+        ========================================= */
+        .form-group { margin-bottom: 0.9rem; display: flex; flex-direction: column; }
+        .form-group label { font-size: 0.84rem; font-weight: 600; color: var(--text-dark); margin-bottom: 5px; }
+        
+        select, input[type="number"], input[type="text"], textarea {
+            width: 100%; padding: 0.55rem 0.7rem; border: 1px solid var(--border);
+            border-radius: var(--radius-sm); font-size: 0.88rem; background-color: var(--bg-page);
+            color: var(--text-dark); outline: none; transition: 0.2s; font-family: inherit;
+        }
+        select:focus, input:focus, textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.12);
+            background-color: var(--surface);
+        }
+        input:disabled, select:disabled {
+            background-color: #e2e8f0 !important;
+            color: #64748b !important;
+            cursor: not-allowed;
+            opacity: 0.85;
+        }
+
+        /* Khung chọn chế độ Buổi / Tiết */
+        .unit-converter-box {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 10px;
+            margin-bottom: 0.9rem;
+        }
+        .unit-mode-switch {
+            display: flex; gap: 14px; margin-bottom: 8px; font-size: 0.83rem; font-weight: 600; color: var(--text-dark);
+        }
+        .unit-mode-switch label {
+            display: inline-flex; align-items: center; gap: 5px; cursor: pointer; margin: 0; font-weight: 600;
+        }
+        .unit-inputs-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+        }
+
+        .rule-info-box {
+            background: #f8fafc; border-left: 3px solid var(--primary);
+            padding: 9px 12px; border-radius: 4px; font-size: 0.82rem;
+            color: var(--text-body); margin-bottom: 0.9rem; line-height: 1.45;
+        }
+
+        .rule-warning-box {
+            background: #fffbeb; border: 1px solid #fde68a; border-left: 3px solid #f59e0b;
+            padding: 8px 10px; border-radius: 4px; font-size: 0.8rem; color: #92400e;
+            margin-bottom: 0.9rem; line-height: 1.4;
+        }
+
+        .live-result-box {
+            background: #f0f9ff; border: 1px solid #bae6fd; border-radius: var(--radius-sm);
+            padding: 0.85rem; margin: 0.9rem 0; text-align: center;
+        }
+        .live-result-label { font-size: 0.75rem; font-weight: 700; color: #0369a1; text-transform: uppercase; }
+        .live-result-value { font-size: 1.8rem; font-weight: 800; color: #0284c7; margin: 2px 0; }
+        .live-result-formula { font-size: 0.8rem; color: #0c4a6e; font-family: monospace; background: rgba(255,255,255,0.8); padding: 3px 8px; border-radius: 4px; display: inline-block; margin-top: 3px; }
+        .live-result-sub { font-size: 0.78rem; color: #15803d; font-weight: 600; margin-top: 5px; }
+
+        /* =========================================
+           4. NÚT BẤM TỐI GIẢN
+        ========================================= */
+        .btn-primary {
+            display: inline-flex; align-items: center; justify-content: center;
+            background-color: var(--primary); color: white; padding: 0.6rem 1.1rem;
+            border-radius: 6px; border: 1px solid var(--primary);
+            font-weight: 600; font-size: 0.86rem; cursor: pointer; transition: 0.2s;
+        }
+        .btn-primary:hover { background-color: var(--primary-hover); }
+
+        .btn-outline {
+            display: inline-flex; align-items: center; justify-content: center;
+            background-color: white; color: var(--primary); padding: 0.45rem 0.9rem;
+            border-radius: 6px; border: 1px solid var(--primary);
+            font-weight: 600; font-size: 0.82rem; cursor: pointer; transition: 0.2s;
+        }
+        .btn-outline:hover { background-color: var(--primary-light); }
+
+        .btn-danger-outline {
+            display: inline-flex; align-items: center; justify-content: center;
+            background-color: white; color: var(--accent); padding: 0.45rem 0.9rem;
+            border-radius: 6px; border: 1px solid #fecaca;
+            font-weight: 600; font-size: 0.82rem; cursor: pointer; transition: 0.2s;
+        }
+        .btn-danger-outline:hover { background-color: #fef2f2; border-color: var(--accent); }
+
+        .btn-secondary {
+            display: inline-flex; align-items: center; justify-content: center;
+            background-color: #64748b; color: white; padding: 0.6rem 1rem;
+            border-radius: 6px; border: none; font-weight: 600; font-size: 0.86rem; cursor: pointer;
+        }
+        .btn-secondary:hover { background-color: #475569; }
+
+        /* =========================================
+           5. BẢNG TỔNG HỢP KÊ KHAI & CẢNH BÁO VI PHẠM QUY ĐỊNH
+        ========================================= */
+        .summary-banner {
+            display: flex; justify-content: space-between; align-items: center;
+            background: #f8fafc; border: 1px solid var(--border); border-radius: 6px;
+            padding: 10px 14px; margin-bottom: 1rem; flex-wrap: wrap; gap: 10px;
+        }
+        .summary-total-number { font-size: 1.4rem; font-weight: 800; color: #16a34a; }
+
+        .table-container { width: 100%; overflow-x: auto; border: 1px solid var(--border); border-radius: 6px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.84rem; table-layout: fixed; }
+        th, td {
+            padding: 9px 8px; text-align: left; border-bottom: 1px solid var(--border);
+            vertical-align: top;
+            white-space: normal !important;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }
+        th { background-color: var(--bg-page); color: var(--text-dark); font-weight: 700; font-size: 0.78rem; text-transform: uppercase; }
+        tr:hover td { background-color: #f8fafc; }
+
+        /* Làm nổi bật dòng cần điều chỉnh */
+        tr.warning-row td {
+            background-color: #fff7ed !important;
+            border-bottom-color: #fed7aa;
+        }
+        tr.warning-row td:first-child {
+            border-left: 4px solid #ea580c;
+        }
+        tr.editing-row td {
+            background-color: #fef08a !important;
+        }
+
+        .cell-wrap-text {
+            white-space: normal !important;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+            line-height: 1.4;
+            max-width: 100%;
+        }
+
+        .badge-item {
+            display: inline-block; background: #e0f2fe; color: #0369a1;
+            font-weight: 700; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; margin-bottom: 3px;
+        }
+        .badge-adjust {
+            display: inline-block; background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5;
+            font-weight: 700; font-size: 0.7rem; padding: 1px 6px; border-radius: 4px; margin-left: 4px; margin-bottom: 3px;
+        }
+        .row-warning-reason {
+            font-size: 0.75rem; color: #c2410c; font-weight: 600; margin-top: 4px;
+            background: #ffedd5; padding: 3px 6px; border-radius: 4px; line-height: 1.35;
+        }
+
+        .row-actions { display: flex; gap: 5px; justify-content: center; flex-wrap: wrap; }
+        .btn-row-edit {
+            background: #f0f9ff; color: #0284c7; border: 1px solid #bae6fd;
+            padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; cursor: pointer;
+        }
+        .btn-row-edit:hover { background: #e0f2fe; }
+        .btn-row-del {
+            background: #fef2f2; color: #ef4444; border: 1px solid #fecaca;
+            padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; cursor: pointer;
+        }
+        .btn-row-del:hover { background: #fee2e2; }
+
+        /* Modal lấy dữ liệu theo buổi từ Phân công giảng dạy (Chọn nhiều) */
+        .modal-overlay { z-index: 9999; }
+        .import-toolbar {
+            display: flex; justify-content: space-between; align-items: center;
+            background: #f8fafc; border: 1px solid var(--border); border-radius: 6px;
+            padding: 8px 12px; margin-top: 8px; font-size: 0.84rem;
+        }
+        .import-toolbar label {
+            display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; color: var(--text-dark); margin: 0;
+        }
+        .assign-import-list {
+            max-height: 340px; overflow-y: auto; border: 1px solid var(--border); border-radius: 6px; margin-top: 8px;
+        }
+        .assign-import-item {
+            display: flex; align-items: flex-start; gap: 10px;
+            padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 0.83rem; cursor: pointer;
+            transition: background 0.15s;
+        }
+        .assign-import-item:last-child { border-bottom: none; }
+        .assign-import-item:hover { background: #f0f9ff; }
+        .assign-import-item input[type="checkbox"] {
+            width: 17px; height: 17px; margin-top: 3px; cursor: pointer; flex-shrink: 0;
+        }
+        .session-tag {
+            display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.72rem; font-weight: 700; margin-right: 5px;
+        }
+        .session-tag.lt { background: #e0f2fe; color: #0369a1; }
+        .session-tag.th-phong { background: #dcfce7; color: #15803d; }
+        .session-tag.th-ls { background: #fae8ff; color: #a21caf; }
+        .session-tag.th-vien { background: #ffedd5; color: #c2410c; }
+
+        /* Bảng tra cứu 24 mục */
+        .ref-accordion { margin-top: 1.5rem; }
+        .ref-toggle-btn {
+            width: 100%; background: var(--surface); border: 1px solid var(--border);
+            padding: 10px 14px; border-radius: 6px; font-weight: 700;
+            color: var(--text-dark); cursor: pointer; display: flex; justify-content: space-between;
+            align-items: center; font-size: 0.9rem;
+        }
+        .ref-toggle-btn:hover { border-color: var(--primary); color: var(--primary); }
+        .ref-content {
+            background: var(--surface); border: 1px solid var(--border); border-top: none;
+            border-radius: 0 0 6px 6px; padding: 1rem; font-size: 0.83rem; line-height: 1.5;
+        }
+
+        /* =========================================
+           6. RESPONSIVE
+        ========================================= */
+        @media (max-width: 992px) {
+            .calc-layout { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 768px) {
+            main { padding: 10px 6px 24px 6px !important; }
+            .section-card { padding: 12px 10px; }
+            .unit-inputs-grid { grid-template-columns: 1fr; }
+            th, td { padding: 7px 5px; font-size: 0.74rem; }
+            .live-result-value { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body style="display: flex; flex-direction: column; min-height: 100vh;">
+
+    <div id="header-placeholder"></div>
+    <div id="toastContainer" class="toast-container"></div>
+
+    <main style="flex: 1;">
+        <div class="section-title" style="margin-top: 0.25rem; margin-bottom: 1.25rem; text-align: center;">
+            <h1 style="font-size: clamp(1.3rem, 4vw, 1.75rem); color: var(--text-dark); margin: 0; font-weight: 700;">TÍNH GIỜ CHUẨN GIẢNG DẠY</h1>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">Quy đổi theo Bảng 6 – Quyết định 1347/QĐ-ĐHYD (1 buổi = 5 tiết)</p>
+        </div>
+
+        <!-- Trạng thái kiểm tra quyền -->
+        <div id="authLoadingBox" class="access-box">
+            <h2>Đang kiểm tra quyền truy cập...</h2>
+            <p>Vui lòng đợi trong giây lát.</p>
+        </div>
+
+        <!-- Từ chối truy cập -->
+        <div id="authDeniedBox" class="access-box hidden">
+            <h2 id="deniedTitle">Yêu cầu đăng nhập</h2>
+            <p id="deniedMessage">Trang tính giờ giảng chỉ dành cho giảng viên và cán bộ đã đăng nhập vào hệ thống (không áp dụng cho tài khoản học viên).</p>
+            <a href="index.html" class="btn-primary" style="text-decoration: none;">Quay về Trang chủ</a>
+        </div>
+
+        <!-- NỘI DUNG CHÍNH -->
+        <div id="calculatorApp" class="hidden">
+            <div class="calc-layout">
+                
+                <!-- CỘT TRÁI: THÔNG SỐ QUY ĐỔI -->
+                <div class="section-card">
+                    <div class="card-header-bar">
+                        <h2 class="card-header-title">
+                            <span id="formModeTitle">Thông số quy đổi</span>
+                            <span id="editingBadge" class="hidden" style="background: #f59e0b; color: #fff; font-size: 0.72rem; padding: 2px 7px; border-radius: 4px; margin-left: 6px;">Đang sửa</span>
+                        </h2>
+                        <button type="button" id="btnOpenImportModal" class="btn-outline">Lấy từ Phân công</button>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="ruleSelect">Chọn mục hoạt động (Mục 1 – 24) *</label>
+                        <select id="ruleSelect"></select>
+                    </div>
+
+                    <div id="ruleDescription" class="rule-info-box"></div>
+
+                    <div id="ruleWarning" class="rule-warning-box hidden">
+                        <span id="ruleWarningText"></span>
+                    </div>
+
+                    <!-- Các ô input động -->
+                    <div id="dynamicInputsContainer"></div>
+
+                    <div class="form-group" style="margin-top: 0.4rem;">
+                        <label for="activityNote">Mô tả / Học phần / Lớp / Học viên (Tùy chọn)</label>
+                        <input type="text" id="activityNote" placeholder="VD: Giải phẫu học - Lớp CN2023...">
+                    </div>
+
+                    <div class="live-result-box">
+                        <div class="live-result-label">Số giờ chuẩn quy đổi</div>
+                        <div class="live-result-value"><span id="liveHoursText">0.00</span> G</div>
+                        <div id="liveFormulaText" class="live-result-formula">Công thức: ---</div>
+                        <div id="liveMoneyText" class="live-result-sub hidden"></div>
+                    </div>
+
+                    <div style="display: flex; gap: 8px;">
+                        <button type="button" id="btnAddEntry" class="btn-primary" style="flex: 1;">Thêm vào bảng tổng hợp</button>
+                        <button type="button" id="btnCancelEdit" class="btn-secondary hidden">Hủy sửa</button>
+                    </div>
+                </div>
+
+                <!-- CỘT PHẢI: BẢNG TỔNG HỢP -->
+                <div class="section-card">
+                    <div class="card-header-bar">
+                        <h2 class="card-header-title">Bảng tổng hợp giờ chuẩn</h2>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <button type="button" id="btnExportCsv" class="btn-outline">Xuất file Excel (CSV)</button>
+                            <button type="button" id="btnClearAll" class="btn-danger-outline">Xóa hết</button>
+                        </div>
+                    </div>
+
+                    <div class="summary-banner">
+                        <div>
+                            <div style="font-size: 0.76rem; color: var(--text-muted); font-weight: 600;">SỐ HOẠT ĐỘNG ĐÃ LƯU</div>
+                            <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-dark);">
+                                <span id="totalActivitiesCount">0</span> mục
+                                <span id="warningActivitiesCount" class="hidden" style="font-size: 0.78rem; color: #b91c1c; background: #fee2e2; border: 1px solid #fca5a5; padding: 2px 8px; border-radius: 4px; margin-left: 6px; font-weight: 700;"></span>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 0.76rem; color: var(--text-muted); font-weight: 600;">TỔNG GIỜ CHUẨN QUY ĐỔI</div>
+                            <div class="summary-total-number"><span id="totalStandardHours">0.00</span> G</div>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width: 36px; text-align: center;">TT</th>
+                                    <th style="width: 36%;">Hoạt động & Mô tả</th>
+                                    <th style="width: auto;">Thông số & Công thức</th>
+                                    <th style="width: 78px; text-align: right;">Giờ (G)</th>
+                                    <th style="width: 96px; text-align: center;">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="savedTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- BẢNG TRA CỨU NHANH 24 MỤC -->
+            <div class="ref-accordion">
+                <button type="button" class="ref-toggle-btn" id="btnToggleRef">
+                    <span>Tra cứu quy định Bảng 6 (24 mục quy đổi theo Quyết định 1347/QĐ-ĐHYD)</span>
+                    <span id="refToggleLabel" style="font-size: 0.8rem; color: var(--primary);">Xem chi tiết</span>
+                </button>
+                <div id="refContentBox" class="ref-content hidden">
+                    <ol id="fullRefList" style="margin: 0; padding-left: 1.2rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 10px 24px;"></ol>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- MODAL LẤY DỮ LIỆU TỪ PHÂN CÔNG THEO TỪNG BUỔI ĐÃ HOÀN THÀNH (CHỌN NHIỀU BUỔI) -->
+    <div id="importAssignModal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 820px; width: 95vw; text-align: left; padding: 1.25rem;">
+            <button class="modal-close" id="btnCloseImportModal">×</button>
+            <h3 style="margin: 0 0 0.4rem 0; font-size: 1.1rem; color: var(--text-dark);">Lấy từ Phân công theo từng buổi đã hoàn thành</h3>
+            <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0 0 1rem 0; line-height: 1.45;">
+                Tích chọn một hoặc nhiều buổi học đã hoàn thành để thêm thẳng vào bảng tổng hợp (1 buổi = 5 tiết). Các buổi dạy ghép nhiều lớp cùng giờ, cùng địa điểm được tự động gộp chung thành 1 buổi. Thực hành tại Bệnh viện có tên môn chứa <b>"thực hành lâm sàng"</b> tự động tính <b>Mục 4</b>, các môn khác tại Bệnh viện tính <b>Mục 5</b>, tại Phòng học tính <b>Mục 3</b>.
+            </p>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px;">
+                <div class="form-group" style="margin: 0;">
+                    <label for="importGvSelect">Giảng viên</label>
+                    <select id="importGvSelect">
+                        <option value="">-- Chọn giảng viên --</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin: 0;">
+                    <label for="importClassSelect">Lọc theo Lớp học</label>
+                    <select id="importClassSelect">
+                        <option value="">-- Tất cả lớp học --</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Thanh công cụ Chọn tất cả -->
+            <div class="import-toolbar">
+                <label>
+                    <input type="checkbox" id="chkSelectAllSessions">
+                    <span>Chọn tất cả danh sách đang hiển thị</span>
+                </label>
+                <span id="selectedSessionsCount" style="font-weight: 700; color: var(--primary);">Đã chọn: 0 buổi</span>
+            </div>
+
+            <div id="importListContainer" class="assign-import-list">
+                <div style="padding: 1.5rem; text-align: center; color: var(--text-muted);">Đang tải dữ liệu...</div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px;">
+                <button type="button" class="btn-secondary" id="btnCancelImportModal">Đóng</button>
+                <button type="button" class="btn-primary" id="btnBatchAddSessions">Thêm các buổi đã chọn vào bảng</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="footer-placeholder"></div>
+    <script src="js/layout.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+
+            const TIET_PER_BUOI = 5;
+            const STORAGE_KEY = "ump_rehab_teaching_hours_v2";
+
+            let currentUserGvId = "";
+            let editingUid = null;
+            let savedEntries = [];
+            let currentCalculated = null;
+            let currentFilteredSessions = [];
+
+            // Dữ liệu phục vụ lấy từ bảng Phân công & Thời khóa biểu
+            let dbClasses = [];
+            let dbInstructors = [];
+            let dbAssignments = [];
+            let dbSchedules = [];
+            let dbStudents = [];
+            let dbGroups = [];
+            let dbRooms = [];
+            let dbHospitals = [];
+            let dbCurriculums = {};
+
+            window.showToast = function (message, isError = false) {
+                const container = document.getElementById("toastContainer");
+                if (!container) return;
+                const toast = document.createElement("div");
+                toast.className = "toast";
+                if (isError) toast.style.borderLeftColor = "var(--accent)";
+                toast.innerHTML = `<span>${message}</span>`;
+                container.appendChild(toast);
+                requestAnimationFrame(() => toast.classList.add("show"));
+                setTimeout(() => { toast.classList.remove("show"); setTimeout(() => toast.remove(), 2800); }, 2800);
+            };
+
+            function escapeHtml(val) {
+                if (val == null) return "";
+                return String(val).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+            }
+
+            function roundG(num) {
+                return Math.round((Number(num) + Number.EPSILON) * 100) / 100;
+            }
+
+            // =========================================================================
+            // CẤU HÌNH 24 MỤC QUY ĐỔI (BẢNG 6 - QĐ 1347/QĐ-ĐHYD)
+            // =========================================================================
+            const RULES = [
+                {
+                    id: 1,
+                    group: "I. Giảng dạy Lý thuyết & Thực hành (Mục 1 - 6)",
+                    name: "Mục 1: Giảng dạy lý thuyết trực tiếp/trực tuyến hệ Đại học",
+                    desc: "01 tiết lý thuyết hệ Đại học: Lớp dưới 40 SV = <b>1,0 G</b> | Lớp 40 – 100 SV = <b>1,3 G</b> | Lớp trên 100 SV = <b>1,5 G</b>.",
+                    fields: [
+                        { id: "tiet", label: "Thời lượng giảng dạy", type: "tiet_buoi", defBuoi: 1, defTiet: 5 },
+                        { id: "sv", label: "Sĩ số sinh viên của lớp", type: "number", min: 1, step: 1, def: 50 }
+                    ],
+                    calc: (v) => {
+                        const rate = v.sv < 40 ? 1.0 : (v.sv <= 100 ? 1.3 : 1.5);
+                        const warn = v.sv <= 0 ? "Sĩ số lớp phải lớn hơn 0." : null;
+                        return {
+                            g: v.tiet * rate,
+                            detail: `${v.tietDetail}, Lớp ${v.sv} SV`,
+                            formula: `${v.tiet} tiết × ${rate} G`,
+                            warning: warn
+                        };
+                    }
+                },
+                {
+                    id: 2,
+                    group: "I. Giảng dạy Lý thuyết & Thực hành (Mục 1 - 6)",
+                    name: "Mục 2: Giảng dạy lý thuyết trực tiếp/trực tuyến hệ Sau đại học",
+                    desc: "01 tiết lý thuyết hệ SĐH: Lớp dưới 40 HV = <b>1,5 G</b> | Lớp 40 – 100 HV = <b>1,8 G</b> | Lớp trên 100 HV = <b>1,8 + 0,5 G</b> cho mỗi 100 HV tăng thêm từ 100 trở lên.",
+                    fields: [
+                        { id: "tiet", label: "Thời lượng giảng dạy", type: "tiet_buoi", defBuoi: 1, defTiet: 5 },
+                        { id: "hv", label: "Sĩ số học viên của lớp", type: "number", min: 1, step: 1, def: 45 },
+                        {
+                            id: "cachTinhTangThem", label: "Cách tính bậc tăng thêm (khi lớp trên 100 HV)", type: "select",
+                            options: [
+                                { val: "ceil", text: "Làm tròn lên mỗi phần trăm HV vượt 100 (VD: 101-200 HV: +0,5 G)" },
+                                { val: "floor", text: "Chỉ cộng khi đủ tròn từng 100 HV tăng thêm (từ 100 trở lên)" },
+                                { val: "exact", text: "Tính tỷ lệ chính xác: (Số HV - 100) / 100 × 0,5 G" }
+                            ]
+                        }
+                    ],
+                    calc: (v) => {
+                        let rate = 1.5;
+                        let rateExplain = "1.5";
+                        if (v.hv >= 40 && v.hv <= 100) {
+                            rate = 1.8;
+                            rateExplain = "1.8";
+                        } else if (v.hv > 100) {
+                            let step = 1;
+                            if (v.cachTinhTangThem === "ceil") step = Math.ceil((v.hv - 100) / 100);
+                            else if (v.cachTinhTangThem === "floor") step = Math.max(1, Math.floor(v.hv / 100));
+                            else step = (v.hv - 100) / 100;
+                            rate = 1.8 + 0.5 * step;
+                            rateExplain = `(1.8 + 0.5 × ${roundG(step)})`;
+                        }
+                        const warn = v.hv <= 0 ? "Sĩ số học viên phải lớn hơn 0." : null;
+                        return {
+                            g: v.tiet * rate,
+                            detail: `${v.tietDetail}, Lớp ${v.hv} HV (SĐH)`,
+                            formula: `${v.tiet} tiết × ${rateExplain}`,
+                            warning: warn
+                        };
+                    }
+                },
+                {
+                    id: 3,
+                    group: "I. Giảng dạy Lý thuyết & Thực hành (Mục 1 - 6)",
+                    name: "Mục 3: Hướng dẫn bài tập, thực hành, thí nghiệm, thảo luận, mô phỏng lâm sàng trên lớp",
+                    desc: "Mỗi nhóm 01 GV: Nhóm dưới 15 = <b>1,0 G</b> | 15 – 30 = <b>1,3 G</b> | Trên 30 = <b>1,5 G</b>. <i>(Chương trình Sau đại học nhân hệ số 1,5)</i>.",
+                    fields: [
+                        {
+                            id: "he", label: "Hệ đào tạo", type: "select",
+                            options: [
+                                { val: "1", text: "Đại học (Hệ số 1,0)" },
+                                { val: "1.5", text: "Sau đại học (Nhân hệ số 1,5)" }
+                            ]
+                        },
+                        { id: "tiet", label: "Thời lượng hướng dẫn", type: "tiet_buoi", defBuoi: 1, defTiet: 5 },
+                        { id: "sv", label: "Số SV/HV trong 1 nhóm", type: "number", min: 1, step: 1, def: 20 }
+                    ],
+                    calc: (v) => {
+                        const base = v.sv < 15 ? 1.0 : (v.sv <= 30 ? 1.3 : 1.5);
+                        const heSo = parseFloat(v.he);
+                        const warn = v.sv <= 0 ? "Số SV/HV trong nhóm phải lớn hơn 0." : null;
+                        return {
+                            g: v.tiet * base * heSo,
+                            detail: `${v.tietDetail}, Nhóm ${v.sv} người (${heSo === 1.5 ? 'SĐH' : 'ĐH'})`,
+                            formula: `${v.tiet} tiết × ${base} G${heSo === 1.5 ? ' × 1.5 (SĐH)' : ''}`,
+                            warning: warn
+                        };
+                    }
+                },
+                {
+                    id: 4,
+                    group: "I. Giảng dạy Lý thuyết & Thực hành (Mục 1 - 6)",
+                    name: "Mục 4: Hướng dẫn thực tập lâm sàng tại bệnh viện",
+                    desc: "Mỗi nhóm ít nhất 08 SV hoặc 04 HV / 01 GV / 1 buổi. Nhóm dưới 10 = <b>0,6 G</b> | Nhóm từ 10 trở lên = <b>0,8 G</b>. <i>(Sau đại học nhân hệ số 1,5)</i>.",
+                    fields: [
+                        {
+                            id: "he", label: "Hệ đào tạo", type: "select",
+                            options: [
+                                { val: "1", text: "Đại học (Tối thiểu 08 SV/nhóm)" },
+                                { val: "1.5", text: "Sau đại học (Tối thiểu 04 HV/nhóm, hệ số 1,5)" }
+                            ]
+                        },
+                        { id: "tiet", label: "Thời lượng hướng dẫn", type: "tiet_buoi", defBuoi: 1, defTiet: 5 },
+                        { id: "sv", label: "Số SV/HV trong nhóm", type: "number", min: 1, step: 1, def: 10 }
+                    ],
+                    calc: (v) => {
+                        const base = v.sv < 10 ? 0.6 : 0.8;
+                        const heSo = parseFloat(v.he);
+                        const minReq = heSo === 1.5 ? 4 : 8;
+                        const warn = v.sv < minReq ? `Sĩ số nhóm (${v.sv}) thấp hơn mức tối thiểu quy định của Mục 4 (${minReq} ${heSo === 1.5 ? 'học viên' : 'sinh viên'}/nhóm).` : null;
+                        return {
+                            g: v.tiet * base * heSo,
+                            detail: `${v.tietDetail}, Nhóm ${v.sv} người (${heSo === 1.5 ? 'SĐH' : 'ĐH'})`,
+                            formula: `${v.tiet} tiết × ${base} G${heSo === 1.5 ? ' × 1.5 (SĐH)' : ''}`,
+                            warning: warn
+                        };
+                    }
+                },
+                {
+                    id: 5,
+                    group: "I. Giảng dạy Lý thuyết & Thực hành (Mục 1 - 6)",
+                    name: "Mục 5: Hướng dẫn thực tập tại bệnh viện không liên quan thực hành lâm sàng",
+                    desc: "Mỗi nhóm ít nhất 12 SV hoặc 06 HV / 01 GV / 1 buổi. Nhóm dưới 15 = <b>0,4 G</b> | Nhóm từ 15 trở lên = <b>0,5 G</b>. <i>(Sau đại học nhân hệ số 1,5)</i>.",
+                    fields: [
+                        {
+                            id: "he", label: "Hệ đào tạo", type: "select",
+                            options: [
+                                { val: "1", text: "Đại học (Tối thiểu 12 SV/nhóm)" },
+                                { val: "1.5", text: "Sau đại học (Tối thiểu 06 HV/nhóm, hệ số 1,5)" }
+                            ]
+                        },
+                        { id: "tiet", label: "Thời lượng hướng dẫn", type: "tiet_buoi", defBuoi: 1, defTiet: 5 },
+                        { id: "sv", label: "Số SV/HV trong nhóm", type: "number", min: 1, step: 1, def: 15 }
+                    ],
+                    calc: (v) => {
+                        const base = v.sv < 15 ? 0.4 : 0.5;
+                        const heSo = parseFloat(v.he);
+                        const minReq = heSo === 1.5 ? 6 : 12;
+                        const warn = v.sv < minReq ? `Sĩ số nhóm (${v.sv}) thấp hơn mức tối thiểu quy định của Mục 5 (${minReq} ${heSo === 1.5 ? 'học viên' : 'sinh viên'}/nhóm).` : null;
+                        return {
+                            g: v.tiet * base * heSo,
+                            detail: `${v.tietDetail}, Nhóm ${v.sv} người (${heSo === 1.5 ? 'SĐH' : 'ĐH'})`,
+                            formula: `${v.tiet} tiết × ${base} G${heSo === 1.5 ? ' × 1.5 (SĐH)' : ''}`,
+                            warning: warn
+                        };
+                    }
+                },
+                {
+                    id: 6,
+                    group: "I. Giảng dạy Lý thuyết & Thực hành (Mục 1 - 6)",
+                    name: "Mục 6: Hướng dẫn thực tập tại xí nghiệp, thực tập cộng đồng",
+                    desc: "Mỗi nhóm tối thiểu 16 SV (ĐH) hoặc 08 HV (SĐH). Nhóm dưới 20 = <b>0,4 G</b> | Nhóm từ 20 trở lên = <b>0,5 G</b>. <i>(Sau đại học nhân hệ số 1,5)</i>.",
+                    fields: [
+                        {
+                            id: "he", label: "Hệ đào tạo", type: "select",
+                            options: [
+                                { val: "1", text: "Đại học (Tối thiểu 16 SV/nhóm)" },
+                                { val: "1.5", text: "Sau đại học (Tối thiểu 08 HV/nhóm, hệ số 1,5)" }
+                            ]
+                        },
+                        { id: "tiet", label: "Thời lượng hướng dẫn", type: "tiet_buoi", defBuoi: 1, defTiet: 5 },
+                        { id: "sv", label: "Số SV/HV trong nhóm", type: "number", min: 1, step: 1, def: 20 }
+                    ],
+                    calc: (v) => {
+                        const base = v.sv < 20 ? 0.4 : 0.5;
+                        const heSo = parseFloat(v.he);
+                        const minReq = heSo === 1.5 ? 8 : 16;
+                        const warn = v.sv < minReq ? `Sĩ số nhóm (${v.sv}) thấp hơn mức tối thiểu quy định của Mục 6 (${minReq} ${heSo === 1.5 ? 'học viên' : 'sinh viên'}/nhóm).` : null;
+                        return {
+                            g: v.tiet * base * heSo,
+                            detail: `${v.tietDetail}, Nhóm ${v.sv} người (${heSo === 1.5 ? 'SĐH' : 'ĐH'})`,
+                            formula: `${v.tiet} tiết × ${base} G${heSo === 1.5 ? ' × 1.5 (SĐH)' : ''}`,
+                            warning: warn
+                        };
+                    }
+                },
+                {
+                    id: 7,
+                    group: "II. Khảo thí: Chấm thi, Ra đề & Coi thi (Mục 7, 10, 11)",
+                    name: "Mục 7: Chấm thi kết thúc học phần, tốt nghiệp (ĐH / SĐH)",
+                    desc: "Tính cho mỗi GV chấm thi (không tính trắc nghiệm máy tính). Chấm thi giữa kỳ nhân hệ số <b>0,5</b>.",
+                    fields: [
+                        {
+                            id: "loaiCham", label: "Hình thức chấm thi", type: "select",
+                            options: [
+                                { val: "tuluan", text: "Thi tự luận (Số bài / 20)" },
+                                { val: "tntuluan", text: "Thi trắc nghiệm + tự luận (Số bài / 30)" },
+                                { val: "vandap", text: "Thi vấn đáp (Số người thi / 10)" },
+                                { val: "chaytram", text: "Thi chạy trạm m trạm ((Số người / 10) × m)" },
+                                { val: "kltn_uyvien", text: "Chấm khóa luận tốt nghiệp / dự án học thuật - Ủy viên (1,0 G/bài)" },
+                                { val: "kltn_phanbien", text: "Phản biện khóa luận tốt nghiệp (1,2 G/bài)" },
+                                { val: "sdh_vandap", text: "Chấm thi lâm sàng SĐH - Vấn đáp (0,4 G / tiết)" },
+                                { val: "sdh_chaytram", text: "Chấm thi lâm sàng SĐH - Lâm sàng, chạy trạm (0,6 G / tiết)" }
+                            ]
+                        },
+                        {
+                            id: "kyThi", label: "Tính chất kỳ thi", type: "select",
+                            options: [
+                                { val: "1", text: "Kết thúc học phần / Tốt nghiệp (Hệ số 1,0)" },
+                                { val: "0.5", text: "Thi giữa kỳ (Nhân hệ số 0,5)" }
+                            ]
+                        },
+                        { id: "soLuong", label: "Số lượng (Số bài / Số người thi / Số khóa luận)", type: "number", min: 1, step: 1, def: 40 },
+                        { id: "tietSdh", label: "Thời lượng chấm thi lâm sàng SĐH", type: "tiet_buoi", defBuoi: 1, defTiet: 5 },
+                        { id: "soTram", label: "Số trạm m (Chỉ áp dụng khi chọn Thi chạy trạm)", type: "number", min: 1, step: 1, def: 1 }
+                    ],
+                    calc: (v) => {
+                        const hs = parseFloat(v.kyThi);
+                        let baseG = 0;
+                        let fStr = "";
+                        let dStr = "";
+                        const n = v.soLuong;
+                        switch (v.loaiCham) {
+                            case "tuluan": baseG = n / 20; fStr = `(${n} bài / 20)`; dStr = `${n} bài tự luận`; break;
+                            case "tntuluan": baseG = n / 30; fStr = `(${n} bài / 30)`; dStr = `${n} bài TN+TL`; break;
+                            case "vandap": baseG = n / 10; fStr = `(${n} người / 10)`; dStr = `${n} người vấn đáp`; break;
+                            case "chaytram": baseG = (n / 10) * v.soTram; fStr = `(${n} người / 10) × ${v.soTram} trạm`; dStr = `${n} người, ${v.soTram} trạm`; break;
+                            case "kltn_uyvien": baseG = n * 1.0; fStr = `${n} KLTN × 1.0 G`; dStr = `${n} KLTN (Ủy viên)`; break;
+                            case "kltn_phanbien": baseG = n * 1.2; fStr = `${n} KLTN × 1.2 G`; dStr = `${n} KLTN (Phản biện)`; break;
+                            case "sdh_vandap": baseG = v.tietSdh * 0.4; fStr = `${v.tietSdh} tiết × 0.4 G`; dStr = `${v.tietSdhDetail} (Lâm sàng SĐH - Vấn đáp)`; break;
+                            case "sdh_chaytram": baseG = v.tietSdh * 0.6; fStr = `${v.tietSdh} tiết × 0.6 G`; dStr = `${v.tietSdhDetail} (Lâm sàng SĐH - Chạy trạm)`; break;
+                        }
+                        return {
+                            g: baseG * hs,
+                            detail: `${dStr}${hs === 0.5 ? ' (Giữa kỳ)' : ''}`,
+                            formula: `${fStr}${hs === 0.5 ? ' × 0.5 (Giữa kỳ)' : ''}`
+                        };
+                    }
+                },
+                {
+                    id: 8,
+                    group: "III. Hội đồng Đề cương, Luận văn, Luận án (Mục 8 - 9)",
+                    name: "Mục 8: Hội đồng chấm đánh giá đề cương (Tính cho 1 thành viên)",
+                    desc: "LV cao học, BSNT, CKI / ThS ứng dụng: <b>2,0 G</b> | LV CKII: <b>3,0 G</b> | Luận án NCS: <b>4,0 G</b> (kể cả bảo vệ đề cương lần 2).",
+                    fields: [
+                        {
+                            id: "loaiDeCuong", label: "Loại đề cương", type: "select",
+                            options: [
+                                { val: "2", text: "Luận văn Cao học / BSNT / CKI / ThS ứng dụng (2,0 G)" },
+                                { val: "3", text: "Luận văn Chuyên khoa II (3,0 G)" },
+                                { val: "4", text: "Luận án Nghiên cứu sinh - Lần 1 hoặc Lần 2 (4,0 G)" }
+                            ]
+                        },
+                        { id: "soDeCuong", label: "Số lượng đề cương tham gia chấm", type: "number", min: 1, step: 1, def: 1 }
+                    ],
+                    calc: (v) => {
+                        const rate = parseFloat(v.loaiDeCuong);
+                        return {
+                            g: v.soDeCuong * rate,
+                            detail: `${v.soDeCuong} đề cương (${rate} G/đề cương)`,
+                            formula: `${v.soDeCuong} × ${rate} G`
+                        };
+                    }
+                },
+                {
+                    id: 9,
+                    group: "III. Hội đồng Đề cương, Luận văn, Luận án (Mục 8 - 9)",
+                    name: "Mục 9: Chấm chuyên đề, tiểu luận, luận văn, luận án",
+                    desc: "LV Cao học/BSNT/CKI (4/6/4/3 G) | LV CKII (6/9/6/4 G) | Chuyên đề NCS (3 G) | LA NCS (8/12/8/6 G) | Phản biện độc lập LA NCS (15 G).",
+                    fields: [
+                        {
+                            id: "loaiHoiDong", label: "Loại hội đồng & Vai trò", type: "select",
+                            options: [
+                                { val: "4", text: "LV Cao học, BSNT, CKI - Chủ tịch (4,0 G)" },
+                                { val: "6", text: "LV Cao học, BSNT, CKI - Phản biện (6,0 G)" },
+                                { val: "4_tk", text: "LV Cao học, BSNT, CKI - Ủy viên Thư ký (4,0 G)" },
+                                { val: "3", text: "LV Cao học, BSNT, CKI - Ủy viên (3,0 G)" },
+                                { val: "6_ck2", text: "LV Chuyên khoa II - Chủ tịch (6,0 G)" },
+                                { val: "9_ck2", text: "LV Chuyên khoa II - Phản biện (9,0 G)" },
+                                { val: "6_ck2_tk", text: "LV Chuyên khoa II - Ủy viên Thư ký (6,0 G)" },
+                                { val: "4_ck2", text: "LV Chuyên khoa II - Ủy viên (4,0 G)" },
+                                { val: "3_cd", text: "Chuyên đề, tiểu luận tổng quan NCS - Thành viên HĐ (3,0 G)" },
+                                { val: "8_ncs", text: "Luận án NCS cấp BM/Khoa/Trường - Chủ tịch (8,0 G)" },
+                                { val: "12_ncs", text: "Luận án NCS cấp BM/Khoa/Trường - Phản biện (12,0 G)" },
+                                { val: "8_ncs_tk", text: "Luận án NCS cấp BM/Khoa/Trường - Ủy viên Thư ký (8,0 G)" },
+                                { val: "6_ncs", text: "Luận án NCS cấp BM/Khoa/Trường - Ủy viên (6,0 G)" },
+                                { val: "15_pbdl", text: "Phản biện độc lập Luận án NCS (15,0 G)" }
+                            ]
+                        },
+                        { id: "soLuong", label: "Số lượng luận văn / luận án / chuyên đề", type: "number", min: 1, step: 1, def: 1 }
+                    ],
+                    calc: (v) => {
+                        const rate = parseFloat(String(v.loaiHoiDong).split("_")[0]);
+                        return {
+                            g: v.soLuong * rate,
+                            detail: `${v.soLuong} hồ sơ (Mức ${rate} G)`,
+                            formula: `${v.soLuong} × ${rate} G`
+                        };
+                    }
+                },
+                {
+                    id: 10,
+                    group: "II. Khảo thí: Chấm thi, Ra đề & Coi thi (Mục 7, 10, 11)",
+                    name: "Mục 10: Ra đề thi đại học / sau đại học (01 đề gồm câu hỏi và đáp án)",
+                    desc: "Tự luận: <b>1,5 G</b> | Trắc nghiệm: ≤15 câu (1,0 G), 16–59 câu (1,5 G), 60–90 câu (2,5 G), >90 câu (3,0 G) | Tự luận + TN: <b>số câu / 50 G</b> | Vấn đáp/Chạy trạm: <b>3,0 G</b>.",
+                    fields: [
+                        {
+                            id: "loaiDe", label: "Hình thức đề thi", type: "select",
+                            options: [
+                                { val: "tuluan", text: "Đề thi Tự luận (1,5 G / đề)" },
+                                { val: "tracnghiem", text: "Đề thi Trắc nghiệm (Tính theo bậc số câu; không tính đề trộn)" },
+                                { val: "ket_hop", text: "Đề thi Tự luận + Trắc nghiệm (Số câu / 50 G)" },
+                                { val: "vandap", text: "Đề thi Vấn đáp hoặc Chạy trạm (3,0 G / đề)" }
+                            ]
+                        },
+                        { id: "soDe", label: "Số lượng đề thi (lớp)", type: "number", min: 1, step: 1, def: 1 },
+                        { id: "soCau", label: "Số câu hỏi trong 1 đề", type: "number", min: 1, step: 1, def: 60 }
+                    ],
+                    calc: (v) => {
+                        let rate = 1.5;
+                        let fStr = "";
+                        if (v.loaiDe === "tuluan") {
+                            rate = 1.5; fStr = `${v.soDe} đề × 1.5 G`;
+                        } else if (v.loaiDe === "vandap") {
+                            rate = 3.0; fStr = `${v.soDe} đề × 3.0 G`;
+                        } else if (v.loaiDe === "tracnghiem") {
+                            if (v.soCau <= 15) rate = 1.0;
+                            else if (v.soCau <= 59) rate = 1.5;
+                            else if (v.soCau <= 90) rate = 2.5;
+                            else rate = 3.0;
+                            fStr = `${v.soDe} đề (${v.soCau} câu) × ${rate} G`;
+                        } else if (v.loaiDe === "ket_hop") {
+                            rate = v.soCau / 50;
+                            fStr = `${v.soDe} đề × (${v.soCau} câu / 50)`;
+                        }
+                        return {
+                            g: v.soDe * rate,
+                            detail: `${v.soDe} đề thi${(v.loaiDe === 'tracnghiem' || v.loaiDe === 'ket_hop') ? ` (${v.soCau} câu/đề)` : ''}`,
+                            formula: fStr
+                        };
+                    }
+                },
+                {
+                    id: 11,
+                    group: "II. Khảo thí: Chấm thi, Ra đề & Coi thi (Mục 7, 10, 11)",
+                    name: "Mục 11: Coi thi kết thúc học phần, thi tốt nghiệp (ĐH / SĐH)",
+                    desc: "01 tiết coi thi: Lớp dưới 40 = <b>1,0 G</b> | Lớp 40 – 100 = <b>1,3 G</b> | Lớp trên 100 = <b>1,5 G</b>. <i>(Coi thi giữa kỳ nhân hệ số 0,5)</i>.",
+                    fields: [
+                        { id: "tiet", label: "Thời lượng coi thi", type: "tiet_buoi", defBuoi: 1, defTiet: 2 },
+                        { id: "sv", label: "Sĩ số SV/HV của lớp thi", type: "number", min: 1, step: 1, def: 60 },
+                        {
+                            id: "kyThi", label: "Loại kỳ thi", type: "select",
+                            options: [
+                                { val: "1", text: "Kết thúc học phần / Tốt nghiệp (Hệ số 1,0)" },
+                                { val: "0.5", text: "Coi thi giữa kỳ (Nhân hệ số 0,5)" }
+                            ]
+                        }
+                    ],
+                    calc: (v) => {
+                        const base = v.sv < 40 ? 1.0 : (v.sv <= 100 ? 1.3 : 1.5);
+                        const hs = parseFloat(v.kyThi);
+                        return {
+                            g: v.tiet * base * hs,
+                            detail: `${v.tietDetail}, Lớp ${v.sv} SV/HV${hs === 0.5 ? ' (Giữa kỳ)' : ''}`,
+                            formula: `${v.tiet} tiết × ${base} G${hs === 0.5 ? ' × 0.5' : ''}`
+                        };
+                    }
+                },
+                {
+                    id: 12,
+                    group: "IV. Hướng dẫn Khóa luận, Luận văn, Luận án, NCKH (Mục 12 - 16)",
+                    name: "Mục 12: Hướng dẫn 01 khóa luận tốt nghiệp của sinh viên đạt yêu cầu",
+                    desc: "Tổng <b>25 G</b> (Hướng dẫn chính: <b>15 G</b> / Hướng dẫn phụ: <b>10 G</b>).",
+                    fields: [
+                        {
+                            id: "vaiTro", label: "Vai trò hướng dẫn", type: "select",
+                            options: [
+                                { val: "25", text: "Hướng dẫn độc lập toàn bộ (25,0 G)" },
+                                { val: "15", text: "Hướng dẫn chính (15,0 G)" },
+                                { val: "10", text: "Hướng dẫn phụ (10,0 G)" }
+                            ]
+                        },
+                        { id: "soLuong", label: "Số lượng khóa luận", type: "number", min: 1, step: 1, def: 1 }
+                    ],
+                    calc: (v) => {
+                        const rate = parseFloat(v.vaiTro);
+                        return { g: v.soLuong * rate, detail: `${v.soLuong} KLTN`, formula: `${v.soLuong} × ${rate} G` };
+                    }
+                },
+                {
+                    id: 13,
+                    group: "IV. Hướng dẫn Khóa luận, Luận văn, Luận án, NCKH (Mục 12 - 16)",
+                    name: "Mục 13: Hướng dẫn 01 luận văn Thạc sĩ nghiên cứu, BSNT, CKII",
+                    desc: "Tổng <b>50 G</b> (Hướng dẫn chính: <b>30 G</b> / Hướng dẫn phụ: <b>20 G</b>).",
+                    fields: [
+                        {
+                            id: "vaiTro", label: "Vai trò hướng dẫn", type: "select",
+                            options: [
+                                { val: "50", text: "Hướng dẫn độc lập toàn bộ (50,0 G)" },
+                                { val: "30", text: "Hướng dẫn chính (30,0 G)" },
+                                { val: "20", text: "Hướng dẫn phụ (20,0 G)" }
+                            ]
+                        },
+                        { id: "soLuong", label: "Số lượng luận văn", type: "number", min: 1, step: 1, def: 1 }
+                    ],
+                    calc: (v) => {
+                        const rate = parseFloat(v.vaiTro);
+                        return { g: v.soLuong * rate, detail: `${v.soLuong} Luận văn (ThS NC/BSNT/CKII)`, formula: `${v.soLuong} × ${rate} G` };
+                    }
+                },
+                {
+                    id: 14,
+                    group: "IV. Hướng dẫn Khóa luận, Luận văn, Luận án, NCKH (Mục 12 - 16)",
+                    name: "Mục 14: Hướng dẫn 01 đề án Thạc sĩ ứng dụng / Chuyên khoa I",
+                    desc: "Tổng <b>35 G</b> (Hướng dẫn chính: <b>20 G</b> / Hướng dẫn phụ: <b>15 G</b>).",
+                    fields: [
+                        {
+                            id: "vaiTro", label: "Vai trò hướng dẫn", type: "select",
+                            options: [
+                                { val: "35", text: "Hướng dẫn độc lập toàn bộ (35,0 G)" },
+                                { val: "20", text: "Hướng dẫn chính (20,0 G)" },
+                                { val: "15", text: "Hướng dẫn phụ (15,0 G)" }
+                            ]
+                        },
+                        { id: "soLuong", label: "Số lượng đề án / luận văn", type: "number", min: 1, step: 1, def: 1 }
+                    ],
+                    calc: (v) => {
+                        const rate = parseFloat(v.vaiTro);
+                        return { g: v.soLuong * rate, detail: `${v.soLuong} Đề án ThS ƯD / CKI`, formula: `${v.soLuong} × ${rate} G` };
+                    }
+                },
+                {
+                    id: 15,
+                    group: "IV. Hướng dẫn Khóa luận, Luận văn, Luận án, NCKH (Mục 12 - 16)",
+                    name: "Mục 15: Hướng dẫn 01 luận án Tiến sĩ (Hệ 3 năm / Hệ 4 năm)",
+                    desc: "Không vượt quá 200 G/luận án. Hệ 3 năm: 65 G/năm (Chính 40 / Phụ 25 / Đồng HD 32,5) × 3. Hệ 4 năm: 50 G/năm (Chính 30 / Phụ 20 / Đồng HD 25) × 4.",
+                    fields: [
+                        {
+                            id: "heDaoTao", label: "Hệ đào tạo & Vai trò (Mức giờ / 1 năm học)", type: "select",
+                            options: [
+                                { val: "40_3", text: "Hệ 3 năm - Hướng dẫn chính (40 G/năm)" },
+                                { val: "25_3", text: "Hệ 3 năm - Hướng dẫn phụ (25 G/năm)" },
+                                { val: "32.5_3", text: "Hệ 3 năm - Đồng hướng dẫn (32,5 G/năm)" },
+                                { val: "65_3", text: "Hệ 3 năm - Hướng dẫn độc lập toàn bộ (65 G/năm)" },
+                                { val: "30_4", text: "Hệ 4 năm - Hướng dẫn chính (30 G/năm)" },
+                                { val: "20_4", text: "Hệ 4 năm - Hướng dẫn phụ (20 G/năm)" },
+                                { val: "25_4", text: "Hệ 4 năm - Đồng hướng dẫn (25 G/năm)" },
+                                { val: "50_4", text: "Hệ 4 năm - Hướng dẫn độc lập toàn bộ (50 G/năm)" }
+                            ]
+                        },
+                        { id: "soNam", label: "Số năm học tính quy đổi", type: "number", min: 1, max: 4, step: 1, def: 1 },
+                        { id: "soNcs", label: "Số lượng nghiên cứu sinh", type: "number", min: 1, step: 1, def: 1 }
+                    ],
+                    calc: (v) => {
+                        const [rateStr, maxYrStr] = String(v.heDaoTao).split("_");
+                        const rate = parseFloat(rateStr);
+                        const maxYr = parseInt(maxYrStr);
+                        const yrs = Math.min(v.soNam, maxYr);
+                        const warn = v.soNam > maxYr ? `Hệ ${maxYr} năm chỉ tính tối đa ${maxYr} năm học.` : null;
+                        const perThesis = Math.min(200, rate * yrs);
+                        return {
+                            g: perThesis * v.soNcs,
+                            detail: `${v.soNcs} NCS × ${yrs} năm (${rate} G/năm)`,
+                            formula: `${v.soNcs} LA × (${rate} G × ${yrs} năm)`,
+                            warning: warn
+                        };
+                    }
+                },
+                {
+                    id: 16,
+                    group: "IV. Hướng dẫn Khóa luận, Luận văn, Luận án, NCKH (Mục 12 - 16)",
+                    name: "Mục 16: Hướng dẫn 01 đề tài sinh viên NCKH",
+                    desc: "Cấp Khoa/Trường: <b>20 G</b> (Chính 12 G / Phụ 8 G). Đề tài cấp Tỉnh/Bộ nhân hệ số <b>1,5</b>; cấp Nhà nước nhân hệ số <b>2,0</b>.",
+                    fields: [
+                        {
+                            id: "vaiTro", label: "Vai trò hướng dẫn", type: "select",
+                            options: [
+                                { val: "20", text: "Hướng dẫn độc lập toàn bộ (20 G)" },
+                                { val: "12", text: "Hướng dẫn chính (12 G)" },
+                                { val: "8", text: "Hướng dẫn phụ (8 G)" }
+                            ]
+                        },
+                        {
+                            id: "capDeTai", label: "Cấp đề tài", type: "select",
+                            options: [
+                                { val: "1", text: "Cấp Khoa / Trường (Hệ số 1,0)" },
+                                { val: "1.5", text: "Cấp Tỉnh / Bộ hoặc tương đương (Nhân hệ số 1,5)" },
+                                { val: "2", text: "Cấp Nhà nước (Nhân hệ số 2,0)" }
+                            ]
+                        },
+                        { id: "soDeTai", label: "Số lượng đề tài", type: "number", min: 1, step: 1, def: 1 }
+                    ],
+                    calc: (v) => {
+                        const base = parseFloat(v.vaiTro);
+                        const hs = parseFloat(v.capDeTai);
+                        return {
+                            g: v.soDeTai * base * hs,
+                            detail: `${v.soDeTai} đề tài SV NCKH (Hệ số ${hs})`,
+                            formula: `${v.soDeTai} × ${base} G × ${hs}`
+                        };
+                    }
+                },
+                {
+                    id: 17,
+                    group: "V. Thẩm định, Tập sự, Quốc tế, E-learning, CTĐT (Mục 17 - 24)",
+                    name: "Mục 17: Hội đồng thẩm định 01 giáo trình, sách hoặc 01 CTĐT cấp văn bằng",
+                    desc: "Chủ tịch: <b>7 G</b> | Ủy viên phản biện: <b>6 G</b> | Ủy viên: <b>5 G</b>. <i>(Mức chi thẩm định giáo trình: 300.000 đồng/G)</i>.",
+                    fields: [
+                        {
+                            id: "vaiTro", label: "Vai trò trong Hội đồng", type: "select",
+                            options: [
+                                { val: "7", text: "Chủ tịch Hội đồng (7,0 G)" },
+                                { val: "6", text: "Ủy viên phản biện (6,0 G)" },
+                                { val: "5", text: "Ủy viên (5,0 G)" }
+                            ]
+                        },
+                        { id: "soLuong", label: "Số lượng giáo trình / CTĐT thẩm định", type: "number", min: 1, step: 1, def: 1 }
+                    ],
+                    calc: (v) => {
+                        const rate = parseFloat(v.vaiTro);
+                        const g = v.soLuong * rate;
+                        const money = (g * 300000).toLocaleString("vi-VN");
+                        return {
+                            g,
+                            detail: `${v.soLuong} giáo trình/CTĐT (Mức chi: ${money} đ)`,
+                            formula: `${v.soLuong} × ${rate} G`,
+                            moneyText: `Kinh phí thẩm định tương ứng: ${money} đồng (300.000 đ/G)`
+                        };
+                    }
+                },
+                {
+                    id: 18,
+                    group: "V. Thẩm định, Tập sự, Quốc tế, E-learning, CTĐT (Mục 17 - 24)",
+                    name: "Mục 18: Hội đồng thẩm định handout giảng dạy của 01 lớp ĐTLT / Bồi dưỡng CDNN",
+                    desc: "Chủ tịch: <b>1,0 G</b> | Ủy viên: <b>1,0 G</b>. <i>(Mức chi thẩm định: 300.000 đồng/G)</i>.",
+                    fields: [
+                        {
+                            id: "vaiTro", label: "Vai trò trong Hội đồng", type: "select",
+                            options: [
+                                { val: "1_ct", text: "Chủ tịch Hội đồng (1,0 G)" },
+                                { val: "1_uv", text: "Ủy viên (1,0 G)" }
+                            ]
+                        },
+                        { id: "soLop", label: "Số lượng lớp đào tạo liên tục / bồi dưỡng", type: "number", min: 1, step: 1, def: 1 }
+                    ],
+                    calc: (v) => {
+                        const g = v.soLop * 1.0;
+                        const money = (g * 300000).toLocaleString("vi-VN");
+                        return {
+                            g,
+                            detail: `${v.soLop} lớp ĐTLT (Mức chi: ${money} đ)`,
+                            formula: `${v.soLop} × 1,0 G`,
+                            moneyText: `Kinh phí thẩm định tương ứng: ${money} đồng (300.000 đ/G)`
+                        };
+                    }
+                },
+                {
+                    id: 19,
+                    group: "V. Thẩm định, Tập sự, Quốc tế, E-learning, CTĐT (Mục 17 - 24)",
+                    name: "Mục 19: Soạn 01 bài giảng và giảng thử của giảng viên tập sự",
+                    desc: "Tính theo số tiết của bài: <b>2 × số tiết</b>.",
+                    fields: [
+                        { id: "tiet", label: "Thời lượng bài giảng", type: "tiet_buoi", defBuoi: 1, defTiet: 5 }
+                    ],
+                    calc: (v) => ({
+                        g: 2 * v.tiet,
+                        detail: `Bài giảng tập sự (${v.tietDetail})`,
+                        formula: `2 × ${v.tiet} tiết`
+                    })
+                },
+                {
+                    id: 20,
+                    group: "V. Thẩm định, Tập sự, Quốc tế, E-learning, CTĐT (Mục 17 - 24)",
+                    name: "Mục 20: Giảng dạy trong chương trình trao đổi sinh viên hợp tác quốc tế",
+                    desc: "Lý thuyết, thực hành, thực tế: <b>số tiết × 3</b>.",
+                    fields: [
+                        { id: "tiet", label: "Thời lượng giảng dạy", type: "tiet_buoi", defBuoi: 1, defTiet: 5 }
+                    ],
+                    calc: (v) => ({
+                        g: v.tiet * 3,
+                        detail: `Giảng dạy trao đổi quốc tế (${v.tietDetail})`,
+                        formula: `${v.tiet} tiết × 3`
+                    })
+                },
+                {
+                    id: 21,
+                    group: "V. Thẩm định, Tập sự, Quốc tế, E-learning, CTĐT (Mục 17 - 24)",
+                    name: "Mục 21: Soạn 01 bài giảng E-learning mới",
+                    desc: "Gồm câu hỏi pre-test ≥ 1 câu/tiết, post-test ≥ 1 câu/tiết, bài giảng audio/video: <b>1 × số tiết</b>.",
+                    fields: [
+                        { id: "tiet", label: "Thời lượng bài giảng E-learning", type: "tiet_buoi", defBuoi: 1, defTiet: 5 }
+                    ],
+                    calc: (v) => ({
+                        g: 1 * v.tiet,
+                        detail: `Soạn mới E-learning (${v.tietDetail})`,
+                        formula: `1 × ${v.tiet} tiết`
+                    })
+                },
+                {
+                    id: 22,
+                    group: "V. Thẩm định, Tập sự, Quốc tế, E-learning, CTĐT (Mục 17 - 24)",
+                    name: "Mục 22: Cập nhật 01 bài giảng E-learning",
+                    desc: "Gồm pre-test, bài giảng audio/video được Trưởng Bộ môn xác nhận: <b>0,3 × số tiết</b>.",
+                    fields: [
+                        { id: "tiet", label: "Thời lượng bài giảng E-learning cập nhật", type: "tiet_buoi", defBuoi: 1, defTiet: 5 }
+                    ],
+                    calc: (v) => ({
+                        g: 0.3 * v.tiet,
+                        detail: `Cập nhật E-learning (${v.tietDetail})`,
+                        formula: `0.3 × ${v.tiet} tiết`
+                    })
+                },
+                {
+                    id: 23,
+                    group: "V. Thẩm định, Tập sự, Quốc tế, E-learning, CTĐT (Mục 17 - 24)",
+                    name: "Mục 23: Xây dựng CTĐT, học phần lý thuyết/thực hành mới (HĐ KHĐT Trường duyệt)",
+                    desc: "Tổng <b>50 × số tín chỉ</b>. <i>(Trưởng ban: 10%, Thư ký: 5%, Thành viên biên soạn chia 85%; Sau đại học nhân hệ số 1,5)</i>.",
+                    fields: [
+                        {
+                            id: "he", label: "Bậc đào tạo", type: "select",
+                            options: [
+                                { val: "1", text: "Đại học (Hệ số 1,0)" },
+                                { val: "1.5", text: "Sau đại học (Nhân hệ số 1,5)" }
+                            ]
+                        },
+                        { id: "tinChi", label: "Số tín chỉ của CTĐT / Học phần mới", type: "number", min: 0.5, step: 0.5, def: 2 },
+                        {
+                            id: "vaiTro", label: "Vai trò tham gia", type: "select",
+                            options: [
+                                { val: "100", text: "Tính tổng toàn bộ học phần (100%)" },
+                                { val: "10", text: "Trưởng ban (10% tổng số giờ)" },
+                                { val: "5", text: "Thư ký (5% tổng số giờ)" },
+                                { val: "85_chia", text: "Thành viên biên soạn (Chia đều trong 85%)" },
+                                { val: "95_ct_tv", text: "Trưởng ban kiêm Thành viên biên soạn" }
+                            ]
+                        },
+                        { id: "soTv", label: "Tổng số thành viên tham gia biên soạn (nếu chia phần 85%)", type: "number", min: 1, step: 1, def: 1 }
+                    ],
+                    calc: (v) => {
+                        const heSo = parseFloat(v.he);
+                        const totalG = 50 * v.tinChi * heSo;
+                        let ratio = 1;
+                        let roleStr = "Toàn bộ 100%";
+                        if (v.vaiTro === "10") { ratio = 0.10; roleStr = "Trưởng ban 10%"; }
+                        else if (v.vaiTro === "5") { ratio = 0.05; roleStr = "Thư ký 5%"; }
+                        else if (v.vaiTro === "85_chia") { ratio = 0.85 / Math.max(1, v.soTv); roleStr = `TV biên soạn (85% / ${v.soTv} người)`; }
+                        else if (v.vaiTro === "95_ct_tv") { ratio = 0.10 + (0.85 / Math.max(1, v.soTv)); roleStr = `Trưởng ban 10% + (85% / ${v.soTv} người)`; }
+
+                        return {
+                            g: totalG * ratio,
+                            detail: `${v.tinChi} TC (${heSo === 1.5 ? 'SĐH' : 'ĐH'}) - ${roleStr}`,
+                            formula: `50 × ${v.tinChi} TC${heSo === 1.5 ? ' × 1.5' : ''} × ${roundG(ratio * 100)}%`
+                        };
+                    }
+                },
+                {
+                    id: 24,
+                    group: "V. Thẩm định, Tập sự, Quốc tế, E-learning, CTĐT (Mục 17 - 24)",
+                    name: "Mục 24: Sửa đổi, bổ sung học phần lý thuyết/thực hành (HĐ KHĐT Khoa duyệt)",
+                    desc: "Thay đổi ≥ 50%: <b>30 × TC</b> | Thay đổi ≥ 30%: <b>20 × TC</b> | Thay đổi < 30%: <b>15 × TC</b>. <i>(Trưởng ban 10%, Thư ký 5%, TV biên soạn chia 85%; SĐH nhân 1,5)</i>.",
+                    fields: [
+                        {
+                            id: "mucThayDoi", label: "Tỷ lệ thay đổi về nội dung", type: "select",
+                            options: [
+                                { val: "30", text: "Thay đổi từ 50% trở lên (30 × số tín chỉ)" },
+                                { val: "20", text: "Thay đổi từ 30% đến dưới 50% (20 × số tín chỉ)" },
+                                { val: "15", text: "Thay đổi dưới 30% (15 × số tín chỉ)" }
+                            ]
+                        },
+                        {
+                            id: "he", label: "Bậc đào tạo", type: "select",
+                            options: [
+                                { val: "1", text: "Đại học (Hệ số 1,0)" },
+                                { val: "1.5", text: "Sau đại học (Nhân hệ số 1,5)" }
+                            ]
+                        },
+                        { id: "tinChi", label: "Số tín chỉ của học phần", type: "number", min: 0.5, step: 0.5, def: 2 },
+                        {
+                            id: "vaiTro", label: "Vai trò tham gia", type: "select",
+                            options: [
+                                { val: "100", text: "Tính tổng toàn bộ học phần (100%)" },
+                                { val: "10", text: "Trưởng ban (10% tổng số giờ)" },
+                                { val: "5", text: "Thư ký (5% tổng số giờ)" },
+                                { val: "85_chia", text: "Thành viên biên soạn (Chia đều trong 85%)" },
+                                { val: "95_ct_tv", text: "Trưởng ban kiêm Thành viên biên soạn" }
+                            ]
+                        },
+                        { id: "soTv", label: "Tổng số thành viên tham gia biên soạn (nếu chia phần 85%)", type: "number", min: 1, step: 1, def: 1 }
+                    ],
+                    calc: (v) => {
+                        const baseRate = parseFloat(v.mucThayDoi);
+                        const heSo = parseFloat(v.he);
+                        const totalG = baseRate * v.tinChi * heSo;
+                        let ratio = 1;
+                        let roleStr = "Toàn bộ 100%";
+                        if (v.vaiTro === "10") { ratio = 0.10; roleStr = "Trưởng ban 10%"; }
+                        else if (v.vaiTro === "5") { ratio = 0.05; roleStr = "Thư ký 5%"; }
+                        else if (v.vaiTro === "85_chia") { ratio = 0.85 / Math.max(1, v.soTv); roleStr = `TV biên soạn (85% / ${v.soTv} người)`; }
+                        else if (v.vaiTro === "95_ct_tv") { ratio = 0.10 + (0.85 / Math.max(1, v.soTv)); roleStr = `Trưởng ban 10% + (85% / ${v.soTv} người)`; }
+
+                        return {
+                            g: totalG * ratio,
+                            detail: `${v.tinChi} TC (Mức ${baseRate}G/TC, ${heSo === 1.5 ? 'SĐH' : 'ĐH'}) - ${roleStr}`,
+                            formula: `${baseRate} × ${v.tinChi} TC${heSo === 1.5 ? ' × 1.5' : ''} × ${roundG(ratio * 100)}%`
+                        };
+                    }
+                }
+            ];
+
+            // =========================================================================
+            // HÀM TỰ ĐỘNG DÒ LỖI QUY ĐỊNH CHO CÁC MỤC TRONG BẢNG TỔNG HỢP
+            // =========================================================================
+            function validateSavedItem(item) {
+                if (item.warning) return item.warning;
+
+                const rule = RULES.find(r => r.id === Number(item.ruleId));
+                if (rule && item.rawValues) {
+                    try {
+                        const checkRes = rule.calc(item.rawValues);
+                        if (checkRes && checkRes.warning) return checkRes.warning;
+                    } catch (e) {}
+                }
+
+                // Kiểm tra dự phòng trường hợp dữ liệu cũ trong localStorage không có rawValues
+                const detailStr = String(item.detail || "");
+                const matchGroup = detailStr.match(/Nhóm\s+(\d+)\s+người/i);
+                if (matchGroup) {
+                    const svCount = parseInt(matchGroup[1]);
+                    const isSdh = detailStr.includes("SĐH");
+                    if (Number(item.ruleId) === 4) {
+                        const minReq = isSdh ? 4 : 8;
+                        if (svCount < minReq) return `Sĩ số nhóm (${svCount}) thấp hơn mức tối thiểu quy định của Mục 4 (${minReq} ${isSdh ? 'học viên' : 'sinh viên'}/nhóm).`;
+                    } else if (Number(item.ruleId) === 5) {
+                        const minReq = isSdh ? 6 : 12;
+                        if (svCount < minReq) return `Sĩ số nhóm (${svCount}) thấp hơn mức tối thiểu quy định của Mục 5 (${minReq} ${isSdh ? 'học viên' : 'sinh viên'}/nhóm).`;
+                    } else if (Number(item.ruleId) === 6) {
+                        const minReq = isSdh ? 8 : 16;
+                        if (svCount < minReq) return `Sĩ số nhóm (${svCount}) thấp hơn mức tối thiểu quy định của Mục 6 (${minReq} ${isSdh ? 'học viên' : 'sinh viên'}/nhóm).`;
+                    }
+                }
+
+                if (Number(item.g) <= 0) {
+                    return "Số giờ chuẩn quy đổi đang bằng 0.";
+                }
+
+                return null;
+            }
+
+            // =========================================================================
+            // DOM ELEMENTS & RENDER FORM ĐỘNG
+            // =========================================================================
+            const ruleSelect = document.getElementById("ruleSelect");
+            const ruleDescription = document.getElementById("ruleDescription");
+            const ruleWarning = document.getElementById("ruleWarning");
+            const ruleWarningText = document.getElementById("ruleWarningText");
+            const dynamicInputsContainer = document.getElementById("dynamicInputsContainer");
+            const activityNote = document.getElementById("activityNote");
+            const liveHoursText = document.getElementById("liveHoursText");
+            const liveFormulaText = document.getElementById("liveFormulaText");
+            const liveMoneyText = document.getElementById("liveMoneyText");
+
+            const savedTableBody = document.getElementById("savedTableBody");
+            const totalActivitiesCount = document.getElementById("totalActivitiesCount");
+            const warningActivitiesCount = document.getElementById("warningActivitiesCount");
+            const totalStandardHours = document.getElementById("totalStandardHours");
+            const btnAddEntry = document.getElementById("btnAddEntry");
+            const btnCancelEdit = document.getElementById("btnCancelEdit");
+            const editingBadge = document.getElementById("editingBadge");
+
+            function populateRuleSelect() {
+                const groups = {};
+                RULES.forEach(r => {
+                    if (!groups[r.group]) groups[r.group] = [];
+                    groups[r.group].push(r);
+                });
+
+                ruleSelect.innerHTML = "";
+                for (const [gName, items] of Object.entries(groups)) {
+                    const optGroup = document.createElement("optgroup");
+                    optGroup.label = gName;
+                    items.forEach(item => {
+                        const opt = document.createElement("option");
+                        opt.value = item.id;
+                        opt.textContent = item.name;
+                        optGroup.appendChild(opt);
+                    });
+                    ruleSelect.appendChild(optGroup);
+                }
+
+                const fullRefList = document.getElementById("fullRefList");
+                fullRefList.innerHTML = RULES.map(r => `
+                    <li style="margin-bottom: 6px;">
+                        <strong style="color: var(--primary-hover);">${escapeHtml(r.name.replace(/^Mục \d+:\s*/, ''))}:</strong>
+                        <span>${r.desc}</span>
+                    </li>
+                `).join("");
+            }
+
+            // Render các ô input (Bao gồm cơ chế khóa chéo Số buổi <-> Số tiết)
+            function renderDynamicFields(presetValues = null) {
+                const selectedId = parseInt(ruleSelect.value);
+                const rule = RULES.find(r => r.id === selectedId);
+                if (!rule) return;
+
+                ruleDescription.innerHTML = rule.desc;
+                dynamicInputsContainer.innerHTML = "";
+
+                rule.fields.forEach(f => {
+                    const wrap = document.createElement("div");
+                    wrap.className = "form-group";
+                    wrap.id = `wrap_${f.id}`;
+
+                    if (f.type === "tiet_buoi") {
+                        const savedMode = presetValues?.[`${f.id}_mode`] || "buoi";
+                        const initBuoi = presetValues?.[`${f.id}_buoi`] !== undefined ? presetValues[`${f.id}_buoi`] : (f.defBuoi ?? 1);
+                        const initTiet = presetValues?.[f.id] !== undefined ? presetValues[f.id] : (savedMode === "buoi" ? initBuoi * TIET_PER_BUOI : (f.defTiet ?? 5));
+
+                        wrap.innerHTML = `
+                            <label>${escapeHtml(f.label)} (Quy chuẩn: 1 buổi = 5 tiết)</label>
+                            <div class="unit-converter-box">
+                                <div class="unit-mode-switch">
+                                    <label>
+                                        <input type="radio" name="mode_${f.id}" value="buoi" ${savedMode === "buoi" ? "checked" : ""}>
+                                        Nhập theo số buổi
+                                    </label>
+                                    <label>
+                                        <input type="radio" name="mode_${f.id}" value="tiet" ${savedMode === "tiet" ? "checked" : ""}>
+                                        Nhập thủ công số tiết
+                                    </label>
+                                </div>
+                                <div class="unit-inputs-grid">
+                                    <div>
+                                        <label for="inp_${f.id}_buoi" style="font-size:0.78rem; color:var(--text-muted);">Số buổi</label>
+                                        <input type="number" id="inp_${f.id}_buoi" min="0.5" step="0.5" value="${savedMode === "tiet" ? "" : initBuoi}" ${savedMode === "tiet" ? "disabled" : ""}>
+                                    </div>
+                                    <div>
+                                        <label for="inp_${f.id}" style="font-size:0.78rem; color:var(--text-muted);">Số tiết (1 buổi = 5 tiết)</label>
+                                        <input type="number" id="inp_${f.id}" min="0.5" step="0.5" value="${initTiet}" ${savedMode === "buoi" ? "disabled" : ""}>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        dynamicInputsContainer.appendChild(wrap);
+
+                        const radios = wrap.querySelectorAll(`input[name="mode_${f.id}"]`);
+                        const buoiEl = wrap.querySelector(`#inp_${f.id}_buoi`);
+                        const tietEl = wrap.querySelector(`#inp_${f.id}`);
+
+                        radios.forEach(r => {
+                            r.addEventListener("change", () => {
+                                if (r.value === "buoi" && r.checked) {
+                                    buoiEl.disabled = false;
+                                    if (!parseFloat(buoiEl.value)) buoiEl.value = 1;
+                                    tietEl.disabled = true;
+                                    const bVal = parseFloat(buoiEl.value) || 0;
+                                    tietEl.value = roundG(bVal * TIET_PER_BUOI);
+                                } else if (r.value === "tiet" && r.checked) {
+                                    buoiEl.disabled = true;
+                                    buoiEl.value = "";
+                                    tietEl.disabled = false;
+                                    if (!parseFloat(tietEl.value)) tietEl.value = f.defTiet ?? 5;
+                                }
+                                recalculateLive();
+                            });
+                        });
+
+                        buoiEl.addEventListener("input", () => {
+                            const bVal = parseFloat(buoiEl.value) || 0;
+                            tietEl.value = roundG(bVal * TIET_PER_BUOI);
+                            recalculateLive();
+                        });
+
+                        tietEl.addEventListener("input", () => {
+                            recalculateLive();
+                        });
+
+                    } else if (f.type === "select") {
+                        const lbl = document.createElement("label");
+                        lbl.setAttribute("for", `inp_${f.id}`);
+                        lbl.textContent = f.label;
+                        wrap.appendChild(lbl);
+
+                        const sel = document.createElement("select");
+                        sel.id = `inp_${f.id}`;
+                        f.options.forEach(o => {
+                            const opt = document.createElement("option");
+                            opt.value = o.val;
+                            opt.textContent = o.text;
+                            sel.appendChild(opt);
+                        });
+                        if (presetValues && presetValues[f.id] !== undefined) {
+                            sel.value = presetValues[f.id];
+                        }
+                        sel.addEventListener("change", () => {
+                            toggleConditionalFields(rule.id);
+                            recalculateLive();
+                        });
+                        wrap.appendChild(sel);
+                        dynamicInputsContainer.appendChild(wrap);
+                    } else {
+                        const lbl = document.createElement("label");
+                        lbl.setAttribute("for", `inp_${f.id}`);
+                        lbl.textContent = f.label;
+                        wrap.appendChild(lbl);
+
+                        const inp = document.createElement("input");
+                        inp.type = "number";
+                        inp.id = `inp_${f.id}`;
+                        inp.min = f.min ?? 0;
+                        if (f.max !== undefined) inp.max = f.max;
+                        inp.step = f.step ?? 1;
+                        inp.value = (presetValues && presetValues[f.id] !== undefined) ? presetValues[f.id] : (f.def ?? 1);
+                        inp.addEventListener("input", () => {
+                            toggleConditionalFields(rule.id);
+                            recalculateLive();
+                        });
+                        wrap.appendChild(inp);
+                        dynamicInputsContainer.appendChild(wrap);
+                    }
+                });
+
+                toggleConditionalFields(rule.id);
+                recalculateLive();
+            }
+
+            function toggleConditionalFields(ruleId) {
+                if (ruleId === 2) {
+                    const hv = parseFloat(document.getElementById("inp_hv")?.value) || 0;
+                    document.getElementById("wrap_cachTinhTangThem")?.classList.toggle("hidden", hv <= 100);
+                } else if (ruleId === 7) {
+                    const loai = document.getElementById("inp_loaiCham")?.value;
+                    const isSdhTime = loai === "sdh_vandap" || loai === "sdh_chaytram";
+                    document.getElementById("wrap_soLuong")?.classList.toggle("hidden", isSdhTime);
+                    document.getElementById("wrap_tietSdh")?.classList.toggle("hidden", !isSdhTime);
+                    document.getElementById("wrap_soTram")?.classList.toggle("hidden", loai !== "chaytram");
+                } else if (ruleId === 10) {
+                    const loai = document.getElementById("inp_loaiDe")?.value;
+                    document.getElementById("wrap_soCau")?.classList.toggle("hidden", loai !== "tracnghiem" && loai !== "ket_hop");
+                } else if (ruleId === 23 || ruleId === 24) {
+                    const vt = document.getElementById("inp_vaiTro")?.value;
+                    document.getElementById("wrap_soTv")?.classList.toggle("hidden", vt !== "85_chia" && vt !== "95_ct_tv");
+                }
+            }
+
+            function recalculateLive() {
+                const selectedId = parseInt(ruleSelect.value);
+                const rule = RULES.find(r => r.id === selectedId);
+                if (!rule) return;
+
+                const vals = {};
+                rule.fields.forEach(f => {
+                    if (f.type === "tiet_buoi") {
+                        const modeEl = document.querySelector(`input[name="mode_${f.id}"]:checked`);
+                        const mode = modeEl ? modeEl.value : "buoi";
+                        const buoiVal = parseFloat(document.getElementById(`inp_${f.id}_buoi`)?.value) || 0;
+                        const tietVal = parseFloat(document.getElementById(`inp_${f.id}`)?.value) || 0;
+                        vals[`${f.id}_mode`] = mode;
+                        vals[`${f.id}_buoi`] = buoiVal;
+                        vals[f.id] = tietVal;
+                        vals[`${f.id}Detail`] = mode === "buoi" ? `${buoiVal} buổi (${tietVal} tiết)` : `${tietVal} tiết`;
+                    } else {
+                        const el = document.getElementById(`inp_${f.id}`);
+                        if (!el) return;
+                        vals[f.id] = f.type === "number" ? (parseFloat(el.value) || 0) : el.value;
+                    }
+                });
+
+                const res = rule.calc(vals);
+                const gRounded = roundG(res.g);
+
+                liveHoursText.textContent = gRounded.toFixed(2);
+                liveFormulaText.textContent = `Công thức: ${res.formula}`;
+
+                if (res.warning) {
+                    ruleWarningText.textContent = res.warning;
+                    ruleWarning.classList.remove("hidden");
+                } else {
+                    ruleWarning.classList.add("hidden");
+                }
+
+                if (res.moneyText) {
+                    liveMoneyText.textContent = res.moneyText;
+                    liveMoneyText.classList.remove("hidden");
+                } else {
+                    liveMoneyText.classList.add("hidden");
+                }
+
+                currentCalculated = {
+                    ruleId: rule.id,
+                    ruleName: rule.name,
+                    rawValues: vals,
+                    detail: res.detail,
+                    formula: res.formula,
+                    warning: res.warning || null,
+                    g: gRounded
+                };
+            }
+
+            ruleSelect.addEventListener("change", () => renderDynamicFields(null));
+
+            // =========================================================================
+            // BẢNG TỔNG HỢP: THÊM, CHỈNH SỬA TRỰC TIẾP, XÓA, DÒ LỖI & XUẤT CSV
+            // =========================================================================
+            function loadSavedEntries() {
+                try {
+                    const raw = localStorage.getItem(STORAGE_KEY);
+                    savedEntries = raw ? JSON.parse(raw) : [];
+                } catch (e) {
+                    savedEntries = [];
+                }
+                renderSavedTable();
+            }
+
+            function saveEntriesToStorage() {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(savedEntries));
+                renderSavedTable();
+            }
+
+            function renderSavedTable() {
+                totalActivitiesCount.textContent = savedEntries.length;
+                const sumG = savedEntries.reduce((acc, item) => acc + (Number(item.g) || 0), 0);
+                totalStandardHours.textContent = roundG(sumG).toFixed(2);
+
+                if (savedEntries.length === 0) {
+                    warningActivitiesCount.classList.add("hidden");
+                    savedTableBody.innerHTML = `
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 2rem; color: var(--text-muted); font-style: italic;">
+                                Chưa có hoạt động nào trong danh sách.
+                            </td>
+                        </tr>`;
+                    return;
+                }
+
+                let warnCount = 0;
+
+                const rowsHtml = savedEntries.map((item, idx) => {
+                    const isEditing = editingUid === item.uid;
+                    const warningReason = validateSavedItem(item);
+                    const hasWarning = Boolean(warningReason);
+                    if (hasWarning) warnCount++;
+
+                    const rowClasses = [];
+                    if (isEditing) rowClasses.push("editing-row");
+                    else if (hasWarning) rowClasses.push("warning-row");
+
+                    return `
+                        <tr class="${rowClasses.join(' ')}">
+                            <td style="text-align: center; font-weight: 700; color: #64748b;">${idx + 1}</td>
+                            <td>
+                                <div>
+                                    <span class="badge-item">Mục ${item.ruleId}</span>
+                                    ${hasWarning ? `<span class="badge-adjust">Cần điều chỉnh</span>` : ''}
+                                </div>
+                                <div class="cell-wrap-text" style="font-weight: 600; color: var(--text-dark);">${escapeHtml(item.ruleName.replace(/^Mục \d+:\s*/, ''))}</div>
+                                ${item.note ? `<div class="cell-wrap-text" style="font-size: 0.78rem; color: #0284c7; margin-top: 3px;">${escapeHtml(item.note)}</div>` : ''}
+                            </td>
+                            <td>
+                                <div class="cell-wrap-text" style="color: var(--text-dark); font-weight: 500;">${escapeHtml(item.detail)}</div>
+                                <div class="cell-wrap-text" style="font-size: 0.75rem; color: var(--text-muted); font-family: monospace; margin-top: 2px;">${escapeHtml(item.formula)}</div>
+                                ${hasWarning ? `<div class="cell-wrap-text row-warning-reason">${escapeHtml(warningReason)}</div>` : ''}
+                            </td>
+                            <td style="text-align: right; font-weight: 800; color: ${hasWarning ? '#ea580c' : '#16a34a'}; font-size: 0.92rem;">
+                                ${Number(item.g).toFixed(2)}
+                            </td>
+                            <td style="text-align: center;">
+                                <div class="row-actions">
+                                    <button type="button" class="btn-row-edit" onclick="editSavedEntry('${item.uid}')">Sửa</button>
+                                    <button type="button" class="btn-row-del" onclick="removeSavedEntry('${item.uid}')">Xóa</button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join("");
+
+                savedTableBody.innerHTML = rowsHtml;
+
+                if (warnCount > 0) {
+                    warningActivitiesCount.textContent = `${warnCount} mục cần điều chỉnh`;
+                    warningActivitiesCount.classList.remove("hidden");
+                } else {
+                    warningActivitiesCount.classList.add("hidden");
+                }
+            }
+
+            btnAddEntry.addEventListener("click", () => {
+                if (!currentCalculated || currentCalculated.g <= 0) {
+                    window.showToast("Số giờ quy đổi phải lớn hơn 0!", true);
+                    return;
+                }
+
+                const note = activityNote.value.trim();
+
+                if (editingUid) {
+                    const idx = savedEntries.findIndex(e => e.uid === editingUid);
+                    if (idx !== -1) {
+                        savedEntries[idx] = {
+                            uid: editingUid,
+                            ...currentCalculated,
+                            note
+                        };
+                        window.showToast("Đã cập nhật dòng trong bảng tổng hợp!");
+                    }
+                    exitEditMode();
+                } else {
+                    savedEntries.push({
+                        uid: Date.now().toString(36) + Math.random().toString(36).substring(2, 6),
+                        ...currentCalculated,
+                        note
+                    });
+                    activityNote.value = "";
+                    window.showToast(`Đã thêm (+${currentCalculated.g.toFixed(2)} G) vào bảng tổng hợp!`);
+                }
+
+                saveEntriesToStorage();
+            });
+
+            window.editSavedEntry = function (uid) {
+                const item = savedEntries.find(e => e.uid === uid);
+                if (!item) return;
+
+                editingUid = uid;
+                ruleSelect.value = item.ruleId;
+                renderDynamicFields(item.rawValues || null);
+                activityNote.value = item.note || "";
+
+                btnAddEntry.textContent = "Cập nhật dòng đang sửa";
+                btnCancelEdit.classList.remove("hidden");
+                editingBadge.classList.remove("hidden");
+                renderSavedTable();
+
+                document.querySelector(".section-card").scrollIntoView({ behavior: "smooth", block: "start" });
+            };
+
+            function exitEditMode() {
+                editingUid = null;
+                activityNote.value = "";
+                btnAddEntry.textContent = "Thêm vào bảng tổng hợp";
+                btnCancelEdit.classList.add("hidden");
+                editingBadge.classList.add("hidden");
+                renderSavedTable();
+            }
+
+            btnCancelEdit.addEventListener("click", exitEditMode);
+
+            window.removeSavedEntry = function (uid) {
+                if (editingUid === uid) exitEditMode();
+                savedEntries = savedEntries.filter(item => item.uid !== uid);
+                saveEntriesToStorage();
+                window.showToast("Đã xóa mục khỏi danh sách.");
+            };
+
+            document.getElementById("btnClearAll").addEventListener("click", () => {
+                if (savedEntries.length === 0) return;
+                if (!confirm("Bạn có chắc chắn muốn xóa toàn bộ danh sách giờ chuẩn đã kê khai?")) return;
+                exitEditMode();
+                savedEntries = [];
+                saveEntriesToStorage();
+                window.showToast("Đã xóa toàn bộ danh sách.");
+            });
+
+            // XUẤT FILE EXCEL (CSV) TƯƠNG THÍCH CSP NGHIÊM NGẶT (DÙNG DATA URI)
+            document.getElementById("btnExportCsv").addEventListener("click", () => {
+                if (savedEntries.length === 0) {
+                    window.showToast("Danh sách đang trống, chưa có dữ liệu để xuất!", true);
+                    return;
+                }
+
+                const headers = ["STT", "Mục", "Trạng thái kiểm tra", "Hoạt động giảng dạy", "Mô tả / Ghi chú", "Thông số", "Công thức", "Giờ chuẩn (G)"];
+                const rows = savedEntries.map((item, idx) => {
+                    const warnMsg = validateSavedItem(item);
+                    const statusText = warnMsg ? `Cần điều chỉnh: ${warnMsg}` : "Hợp lệ";
+                    return [
+                        idx + 1,
+                        `"Mục ${item.ruleId}"`,
+                        `"${statusText.replace(/"/g, '""')}"`,
+                        `"${String(item.ruleName || '').replace(/"/g, '""')}"`,
+                        `"${String(item.note || '').replace(/"/g, '""')}"`,
+                        `"${String(item.detail || '').replace(/"/g, '""')}"`,
+                        `"${String(item.formula || '').replace(/"/g, '""')}"`,
+                        Number(item.g).toFixed(2)
+                    ];
+                });
+
+                const sumG = savedEntries.reduce((acc, item) => acc + (Number(item.g) || 0), 0);
+                rows.push(["", "", "", "", "", "", '"TỔNG CỘNG"', roundG(sumG).toFixed(2)]);
+
+                const csvString = "\uFEFF" + [headers.join(","), ...rows.map(r => r.join(","))].join("\r\n");
+                const dataUri = "data:text/csv;charset=utf-8," + encodeURIComponent(csvString);
+
+                const link = document.createElement("a");
+                link.setAttribute("href", dataUri);
+                link.setAttribute("download", `Quy_doi_gio_giang_${new Date().toISOString().slice(0, 10)}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.showToast("Đã xuất file CSV thành công!");
+            });
+
+            document.getElementById("btnToggleRef").addEventListener("click", () => {
+                const box = document.getElementById("refContentBox");
+                const lbl = document.getElementById("refToggleLabel");
+                const isHidden = box.classList.toggle("hidden");
+                lbl.textContent = isHidden ? "Xem chi tiết" : "Thu gọn";
+            });
+
+            // =========================================================================
+            // LẤY TỪ PHÂN CÔNG THEO TỪNG BUỔI (CHỌN NHIỀU BUỔI & NẠP 1 LẦN VÀO BẢNG)
+            // =========================================================================
+            const importAssignModal = document.getElementById("importAssignModal");
+            const importGvSelect = document.getElementById("importGvSelect");
+            const importClassSelect = document.getElementById("importClassSelect");
+            const importListContainer = document.getElementById("importListContainer");
+            const chkSelectAllSessions = document.getElementById("chkSelectAllSessions");
+            const selectedSessionsCount = document.getElementById("selectedSessionsCount");
+
+            function isCompletedSession(ngay, gioKt) {
+                if (!ngay || !gioKt) return false;
+                const sessionEnd = new Date(`${ngay}T${gioKt}`);
+                return sessionEnd <= new Date();
+            }
+
+            function formatDateVN(dateStr) {
+                if (!dateStr) return "";
+                const parts = String(dateStr).split("-");
+                if (parts.length !== 3) return dateStr;
+                return `${parts[2]}/${parts[1]}/${parts[0]}`;
+            }
+
+            function formatGvTitle(name, hocHam, hocVi) {
+                if (!name) return "";
+                const prefixes = [hocHam, hocVi].map(s => String(s || "").trim()).filter(Boolean);
+                if (prefixes.length > 0) {
+                    const cleanName = name.replace(/^(PGS\.?\s*|GS\.?\s*|TS\.?\s*|ThS\.?\s*|BS\.?CKII\s*|BS\.?CKI\s*|BS\.?\s*|CN\.?\s*)+/gi, "").trim();
+                    return `${prefixes.join(".")}. ${cleanName}`;
+                }
+                return name.trim();
+            }
+
+            function getLocationName(maPhong, maVien) {
+                if (maVien) {
+                    const h = dbHospitals.find(x => String(x["ma-benh-vien"]) === String(maVien));
+                    return h ? h["ten-benh-vien"] : `Bệnh viện (${maVien})`;
+                }
+                if (maPhong) {
+                    const r = dbRooms.find(x => String(x["ma-phong-hoc"]) === String(maPhong));
+                    return r ? r["ten-phong-hoc"] : `Phòng (${maPhong})`;
+                }
+                return "Chưa rõ địa điểm";
+            }
+
+            async function loadAssignmentDatabase() {
+                try {
+                    const supabase = window.supabaseClient;
+                    const [resCls, resGv, resPc, resTkb, resStd, resGrp, resRoom, resHosp] = await Promise.all([
+                        supabase.from("lop-hoc").select('ma-lop, ten-lop, chuong-trinh'),
+                        supabase.from("giang-vien").select('ma-giang-vien, ho-ten, "hoc-ham", "hoc-vi"').order("ho-ten", { ascending: true }),
+                        supabase.from("phan-cong-giang-day").select("*"),
+                        supabase.from("thoi-khoa-bieu").select("*"),
+                        supabase.from("danh-sach-lop").select("*"),
+                        supabase.from("danh-sach-nhom").select("*"),
+                        supabase.from("phong-hoc").select("ma-phong-hoc, ten-phong-hoc"),
+                        supabase.from("benh-vien").select("ma-benh-vien, ten-benh-vien")
+                    ]);
+
+                    dbClasses = resCls.data || [];
+                    dbInstructors = resGv.data || [];
+                    dbAssignments = resPc.data || [];
+                    dbSchedules = resTkb.data || [];
+                    dbStudents = resStd.data || [];
+                    dbGroups = resGrp.data || [];
+                    dbRooms = resRoom.data || [];
+                    dbHospitals = resHosp.data || [];
+
+                    const ctTables = [...new Set(dbClasses.map(c => c["chuong-trinh"]).filter(Boolean))];
+                    for (const tbl of ctTables) {
+                        const { data } = await supabase.from(tbl).select("ma-hoc-phan, ten-hoc-phan");
+                        (data || []).forEach(m => {
+                            dbCurriculums[String(m["ma-hoc-phan"]).trim()] = m["ten-hoc-phan"];
+                        });
+                    }
+
+                    importGvSelect.innerHTML = `<option value="">-- Tất cả giảng viên --</option>`;
+                    dbInstructors.forEach(gv => {
+                        const opt = document.createElement("option");
+                        opt.value = gv["ma-giang-vien"];
+                        opt.textContent = formatGvTitle(gv["ho-ten"], gv["hoc-ham"], gv["hoc-vi"]);
+                        importGvSelect.appendChild(opt);
+                    });
+                    if (currentUserGvId) importGvSelect.value = currentUserGvId;
+
+                    importClassSelect.innerHTML = `<option value="">-- Tất cả lớp học --</option>`;
+                    dbClasses.forEach(cls => {
+                        const opt = document.createElement("option");
+                        opt.value = cls["ma-lop"];
+                        opt.textContent = cls["ten-lop"];
+                        importClassSelect.appendChild(opt);
+                    });
+
+                    renderCompletedAssignmentsList();
+                } catch (err) {
+                    importListContainer.innerHTML = `<div style="padding: 1rem; color: var(--accent);">Lỗi tải dữ liệu phân công: ${escapeHtml(err.message)}</div>`;
+                }
+            }
+
+            function getEstimatedStudentCount(assign) {
+                const maLop = String(assign["ma-lop"] || "").trim();
+                if (assign["doi-tuong"] === "ca-nhan") return 1;
+                if (assign["doi-tuong"] === "nhom") {
+                    const cnt = dbGroups.filter(g =>
+                        String(g["ma-lop"] || "").trim() === maLop &&
+                        String(g["loai-nhom"] || "").trim() === String(assign["loai-nhom"] || "").trim() &&
+                        String(g["ten-nhom"] || "").trim() === String(assign["ten-nhom"] || "").trim()
+                    ).length;
+                    return cnt > 0 ? cnt : 15;
+                }
+                const clsCnt = dbStudents.filter(s => String(s["ma-lop"] || "").trim() === maLop).length;
+                return clsCnt > 0 ? clsCnt : 45;
+            }
+
+            function updateSelectedSessionCount() {
+                const checkedBoxes = importListContainer.querySelectorAll(".chk-session-item:checked");
+                selectedSessionsCount.textContent = `Đã chọn: ${checkedBoxes.length} buổi`;
+                const allBoxes = importListContainer.querySelectorAll(".chk-session-item");
+                chkSelectAllSessions.checked = allBoxes.length > 0 && checkedBoxes.length === allBoxes.length;
+            }
+
+            chkSelectAllSessions.addEventListener("change", () => {
+                const allBoxes = importListContainer.querySelectorAll(".chk-session-item");
+                allBoxes.forEach(cb => { cb.checked = chkSelectAllSessions.checked; });
+                updateSelectedSessionCount();
+            });
+
+            // DUYỆT THEO TỪNG BUỔI HỌC & TỰ ĐỘNG PHÂN LOẠI MỤC 1, 2, 3, 4, 5
+            function renderCompletedAssignmentsList() {
+                const gvFilter = String(importGvSelect.value || "").trim();
+                const clsFilter = String(importClassSelect.value || "").trim();
+
+                const sessionGroupsMap = {};
+
+                dbSchedules.forEach(sch => {
+                    if (!isCompletedSession(sch["ngay"], sch["gio-ket-thuc"])) return;
+
+                    const assign = dbAssignments.find(a => String(a.id) === String(sch["id-phan-cong"]));
+                    if (!assign) return;
+
+                    const maGv = String(assign["ma-giang-vien"] || "").trim();
+                    if (gvFilter && maGv !== gvFilter) return;
+
+                    const maLop = String(assign["ma-lop"] || "").trim();
+                    const clsObj = dbClasses.find(c => String(c["ma-lop"]).trim() === maLop);
+                    const tenLop = clsObj ? clsObj["ten-lop"] : maLop;
+                    const isSdh = maLop.toUpperCase().startsWith("THS") || maLop.toUpperCase().startsWith("CK") || tenLop.toLowerCase().includes("thạc sĩ") || tenLop.toLowerCase().includes("sau đại học");
+
+                    const maHp = String(assign["ma-hoc-phan"] || "").trim();
+                    const tenHp = dbCurriculums[maHp] || maHp;
+                    const siSo = getEstimatedStudentCount(assign);
+
+                    let targetLabel = "Cả lớp";
+                    if (assign["doi-tuong"] === "nhom") targetLabel = `Nhóm ${assign["ten-nhom"]}`;
+                    else if (assign["doi-tuong"] === "ca-nhan") targetLabel = `HV ${assign["ho-ten"]}`;
+
+                    const isHospital = Boolean(sch["ma-benh-vien"]);
+                    const locKey = isHospital ? `vien_${sch["ma-benh-vien"]}` : `phong_${sch["ma-phong-hoc"] || 'none'}`;
+                    const locName = getLocationName(sch["ma-phong-hoc"], sch["ma-benh-vien"]);
+
+                    const gioBd = String(sch["gio-bat-dau"] || "").substring(0, 5);
+                    const gioKt = String(sch["gio-ket-thuc"] || "").substring(0, 5);
+                    const loaiBuoi = sch["loai-buoi"] || "LT";
+
+                    // Khóa gộp: Cùng GV + Cùng Ngày + Cùng Giờ BĐ + Cùng Giờ KT + Cùng Địa điểm + Cùng Loại buổi (LT/TH)
+                    const groupKey = `${maGv}_${sch["ngay"]}_${gioBd}_${gioKt}_${locKey}_${loaiBuoi}`;
+
+                    if (!sessionGroupsMap[groupKey]) {
+                        sessionGroupsMap[groupKey] = {
+                            ngay: sch["ngay"],
+                            gioBd,
+                            gioKt,
+                            type: loaiBuoi,
+                            isHospital,
+                            locName,
+                            isSdh: false,
+                            totalSiSo: 0,
+                            classDetails: [],
+                            moduleNames: new Set(),
+                            classCodes: new Set()
+                        };
+                    }
+
+                    const grp = sessionGroupsMap[groupKey];
+                    if (isSdh) grp.isSdh = true;
+                    grp.totalSiSo += siSo;
+                    grp.moduleNames.add(tenHp);
+                    grp.classCodes.add(maLop);
+                    grp.classDetails.push(`${tenLop} (${targetLabel})`);
+                });
+
+                let sessionList = Object.values(sessionGroupsMap);
+                if (clsFilter) {
+                    sessionList = sessionList.filter(item => item.classCodes.has(clsFilter));
+                }
+
+                sessionList.sort((a, b) => new Date(`${b.ngay}T${b.gioBd}`) - new Date(`${a.ngay}T${a.gioBd}`));
+
+                chkSelectAllSessions.checked = false;
+                selectedSessionsCount.textContent = "Đã chọn: 0 buổi";
+
+                if (sessionList.length === 0) {
+                    currentFilteredSessions = [];
+                    importListContainer.innerHTML = `<div style="padding: 1.5rem; text-align: center; color: var(--text-muted);">Không tìm thấy buổi giảng nào đã hoàn thành theo bộ lọc hiện tại.</div>`;
+                    return;
+                }
+
+                currentFilteredSessions = sessionList.map(item => {
+                    const tenHpStr = Array.from(item.moduleNames).join(" / ");
+                    const classesStr = item.classDetails.join(" + ");
+                    const isMerged = item.classDetails.length > 1;
+                    const isClinicalCourse = tenHpStr.toLowerCase().includes("thực hành lâm sàng");
+
+                    let targetRuleId = 1;
+                    let badgeClass = "lt";
+                    let typeDisplay = "Lý thuyết";
+
+                    if (item.type === "LT") {
+                        targetRuleId = item.isSdh ? 2 : 1;
+                        badgeClass = "lt";
+                        typeDisplay = `Lý thuyết (Mục ${targetRuleId})`;
+                    } else {
+                        if (item.isHospital) {
+                            if (isClinicalCourse) {
+                                targetRuleId = 4;
+                                badgeClass = "th-ls";
+                                typeDisplay = "TH Lâm sàng tại Bệnh viện (Mục 4)";
+                            } else {
+                                targetRuleId = 5;
+                                badgeClass = "th-vien";
+                                typeDisplay = "Thực hành tại Bệnh viện (Mục 5)";
+                            }
+                        } else {
+                            targetRuleId = 3;
+                            badgeClass = "th-phong";
+                            typeDisplay = "Thực hành tại Phòng học (Mục 3)";
+                        }
+                    }
+
+                    return {
+                        targetRuleId,
+                        badgeClass,
+                        typeDisplay,
+                        isMerged,
+                        mergedCount: item.classDetails.length,
+                        type: item.type,
+                        isHospital: item.isHospital,
+                        isSdh: item.isSdh,
+                        buoi: 1,
+                        tiet: TIET_PER_BUOI,
+                        siSo: item.totalSiSo,
+                        tenHp: tenHpStr,
+                        classesStr,
+                        ngay: item.ngay,
+                        gioBd: item.gioBd,
+                        gioKt: item.gioKt,
+                        locName: item.locName
+                    };
+                });
+
+                importListContainer.innerHTML = currentFilteredSessions.map((item, idx) => `
+                    <label class="assign-import-item">
+                        <input type="checkbox" class="chk-session-item" data-idx="${idx}">
+                        <div style="flex: 1; min-width: 0;">
+                            <div style="margin-bottom: 3px;">
+                                <span class="session-tag ${item.badgeClass}">${escapeHtml(item.typeDisplay)}</span>
+                                <strong style="color: var(--text-dark);">${escapeHtml(item.tenHp)}</strong>
+                            </div>
+                            <div style="color: var(--text-body); font-size: 0.8rem; line-height: 1.35;">
+                                Lớp: <b>${escapeHtml(item.classesStr)}</b> ${item.isMerged ? `<span style="color:#d97706; font-weight:700;">[Gộp ${item.mergedCount} lớp]</span>` : ''} — Tổng sĩ số ước tính: <b>${item.siSo}</b>
+                            </div>
+                            <div style="color: var(--text-muted); font-size: 0.78rem; margin-top: 2px;">
+                                Ngày: <b>${formatDateVN(item.ngay)}</b> (${item.gioBd} - ${item.gioKt}) | Địa điểm: <b>${escapeHtml(item.locName)}</b> | Quy chuẩn: <b>01 buổi = 5 tiết</b>
+                            </div>
+                        </div>
+                    </label>
+                `).join("");
+
+                importListContainer.querySelectorAll(".chk-session-item").forEach(cb => {
+                    cb.addEventListener("change", updateSelectedSessionCount);
+                });
+            }
+
+            // NẠP HÀNG LOẠT CÁC BUỔI ĐÃ CHỌN THẲNG VÀO BẢNG TỔNG HỢP
+            document.getElementById("btnBatchAddSessions").addEventListener("click", () => {
+                const checkedBoxes = importListContainer.querySelectorAll(".chk-session-item:checked");
+                if (checkedBoxes.length === 0) {
+                    window.showToast("Vui lòng tích chọn ít nhất 1 buổi học để thêm vào bảng!", true);
+                    return;
+                }
+
+                let addedCount = 0;
+                let totalAddedG = 0;
+                let warningDetectedCount = 0;
+
+                checkedBoxes.forEach(cb => {
+                    const idx = parseInt(cb.dataset.idx);
+                    const item = currentFilteredSessions[idx];
+                    if (!item) return;
+
+                    const rule = RULES.find(r => r.id === item.targetRuleId);
+                    if (!rule) return;
+
+                    let rawValues = {};
+                    if (item.targetRuleId === 1) {
+                        rawValues = {
+                            tiet_mode: "buoi",
+                            tiet_buoi: 1,
+                            tiet: TIET_PER_BUOI,
+                            tietDetail: `1 buổi (${TIET_PER_BUOI} tiết)`,
+                            sv: item.siSo
+                        };
+                    } else if (item.targetRuleId === 2) {
+                        rawValues = {
+                            tiet_mode: "buoi",
+                            tiet_buoi: 1,
+                            tiet: TIET_PER_BUOI,
+                            tietDetail: `1 buổi (${TIET_PER_BUOI} tiết)`,
+                            hv: item.siSo,
+                            cachTinhTangThem: "ceil"
+                        };
+                    } else if (item.targetRuleId === 3 || item.targetRuleId === 4 || item.targetRuleId === 5) {
+                        rawValues = {
+                            he: item.isSdh ? "1.5" : "1",
+                            tiet_mode: "buoi",
+                            tiet_buoi: 1,
+                            tiet: TIET_PER_BUOI,
+                            tietDetail: `1 buổi (${TIET_PER_BUOI} tiết)`,
+                            sv: item.siSo
+                        };
+                    }
+
+                    const calcRes = rule.calc(rawValues);
+                    const gRounded = roundG(calcRes.g);
+                    const noteText = `${item.tenHp} - ${item.classesStr} - Ngày ${formatDateVN(item.ngay)} (${item.locName})`;
+
+                    if (calcRes.warning) warningDetectedCount++;
+
+                    savedEntries.push({
+                        uid: Date.now().toString(36) + Math.random().toString(36).substring(2, 7) + "_" + addedCount,
+                        ruleId: rule.id,
+                        ruleName: rule.name,
+                        rawValues,
+                        detail: calcRes.detail,
+                        formula: calcRes.formula,
+                        warning: calcRes.warning || null,
+                        g: gRounded,
+                        note: noteText
+                    });
+
+                    addedCount++;
+                    totalAddedG += gRounded;
+                });
+
+                exitEditMode();
+                saveEntriesToStorage();
+                importAssignModal.classList.add("hidden");
+
+                if (warningDetectedCount > 0) {
+                    window.showToast(`Đã thêm ${addedCount} buổi (Có ${warningDetectedCount} buổi cần điều chỉnh sĩ số)!`, true);
+                } else {
+                    window.showToast(`Đã thêm ${addedCount} buổi (+${roundG(totalAddedG).toFixed(2)} G) vào bảng tổng hợp!`);
+                }
+            });
+
+            document.getElementById("btnOpenImportModal").addEventListener("click", () => {
+                importAssignModal.classList.remove("hidden");
+                if (dbClasses.length === 0) {
+                    loadAssignmentDatabase();
+                } else {
+                    renderCompletedAssignmentsList();
+                }
+            });
+
+            document.getElementById("btnCloseImportModal").addEventListener("click", () => {
+                importAssignModal.classList.add("hidden");
+            });
+            document.getElementById("btnCancelImportModal").addEventListener("click", () => {
+                importAssignModal.classList.add("hidden");
+            });
+
+            importGvSelect.addEventListener("change", renderCompletedAssignmentsList);
+            importClassSelect.addEventListener("change", renderCompletedAssignmentsList);
+
+            // =========================================================================
+            // XÁC THỰC TRUY CẬP QUA SUPABASE (CHẶN HỌC VIÊN & KHÁCH)
+            // =========================================================================
+            async function verifyAccessAndInit() {
+                const loadingBox = document.getElementById("authLoadingBox");
+                const deniedBox = document.getElementById("authDeniedBox");
+                const appBox = document.getElementById("calculatorApp");
+
+                try {
+                    const supabase = window.supabaseClient;
+                    const { data: authData, error } = await supabase.auth.getUser();
+
+                    if (error || !authData || !authData.user) {
+                        loadingBox.classList.add("hidden");
+                        deniedBox.classList.remove("hidden");
+                        return;
+                    }
+
+                    const user = authData.user;
+                    const { data: accData } = await supabase
+                        .from("tai-khoan-he-thong")
+                        .select("role, ma-giang-vien")
+                        .eq("id", user.id)
+                        .maybeSingle();
+
+                    const role = String(accData?.role || "user").toLowerCase().trim();
+                    const blockedRoles = ["hv", "hoc-vien", "hocvien", "student", "sinh-vien", "sinhvien"];
+
+                    if (blockedRoles.includes(role)) {
+                        document.getElementById("deniedTitle").textContent = "Tài khoản không có quyền sử dụng";
+                        document.getElementById("deniedMessage").textContent = "Công cụ quy đổi giờ giảng chỉ dành cho Giảng viên và Cán bộ quản lý Bộ môn (không áp dụng cho tài khoản Học viên / Sinh viên).";
+                        loadingBox.classList.add("hidden");
+                        deniedBox.classList.remove("hidden");
+                        return;
+                    }
+
+                    currentUserGvId = accData?.["ma-giang-vien"] || "";
+
+                    loadingBox.classList.add("hidden");
+                    appBox.classList.remove("hidden");
+
+                    populateRuleSelect();
+                    renderDynamicFields(null);
+                    loadSavedEntries();
+
+                } catch (err) {
+                    loadingBox.classList.add("hidden");
+                    deniedBox.classList.remove("hidden");
+                }
+            }
+
+            let attempts = 0;
+            const timer = setInterval(() => {
+                attempts++;
+                if (window.supabaseClient) {
+                    clearInterval(timer);
+                    verifyAccessAndInit();
+                } else if (attempts >= 50) {
+                    clearInterval(timer);
+                    document.getElementById("authLoadingBox").classList.add("hidden");
+                    document.getElementById("authDeniedBox").classList.remove("hidden");
+                }
+            }, 100);
+        });
+    </script>
+</body>
+</html>
