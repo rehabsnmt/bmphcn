@@ -357,6 +357,9 @@
                     <select id="schLocation" required>
                         <option value="">-- Chọn --</option>
                     </select>
+                    <small id="locationResetHint" style="display:none; color: #d97706; font-size: 0.78rem; margin-top: 5px; font-weight: 600;">
+                        * Thời gian học đã thay đổi, vui lòng chọn lại địa điểm trống tương ứng.
+                    </small>
                 </div>
 
                 <div style="margin-top: 1.5rem; display: flex; justify-content: space-between; gap: 10px;">
@@ -506,6 +509,7 @@
             const scheduleModal = document.getElementById("scheduleModal"), scheduleForm = document.getElementById("scheduleForm");
             const schDate = document.getElementById("schDate"), schStartTime = document.getElementById("schStartTime"), schEndTime = document.getElementById("schEndTime");
             const schLocationType = document.getElementById("schLocationType"), schLocation = document.getElementById("schLocation");
+            const locationResetHint = document.getElementById("locationResetHint");
             const btnRemoveFromGrid = document.getElementById("btnRemoveFromGrid");
             
             const mobileCardDetailModal = document.getElementById("mobileCardDetailModal");
@@ -596,10 +600,10 @@
 
             /* =================================================
                HÀM TỰ ĐỘNG KIỂM TRA PHÒNG TRỐNG THEO KHUNG GIỜ
+               (Khi preserveSelection = "" sẽ bắt buộc người dùng chọn lại)
             ================================================= */
-            function updateAvailableLocations(preserveSelection = null) {
+            function updateAvailableLocations(preserveSelection = "") {
                 const type = schLocationType.value;
-                const currentVal = preserveSelection !== null ? preserveSelection : schLocation.value;
                 schLocation.innerHTML = '<option value="">-- Chọn --</option>';
 
                 if (type === 'phong') {
@@ -646,18 +650,32 @@
                     hospitalsList.forEach(h => schLocation.appendChild(new Option(h['ten-benh-vien'], h['ma-benh-vien'])));
                 }
 
-                // Khôi phục lựa chọn nếu phòng đó vẫn còn trống
-                if (currentVal && Array.from(schLocation.options).some(opt => String(opt.value) === String(currentVal))) {
-                    schLocation.value = currentVal;
+                // Chỉ giữ lại địa điểm khi mở popup xem/sửa mà chưa đổi ngày/giờ;
+                // nếu đã đổi ngày/giờ (preserveSelection === ""), bắt buộc đặt về "-- Chọn --"
+                if (preserveSelection && Array.from(schLocation.options).some(opt => String(opt.value) === String(preserveSelection))) {
+                    schLocation.value = preserveSelection;
                 } else {
                     schLocation.value = "";
                 }
             }
 
-            schLocationType.addEventListener('change', () => updateAvailableLocations());
-            schDate.addEventListener('change', () => updateAvailableLocations());
-            schStartTime.addEventListener('change', () => updateAvailableLocations());
-            schEndTime.addEventListener('change', () => updateAvailableLocations());
+            // Khi người dùng chỉnh thủ công Ngày học, Giờ bắt đầu, Giờ kết thúc hoặc Loại địa điểm -> Bắt buộc chọn lại địa điểm
+            function handleTimeOrTypeChange() {
+                updateAvailableLocations("");
+                if (locationResetHint) locationResetHint.style.display = "block";
+            }
+
+            schLocationType.addEventListener('change', () => updateAvailableLocations(""));
+            schDate.addEventListener('change', handleTimeOrTypeChange);
+            schStartTime.addEventListener('change', handleTimeOrTypeChange);
+            schEndTime.addEventListener('change', handleTimeOrTypeChange);
+            schStartTime.addEventListener('input', handleTimeOrTypeChange);
+            schEndTime.addEventListener('input', handleTimeOrTypeChange);
+            schLocation.addEventListener('change', () => {
+                if (schLocation.value && locationResetHint) {
+                    locationResetHint.style.display = "none";
+                }
+            });
 
             /* =================================================
                1. KHỞI TẠO GRID THEO BUỔI & XỬ LÝ NGÀY TUẦN
@@ -771,9 +789,6 @@
                     hospitalsList = resHosp.data || [];
                     accountList = resAcc.data || [];
 
-                    // XỬ LÝ PHÂN QUYỀN:
-                    // Nếu là Học viên (hv) hoặc chưa đăng nhập -> Giao diện Xem (hiển thị tất cả các lớp)
-                    // Các đối tượng khác đã đăng nhập -> Giao diện Xếp
                     isAdmin = false;
                     if (currentUserId) {
                         const myAcc = accountList.find(a => String(a.id) === String(currentUserId));
@@ -786,7 +801,6 @@
                         }
                     }
 
-                    // Luôn nạp đầy đủ tất cả các lớp cho cả Học viên và người xếp lịch
                     classesList = rawClasses;
                     if (!isAdmin) {
                         pageTitle.textContent = "Xem Thời khóa biểu";
@@ -883,7 +897,6 @@
                         await syncAllDatabaseSchedules();
                         if (!isSilent) populateModuleFilter();
                     } else {
-                        // Đánh số thứ tự buổi cho giao diện Xem của học viên
                         allAssignmentsData.forEach(a => {
                             ['LT', 'TH'].forEach(type => {
                                 const schs = allSchedulesData.filter(s => String(s['id-phan-cong']) === String(a.id) && s['loai-buoi'] === type);
@@ -1166,7 +1179,7 @@
             }
 
             /* =================================================
-               5. CƠ CHẾ KÉO THẢ UPDATE THÔNG MINH
+               5. CƠ CHẾ KÉO THẢ: KHI ĐỔI NGÀY/BUỔI BẮT BUỘC CHỌN LẠI ĐỊA ĐIỂM
             ================================================= */
             function initDropzones() {
                 const dropzones = document.querySelectorAll('.dropzone');
@@ -1224,49 +1237,29 @@
                             const sch = allSchedulesData.find(s => String(s.id) === String(draggedCardInfo.schId));
 
                             if (sch && sch.ngay) {
-                                // LƯU NGẦM KHI DỜI LỊCH CÙNG ĐỒNG BỘ CÁC LỚP KHÁC
-                                updateScheduleTimeSilently(sch, targetDate, defStart, defEnd, targetSession);
+                                const oldDate = String(sch['ngay']);
+                                const oldStart = sch['gio-bat-dau'] ? String(sch['gio-bat-dau']).substring(0,5) : "";
+                                const oldEnd = sch['gio-ket-thuc'] ? String(sch['gio-ket-thuc']).substring(0,5) : "";
+                                const oldSession = oldStart ? getSessionFromTime(oldStart) : null;
+
+                                // Nếu thả lại vào đúng chính ô ngày & buổi hiện tại -> Không làm gì
+                                if (oldDate === targetDate && oldSession === targetSession) {
+                                    return;
+                                }
+
+                                // Nếu giữ nguyên buổi (VD: Sáng T2 -> Sáng T4) thì giữ giờ cũ, nếu sang buổi khác thì lấy giờ mặc định của buổi mới
+                                const suggestStart = (oldSession === targetSession && oldStart) ? oldStart : defStart;
+                                const suggestEnd = (oldSession === targetSession && oldEnd) ? oldEnd : defEnd;
+
+                                // Mở popup bắt buộc chọn lại địa điểm tương ứng với ngày/giờ mới
+                                openModalForSchedule(draggedCardInfo.schId, targetDate, suggestStart, suggestEnd, true, sch);
                             } else {
-                                // MỞ POPUP KHI KÉO TỪ HÀNG ĐỢI VÀO
+                                // Kéo từ Hàng đợi vào khung lịch -> Mở popup chọn địa điểm
                                 openModalForSchedule(draggedCardInfo.schId, targetDate, defStart, defEnd, true, sch);
                             }
                         }
                     });
                 });
-            }
-
-            async function updateScheduleTimeSilently(sch, newDate, defStartStr, defEndStr, newSession) {
-                let gioBd = sch['gio-bat-dau'] ? String(sch['gio-bat-dau']).substring(0,5) : null;
-                let gioKt = sch['gio-ket-thuc'] ? String(sch['gio-ket-thuc']).substring(0,5) : null;
-                
-                const currentSession = gioBd ? getSessionFromTime(gioBd) : null;
-                
-                if (!currentSession || currentSession !== newSession) {
-                    gioBd = defStartStr;
-                    gioKt = defEndStr;
-                }
-
-                const targetIds = getRelatedScheduleIds(sch.id);
-
-                const payload = { 
-                    "ngay": newDate, 
-                    "gio-bat-dau": gioBd + ":00", 
-                    "gio-ket-thuc": gioKt + ":00",
-                    "nguoi-xep": currentUserId 
-                };
-
-                try {
-                    const { data, error } = await window.supabaseClient.from('thoi-khoa-bieu').update(payload).in('id', targetIds).select();
-                    if (error) throw error;
-                    if (!data || data.length === 0) throw new Error("Lỗi thao tác");
-                    
-                    if (targetIds.length > 1) {
-                        window.showToast(`Đã dời lịch học (đồng bộ ${targetIds.length} lớp)!`);
-                    } else {
-                        window.showToast("Đã dời lịch học!");
-                    }
-                    refreshGlobalData(true); 
-                } catch (err) { window.showToast("Lỗi thao tác", true); }
             }
 
             function showMobileCardDetail(schId, sIdx, tIdx) {
@@ -1351,15 +1344,21 @@
 
             /* =================================================
                6. MODAL GHI NHẬN LƯU VÀ XÓA LỊCH
+               (forceReselectLocation = true khi kéo thả sang ô mới hoặc từ kho ra)
             ================================================= */
-            function openModalForSchedule(schId, suggestDate, suggestStartHour, suggestEndHour, isNewDrop = false, existingSchData = null) {
+            function openModalForSchedule(schId, suggestDate, suggestStartHour, suggestEndHour, forceReselectLocation = false, existingSchData = null) {
                 document.getElementById('schCardId').value = schId;
 
                 const targetIds = getRelatedScheduleIds(schId);
                 let extraText = targetIds.length > 1 ? ` (Đồng bộ ${targetIds.length} lớp liên kết)` : "";
                 document.getElementById('modalSchTitle').textContent = `Cập nhật Lịch học${extraText}`;
 
-                if (existingSchData && existingSchData.ngay && !isNewDrop) {
+                const isAlreadyOnGrid = Boolean(existingSchData && existingSchData.ngay);
+                btnRemoveFromGrid.style.display = isAlreadyOnGrid ? 'block' : 'none';
+
+                if (isAlreadyOnGrid && !forceReselectLocation) {
+                    // Mở bằng nút bút chì để xem/sửa: Giữ địa điểm hiện tại cho đến khi người dùng tự đổi ngày/giờ
+                    if (locationResetHint) locationResetHint.style.display = "none";
                     schDate.value = existingSchData['ngay'];
                     schStartTime.value = String(existingSchData['gio-bat-dau']).substring(0,5);
                     schEndTime.value = String(existingSchData['gio-ket-thuc']).substring(0,5);
@@ -1370,16 +1369,21 @@
                         schLocationType.value = 'vien';
                         updateAvailableLocations(existingSchData['ma-benh-vien']);
                     }
-                    btnRemoveFromGrid.style.display = 'block'; 
                 } else {
+                    // Kéo từ Hàng đợi ra HOẶC Kéo dời lịch sang ngày/buổi khác -> Bắt buộc chọn lại địa điểm
                     schDate.value = suggestDate;
                     schStartTime.value = suggestStartHour;
                     schEndTime.value = suggestEndHour;
                     
-                    schLocationType.value = 'phong';
+                    if (existingSchData && existingSchData['ma-benh-vien']) {
+                        schLocationType.value = 'vien';
+                    } else {
+                        schLocationType.value = 'phong';
+                    }
                     updateAvailableLocations("");
-                    
-                    btnRemoveFromGrid.style.display = 'none'; 
+                    if (locationResetHint) {
+                        locationResetHint.style.display = isAlreadyOnGrid ? "block" : "none";
+                    }
                 }
 
                 scheduleModal.classList.remove('hidden');
@@ -1426,7 +1430,7 @@
                 const locType = schLocationType.value;
                 const locVal = schLocation.value;
 
-                if(!locVal) { window.showToast("Vui lòng chọn địa điểm!", true); return; }
+                if(!locVal) { window.showToast("Vui lòng chọn lại địa điểm học tương ứng với khung giờ!", true); return; }
                 if(gioBd >= gioKt) { window.showToast("Giờ kết thúc phải lớn hơn giờ bắt đầu!", true); return; }
 
                 const payload = {
