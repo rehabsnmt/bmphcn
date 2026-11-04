@@ -112,7 +112,7 @@
         .cc-loc { display: block; }
         .cc-scheduler { display: block; margin-top: 2px; font-size: 0.62rem; color: var(--primary); font-weight: bold; }
 
-        .cc-note { margin-top: 4px; padding-top: 4px; border-top: 1px dashed rgba(0,0,0,0.1); font-style: italic; color: #64748b; font-size: 0.66rem; white-space: normal !important; overflow-wrap: break-word; word-break: break-word; line-height: 1.25; }
+        .cc-note { margin-top: 4px; padding-top: 4px; border-top: 1px dashed rgba(0,0,0,0.1); font-style: italic; color: #d97706; font-size: 0.66rem; white-space: normal !important; overflow-wrap: break-word; word-break: break-word; line-height: 1.25; }
 
         /* Thu nhỏ tối đa thêm cho các thẻ khi đã nằm trên Khung Lịch */
         .calendar-table .class-card { padding: 5px; }
@@ -120,9 +120,7 @@
         .calendar-table .cc-info { font-size: 0.65rem; margin-bottom: 2px; }
         .calendar-table .cc-time-loc { font-size: 0.65rem; padding-top: 3px; }
         .calendar-table .cc-scheduler { font-size: 0.6rem; }
-
-        /* Ẩn ghi chú trên lưới lịch */
-        .calendar-table .cc-note { display: none !important; }
+        .calendar-table .cc-note { font-size: 0.63rem; margin-top: 3px; padding-top: 3px; }
 
         /* CHẾ ĐỘ THU GỌN THẺ TRÊN DESKTOP */
         .class-card.compact {
@@ -150,7 +148,7 @@
         }
 
         .modal-overlay { z-index: 9999; }
-        .btn-danger { background-color: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; transition: 0.2s; }
+        .btn-danger { background-color: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; transition: 0.2s; font-weight: 600; }
         .btn-danger:hover { background-color: #dc2626; }
 
         .desktop-only { display: flex; }
@@ -363,14 +361,10 @@
                 </div>
 
                 <div style="margin-top: 1.5rem; display: flex; justify-content: space-between; gap: 10px;">
-                    <button type="button" class="btn-danger" id="btnRemoveFromGrid" style="display:none;">
-                        <i class="fas fa-trash-alt"></i> Gỡ khỏi Lịch
-                    </button>
+                    <button type="button" class="btn-danger" id="btnRemoveFromGrid" style="display:none;">Xóa buổi này</button>
                     <div style="display: flex; gap: 10px; margin-left: auto;">
                         <button type="button" class="btn-warning" id="btnCancelModal" style="color: #fff; background: var(--text-muted); padding: 8px 12px;">Hủy</button>
-                        <button type="submit" class="btn-primary" id="btnSaveSchedule" style="padding: 8px 12px;">
-                            <i class="fas fa-save"></i> Ghi nhận
-                        </button>
+                        <button type="submit" class="btn-primary" id="btnSaveSchedule" style="padding: 8px 16px;">Lưu</button>
                     </div>
                 </div>
             </form>
@@ -1126,13 +1120,14 @@
                 setupDragEventsForCards(); 
             }
 
+            // CẬP NHẬT: Hiển thị ghi chú cả ở Kho và trên Khung lịch khi ở giao diện Xếp lịch (isAdmin === true)
             function createCardHtml(cardId, schId, type, tenHp, tenLop, tenGv, targetText, ghiChu, schData = null, sessionIndex = 1, totalSessions = 1, maLop = null) {
                 const colorObj = getColorForClass(maLop);
                 const bgStyle = `background-color: ${colorObj.bg}; border-left-color: ${colorObj.border};`;
                 
                 const isOnGrid = schData && schData.ngay;
                 
-                const noteHtml = (ghiChu && !isOnGrid) ? `<div class="cc-note"><i class="fas fa-sticky-note" style="margin-right:4px;"></i>${ghiChu}</div>` : '';
+                const noteHtml = (ghiChu && isAdmin) ? `<div class="cc-note"><i class="fas fa-sticky-note" style="margin-right:4px;"></i>${escapeHtml(ghiChu)}</div>` : '';
                 
                 let timeLocHtml = "";
                 let schedulerHtml = "";
@@ -1242,19 +1237,15 @@
                                 const oldEnd = sch['gio-ket-thuc'] ? String(sch['gio-ket-thuc']).substring(0,5) : "";
                                 const oldSession = oldStart ? getSessionFromTime(oldStart) : null;
 
-                                // Nếu thả lại vào đúng chính ô ngày & buổi hiện tại -> Không làm gì
                                 if (oldDate === targetDate && oldSession === targetSession) {
                                     return;
                                 }
 
-                                // Nếu giữ nguyên buổi (VD: Sáng T2 -> Sáng T4) thì giữ giờ cũ, nếu sang buổi khác thì lấy giờ mặc định của buổi mới
                                 const suggestStart = (oldSession === targetSession && oldStart) ? oldStart : defStart;
                                 const suggestEnd = (oldSession === targetSession && oldEnd) ? oldEnd : defEnd;
 
-                                // Mở popup bắt buộc chọn lại địa điểm tương ứng với ngày/giờ mới
                                 openModalForSchedule(draggedCardInfo.schId, targetDate, suggestStart, suggestEnd, true, sch);
                             } else {
-                                // Kéo từ Hàng đợi vào khung lịch -> Mở popup chọn địa điểm
                                 openModalForSchedule(draggedCardInfo.schId, targetDate, defStart, defEnd, true, sch);
                             }
                         }
@@ -1278,6 +1269,7 @@
                 const locType = sch['ma-phong-hoc'] ? 'phong' : 'vien';
                 const locId = sch['ma-phong-hoc'] || sch['ma-benh-vien'];
                 const locName = getLocName(locType, locId) || 'Chưa chọn địa điểm';
+                const aNote = escapeHtml(a["ghi-chu"] || "");
 
                 document.getElementById('mcTitle').innerHTML = tenHp;
                 document.getElementById('mcBadge').innerHTML = `<span class="cc-type-badge ${sch['loai-buoi'] === 'LT' ? 'type-lt' : 'type-th'}" style="display:inline-flex; width: auto;">${sch['loai-buoi']} ${sIdx}/${tIdx}</span>`;
@@ -1286,6 +1278,7 @@
                     <div style="margin-bottom: 10px; font-weight: 600; color: var(--text-dark);">${tenLop} | ${targetText} | ${tenGv}</div>
                     ${sch.ngay ? `<div style="margin-bottom: 8px;"><i class="far fa-clock" style="color:var(--primary); width:20px;"></i> <b>Giờ:</b> ${formatAMPM(String(sch['gio-bat-dau']).substring(0,5))} - ${formatAMPM(String(sch['gio-ket-thuc']).substring(0,5))}</div>` : ''}
                     ${sch.ngay ? `<div style="margin-bottom: 8px;"><i class="fas fa-map-marker-alt" style="color:var(--primary); width:20px;"></i> <b>Địa điểm:</b> ${escapeHtml(locName)}</div>` : ''}
+                    ${(isAdmin && aNote) ? `<div style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border); color: #d97706; font-style: italic;"><i class="fas fa-sticky-note" style="width:20px;"></i> <b>Ghi chú:</b> ${aNote}</div>` : ''}
                 `;
 
                 mobileCardDetailModal.classList.remove('hidden');
@@ -1344,7 +1337,6 @@
 
             /* =================================================
                6. MODAL GHI NHẬN LƯU VÀ XÓA LỊCH
-               (forceReselectLocation = true khi kéo thả sang ô mới hoặc từ kho ra)
             ================================================= */
             function openModalForSchedule(schId, suggestDate, suggestStartHour, suggestEndHour, forceReselectLocation = false, existingSchData = null) {
                 document.getElementById('schCardId').value = schId;
@@ -1357,7 +1349,6 @@
                 btnRemoveFromGrid.style.display = isAlreadyOnGrid ? 'block' : 'none';
 
                 if (isAlreadyOnGrid && !forceReselectLocation) {
-                    // Mở bằng nút bút chì để xem/sửa: Giữ địa điểm hiện tại cho đến khi người dùng tự đổi ngày/giờ
                     if (locationResetHint) locationResetHint.style.display = "none";
                     schDate.value = existingSchData['ngay'];
                     schStartTime.value = String(existingSchData['gio-bat-dau']).substring(0,5);
@@ -1370,7 +1361,6 @@
                         updateAvailableLocations(existingSchData['ma-benh-vien']);
                     }
                 } else {
-                    // Kéo từ Hàng đợi ra HOẶC Kéo dời lịch sang ngày/buổi khác -> Bắt buộc chọn lại địa điểm
                     schDate.value = suggestDate;
                     schStartTime.value = suggestStartHour;
                     schEndTime.value = suggestEndHour;
@@ -1407,9 +1397,9 @@
                     if (!data || data.length === 0) throw new Error("Lỗi thao tác");
                     
                     if (targetIds.length > 1) {
-                        window.showToast(`Đã gỡ lịch (đồng bộ ${targetIds.length} lớp)!`);
+                        window.showToast(`Đã xóa buổi học (đồng bộ ${targetIds.length} lớp)!`);
                     } else {
-                        window.showToast("Đã gỡ lịch!");
+                        window.showToast("Đã xóa buổi học khỏi lịch!");
                     }
                     scheduleModal.classList.add('hidden');
                     refreshGlobalData(true); 
@@ -1445,7 +1435,7 @@
                 try {
                     const btn = document.getElementById('btnSaveSchedule');
                     const origText = btn.innerHTML;
-                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cập nhật...';
+                    btn.textContent = 'Đang lưu...';
                     btn.disabled = true;
 
                     const { data, error } = await window.supabaseClient.from('thoi-khoa-bieu').update(payload).in('id', targetIds).select();
@@ -1453,9 +1443,9 @@
                     if (!data || data.length === 0) throw new Error("Lỗi thao tác");
                     
                     if (targetIds.length > 1) {
-                        window.showToast(`Ghi nhận lịch thành công (đồng bộ ${targetIds.length} lớp)!`);
+                        window.showToast(`Lưu lịch thành công (đồng bộ ${targetIds.length} lớp)!`);
                     } else {
-                        window.showToast("Ghi nhận lịch thành công!");
+                        window.showToast("Lưu lịch thành công!");
                     }
                     
                     scheduleModal.classList.add('hidden');
@@ -1464,7 +1454,7 @@
                     btn.innerHTML = origText; btn.disabled = false;
                 } catch(err) {
                     window.showToast("Lỗi thao tác", true);
-                    document.getElementById('btnSaveSchedule').innerHTML = '<i class="fas fa-save"></i> Ghi nhận';
+                    document.getElementById('btnSaveSchedule').textContent = 'Lưu';
                     document.getElementById('btnSaveSchedule').disabled = false;
                 }
             });
