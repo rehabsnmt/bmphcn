@@ -98,6 +98,11 @@
         .badge.official { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
         .badge.pending { background: #fef08a; color: #854d0e; border: 1px solid #fde047; }
         .badge.pending-delete { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+        .badge.locked-spec { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; margin-top: 4px; }
+
+        /* Dòng học phần bị khóa do không có học viên chuyên ngành */
+        tr.locked-spec-row td { background-color: #f8fafc; color: #94a3b8; }
+        tr.locked-spec-row .module-title { color: #64748b; }
 
         /* HIỆU ỨNG NHẤP NHÁY NỔI BẬT ĐỀ XUẤT MỚI */
         @keyframes pulse-highlight {
@@ -484,6 +489,7 @@
             });
 
             let classesList = [], instructorsList = [], studentsList = [], groupsList = [];
+            let allStudentsGlobal = [], allGroupsGlobal = [];
             let currentSelectedClass = null, currentSelectedModule = null; 
             let currentCurriculumData = [], currentAssignmentsData = [], currentModuleSemesters = {}; 
             let allSchedulesData = []; 
@@ -511,6 +517,51 @@
             const studentTargetDiv = document.getElementById("studentTargetDiv"), studentSelect = document.getElementById("studentSelect");
 
             const btnCloseModal = document.getElementById("btnCloseModal"), btnCancelModal = document.getElementById("btnCancelModal"), btnSaveAssignment = document.getElementById("btnSaveAssignment");
+
+            /* =================================================
+               HÀM KIỂM TRA HỌC VIÊN NHÓM CHUYÊN NGÀNH CỦA LỚP
+            ================================================= */
+            function countSpecStudentsInClass(maLopRaw, specNameRaw) {
+                const maLop = String(maLopRaw || "").trim();
+                const spec = String(specNameRaw || "").trim().toLowerCase();
+                if (!spec || spec === "chung") return 999;
+
+                // 1. Đếm trong bảng danh-sach-nhom (loai-nhom = 'Chuyên ngành' và ten-nhom = tên chuyên ngành)
+                const groupCount = allGroupsGlobal.filter(g => {
+                    if (String(g['ma-lop'] || '').trim() !== maLop) return false;
+                    const loai = String(g['loai-nhom'] || '').trim().toLowerCase();
+                    const ten = String(g['ten-nhom'] || '').trim().toLowerCase();
+                    const isSpecGroup = loai === 'chuyên ngành' || loai === 'chuyen nganh' || loai.includes('chuyên ngành');
+                    return (isSpecGroup && ten === spec) || ten === spec;
+                }).length;
+
+                if (groupCount > 0) return groupCount;
+
+                // 2. Dự phòng: Đếm trong bảng danh-sach-lop nếu có cột chuyen-nganh
+                const stdCount = allStudentsGlobal.filter(s => {
+                    if (String(s['ma-lop'] || '').trim() !== maLop) return false;
+                    const sSpec = String(s['chuyen-nganh'] || '').trim().toLowerCase();
+                    return sSpec && sSpec === spec;
+                }).length;
+
+                return stdCount;
+            }
+
+            // Kiểm tra học phần thuộc phần "Kiến thức chuyên ngành tự chọn" (hoặc học phần chuyên ngành riêng) có bị khóa do 0 HV không
+            function isModuleLockedByEmptySpec(maLopRaw, modObj) {
+                if (!modObj) return false;
+                const spec = String(modObj["chuyen-nganh"] || "").trim();
+                if (!spec || spec.toLowerCase() === "chung") return false;
+
+                const groupName = String(modObj["nhom-hoc-phan"] || "").trim().toLowerCase();
+                const isSpecElectiveGroup = groupName.includes("kiến thức chuyên ngành tự chọn") || groupName.includes("chuyên ngành");
+
+                if (isSpecElectiveGroup || spec.toLowerCase() !== "chung") {
+                    const count = countSpecStudentsInClass(maLopRaw, spec);
+                    return count === 0;
+                }
+                return false;
+            }
 
             async function loadInitialData() {
                 try {
@@ -629,10 +680,12 @@
                     }
 
                     const { data: stdData } = await supabase.from('danh-sach-lop').select('*');
-                    studentsList = (stdData || []).filter(s => String(s['ma-lop'] || '').trim() === maLopClean);
+                    allStudentsGlobal = stdData || [];
+                    studentsList = allStudentsGlobal.filter(s => String(s['ma-lop'] || '').trim() === maLopClean);
 
                     const { data: grpData } = await supabase.from('danh-sach-nhom').select('*');
-                    groupsList = (grpData || []).filter(g => String(g['ma-lop'] || '').trim() === maLopClean);
+                    allGroupsGlobal = grpData || [];
+                    groupsList = allGroupsGlobal.filter(g => String(g['ma-lop'] || '').trim() === maLopClean);
 
                     updateSpecializationFilter();
                     updateSummary(); 
@@ -681,7 +734,8 @@
                 specTotalsDiv.innerHTML = `<span style="background: #f1f5f9; padding: 4px 8px; border-radius: 4px; border: 1px solid #cbd5e1; color: #334155;">Chung: <b>${chungCredits}</b> TC</span>`;
                 specsList.forEach(sp => {
                     const total = (pureSpecTotals[sp] || 0) + chungCredits;
-                    specTotalsDiv.innerHTML += `<span style="background: var(--primary-light); color: var(--primary-hover); padding: 4px 8px; border-radius: 4px; border: 1px solid var(--primary-light);">CN ${escapeHtml(sp)}: <b>${total}</b> TC</span>`;
+                    const hvCount = currentSelectedClass ? countSpecStudentsInClass(currentSelectedClass["ma-lop"], sp) : 0;
+                    specTotalsDiv.innerHTML += `<span style="background: var(--primary-light); color: var(--primary-hover); padding: 4px 8px; border-radius: 4px; border: 1px solid var(--primary-light);">CN ${escapeHtml(sp)}: <b>${total}</b> TC (${hvCount} HV)</span>`;
                 });
 
                 const filterVal = specSelect.value;
@@ -800,6 +854,8 @@
                 const groups = {};
                 filteredMods.forEach(mod => { const groupName = String(mod["nhom-hoc-phan"] || "Chưa phân nhóm").trim(); if (!groups[groupName]) groups[groupName] = []; groups[groupName].push(mod); });
 
+                const currentMaLop = currentSelectedClass ? currentSelectedClass["ma-lop"] : "";
+
                 for (const [groupName, mods] of Object.entries(groups)) {
                     const groupTr = document.createElement("tr");
                     groupTr.innerHTML = `<td colspan="6" class="text-left" style="background-color: var(--primary-light); color: var(--primary-hover); padding: 0.5rem 0.6rem;"><i class="fas fa-layer-group" style="margin-right: 5px;"></i> <strong>${escapeHtml(groupName)}</strong></td>`;
@@ -809,19 +865,25 @@
                         const rawMaHp = String(mod["ma-hoc-phan"] || "").trim();
                         const tenHp = escapeHtml(mod["ten-hoc-phan"] || "");
                         const tinChi = escapeHtml(mod["tong-tin-chi"] || "0");
-                        const chuyenNganh = escapeHtml(mod["chuyen-nganh"] || "Chung");
+                        const rawSpec = String(mod["chuyen-nganh"] || "Chung").trim();
+                        const chuyenNganh = escapeHtml(rawSpec);
                         const hocKy = String(currentModuleSemesters[rawMaHp] || "");
                         
                         const khLT = parseInt(mod["so-buoi-ly-thuyet"]) || 0;
                         const khTH = parseInt(mod["so-buoi-thuc-hanh"]) || 0;
                         const khTong = khLT + khTH;
 
+                        // Kiểm tra xem học phần chuyên ngành tự chọn này có bị khóa do 0 học viên không
+                        const isLockedSpec = isModuleLockedByEmptySpec(currentMaLop, mod);
+
                         const moduleAssignments = currentAssignmentsData.filter(a => String(a["ma-hoc-phan"]).trim() === rawMaHp);
                         
-                        let assignedLT = 0, assignedTH = 0, assignListHtml = `<div class="text-muted" style="font-style:italic; padding: 6px 0; text-align:left;">Chưa có phân công</div>`;
+                        let assignedLT = 0, assignedTH = 0;
+                        let assignListHtml = isLockedSpec
+                            ? `<div class="text-muted" style="font-style:italic; padding: 6px 0; text-align:left;">Đã khóa phân công (Chuyên ngành ${chuyenNganh} không có học viên)</div>`
+                            : `<div class="text-muted" style="font-style:italic; padding: 6px 0; text-align:left;">Chưa có phân công</div>`;
                         let taughtSessions = 0; 
                         
-                        // Kiểm tra xem học phần này có đang dính trạng thái "Chờ duyệt" hay không để tô nền nổi bật
                         const hasPendingModule = moduleAssignments.some(a => !a.isOfficial && a.trangThaiDisplay !== "Đã duyệt");
                         const highlightClass = hasPendingModule ? "highlight-pending" : "";
 
@@ -868,7 +930,7 @@
                                 if (isOfficial) {
                                     if (hasPending) {
                                         mainActions = `<span style="font-size: 0.72rem; color: #f59e0b; font-style: italic; padding: 2px;">Đang chờ duyệt...</span>`;
-                                    } else if (canPropose) {
+                                    } else if (canPropose && !isLockedSpec) {
                                         dropdownActions = `
                                             <button onclick="editAssignment('${safeAssignId}', true)"><i class="fas fa-pen" style="width: 16px;"></i> Sửa</button>
                                             <button class="text-danger" onclick="deleteAssignment('${safeAssignId}', true)"><i class="fas fa-trash-alt" style="width: 16px;"></i> Xóa</button>
@@ -883,11 +945,13 @@
                                             dropdownActions += `<button class="text-warning" onclick="cancelDeleteProposal('${safeAssignId}')"><i class="fas fa-undo" style="width: 16px;"></i> Hủy Y/C Xóa</button>`;
                                         }
                                     } else { 
-                                        if (canApprove) {
+                                        if (canApprove && !isLockedSpec) {
                                             mainActions += `<button class="btn-action-assign approve" onclick="approveAssignment('${safeAssignId}')"><i class="fas fa-check"></i> Duyệt</button>`;
                                         }
                                         if (canPropose) {
-                                            dropdownActions += `<button onclick="editAssignment('${safeAssignId}', false)"><i class="fas fa-pen" style="width: 16px;"></i> Sửa</button>`;
+                                            if (!isLockedSpec) {
+                                                dropdownActions += `<button onclick="editAssignment('${safeAssignId}', false)"><i class="fas fa-pen" style="width: 16px;"></i> Sửa</button>`;
+                                            }
                                             dropdownActions += `<button class="text-danger" onclick="deleteAssignment('${safeAssignId}', false)"><i class="fas fa-trash-alt" style="width: 16px;"></i> Hủy Đề xuất</button>`;
                                         }
                                     }
@@ -936,7 +1000,9 @@
                         let actionTdHtml = "";
                         
                         if (canPropose) {
-                            if (assignedLT >= khLT && assignedTH >= khTH && khTong > 0) {
+                            if (isLockedSpec) {
+                                actionTdHtml = `<button disabled class="btn-table-action" style="background: #cbd5e1; cursor: not-allowed; border:none; color:#475569;" title="Chuyên ngành này không có học viên"><i class="fas fa-lock"></i> Khóa</button>`;
+                            } else if (assignedLT >= khLT && assignedTH >= khTH && khTong > 0) {
                                 actionTdHtml = `<button disabled class="btn-table-action" style="background: var(--text-muted); cursor: not-allowed; border:none; color:#fff;" title="Đã phân công đủ số buổi"><i class="fas fa-check"></i> Đủ</button>`;
                             } else {
                                 actionTdHtml = `<button class="btn-primary btn-table-action" style="border:none;" onclick="openAssignModal('${rawMaHp}', '${tenHp}', ${khLT}, ${khTH})"><i class="fas fa-plus"></i></button>`;
@@ -944,7 +1010,7 @@
                         }
 
                         let hkSelectHtml = "";
-                        if (canPropose) {
+                        if (canPropose && !isLockedSpec) {
                             hkSelectHtml = `
                                 <div style="display: flex; flex-direction: column; gap: 4px; align-items: center;">
                                     <select class="hk-select" onchange="updateSemester('${rawMaHp}', this.value)">
@@ -982,12 +1048,14 @@
                         const tr = document.createElement("tr");
                         tr.id = `row-${btoa(rawMaHp).replace(/=/g, '')}`; 
                         if (highlightClass) tr.classList.add(highlightClass);
+                        if (isLockedSpec) tr.classList.add("locked-spec-row");
 
                         tr.innerHTML = `
                             <td class="text-center" style="font-weight: bold; color: #64748b;">${escapeHtml(mod["stt"] || "")}</td>
                             <td>
                                 <strong class="module-title word-wrap-safe">${tenHp}</strong>
                                 <span class="text-muted module-sub word-wrap-safe">${tinChi} TC | ${chuyenNganh}</span>
+                                ${isLockedSpec ? `<span class="badge locked-spec"><i class="fas fa-ban"></i> Không có HV (0 HV)</span>` : ''}
                             </td>
                             <td>${hkSelectHtml}</td>
                             <td>${progressHtml}</td>
@@ -1236,9 +1304,17 @@
             window.openAssignModal = function(maHpRaw, tenHp, khLT, khTH) {
                 if (!currentSelectedClass) return;
                 const maHp = String(maHpRaw).trim();
+                const modObj = currentCurriculumData.find(m => String(m["ma-hoc-phan"]).trim() === maHp);
+
+                // Chặn mở modal nếu chuyên ngành của học phần này không có học viên
+                if (modObj && isModuleLockedByEmptySpec(currentSelectedClass["ma-lop"], modObj)) {
+                    window.showToast(`Chuyên ngành "${modObj["chuyen-nganh"]}" không có học viên trong lớp này, không thể phân công!`, true);
+                    return;
+                }
+
                 editingAssignmentId = null;
                 isEditingOfficial = false;
-                currentSelectedModule = { maHp, tenHp, khLT, khTH };
+                currentSelectedModule = { maHp, tenHp, khLT, khTH, chuyenNganh: modObj ? String(modObj["chuyen-nganh"] || "Chung").trim() : "Chung" };
                 
                 document.getElementById("modalTitle").textContent = "Thêm Đề xuất Mới";
                 document.getElementById("modalModuleInfo").textContent = `${tenHp}`; 
@@ -1288,9 +1364,20 @@
                 const mod = currentCurriculumData.find(m => String(m["ma-hoc-phan"]).trim() === maHp);
                 if(!mod) return;
 
+                if (isModuleLockedByEmptySpec(currentSelectedClass["ma-lop"], mod)) {
+                    window.showToast(`Chuyên ngành "${mod["chuyen-nganh"]}" không có học viên trong lớp này!`, true);
+                    return;
+                }
+
                 editingAssignmentId = assignId;
                 isEditingOfficial = isOfficialParam; 
-                currentSelectedModule = { maHp, tenHp: mod["ten-hoc-phan"], khLT: parseInt(mod["so-buoi-ly-thuyet"]) || 0, khTH: parseInt(mod["so-buoi-thuc-hanh"]) || 0 };
+                currentSelectedModule = {
+                    maHp,
+                    tenHp: mod["ten-hoc-phan"],
+                    khLT: parseInt(mod["so-buoi-ly-thuyet"]) || 0,
+                    khTH: parseInt(mod["so-buoi-thuc-hanh"]) || 0,
+                    chuyenNganh: String(mod["chuyen-nganh"] || "Chung").trim()
+                };
 
                 document.getElementById("modalTitle").textContent = "Chỉnh sửa Đề xuất";
                 document.getElementById("modalModuleInfo").textContent = `${mod["ten-hoc-phan"]}`; 
@@ -1351,6 +1438,12 @@
                 e.preventDefault();
                 if (!currentSelectedClass || !currentSelectedModule) return;
 
+                const modObj = currentCurriculumData.find(m => String(m["ma-hoc-phan"]).trim() === String(currentSelectedModule.maHp));
+                if (modObj && isModuleLockedByEmptySpec(currentSelectedClass["ma-lop"], modObj)) {
+                    window.showToast("Học phần thuộc chuyên ngành không có học viên, không thể lưu phân công!", true);
+                    return;
+                }
+
                 const maGv = instructorSelect.value;
                 const lt = parseInt(theorySessions.value) || 0; const th = parseInt(practiceSessions.value) || 0;
                 const maxLT = parseInt(theorySessions.max) || 0; const maxTH = parseInt(practiceSessions.max) || 0;
@@ -1402,7 +1495,7 @@
                         payloadsToInsert.push(mainPayload);
                     }
 
-                    // AUTO SIMULTANEOUS ASSIGNMENT KHÔNG CẦN CHỌN
+                    // AUTO SIMULTANEOUS ASSIGNMENT (CÓ KIỂM TRA SĨ SỐ CHUYÊN NGÀNH CỦA LỚP LIÊN KẾT)
                     if (currentSelectedClass["ma-lop-goc"]) {
                         const maLopGoc = currentSelectedClass["ma-lop-goc"];
                         const siblingClasses = classesList.filter(c => c["ma-lop-goc"] === maLopGoc && c["ma-lop"] !== currentSelectedClass["ma-lop"]);
@@ -1410,11 +1503,18 @@
                         for (const sib of siblingClasses) {
                             if (!sib["chuong-trinh"]) continue;
                             
-                            const { data: currData } = await supabase.from(sib["chuong-trinh"]).select('so-buoi-ly-thuyet, so-buoi-thuc-hanh').eq('ma-hoc-phan', savedMaHp);
+                            const { data: currData } = await supabase.from(sib["chuong-trinh"]).select('so-buoi-ly-thuyet, so-buoi-thuc-hanh, chuyen-nganh, nhom-hoc-phan').eq('ma-hoc-phan', savedMaHp);
                             if (!currData || currData.length === 0) continue;
+
+                            const sibMod = currData[0];
+
+                            // Nếu lớp liên kết không có học viên ở chuyên ngành của học phần này -> BỎ QUA KHÔNG TỰ ĐỘNG ĐỒNG BỘ
+                            if (isModuleLockedByEmptySpec(sib["ma-lop"], sibMod)) {
+                                continue;
+                            }
                             
-                            const sibKhLT = parseInt(currData[0]['so-buoi-ly-thuyet']) || 0;
-                            const sibKhTH = parseInt(currData[0]['so-buoi-thuc-hanh']) || 0;
+                            const sibKhLT = parseInt(sibMod['so-buoi-ly-thuyet']) || 0;
+                            const sibKhTH = parseInt(sibMod['so-buoi-thuc-hanh']) || 0;
                             
                             if (sibKhLT === currentSelectedModule.khLT && sibKhTH === currentSelectedModule.khTH) {
                                 
