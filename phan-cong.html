@@ -98,7 +98,6 @@
         .badge.official { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
         .badge.pending { background: #fef08a; color: #854d0e; border: 1px solid #fde047; }
         .badge.pending-delete { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
-        .badge.locked-spec { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; margin-top: 4px; }
 
         /* Dòng học phần bị khóa do không có học viên chuyên ngành */
         tr.locked-spec-row td { background-color: #f8fafc; color: #94a3b8; }
@@ -370,9 +369,7 @@
 
                 <div style="margin-top: 2rem; display: flex; justify-content: space-between; gap: 12px; width: 100%;">
                     <button type="button" class="btn-warning" id="btnCancelModal" style="color: #fff; background: var(--text-muted); flex: 1; border-radius: 8px; font-weight: bold; font-size: 1rem; padding: 12px;">Hủy</button>
-                    <button type="submit" class="btn-primary" id="btnSaveAssignment" style="flex: 1; border-radius: 8px; font-weight: bold; font-size: 1rem; padding: 12px;">
-                        <i class="fas fa-save"></i> Lưu
-                    </button>
+                    <button type="submit" class="btn-primary" id="btnSaveAssignment" style="flex: 1; border-radius: 8px; font-weight: bold; font-size: 1rem; padding: 12px;">Lưu</button>
                 </div>
             </form>
         </div>
@@ -387,6 +384,7 @@
             let currentUserId = null;
             let canApprove = false; 
             let canPropose = false; 
+            let isAutoApproveRole = false; // Tự động duyệt cho role 'superadmin' và 'head'
 
             // Hàm tạo UUID tương thích
             function generateUUID() {
@@ -575,11 +573,20 @@
                     const [resClass, resInst, resAcc] = await Promise.all([
                         supabase.from('lop-hoc').select('ma-lop, ten-lop, chuong-trinh, "ma-lop-goc"'),
                         supabase.from('giang-vien').select('ma-giang-vien, ho-ten, "hoc-ham", "hoc-vi"').order('ho-ten', { ascending: true }),
-                        supabase.from('tai-khoan-he-thong').select('id, ma-giang-vien, "duoc-phan-cong", "duoc-de-xuat"')
+                        supabase.from('tai-khoan-he-thong').select('id, role, ma-giang-vien, "duoc-phan-cong", "duoc-de-xuat"')
                     ]);
 
                     if (resClass.error) throw resClass.error;
-                    classesList = resClass.data || [];
+
+                    // Sắp xếp thống nhất thứ tự vị trí hiển thị của các lớp trong bộ lọc
+                    classesList = (resClass.data || []).slice().sort((a, b) => {
+                        const nameA = String(a['ten-lop'] || a['ma-lop'] || '').trim();
+                        const nameB = String(b['ten-lop'] || b['ma-lop'] || '').trim();
+                        const cmp = nameA.localeCompare(nameB, 'vi', { numeric: true, sensitivity: 'base' });
+                        if (cmp !== 0) return cmp;
+                        return String(a['ma-lop'] || '').localeCompare(String(b['ma-lop'] || ''), 'vi', { numeric: true });
+                    });
+
                     classSelect.innerHTML = `<option value="">-- Chọn Lớp học --</option>`;
                     classesList.forEach(cls => {
                         const option = document.createElement("option"); option.value = cls["ma-lop"]; 
@@ -595,12 +602,14 @@
                         instructorSelect.appendChild(option);
                     });
 
-                    // Kiểm tra Quyền Hạn
+                    // Kiểm tra Quyền Hạn & Role tự động duyệt ('superadmin', 'head')
                     const accountList = resAcc.data || [];
                     if (currentUserId) {
                         const myAcc = accountList.find(a => String(a.id) === String(currentUserId));
                         if (myAcc) {
-                            canApprove = myAcc['duoc-phan-cong'] === true;
+                            const roleStr = String(myAcc.role || '').toLowerCase().trim();
+                            isAutoApproveRole = ['superadmin', 'head'].includes(roleStr);
+                            canApprove = myAcc['duoc-phan-cong'] === true || isAutoApproveRole;
                             canPropose = myAcc['duoc-de-xuat'] === true || canApprove; 
                         }
                     }
@@ -696,14 +705,34 @@
                 }
             }
 
+            // Không hiển thị bộ lọc cho chuyên ngành không có học viên
             function updateSpecializationFilter() {
                 const currentVal = specSelect.value;
                 const specs = new Set();
-                currentCurriculumData.forEach(mod => { const cn = String(mod["chuyen-nganh"] || "").trim(); if (cn && cn.toLowerCase() !== "chung") specs.add(cn); });
+                const currentMaLop = currentSelectedClass ? currentSelectedClass["ma-lop"] : "";
+
+                currentCurriculumData.forEach(mod => {
+                    const cn = String(mod["chuyen-nganh"] || "").trim();
+                    if (cn && cn.toLowerCase() !== "chung") {
+                        if (countSpecStudentsInClass(currentMaLop, cn) > 0) {
+                            specs.add(cn);
+                        }
+                    }
+                });
+
                 specSelect.innerHTML = `<option value="">-- Tất cả chuyên ngành --</option>`;
-                specs.forEach(sp => { const option = document.createElement("option"); option.value = sp; option.textContent = sp; specSelect.appendChild(option); });
+                specs.forEach(sp => {
+                    const option = document.createElement("option");
+                    option.value = sp;
+                    option.textContent = sp;
+                    specSelect.appendChild(option);
+                });
                 specSelect.disabled = false;
-                if (currentVal && Array.from(specSelect.options).some(opt => opt.value === currentVal)) specSelect.value = currentVal;
+                if (currentVal && Array.from(specSelect.options).some(opt => opt.value === currentVal)) {
+                    specSelect.value = currentVal;
+                } else {
+                    specSelect.value = "";
+                }
             }
 
             specSelect.addEventListener("change", () => { updateSummary(); renderModulesTable(); });
@@ -718,6 +747,7 @@
                 let chungCredits = 0;
                 const pureSpecTotals = {};
                 const specsList = new Set();
+                const currentMaLop = currentSelectedClass ? currentSelectedClass["ma-lop"] : "";
 
                 currentCurriculumData.forEach(mod => {
                     const cn = String(mod["chuyen-nganh"] || "").trim();
@@ -725,16 +755,18 @@
                     if (cn.toLowerCase() === "chung" || cn === "") {
                         chungCredits += tc;
                     } else {
-                        specsList.add(cn);
-                        if (!pureSpecTotals[cn]) pureSpecTotals[cn] = 0;
-                        pureSpecTotals[cn] += tc;
+                        if (countSpecStudentsInClass(currentMaLop, cn) > 0) {
+                            specsList.add(cn);
+                            if (!pureSpecTotals[cn]) pureSpecTotals[cn] = 0;
+                            pureSpecTotals[cn] += tc;
+                        }
                     }
                 });
 
                 specTotalsDiv.innerHTML = `<span style="background: #f1f5f9; padding: 4px 8px; border-radius: 4px; border: 1px solid #cbd5e1; color: #334155;">Chung: <b>${chungCredits}</b> TC</span>`;
                 specsList.forEach(sp => {
                     const total = (pureSpecTotals[sp] || 0) + chungCredits;
-                    const hvCount = currentSelectedClass ? countSpecStudentsInClass(currentSelectedClass["ma-lop"], sp) : 0;
+                    const hvCount = countSpecStudentsInClass(currentMaLop, sp);
                     specTotalsDiv.innerHTML += `<span style="background: var(--primary-light); color: var(--primary-hover); padding: 4px 8px; border-radius: 4px; border: 1px solid var(--primary-light);">CN ${escapeHtml(sp)}: <b>${total}</b> TC (${hvCount} HV)</span>`;
                 });
 
@@ -880,7 +912,7 @@
                         
                         let assignedLT = 0, assignedTH = 0;
                         let assignListHtml = isLockedSpec
-                            ? `<div class="text-muted" style="font-style:italic; padding: 6px 0; text-align:left;">Đã khóa phân công (Chuyên ngành ${chuyenNganh} không có học viên)</div>`
+                            ? `<div class="text-muted" style="font-style:italic; padding: 6px 0; text-align:left;">Chuyên ngành không có học viên</div>`
                             : `<div class="text-muted" style="font-style:italic; padding: 6px 0; text-align:left;">Chưa có phân công</div>`;
                         let taughtSessions = 0; 
                         
@@ -1001,7 +1033,7 @@
                         
                         if (canPropose) {
                             if (isLockedSpec) {
-                                actionTdHtml = `<button disabled class="btn-table-action" style="background: #cbd5e1; cursor: not-allowed; border:none; color:#475569;" title="Chuyên ngành này không có học viên"><i class="fas fa-lock"></i> Khóa</button>`;
+                                actionTdHtml = `<button disabled class="btn-table-action" style="background: #cbd5e1; cursor: not-allowed; border:none; color:#475569;" title="Chuyên ngành không có học viên"><i class="fas fa-lock"></i> Khóa</button>`;
                             } else if (assignedLT >= khLT && assignedTH >= khTH && khTong > 0) {
                                 actionTdHtml = `<button disabled class="btn-table-action" style="background: var(--text-muted); cursor: not-allowed; border:none; color:#fff;" title="Đã phân công đủ số buổi"><i class="fas fa-check"></i> Đủ</button>`;
                             } else {
@@ -1009,21 +1041,24 @@
                             }
                         }
 
+                        // Không hiển thị HK ở những môn chuyên ngành không có học viên
                         let hkSelectHtml = "";
-                        if (canPropose && !isLockedSpec) {
-                            hkSelectHtml = `
-                                <div style="display: flex; flex-direction: column; gap: 4px; align-items: center;">
-                                    <select class="hk-select" onchange="updateSemester('${rawMaHp}', this.value)">
-                                        <option value="">- Chọn -</option>
-                                        <option value="1" ${hocKy === '1' ? 'selected' : ''}>HK 1</option>
-                                        <option value="2" ${hocKy === '2' ? 'selected' : ''}>HK 2</option>
-                                        <option value="3" ${hocKy === '3' ? 'selected' : ''}>HK 3</option>
-                                        <option value="4" ${hocKy === '4' ? 'selected' : ''}>HK 4</option>
-                                    </select>
-                                </div>
-                            `;
-                        } else {
-                            hkSelectHtml = `<div style="font-weight: bold; color: var(--text-dark); text-align: center;">${hocKy ? 'HK ' + hocKy : '<span class="text-muted">-</span>'}</div>`;
+                        if (!isLockedSpec) {
+                            if (canPropose) {
+                                hkSelectHtml = `
+                                    <div style="display: flex; flex-direction: column; gap: 4px; align-items: center;">
+                                        <select class="hk-select" onchange="updateSemester('${rawMaHp}', this.value)">
+                                            <option value="">- Chọn -</option>
+                                            <option value="1" ${hocKy === '1' ? 'selected' : ''}>HK 1</option>
+                                            <option value="2" ${hocKy === '2' ? 'selected' : ''}>HK 2</option>
+                                            <option value="3" ${hocKy === '3' ? 'selected' : ''}>HK 3</option>
+                                            <option value="4" ${hocKy === '4' ? 'selected' : ''}>HK 4</option>
+                                        </select>
+                                    </div>
+                                `;
+                            } else {
+                                hkSelectHtml = `<div style="font-weight: bold; color: var(--text-dark); text-align: center;">${hocKy ? 'HK ' + hocKy : '<span class="text-muted">-</span>'}</div>`;
+                            }
                         }
 
                         const progressHtml = `
@@ -1055,7 +1090,6 @@
                             <td>
                                 <strong class="module-title word-wrap-safe">${tenHp}</strong>
                                 <span class="text-muted module-sub word-wrap-safe">${tinChi} TC | ${chuyenNganh}</span>
-                                ${isLockedSpec ? `<span class="badge locked-spec"><i class="fas fa-ban"></i> Không có HV (0 HV)</span>` : ''}
                             </td>
                             <td>${hkSelectHtml}</td>
                             <td>${progressHtml}</td>
@@ -1140,10 +1174,80 @@
                 }
             });
 
+            // Hàm tự động chọn mặc định Nhóm chuyên ngành (nhưng không khóa cứng)
+            function preselectSpecializationGroup(specNameRaw) {
+                const specLower = String(specNameRaw || "").trim().toLowerCase();
+                if (!specLower || specLower === "chung") {
+                    targetTypeSelect.value = "ca-lop";
+                    targetTypeSelect.dispatchEvent(new Event('change'));
+                    return;
+                }
+
+                // Tìm nhóm khớp với tên chuyên ngành trong groupsList của lớp
+                let matchedGroup = groupsList.find(g => {
+                    const loai = String(g['loai-nhom'] || '').trim().toLowerCase();
+                    const ten = String(g['ten-nhom'] || '').trim().toLowerCase();
+                    return (loai.includes('chuyên ngành') || loai.includes('chuyen nganh')) && ten === specLower;
+                });
+
+                if (!matchedGroup) {
+                    matchedGroup = groupsList.find(g => String(g['ten-nhom'] || '').trim().toLowerCase() === specLower);
+                }
+
+                if (matchedGroup) {
+                    targetTypeSelect.value = "nhom";
+                    targetTypeSelect.dispatchEvent(new Event('change'));
+
+                    const exactType = String(matchedGroup['loai-nhom'] || '').trim();
+                    const exactName = String(matchedGroup['ten-nhom'] || '').trim();
+
+                    groupTypeSelect.value = exactType;
+                    groupTypeSelect.dispatchEvent(new Event('change'));
+
+                    groupNameSelect.value = exactName;
+                    groupNameSelect.dispatchEvent(new Event('change'));
+                } else {
+                    targetTypeSelect.value = "ca-lop";
+                    targetTypeSelect.dispatchEvent(new Event('change'));
+                }
+            }
+
             /* =================================================
                6. GIAO THỨC DUYỆT / SỬA / XÓA ĐỒNG BỘ CÓ VERIFY TỪ DB
             ================================================= */
             
+            // Hàm đồng bộ 1 bản ghi từ de-xuat-phan-cong sang phan-cong-giang-day
+            async function syncProposalToOfficialTable(supabase, p) {
+                const pcPayload = {
+                    "ma-lop": p["ma-lop"],
+                    "ma-hoc-phan": p["ma-hoc-phan"],
+                    "ma-giang-vien": p["ma-giang-vien"],
+                    "so-buoi-ly-thuyet": p["so-buoi-ly-thuyet"],
+                    "so-buoi-thuc-hanh": p["so-buoi-thuc-hanh"],
+                    "ghi-chu": p["ghi-chu"],
+                    "doi-tuong": p["doi-tuong"],
+                    "loai-nhom": p["loai-nhom"],
+                    "ten-nhom": p["ten-nhom"],
+                    "ma-hoc-vien": p["ma-hoc-vien"],
+                    "ho-ten": p["ho-ten"],
+                    "id-de-xuat": p.id 
+                };
+
+                const { data: existingPC, error: checkErr } = await supabase.from('phan-cong-giang-day').select('id').eq('id-de-xuat', p.id);
+                if (checkErr && !checkErr.message.includes("column id-de-xuat does not exist")) throw checkErr;
+
+                if (existingPC && existingPC.length > 0) {
+                    const { error: updPcErr } = await supabase.from('phan-cong-giang-day').update(pcPayload).eq('id', existingPC[0].id);
+                    if (updPcErr) throw updPcErr;
+                } else {
+                    const { error: insErr } = await supabase.from('phan-cong-giang-day').insert([pcPayload]);
+                    if (insErr) {
+                        if (insErr.message.includes("id-de-xuat")) throw new Error("Cột 'id-de-xuat' bị thiếu trong bảng 'phan-cong-giang-day' trên Supabase.");
+                        throw insErr;
+                    }
+                }
+            }
+
             window.cancelDeleteProposal = async function(assignId) {
                 if (!confirm("Bạn muốn hủy yêu cầu xóa và khôi phục phân công chính thức này (áp dụng cho các lớp đồng thời)?")) return;
                 const assignment = currentAssignmentsData.find(a => !a.isOfficial && String(a._proposalId) === String(assignId));
@@ -1203,34 +1307,7 @@
                         if (!confirm("Bạn có chắc chắn muốn DUYỆT đề xuất này? Hệ thống sẽ cập nhật sang bảng Phân công chính thức cho tất cả lớp liên kết.")) return;
                         
                         for (const p of proposalsToProcess) {
-                            const pcPayload = {
-                                "ma-lop": p["ma-lop"],
-                                "ma-hoc-phan": p["ma-hoc-phan"],
-                                "ma-giang-vien": p["ma-giang-vien"],
-                                "so-buoi-ly-thuyet": p["so-buoi-ly-thuyet"],
-                                "so-buoi-thuc-hanh": p["so-buoi-thuc-hanh"],
-                                "ghi-chu": p["ghi-chu"],
-                                "doi-tuong": p["doi-tuong"],
-                                "loai-nhom": p["loai-nhom"],
-                                "ten-nhom": p["ten-nhom"],
-                                "ma-hoc-vien": p["ma-hoc-vien"],
-                                "ho-ten": p["ho-ten"],
-                                "id-de-xuat": p.id 
-                            };
-
-                            const { data: existingPC, error: checkErr } = await supabase.from('phan-cong-giang-day').select('id').eq('id-de-xuat', p.id);
-                            if (checkErr && !checkErr.message.includes("column id-de-xuat does not exist")) throw checkErr;
-
-                            if (existingPC && existingPC.length > 0) {
-                                const { error: updPcErr } = await supabase.from('phan-cong-giang-day').update(pcPayload).eq('id', existingPC[0].id);
-                                if (updPcErr) throw updPcErr;
-                            } else {
-                                const { error: insErr } = await supabase.from('phan-cong-giang-day').insert([pcPayload]);
-                                if (insErr) {
-                                    if (insErr.message.includes("id-de-xuat")) throw new Error("Cột 'id-de-xuat' bị thiếu trong bảng 'phan-cong-giang-day' trên Supabase.");
-                                    throw insErr;
-                                }
-                            }
+                            await syncProposalToOfficialTable(supabase, p);
                         }
 
                         const { data: dxData, error: updErr } = await supabase.from('de-xuat-phan-cong').update({ "trang-thai": "Đã duyệt" }).in('id', proposalIds).select();
@@ -1262,12 +1339,26 @@
                     }
 
                     if (isOfficialParam) {
-                        if (!confirm("Bạn muốn ĐỀ XUẤT XÓA phân công chính thức này (áp dụng cho các lớp đồng thời)? Yêu cầu sẽ được đưa vào hàng đợi duyệt.")) return;
-                        const { data, error } = await supabase.from('de-xuat-phan-cong').update({ "trang-thai": "Chờ xóa" }).in('id', targetIds).select();
-                        if (error) throw error;
-                        if (!data || data.length === 0) throw new Error("Không tìm thấy phân công trên hệ thống để yêu cầu xóa.");
-                        
-                        window.showToast("Đã gửi đề xuất xóa đồng thời!");
+                        // Nếu role là 'superadmin' hoặc 'head' -> Tự động duyệt xóa thẳng khỏi hệ thống
+                        if (isAutoApproveRole) {
+                            if (!confirm("Bạn có chắc chắn muốn XÓA phân công chính thức này (áp dụng cho các lớp đồng thời)?")) return;
+
+                            const { error: errPc } = await supabase.from('phan-cong-giang-day').delete().in('id-de-xuat', targetIds);
+                            if (errPc && !errPc.message.includes("does not exist")) throw errPc;
+
+                            const { data: dxData, error: errDx } = await supabase.from('de-xuat-phan-cong').delete().in('id', targetIds).select();
+                            if (errDx) throw errDx;
+                            if (!dxData || dxData.length === 0) throw new Error("Không tìm thấy phân công trên hệ thống để xóa.");
+
+                            window.showToast("Đã xóa phân công chính thức thành công!");
+                        } else {
+                            if (!confirm("Bạn muốn ĐỀ XUẤT XÓA phân công chính thức này (áp dụng cho các lớp đồng thời)? Yêu cầu sẽ được đưa vào hàng đợi duyệt.")) return;
+                            const { data, error } = await supabase.from('de-xuat-phan-cong').update({ "trang-thai": "Chờ xóa" }).in('id', targetIds).select();
+                            if (error) throw error;
+                            if (!data || data.length === 0) throw new Error("Không tìm thấy phân công trên hệ thống để yêu cầu xóa.");
+                            
+                            window.showToast("Đã gửi đề xuất xóa đồng thời!");
+                        }
                     } else {
                         const trangThai = targetRecord["trang-thai"] || "Chờ duyệt";
                         if (trangThai === "Chờ duyệt") {
@@ -1308,18 +1399,29 @@
 
                 // Chặn mở modal nếu chuyên ngành của học phần này không có học viên
                 if (modObj && isModuleLockedByEmptySpec(currentSelectedClass["ma-lop"], modObj)) {
-                    window.showToast(`Chuyên ngành "${modObj["chuyen-nganh"]}" không có học viên trong lớp này, không thể phân công!`, true);
+                    window.showToast("Chuyên ngành không có học viên, không thể phân công!", true);
                     return;
                 }
 
+                const specName = modObj ? String(modObj["chuyen-nganh"] || "Chung").trim() : "Chung";
+                const nhomHpName = modObj ? String(modObj["nhom-hoc-phan"] || "").trim().toLowerCase() : "";
+
                 editingAssignmentId = null;
                 isEditingOfficial = false;
-                currentSelectedModule = { maHp, tenHp, khLT, khTH, chuyenNganh: modObj ? String(modObj["chuyen-nganh"] || "Chung").trim() : "Chung" };
+                currentSelectedModule = { maHp, tenHp, khLT, khTH, chuyenNganh: specName };
                 
-                document.getElementById("modalTitle").textContent = "Thêm Đề xuất Mới";
+                document.getElementById("modalTitle").textContent = isAutoApproveRole ? "Thêm Phân công Mới" : "Thêm Đề xuất Mới";
                 document.getElementById("modalModuleInfo").textContent = `${tenHp}`; 
                 instructorSelect.value = ""; assignNote.value = "";
-                targetTypeSelect.value = "ca-lop"; targetTypeSelect.dispatchEvent(new Event('change'));
+
+                // Nếu môn thuộc nhóm 'Kiến thức chuyên ngành tự chọn' (hoặc có chuyên ngành riêng khác Chung)
+                // -> Tự động chọn đối tượng mặc định là nhóm học viên của chuyên ngành đó (vẫn cho phép đổi thủ công)
+                if ((nhomHpName.includes("kiến thức chuyên ngành tự chọn") || specName.toLowerCase() !== "chung") && specName.toLowerCase() !== "chung") {
+                    preselectSpecializationGroup(specName);
+                } else {
+                    targetTypeSelect.value = "ca-lop";
+                    targetTypeSelect.dispatchEvent(new Event('change'));
+                }
 
                 const allAssignsForModule = currentAssignmentsData.filter(a => String(a["ma-hoc-phan"]).trim() === maHp);
                 let assignedLT = 0, assignedTH = 0;
@@ -1365,7 +1467,7 @@
                 if(!mod) return;
 
                 if (isModuleLockedByEmptySpec(currentSelectedClass["ma-lop"], mod)) {
-                    window.showToast(`Chuyên ngành "${mod["chuyen-nganh"]}" không có học viên trong lớp này!`, true);
+                    window.showToast("Chuyên ngành không có học viên!", true);
                     return;
                 }
 
@@ -1379,7 +1481,7 @@
                     chuyenNganh: String(mod["chuyen-nganh"] || "Chung").trim()
                 };
 
-                document.getElementById("modalTitle").textContent = "Chỉnh sửa Đề xuất";
+                document.getElementById("modalTitle").textContent = isAutoApproveRole ? "Chỉnh sửa Phân công" : "Chỉnh sửa Đề xuất";
                 document.getElementById("modalModuleInfo").textContent = `${mod["ten-hoc-phan"]}`; 
                 instructorSelect.value = assignment["ma-giang-vien"];
                 assignNote.value = assignment["ghi-chu"] || "";
@@ -1465,8 +1567,9 @@
                 if (lt === 0 && th === 0) { window.showToast("Nhập số buổi LT hoặc TH > 0.", true); return; }
                 if (lt > maxLT || th > maxTH) { window.showToast("Số buổi đề xuất vượt quá số buổi còn lại cho phép!", true); return; }
 
-                const origText = btnSaveAssignment.innerHTML;
-                btnSaveAssignment.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Đang lưu...`; btnSaveAssignment.disabled = true;
+                const origText = btnSaveAssignment.textContent;
+                btnSaveAssignment.textContent = "Đang lưu...";
+                btnSaveAssignment.disabled = true;
                 const savedMaHp = currentSelectedModule.maHp;
 
                 try {
@@ -1475,10 +1578,12 @@
                     const payloadsToUpdate = []; 
                     let groupId = generateUUID(); 
 
+                    const targetStatus = isAutoApproveRole ? "Đã duyệt" : "Chờ duyệt";
+
                     const mainPayload = {
                         "ma-giang-vien": maGv, "so-buoi-ly-thuyet": lt, "so-buoi-thuc-hanh": th, "ghi-chu": note,
                         "doi-tuong": doiTuong, "loai-nhom": loaiNhom, "ten-nhom": tenNhom, "ma-hoc-vien": maHv, "ho-ten": hoTenHv,
-                        "trang-thai": "Chờ duyệt" 
+                        "trang-thai": targetStatus
                     };
 
                     if (editingAssignmentId) {
@@ -1549,11 +1654,14 @@
                         }
                     }
 
+                    const savedProposalsForOfficialSync = [];
+
                     // Thực thi Update
                     for (const item of payloadsToUpdate) {
                         const { data, error } = await supabase.from('de-xuat-phan-cong').update(item.payload).eq('id', item.id).select();
                         if (error) throw error;
                         if (!data || data.length === 0) throw new Error("Lỗi cập nhật (bản ghi có thể đã bị xóa).");
+                        savedProposalsForOfficialSync.push(...data);
                     }
 
                     // Thực thi Insert
@@ -1561,10 +1669,20 @@
                         const { data, error } = await supabase.from('de-xuat-phan-cong').insert(payloadsToInsert).select();
                         if (error) throw error;
                         if (!data || data.length === 0) throw new Error("Lỗi: Không thể thêm đề xuất mới vào hệ thống.");
+                        savedProposalsForOfficialSync.push(...data);
+                    }
+
+                    // Nếu role là 'superadmin' hoặc 'head' -> Tự động đẩy thẳng sang bảng phan-cong-giang-day
+                    if (isAutoApproveRole && savedProposalsForOfficialSync.length > 0) {
+                        for (const p of savedProposalsForOfficialSync) {
+                            await syncProposalToOfficialTable(supabase, p);
+                        }
                     }
                     
                     const totalAffected = payloadsToInsert.length + payloadsToUpdate.length;
-                    if (totalAffected > 1) {
+                    if (isAutoApproveRole) {
+                        window.showToast(totalAffected > 1 ? `Đã lưu và duyệt chính thức (${totalAffected} lớp)!` : "Đã lưu phân công chính thức!");
+                    } else if (totalAffected > 1) {
                         window.showToast(`Đã lưu thành công (Tự động đồng bộ ${totalAffected} lớp)!`);
                     } else {
                         window.showToast(editingAssignmentId ? "Đã lưu đề xuất thay đổi!" : "Đã thêm đề xuất mới!");
@@ -1573,7 +1691,7 @@
                     closeModal(); 
                     reloadAndFocus(savedMaHp);
                 } catch (error) { window.showToast("Lỗi: " + error.message, true);
-                } finally { btnSaveAssignment.innerHTML = origText; btnSaveAssignment.disabled = false; }
+                } finally { btnSaveAssignment.textContent = origText; btnSaveAssignment.disabled = false; }
             });
 
             function startApp() {
