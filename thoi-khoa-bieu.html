@@ -557,6 +557,52 @@
             });
 
             /* =================================================
+               HÀM SO SÁNH THỨ TỰ CỐ ĐỊNH GIỮA CÁC LỚP HỌC & THẺ LỊCH
+               (Đảm bảo xuyên suốt toàn bộ TKB thứ tự vị trí các lớp luôn đồng nhất)
+            ================================================= */
+            function compareClassesConsistent(maLopA, maLopB) {
+                const codeA = String(maLopA || '').trim();
+                const codeB = String(maLopB || '').trim();
+                if (codeA === codeB) return 0;
+
+                const nameA = String(getClassName(codeA) || codeA).trim();
+                const nameB = String(getClassName(codeB) || codeB).trim();
+                const cmpName = nameA.localeCompare(nameB, 'vi', { numeric: true, sensitivity: 'base' });
+                if (cmpName !== 0) return cmpName;
+
+                return codeA.localeCompare(codeB, 'vi', { numeric: true, sensitivity: 'base' });
+            }
+
+            function compareAssignmentsConsistent(assignA, assignB) {
+                if (!assignA && !assignB) return 0;
+                if (!assignA) return 1;
+                if (!assignB) return -1;
+
+                // 1. Sắp xếp theo thứ tự lớp cố định
+                const cmpClass = compareClassesConsistent(assignA['ma-lop'], assignB['ma-lop']);
+                if (cmpClass !== 0) return cmpClass;
+
+                // 2. Sắp xếp theo tên học phần
+                const modA = String(getModuleName(assignA['ma-hoc-phan']) || '').trim();
+                const modB = String(getModuleName(assignB['ma-hoc-phan']) || '').trim();
+                const cmpMod = modA.localeCompare(modB, 'vi', { numeric: true, sensitivity: 'base' });
+                if (cmpMod !== 0) return cmpMod;
+
+                // 3. Sắp xếp theo đối tượng (Cả lớp -> Nhóm -> Cá nhân)
+                const targetOrder = { 'ca-lop': 1, 'nhom': 2, 'ca-nhan': 3 };
+                const tOrderA = targetOrder[assignA['doi-tuong']] || 9;
+                const tOrderB = targetOrder[assignB['doi-tuong']] || 9;
+                if (tOrderA !== tOrderB) return tOrderA - tOrderB;
+
+                const subTargetA = String(assignA['ten-nhom'] || assignA['ho-ten'] || '').trim();
+                const subTargetB = String(assignB['ten-nhom'] || assignB['ho-ten'] || '').trim();
+                const cmpSub = subTargetA.localeCompare(subTargetB, 'vi', { numeric: true, sensitivity: 'base' });
+                if (cmpSub !== 0) return cmpSub;
+
+                return String(assignA.id).localeCompare(String(assignB.id), undefined, { numeric: true });
+            }
+
+            /* =================================================
                HÀM HỖ TRỢ: LẤY ID LỊCH ĐỒNG THỜI CỦA CÁC LỚP ANH EM
                (Bảo vệ tuyệt đối các buổi đã xếp ở ngày khác, không kéo đè làm mất lịch)
             ================================================= */
@@ -631,9 +677,6 @@
 
             /* =================================================
                THUẬT TOÁN ĐỒNG BỘ ĐA CHIỀU BẢO VỆ CÁC LỚP ĐÃ XẾP
-               - Kiểm tra xem 1 buổi đã xếp có đang đi ghép với lớp khác tại ngày/giờ đó không
-               - Khi đổi cho 1 cụm (ví dụ Lớp C hoặc Cụm Lớp A + B), bắt buộc toàn bộ các lớp
-                 trong cụm phải cùng đổi được mà không làm lệch bất kỳ lớp nào.
             ================================================= */
             function getCoTaughtSchedulesAtSameSlot(sch) {
                 if (!sch || !sch.ngay || !sch['gio-bat-dau'] || !sch['gio-ket-thuc']) return [sch];
@@ -652,7 +695,7 @@
                     if (!other.ngay || String(other.ngay) !== String(sch.ngay)) return false;
                     const oStart = other['gio-bat-dau'] ? String(other['gio-bat-dau']).substring(0, 5) : "";
                     const oEnd = other['gio-ket-thuc'] ? String(other['gio-ket-thuc']).substring(0, 5) : "";
-                    if (!oStart || !oEnd || !(startHm < oEnd && endHm > oStart)) return false;
+                    if (!oStart || !oEnd || !(startHm < oEnd && endHm > sStartCheck(startHm, oEnd))) return false;
 
                     const sameLoc = room
                         ? String(other['ma-phong-hoc'] || '') === room
@@ -669,8 +712,10 @@
                 });
             }
 
-            // Lập kế hoạch hoán đổi đồng bộ cho một tập hợp các buổi học (ví dụ: của Lớp C, hoặc của cả Lớp A và B) sang desiredType
-            // Trả về danh sách các cặp { a, b } cần tráo nhãn loai-buoi, hoặc null nếu có bất kỳ lớp nào bị lệch không đổi được
+            function sStartCheck(startHm, oEnd) {
+                return oEnd;
+            }
+
             function buildSafeSwapPlanForGroup(schedulesToAlign, desiredType, blockedIdsSet = new Set()) {
                 const needAlign = schedulesToAlign.filter(s => s && s['loai-buoi'] !== desiredType);
                 if (needAlign.length === 0) return [];
@@ -678,8 +723,6 @@
                 const groupIdsSet = new Set(needAlign.map(s => String(s.id)));
                 const usedCandidateIds = new Set();
                 const swapPairs = [];
-
-                // Bước A: Thử tìm ứng viên cho từng lớp từ Kho chưa xếp (!ngay) hoặc buổi đã xếp ĐƠN LẺ (không dính lớp khác ngoài nhóm)
                 const pendingForSharedSlot = [];
 
                 for (const sch of needAlign) {
@@ -701,7 +744,7 @@
                         continue;
                     }
 
-                    // 2. Tìm buổi đã xếp trên lịch nhưng chỉ đứng độc lập (không ghép với lớp nào ngoài nhóm đang xét)
+                    // 2. Tìm buổi đã xếp trên lịch nhưng chỉ đứng độc lập (không ghép với lớp nào ngoài nhóm)
                     const soloScheduledCand = allSchedulesData.find(s => {
                         if (String(s['id-phan-cong']) !== String(assignId)) return false;
                         if (s['loai-buoi'] !== desiredType) return false;
@@ -709,7 +752,6 @@
                         if (blockedIdsSet.has(String(s.id)) || groupIdsSet.has(String(s.id)) || usedCandidateIds.has(String(s.id))) return false;
 
                         const coTaughtAtCand = getCoTaughtSchedulesAtSameSlot(s);
-                        // Độc lập nếu chỉ có 1 mình nó ở khung giờ đó
                         return coTaughtAtCand.length === 1;
                     });
 
@@ -719,7 +761,6 @@
                         continue;
                     }
 
-                    // Nếu chưa tìm được ứng viên trong kho hay độc lập, đưa vào danh sách cần tìm theo cụm ngày/giờ chung
                     pendingForSharedSlot.push(sch);
                 }
 
@@ -727,9 +768,6 @@
                     return swapPairs;
                 }
 
-                // Bước B: Đối với các lớp còn lại (ví dụ Lớp A và B đều đã xếp kín hết lịch và đi chung với nhau ở các ngày khác),
-                // tìm một khung giờ đã xếp mà TẤT CẢ các lớp trong pendingForSharedSlot đều đang học chung với loại = desiredType,
-                // và không có lớp thứ 3 nào nằm ngoài nhóm bị bỏ lại ở khung giờ đó.
                 const firstSch = pendingForSharedSlot[0];
                 const firstAssignId = firstSch['id-phan-cong'];
 
@@ -747,7 +785,6 @@
                     const pendingAssignIds = new Set(pendingForSharedSlot.map(x => String(x['id-phan-cong'])));
                     const slotAssignIds = new Set(coTaughtAtSlot.map(x => String(x['id-phan-cong'])));
 
-                    // Khung giờ ứng viên chỉ hợp lệ nếu tập hợp các lớp tại khung giờ đó khớp chính xác với các lớp đang cần đổi chung
                     if (coTaughtAtSlot.length !== pendingForSharedSlot.length) continue;
 
                     let allMatched = true;
@@ -776,7 +813,6 @@
                     }
                 }
 
-                // Không tìm được phương án hoán đổi an toàn mà không làm lệch lớp
                 return null;
             }
 
@@ -807,7 +843,6 @@
 
             /* =================================================
                HÀM TỰ ĐỘNG KIỂM TRA PHÒNG TRỐNG THEO KHUNG GIỜ
-               (CHO PHÉP CHỌN CHUNG PHÒNG NẾU CÙNG MÔN & CÙNG GV NHƯNG KHÁC LỚP)
             ================================================= */
             function updateAvailableLocations(preserveSelection = "") {
                 const type = schLocationType.value;
@@ -863,8 +898,10 @@
                         if (!occupiedRooms.has(roomId)) {
                             let labelText = r['ten-phong-hoc'];
                             if (sharedCoTeachingRooms[roomId] && sharedCoTeachingRooms[roomId].size > 0) {
-                                const classesJoined = Array.from(sharedCoTeachingRooms[roomId]).join(', ');
-                                labelText += ` (Đang ghép lớp: ${classesJoined})`;
+                                const sortedMergedClasses = Array.from(sharedCoTeachingRooms[roomId]).sort((a, b) =>
+                                    String(a).localeCompare(String(b), 'vi', { numeric: true, sensitivity: 'base' })
+                                );
+                                labelText += ` (Đang ghép lớp: ${sortedMergedClasses.join(', ')})`;
                             }
                             schLocation.appendChild(new Option(labelText, r['ma-phong-hoc']));
                             availableCount++;
@@ -905,7 +942,7 @@
             });
 
             /* =================================================
-               1. KHỞI TẠO GRID THEO BUỔI & XỬ LÝ NGÀY TUẦN (CÓ HIGHLIGHT HÔM NAY)
+               1. KHỞI TẠO GRID THEO BUỔI & XỬ LÝ NGÀY TUẦN
             ================================================= */
             const sessionConfigs = [
                 { id: "Sáng", label: "Sáng", defStart: "07:30", defEnd: "11:30" },
@@ -1003,7 +1040,7 @@
             });
 
             /* =================================================
-               2. TẢI DỮ LIỆU CƠ BẢN & PHÂN QUYỀN (HV XEM / CÒN LẠI XẾP)
+               2. TẢI DỮ LIỆU CƠ BẢN & PHÂN QUYỀN
             ================================================= */
             async function loadInitialData() {
                 try {
@@ -1020,7 +1057,14 @@
                         supabase.from('tai-khoan-he-thong').select('*')
                     ]);
 
-                    let rawClasses = resClass.data || [];
+                    // Sắp xếp danh sách lớp cố định theo tên lớp & mã lớp ngay từ đầu
+                    let rawClasses = (resClass.data || []).slice().sort((a, b) => {
+                        const nameA = String(a['ten-lop'] || a['ma-lop'] || '').trim();
+                        const nameB = String(b['ten-lop'] || b['ma-lop'] || '').trim();
+                        const cmp = nameA.localeCompare(nameB, 'vi', { numeric: true, sensitivity: 'base' });
+                        if (cmp !== 0) return cmp;
+                        return String(a['ma-lop'] || '').localeCompare(String(b['ma-lop'] || ''), 'vi', { numeric: true });
+                    });
                     window._rawClassesData = rawClasses; 
                     
                     instructorsList = resInst.data || [];
@@ -1117,12 +1161,7 @@
                         supabase.from('lop-hoc-phan').select('ma-lop, ma-hoc-phan, hoc-ky').limit(10000)
                     ]);
 
-                    let rawAssignments = resAssign.data || [];
-                    rawAssignments.sort((a, b) => {
-                        if (a['ma-lop'] < b['ma-lop']) return -1;
-                        if (a['ma-lop'] > b['ma-lop']) return 1;
-                        return a.id - b.id;
-                    });
+                    let rawAssignments = (resAssign.data || []).slice().sort(compareAssignmentsConsistent);
                     
                     allAssignmentsData = rawAssignments;
                     allSchedulesData = resSch.data || [];
@@ -1142,8 +1181,11 @@
                                 schs.sort((s1, s2) => {
                                     if (s1.ngay && !s2.ngay) return -1;
                                     if (!s1.ngay && s2.ngay) return 1;
-                                    if (s1.ngay && s2.ngay) return new Date(s1.ngay + 'T' + s1['gio-bat-dau']) - new Date(s2.ngay + 'T' + s2['gio-bat-dau']);
-                                    return 0;
+                                    if (s1.ngay && s2.ngay) {
+                                        const diff = new Date(s1.ngay + 'T' + s1['gio-bat-dau']) - new Date(s2.ngay + 'T' + s2['gio-bat-dau']);
+                                        if (diff !== 0) return diff;
+                                    }
+                                    return String(s1.id).localeCompare(String(s2.id), undefined, { numeric: true });
                                 });
                                 schs.forEach((sch, idx) => {
                                     sch._sessionIndex = idx + 1;
@@ -1203,8 +1245,11 @@
                         schs.sort((s1, s2) => {
                             if (s1.ngay && !s2.ngay) return -1;
                             if (!s1.ngay && s2.ngay) return 1;
-                            if (s1.ngay && s2.ngay) return new Date(s1.ngay + 'T' + s1['gio-bat-dau']) - new Date(s2.ngay + 'T' + s2['gio-bat-dau']);
-                            return 0;
+                            if (s1.ngay && s2.ngay) {
+                                const diff = new Date(s1.ngay + 'T' + s1['gio-bat-dau']) - new Date(s2.ngay + 'T' + s2['gio-bat-dau']);
+                                if (diff !== 0) return diff;
+                            }
+                            return String(s1.id).localeCompare(String(s2.id), undefined, { numeric: true });
                         });
                         schs.forEach((sch, idx) => {
                             sch._sessionIndex = idx + 1;
@@ -1215,7 +1260,7 @@
             }
 
             /* =================================================
-               4. VẼ GIAO DIỆN (POOL & GRID)
+               4. VẼ GIAO DIỆN (POOL & GRID VỚI THỨ TỰ LỚP CỐ ĐỊNH)
             ================================================= */
             classSelect.addEventListener("change", () => {
                 populateModuleFilter();
@@ -1286,11 +1331,13 @@
                     if (fMod && maHp !== fMod) return;
 
                     ['LT', 'TH'].forEach(type => {
-                        const unassignedSchs = allSchedulesData.filter(s => 
-                            String(s['id-phan-cong']) === String(a.id) && 
-                            s['loai-buoi'] === type && 
-                            (!s['ngay'] || !s['gio-bat-dau'])
-                        );
+                        const unassignedSchs = allSchedulesData
+                            .filter(s => 
+                                String(s['id-phan-cong']) === String(a.id) && 
+                                s['loai-buoi'] === type && 
+                                (!s['ngay'] || !s['gio-bat-dau'])
+                            )
+                            .sort((s1, s2) => (s1._sessionIndex || 0) - (s2._sessionIndex || 0));
 
                         unassignedSchs.forEach(sch => {
                             const tenHp = escapeHtml(getModuleName(maHp));
@@ -1315,6 +1362,7 @@
                 setupDragEventsForCards();
             }
 
+            // VẼ KHUNG LỊCH VỚI THỨ TỰ VỊ TRÍ CÁC LỚP ĐỒNG NHẤT XUYÊN SUỐT CÁC BUỔI
             function renderGrid() {
                 clearGridContent();
                 const gridClass = gridClassFilter.value;
@@ -1325,32 +1373,62 @@
                     if(th && th.dataset.fulldate) { dateMap[th.dataset.fulldate] = idx; }
                 });
 
+                // Map nhanh id phân công -> object phân công
+                const assignByIdMap = {};
+                allAssignmentsData.forEach(a => {
+                    assignByIdMap[String(a.id)] = a;
+                });
+
+                // Lọc các buổi học thuộc tuần hiện tại và hợp lệ với bộ lọc lớp
+                const scheduledItemsInWeek = [];
                 allSchedulesData.forEach(sch => {
                     if (!sch['ngay'] || !sch['gio-bat-dau']) return;
+                    const schDate = String(sch['ngay']);
+                    if (!dateMap.hasOwnProperty(schDate)) return;
 
-                    const a = allAssignmentsData.find(x => String(x.id) === String(sch['id-phan-cong']));
+                    const a = assignByIdMap[String(sch['id-phan-cong'])];
                     if (!a) return;
-
                     if (gridClass && String(a['ma-lop']).trim() !== gridClass) return;
 
-                    const schDate = String(sch['ngay']); 
-                    if (dateMap.hasOwnProperty(schDate)) {
-                        const dayIndex = dateMap[schDate];
-                        const sessionName = getSessionFromTime(sch['gio-bat-dau']); 
-                        
-                        const targetDropzone = document.querySelector(`.dropzone[data-action="grid"][data-dayindex="${dayIndex}"][data-session="${sessionName}"]`);
-                        if (targetDropzone) {
-                            const tenHp = escapeHtml(getModuleName(a["ma-hoc-phan"]));
-                            const tenLop = escapeHtml(getClassName(a["ma-lop"]));
-                            const tenGv = escapeHtml(getInstructorName(a["ma-giang-vien"]));
-                            let targetText = "Cả lớp";
-                            if (a["doi-tuong"] === "nhom") targetText = `Nhóm ${escapeHtml(a["ten-nhom"])}`;
-                            else if (a["doi-tuong"] === "ca-nhan") targetText = escapeHtml(a["ho-ten"]);
+                    scheduledItemsInWeek.push({ sch, assign: a });
+                });
 
-                            const cardId = `grid-card-${sch.id}`;
-                            const cardHtml = createCardHtml(cardId, sch.id, sch['loai-buoi'], tenHp, tenLop, tenGv, targetText, a["ghi-chu"], sch, sch._sessionIndex, sch._totalSessions, a["ma-lop"]);
-                            targetDropzone.insertAdjacentHTML('beforeend', cardHtml);
-                        }
+                // SẮP XẾP THỐNG NHẤT THỨ TỰ HIỂN THỊ TRONG MỌI Ô LỊCH:
+                // 1. Giờ bắt đầu tăng dần
+                // 2. Thứ tự Tên lớp / Mã lớp cố định (Lớp A luôn nằm trên Lớp B ở mọi ngày/buổi)
+                // 3. Đối tượng & Tên học phần cố định
+                scheduledItemsInWeek.sort((item1, item2) => {
+                    const time1 = String(item1.sch['gio-bat-dau'] || '').substring(0, 5);
+                    const time2 = String(item2.sch['gio-bat-dau'] || '').substring(0, 5);
+                    if (time1 !== time2) return time1.localeCompare(time2);
+
+                    const cmpAssign = compareAssignmentsConsistent(item1.assign, item2.assign);
+                    if (cmpAssign !== 0) return cmpAssign;
+
+                    if (item1.sch['loai-buoi'] !== item2.sch['loai-buoi']) {
+                        return String(item1.sch['loai-buoi']).localeCompare(String(item2.sch['loai-buoi']));
+                    }
+
+                    return (item1.sch._sessionIndex || 0) - (item2.sch._sessionIndex || 0);
+                });
+
+                scheduledItemsInWeek.forEach(({ sch, assign: a }) => {
+                    const schDate = String(sch['ngay']); 
+                    const dayIndex = dateMap[schDate];
+                    const sessionName = getSessionFromTime(sch['gio-bat-dau']); 
+                    
+                    const targetDropzone = document.querySelector(`.dropzone[data-action="grid"][data-dayindex="${dayIndex}"][data-session="${sessionName}"]`);
+                    if (targetDropzone) {
+                        const tenHp = escapeHtml(getModuleName(a["ma-hoc-phan"]));
+                        const tenLop = escapeHtml(getClassName(a["ma-lop"]));
+                        const tenGv = escapeHtml(getInstructorName(a["ma-giang-vien"]));
+                        let targetText = "Cả lớp";
+                        if (a["doi-tuong"] === "nhom") targetText = `Nhóm ${escapeHtml(a["ten-nhom"])}`;
+                        else if (a["doi-tuong"] === "ca-nhan") targetText = escapeHtml(a["ho-ten"]);
+
+                        const cardId = `grid-card-${sch.id}`;
+                        const cardHtml = createCardHtml(cardId, sch.id, sch['loai-buoi'], tenHp, tenLop, tenGv, targetText, a["ghi-chu"], sch, sch._sessionIndex, sch._totalSessions, a["ma-lop"]);
+                        targetDropzone.insertAdjacentHTML('beforeend', cardHtml);
                     }
                 });
                 
@@ -1722,7 +1800,6 @@
                 let alignedTypeLabel = currentSch ? currentSch['loai-buoi'] : "";
 
                 if (mergedClassesSchedules.length > 0 && currentSch) {
-                    // Lấy loại buổi hiện có của các lớp đã xếp sẵn tại đó (ví dụ Lớp A và B đang là TH)
                     const existingType = mergedClassesSchedules[0]['loai-buoi'];
                     const incomingType = currentSch['loai-buoi'];
 
@@ -1748,7 +1825,6 @@
                             finalSwapPlan = planConvertAllToIncoming;
                             alignedTypeLabel = incomingType;
                         } else {
-                            // Cả 2 chiều đều không thể đồng bộ hết tất cả các lớp mà không làm lệch lớp -> Chặn lưu để bảo vệ lịch
                             window.showToast(
                                 `Không thể ghép lớp vì không tìm được cặp buổi (${existingType}/${incomingType}) tương ứng cho tất cả các lớp mà không làm lệch lịch đã xếp!`,
                                 true
@@ -1757,7 +1833,6 @@
                         }
                     }
                 } else if (incomingSchedules.length > 1 && currentSch) {
-                    // Không ghép với lớp ngoài nhưng có các lớp liên kết (sibling classes)
                     const desiredType = currentSch['loai-buoi'];
                     const planSiblings = buildSafeSwapPlanForGroup(incomingSchedules, desiredType, blockedIdsSet);
                     if (planSiblings === null) {
