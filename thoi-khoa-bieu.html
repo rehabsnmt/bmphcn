@@ -594,7 +594,7 @@
 
             /* =================================================
                HÀM TỰ ĐỘNG KIỂM TRA PHÒNG TRỐNG THEO KHUNG GIỜ
-               (Khi preserveSelection = "" sẽ bắt buộc người dùng chọn lại)
+               (CHO PHÉP CHỌN CHUNG PHÒNG NẾU CÙNG MÔN & CÙNG GV NHƯNG KHÁC LỚP)
             ================================================= */
             function updateAvailableLocations(preserveSelection = "") {
                 const type = schLocationType.value;
@@ -607,7 +607,15 @@
                     const currentSchId = document.getElementById('schCardId').value;
                     const ignoredIds = currentSchId ? getRelatedScheduleIds(currentSchId).map(id => String(id)) : [];
 
+                    // Xác định Tên học phần, Mã lớp và Mã giảng viên của buổi học đang xếp lịch
+                    const currentSch = allSchedulesData.find(s => String(s.id) === String(currentSchId));
+                    const currentAssign = currentSch ? allAssignmentsData.find(a => String(a.id) === String(currentSch['id-phan-cong'])) : null;
+                    const currentModName = currentAssign ? String(getModuleName(currentAssign['ma-hoc-phan']) || '').trim().toLowerCase() : "";
+                    const currentGvId = currentAssign ? String(currentAssign['ma-giang-vien'] || '').trim() : "";
+                    const currentClassCode = currentAssign ? String(currentAssign['ma-lop'] || '').trim() : "";
+
                     const occupiedRooms = new Set();
+                    const sharedCoTeachingRooms = {}; // Lưu danh sách lớp khác đang học chung phòng (cùng môn & cùng GV)
 
                     // Kiểm tra xung đột giờ nếu người dùng đã chọn đủ Ngày, Giờ BĐ và Giờ KT hợp lệ
                     if (selectedDate && startTime && endTime && startTime < endTime) {
@@ -621,7 +629,22 @@
 
                             // Điều kiện giao nhau giữa 2 khoảng thời gian: (StartA < EndB) và (EndA > StartB)
                             if (sStart && sEnd && startTime < sEnd && endTime > sStart) {
-                                occupiedRooms.add(String(s['ma-phong-hoc']));
+                                const otherAssign = allAssignmentsData.find(a => String(a.id) === String(s['id-phan-cong']));
+                                const otherModName = otherAssign ? String(getModuleName(otherAssign['ma-hoc-phan']) || '').trim().toLowerCase() : "";
+                                const otherGvId = otherAssign ? String(otherAssign['ma-giang-vien'] || '').trim() : "";
+                                const otherClassCode = otherAssign ? String(otherAssign['ma-lop'] || '').trim() : "";
+                                const roomIdStr = String(s['ma-phong-hoc']);
+
+                                // Nếu 2 học phần có CÙNG TÊN, CÙNG GIẢNG VIÊN nhưng KHÁC LỚP -> Cho phép ghép phòng
+                                if (currentModName && currentGvId && currentModName === otherModName && currentGvId === otherGvId && currentClassCode !== otherClassCode) {
+                                    if (!sharedCoTeachingRooms[roomIdStr]) sharedCoTeachingRooms[roomIdStr] = new Set();
+                                    if (otherAssign) {
+                                        sharedCoTeachingRooms[roomIdStr].add(getClassName(otherAssign['ma-lop']));
+                                    }
+                                } else {
+                                    // Cùng lớp (không được trùng giờ) HOẶC khác môn / khác giảng viên -> Phòng đã bận, ẩn khỏi danh sách
+                                    occupiedRooms.add(roomIdStr);
+                                }
                             }
                         });
                     }
@@ -630,7 +653,12 @@
                     roomsList.forEach(r => {
                         const roomId = String(r['ma-phong-hoc']);
                         if (!occupiedRooms.has(roomId)) {
-                            schLocation.appendChild(new Option(r['ten-phong-hoc'], r['ma-phong-hoc']));
+                            let labelText = r['ten-phong-hoc'];
+                            if (sharedCoTeachingRooms[roomId] && sharedCoTeachingRooms[roomId].size > 0) {
+                                const classesJoined = Array.from(sharedCoTeachingRooms[roomId]).join(', ');
+                                labelText += ` (Đang ghép lớp: ${classesJoined})`;
+                            }
+                            schLocation.appendChild(new Option(labelText, r['ma-phong-hoc']));
                             availableCount++;
                         }
                     });
@@ -1120,7 +1148,7 @@
                 setupDragEventsForCards(); 
             }
 
-            // CẬP NHẬT: Hiển thị ghi chú cả ở Kho và trên Khung lịch khi ở giao diện Xếp lịch (isAdmin === true)
+            // Hiển thị ghi chú cả ở Kho và trên Khung lịch khi ở giao diện Xếp lịch (isAdmin === true)
             function createCardHtml(cardId, schId, type, tenHp, tenLop, tenGv, targetText, ghiChu, schData = null, sessionIndex = 1, totalSessions = 1, maLop = null) {
                 const colorObj = getColorForClass(maLop);
                 const bgStyle = `background-color: ${colorObj.bg}; border-left-color: ${colorObj.border};`;
@@ -1413,15 +1441,51 @@
                 if (!schId) { window.showToast("Lỗi thao tác", true); return; }
 
                 const targetIds = getRelatedScheduleIds(schId);
+                const ignoredIds = targetIds.map(id => String(id));
 
                 const ngay = schDate.value;
-                const gioBd = schStartTime.value + ":00";
-                const gioKt = schEndTime.value + ":00";
+                const startHm = schStartTime.value.substring(0, 5);
+                const endHm = schEndTime.value.substring(0, 5);
+                const gioBd = startHm + ":00";
+                const gioKt = endHm + ":00";
                 const locType = schLocationType.value;
                 const locVal = schLocation.value;
 
                 if(!locVal) { window.showToast("Vui lòng chọn lại địa điểm học tương ứng với khung giờ!", true); return; }
-                if(gioBd >= gioKt) { window.showToast("Giờ kết thúc phải lớn hơn giờ bắt đầu!", true); return; }
+                if(startHm >= endHm) { window.showToast("Giờ kết thúc phải lớn hơn giờ bắt đầu!", true); return; }
+
+                // KIỂM TRA CHẶN TRÙNG THỜI GIAN NẾU CÙNG MÔN, CÙNG LỚP, CÙNG GIẢNG VIÊN
+                const currentSch = allSchedulesData.find(s => String(s.id) === String(schId));
+                const currentAssign = currentSch ? allAssignmentsData.find(a => String(a.id) === String(currentSch['id-phan-cong'])) : null;
+
+                if (currentAssign) {
+                    const curClass = String(currentAssign['ma-lop'] || '').trim();
+                    const curModName = String(getModuleName(currentAssign['ma-hoc-phan']) || '').trim().toLowerCase();
+                    const curGv = String(currentAssign['ma-giang-vien'] || '').trim();
+
+                    const duplicateSameClassTime = allSchedulesData.some(s => {
+                        if (!s.ngay || ignoredIds.includes(String(s.id))) return false;
+                        if (String(s.ngay) !== String(ngay)) return false;
+
+                        const sStart = s['gio-bat-dau'] ? String(s['gio-bat-dau']).substring(0, 5) : "";
+                        const sEnd = s['gio-ket-thuc'] ? String(s['gio-ket-thuc']).substring(0, 5) : "";
+                        if (!sStart || !sEnd || !(startHm < sEnd && endHm > sStart)) return false;
+
+                        const otherAssign = allAssignmentsData.find(a => String(a.id) === String(s['id-phan-cong']));
+                        if (!otherAssign) return false;
+
+                        const otherClass = String(otherAssign['ma-lop'] || '').trim();
+                        const otherModName = String(getModuleName(otherAssign['ma-hoc-phan']) || '').trim().toLowerCase();
+                        const otherGv = String(otherAssign['ma-giang-vien'] || '').trim();
+
+                        return curClass === otherClass && curModName === otherModName && curGv === otherGv;
+                    });
+
+                    if (duplicateSameClassTime) {
+                        window.showToast("Không thể xếp trùng thời gian cho 2 buổi học có cùng môn, cùng lớp và cùng giảng viên!", true);
+                        return;
+                    }
+                }
 
                 const payload = {
                     "ngay": ngay,
