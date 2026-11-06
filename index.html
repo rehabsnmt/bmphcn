@@ -30,183 +30,30 @@
         /* CSS ẩn/hiện dấu phẩy và ngắt dòng trên giao diện điện thoại */
         .mobile-break { display: none; }
         .desktop-comma { display: inline; }
-
-        /* Bố cục toàn trang vừa khít màn hình */
-        html, body {
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        main {
-            flex: 1;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            width: 100%;
-            max-width: 100% !important;
-            padding: 1.5rem 20px !important;
-            box-sizing: border-box;
-            overflow: hidden;
-        }
-
-        /* LỚP ẢNH BANNER NẰM CHÌM DƯỚI CÙNG LÀM NỀN */
-        .hero-bg-layer {
-            position: absolute;
-            inset: 0;
-            z-index: 0;
-            overflow: hidden;
-            pointer-events: none;
-        }
-        .hero-bg-layer img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            object-position: center;
-            filter: brightness(0.92);
-            transform: scale(1.02);
-        }
-        /* Lớp phủ làm dịu ảnh nền để chữ và thẻ nổi bật rõ ràng */
-        .hero-bg-layer::after {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(
-                180deg,
-                rgba(248, 250, 252, 0.88) 0%,
-                rgba(248, 250, 252, 0.72) 45%,
-                rgba(248, 250, 252, 0.88) 100%
-            );
-            backdrop-filter: blur(2px);
-        }
-
-        /* KHUNG NỘI DUNG NỔI LÊN TRÊN LỚP NỀN */
-        .home-foreground-content {
-            position: relative;
-            z-index: 1;
-            width: 100%;
-            max-width: 1120px;
-            margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-
-        /* Tiêu đề trang chủ - Luôn ép căn giữa tuyệt đối */
-        .home-hero-header {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center !important;
-            width: 100%;
-            margin: 0 auto !important;
-            background: rgba(255, 255, 255, 0.78);
-            backdrop-filter: blur(8px);
-            padding: 1rem 1.5rem;
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.9);
-            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06);
-            box-sizing: border-box;
-        }
-        .home-hero-header h1 {
-            font-size: clamp(1.35rem, 2.5vw, 1.85rem);
-            color: var(--text-dark);
-            margin: 0 0 0.35rem 0;
-            font-weight: 800;
-            text-align: center !important;
-            width: 100%;
-        }
-        .home-hero-header .section-divider {
-            margin: 0.35rem auto 0.5rem auto !important;
-            height: 3.5px;
-        }
-        .home-hero-header p {
-            font-size: clamp(0.85rem, 1.5vw, 1rem);
-            color: var(--text-body);
-            font-weight: 600;
-            margin: 0 auto !important;
-            text-align: center !important;
-            width: 100% !important;
-            max-width: 100% !important;
-            display: block;
-        }
-
-        /* Lưới thẻ chức năng nổi trên nền ảnh */
-        #homeCardsContainer.quick-links {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-            gap: 1rem;
-            margin: 0 !important;
-            padding: 0 !important;
-        }
-        #homeCardsContainer .quick-card {
-            background: rgba(255, 255, 255, 0.88) !important;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.95);
-            padding: 1.15rem 1rem !important;
-            border-radius: 14px;
-            box-shadow: 0 6px 20px rgba(15, 23, 42, 0.08);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+        
+        /* CSS cho Ảnh Banner Trang Chủ */
+        .banner-image-wrapper {
             text-align: center;
-            transition: transform 0.22s ease, box-shadow 0.22s ease, background 0.22s ease;
+            margin: 1.5rem auto 2.5rem auto;
+            max-width: 1100px;
+            padding: 0 20px;
         }
-        #homeCardsContainer .quick-card:hover {
-            background: rgba(255, 255, 255, 0.98) !important;
-            transform: translateY(-4px);
-            box-shadow: 0 12px 28px rgba(2, 132, 199, 0.16);
-            border-color: var(--primary);
-        }
-        #homeCardsContainer .quick-card .icon-wrapper {
-            width: 46px;
-            height: 46px;
-            font-size: 1.2rem;
-            margin-bottom: 0.6rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        #homeCardsContainer .quick-card h3 {
-            font-size: 1rem;
-            margin: 0 0 0.3rem 0;
-            color: var(--text-dark);
-        }
-        #homeCardsContainer .quick-card p {
-            font-size: 0.82rem;
-            line-height: 1.4;
-            margin: 0;
-            color: var(--text-muted);
+        .banner-image-wrapper img {
+            width: 100%;
+            max-width: 100%;
+            aspect-ratio: 21 / 9; /* Ép tỷ lệ ảnh 21:9 */
+            object-fit: cover; /* Cắt cúp vừa khung không bị méo */
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            display: block;
+            margin: 0 auto;
         }
 
         @media (max-width: 768px) {
             .mobile-break { display: block; }
             .desktop-comma { display: none; }
-            main { padding: 1rem 12px !important; justify-content: flex-start; }
-            .home-foreground-content { gap: 1rem; }
-            .home-hero-header { padding: 0.85rem 1rem; border-radius: 12px; }
-            #homeCardsContainer.quick-links {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 0.65rem;
-            }
-            #homeCardsContainer .quick-card {
-                padding: 0.85rem 0.6rem !important;
-                border-radius: 10px;
-            }
-            #homeCardsContainer .quick-card .icon-wrapper {
-                width: 38px;
-                height: 38px;
-                font-size: 1.05rem;
-                margin-bottom: 0.4rem;
-            }
-            #homeCardsContainer .quick-card h3 { font-size: 0.86rem; }
-            #homeCardsContainer .quick-card p { font-size: 0.73rem; }
+            .banner-image-wrapper { margin: 1rem auto 2rem auto; padding: 0 16px; }
+            .banner-image-wrapper img { border-radius: 12px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1); }
         }
     </style>
 </head>
@@ -218,31 +65,28 @@
 
     <!-- MAIN CONTENT -->
     <main>
-        <!-- ẢNH BANNER NẰM CHÌM DƯỚI CÙNG LÀM NỀN -->
-        <div class="hero-bg-layer">
+        <!-- Lời chào / Banner đơn giản -->
+        <div class="section-title" style="margin-top: 1rem;">
+            <h1>Bộ môn Phục hồi chức năng</h1>
+            <div class="section-divider"></div>
+            <p>Trường Điều dưỡng - Kỹ thuật Y học<span class="desktop-comma">, </span><br class="mobile-break">Đại học Y Dược Thành phố Hồ Chí Minh</p>
+        </div>
+
+        <!-- ẢNH BANNER TRANG CHỦ TỶ LỆ 21:9 -->
+        <div class="banner-image-wrapper">
             <img src="images/index.jpg" alt="Tập thể Bộ môn Phục hồi chức năng">
         </div>
 
-        <!-- NỘI DUNG NỔI LÊN TRÊN NỀN ẢNH -->
-        <div class="home-foreground-content">
-            <!-- Lời chào / Tiêu đề -->
-            <div class="section-title home-hero-header">
-                <h1>Bộ môn Phục hồi chức năng</h1>
-                <div class="section-divider"></div>
-                <p>Trường Điều dưỡng - Kỹ thuật Y học<span class="desktop-comma">, </span><br class="mobile-break">Đại học Y Dược Thành phố Hồ Chí Minh</p>
-            </div>
-
-            <!-- KHU VỰC HIỂN THỊ CÁC THẺ CARD (Lấy từ JSON) -->
-            <section style="width: 100%; margin: 0; padding: 0;">
-                <div id="homeCardsContainer" class="quick-links">
-                    <!-- Vùng hiển thị trạng thái đang tải -->
-                    <div style="grid-column: 1 / -1; text-align: center; padding: 2rem; color: var(--text-dark); background: rgba(255,255,255,0.8); border-radius: 12px;">
-                        <i class="fas fa-spinner fa-spin fa-2x" style="margin-bottom: 0.5rem;"></i>
-                        <p>Đang tải dữ liệu...</p>
-                    </div>
+        <!-- KHU VỰC HIỂN THỊ CÁC THẺ CARD (Lấy từ JSON) -->
+        <section class="container">
+            <div id="homeCardsContainer" class="quick-links">
+                <!-- Vùng hiển thị trạng thái đang tải -->
+                <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: var(--text-muted);">
+                    <i class="fas fa-spinner fa-spin fa-2x" style="margin-bottom: 1rem;"></i>
+                    <p>Đang tải dữ liệu...</p>
                 </div>
-            </section>
-        </div>
+            </div>
+        </section>
 
     </main>
 
@@ -306,8 +150,8 @@
                 .catch(error => {
                     console.error("Lỗi khi tải json/index.json:", error);
                     container.innerHTML = `
-                        <div style="grid-column: 1 / -1; text-align: center; color: var(--accent); background: rgba(255,255,255,0.9); padding: 1.5rem; border-radius: 12px;">
-                            <i class="fas fa-exclamation-triangle fa-2x" style="margin-bottom: 0.5rem;"></i>
+                        <div style="grid-column: 1 / -1; text-align: center; color: var(--accent);">
+                            <i class="fas fa-exclamation-triangle fa-2x" style="margin-bottom: 1rem;"></i>
                             <p>Không thể tải dữ liệu trang chủ.<br><small>${error.message}</small></p>
                         </div>
                     `;
