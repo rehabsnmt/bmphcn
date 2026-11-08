@@ -30,6 +30,7 @@
     }
 
     let supabaseClient = null;
+    let isAuthReady = false; // Biến cờ kiểm soát trạng thái đã xác thực xong hay chưa
 
     function initSupabase() {
         if (!window.supabase) throw new Error("Supabase JS chưa được tải.");
@@ -56,6 +57,13 @@
                 .btn-logout:hover {
                     background: #be123c; /* Đỏ sậm hơn khi hover */
                 }
+                /* Trạng thái khóa nút khi đang xác thực */
+                .btn-login.auth-loading {
+                    pointer-events: none;
+                    opacity: 0.75;
+                    cursor: wait;
+                    user-select: none;
+                }
             </style>
             <header>
                 <a href="./index.html" class="logo-link" aria-label="Trang chủ">
@@ -69,11 +77,10 @@
                     <a href="./tuyen-sinh.html" class="nav-item">Tuyển sinh</a>
                     <a href="./de-tai.html" class="nav-item">Đề tài</a>
                     
-                    
-                    <!-- Nhóm nút Xác thực (Auth) -->
+                    <!-- Nhóm nút Xác thực (Auth) - Mặc định khóa và hiện Đang xác thực -->
                     <div style="display: flex; gap: 10px; align-items: center;">
-                        <a href="./login.html" class="btn-login" id="btnAuthNav">
-                            Đăng nhập
+                        <a href="#" class="btn-login auth-loading" id="btnAuthNav" aria-disabled="true" tabindex="-1">
+                            <i class="fas fa-spinner fa-spin" style="margin-right: 5px;"></i> Đang xác thực
                         </a>
                         <a href="#" class="btn-login btn-logout" id="btnLogoutNav" style="display: none;">
                             <i class="fas fa-sign-out-alt" style="margin-right: 5px;"></i> Đăng xuất
@@ -113,7 +120,13 @@
         });
 
         nav.addEventListener("click", (event) => {
-            if (!event.target.closest("a")) return;
+            const clickedLink = event.target.closest("a");
+            if (!clickedLink) return;
+            // Nếu bấm vào nút Auth khi chưa xác thực xong thì không xử lý
+            if (clickedLink.id === "btnAuthNav" && !isAuthReady) {
+                event.preventDefault();
+                return;
+            }
             nav.classList.remove("active");
             toggle.setAttribute("aria-expanded", "false");
             const icon = toggle.querySelector("i");
@@ -161,10 +174,20 @@
         return data;
     }
 
+    function unlockAuthButton(btnAuth) {
+        isAuthReady = true;
+        btnAuth.classList.remove("auth-loading");
+        btnAuth.removeAttribute("aria-disabled");
+        btnAuth.removeAttribute("tabindex");
+    }
+
     function updateAuthButton(user, profile) {
         const btnAuth = document.getElementById("btnAuthNav");
         const btnLogout = document.getElementById("btnLogoutNav");
         if (!btnAuth) return;
+
+        // Mở khóa cho phép click sau khi đã biết trạng thái đăng nhập
+        unlockAuthButton(btnAuth);
 
         if (!user) {
             // Khi CHƯA đăng nhập
@@ -204,8 +227,15 @@
     }
 
     function initAuthButton() {
-        // Lắng nghe sự kiện click trên nút Đăng xuất chuyên biệt
+        // Chặn click vào nút Đăng nhập nếu chưa xác thực xong & xử lý nút Đăng xuất
         document.addEventListener("click", async (event) => {
+            const authBtn = event.target.closest("#btnAuthNav");
+            if (authBtn && !isAuthReady) {
+                event.preventDefault();
+                event.stopPropagation();
+                return;
+            }
+
             const logoutBtn = event.target.closest("#btnLogoutNav");
             if (logoutBtn) {
                 event.preventDefault();
@@ -269,6 +299,8 @@
 
         } catch (error) {
             console.error("Lỗi khởi tạo Auth:", error);
+            // Mở khóa về trạng thái chưa đăng nhập nếu xảy ra lỗi mạng để không bị treo nút
+            updateAuthButton(null, null);
             if (PROTECTED_PAGES.includes(getCurrentPage())) {
                 window.location.replace("./login.html");
             }
@@ -291,13 +323,14 @@
             renderFooter();
             initMobileMenu();
             setActiveMenu();
+            initAuthButton();
 
             await loadSupabase();
             initSupabase();
-            initAuthButton();
             await initAuth();
         } catch (error) {
             console.error("Lỗi hệ thống:", error);
+            updateAuthButton(null, null);
         }
     }
 
